@@ -1,5 +1,6 @@
 using Cane360.Domain.Farms;
 using Cane360.Domain.Common;
+using Cane360.Domain.Activities;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -31,6 +32,10 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
         builder.HasMany(tenant => tenant.CropVarieties)
             .WithOne()
             .HasForeignKey(variety => variety.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(tenant => tenant.ActivityTypes)
+            .WithOne()
+            .HasForeignKey(type => type.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
@@ -130,6 +135,7 @@ internal sealed class FarmConfiguration : IEntityTypeConfiguration<Farm>
             .IsUnique()
             .HasFilter("\"Status\" = 'Active'");
         builder.HasIndex(farm => new { farm.TenantId, farm.Code }).IsUnique();
+        builder.HasAlternateKey(farm => new { farm.Id, farm.TenantId });
         builder.HasOne(farm => farm.Store)
             .WithOne()
             .HasForeignKey<Store>(store => store.FarmId)
@@ -137,6 +143,10 @@ internal sealed class FarmConfiguration : IEntityTypeConfiguration<Farm>
         builder.HasMany(farm => farm.Fields)
             .WithOne()
             .HasForeignKey(field => field.FarmId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(farm => farm.Persons)
+            .WithOne()
+            .HasForeignKey(person => person.FarmId)
             .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
@@ -188,12 +198,18 @@ internal sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
         builder.Property(field => field.Status).HasConversion<string>().HasMaxLength(24);
         builder.Ignore(field => field.ReportingHectares);
         builder.Ignore(field => field.CurrentCropCycle);
+        builder.Ignore(field => field.CurrentLineProfile);
+        builder.HasAlternateKey(field => new { field.Id, field.FarmId });
         builder.HasIndex(field => new { field.FarmId, field.Code })
             .IsUnique()
             .HasFilter("\"Status\" = 'Active'");
         builder.HasMany(field => field.CropCycles)
             .WithOne()
             .HasForeignKey(cycle => cycle.FieldId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(field => field.LineProfiles)
+            .WithOne()
+            .HasForeignKey(profile => profile.FieldId)
             .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
@@ -231,6 +247,7 @@ internal sealed class CropCycleConfiguration : IEntityTypeConfiguration<CropCycl
         builder.Property(cycle => cycle.ExpectedYieldTonnes).HasPrecision(14, 3);
         builder.Property(cycle => cycle.Status).HasConversion<string>().HasMaxLength(32);
         builder.Property(cycle => cycle.Version).IsConcurrencyToken();
+        builder.HasAlternateKey(cycle => new { cycle.Id, cycle.FieldId });
         builder.HasOne<CropVariety>()
             .WithMany()
             .HasForeignKey(cycle => cycle.CropVarietyId)
@@ -242,6 +259,11 @@ internal sealed class CropCycleConfiguration : IEntityTypeConfiguration<CropCycl
         builder.HasMany(cycle => cycle.StatusChanges)
             .WithOne()
             .HasForeignKey(change => change.CropCycleId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(cycle => cycle.Activities)
+            .WithOne()
+            .HasForeignKey(activity => new { activity.CropCycleId, activity.FieldId })
+            .HasPrincipalKey(cycle => new { cycle.Id, cycle.FieldId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(cycle => cycle.FieldId)
             .IsUnique()

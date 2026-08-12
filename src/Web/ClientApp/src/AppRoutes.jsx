@@ -5,6 +5,7 @@ import { FarmPage } from './components/pages/FarmPage';
 import { FieldsPage } from './components/pages/FieldsPage';
 import { CropCycleOverviewPage } from './components/pages/CropCycleOverviewPage';
 import { ModulePage } from './components/pages/ModulePage';
+import { ActivitiesPage } from './components/pages/ActivitiesPage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
@@ -21,7 +22,8 @@ export function AppRoutes() {
         <Route path="/farm" element={<FarmPage />} />
         <Route path="/fields" element={<FieldsPage />} />
         <Route path="/fields/:fieldId/crop-cycles/:cropCycleId" element={<CropCycleOverviewPage />} />
-        {protectedNavigation.slice(3).map((item) => (
+        <Route path="/activities" element={<ActivitiesPage />} />
+        {protectedNavigation.slice(4).map((item) => (
           <Route
             key={item.id}
             path={item.path}

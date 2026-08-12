@@ -1,8 +1,11 @@
 namespace Cane360.Domain.Farms;
 
+using Cane360.Domain.Activities;
+
 public sealed class Farm : BaseAuditableEntity
 {
     private readonly List<Field> _fields = [];
+    private readonly List<Person> _persons = [];
 
     private Farm() { }
 
@@ -39,6 +42,7 @@ public sealed class Farm : BaseAuditableEntity
     public RecordStatus Status { get; private set; }
     public Store Store { get; private set; } = null!;
     public IReadOnlyCollection<Field> Fields => _fields.AsReadOnly();
+    public IReadOnlyCollection<Person> Persons => _persons.AsReadOnly();
 
     internal static Farm Create(
         Guid tenantId,
@@ -96,6 +100,34 @@ public sealed class Farm : BaseAuditableEntity
         _fields.Add(field);
 
         return field;
+    }
+
+    public Person AddPerson(string displayName, string? phone, DateOnly activeFrom)
+    {
+        var person = Person.Create(Id, displayName, phone, activeFrom);
+        _persons.Add(person);
+        return person;
+    }
+
+    public PersonRoleAssignment AssignRole(
+        Person person,
+        PersonRole role,
+        bool isPrimary,
+        DateOnly effectiveFrom)
+    {
+        if (!_persons.Contains(person))
+        {
+            throw new InvalidOperationException("The person does not belong to this farm.");
+        }
+
+        if (role == PersonRole.FarmManager && isPrimary && _persons.Any(candidate =>
+            candidate.RoleAssignments.Any(assignment =>
+                assignment.Role == PersonRole.FarmManager && assignment.IsPrimary && assignment.EffectiveTo is null)))
+        {
+            throw new InvalidOperationException("This farm already has a current primary farm manager.");
+        }
+
+        return person.AssignRole(role, isPrimary, effectiveFrom);
     }
 
     private static string NormaliseCode(string code) => code.Trim().ToUpperInvariant();

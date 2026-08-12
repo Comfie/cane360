@@ -1,5 +1,7 @@
 using System.Globalization;
 using Cane360.Domain.Farms;
+using Cane360.Domain.Activities;
+using Cane360.Application.Activities;
 
 namespace Cane360.Application.CropCycles;
 
@@ -16,7 +18,9 @@ public sealed record CropCycleTimelineEventDto(
     string EventDate,
     string RecordedAt,
     string? Detail,
-    string? Reason);
+    string? Reason,
+    string? EnteredBy = null,
+    string? OperationalActor = null);
 
 public sealed record CropCycleListItemDto(
     Guid Id,
@@ -76,7 +80,14 @@ internal static class CropCycleMapper
                 allowed.Add("ReadyForHarvest");
                 break;
             case CropCycleStatus.ReadyForHarvest:
-                allowed.Add("Harvest");
+                if (cycle.Activities.All(activity => activity.Status is ActivityStatus.Closed or ActivityStatus.Cancelled))
+                {
+                    allowed.Add("Harvest");
+                }
+                else
+                {
+                    blocked["Harvest"] = "Close or cancel every activity before recording harvest.";
+                }
                 break;
             case CropCycleStatus.Harvested:
                 allowed.Add("Close");
@@ -97,6 +108,89 @@ internal static class CropCycleMapper
             allowed,
             blocked,
             MapTimeline(field, cycle));
+    }
+
+    public static async Task<CropCycleDetailsDto> MapDetailsAsync(
+        Field field,
+        CropCycle cycle,
+        Farm farm,
+        IIdentityService identityService)
+    {
+        var details = MapDetails(field, cycle);
+        var userIds = cycle.Activities
+            .SelectMany(activity => activity.StatusChanges.Select(change => change.RecordedBy)
+                .Append(activity.CreatedBy)
+                .Append(activity.ActualEnteredByUserId)
+                .Concat(activity.EvidenceLinks.Select(link => link.RecordedBy)))
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
+            .Cast<string>();
+        var users = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var userId in userIds)
+        {
+            users[userId] = await identityService.GetUserNameAsync(userId) ?? "Unknown user";
+        }
+
+        string UserName(string? id) => id is not null && users.TryGetValue(id, out var name) ? name : "Unknown user";
+        string? PersonName(Guid? id) => id is null ? null : farm.Persons.SingleOrDefault(person => person.Id == id)?.DisplayName;
+        var activityTimeline = cycle.Activities.SelectMany(activity =>
+        {
+            var entries = new List<CropCycleTimelineEventDto>
+            {
+                new(
+                    activity.Id,
+                    "ActivityCreated",
+                    $"{activity.ActivityTypeName} activity recorded",
+                    FormatTimestamp(activity.Created),
+                    FormatTimestamp(activity.Created),
+                    $"{activity.Kind} · {ActivityMapper.FormatStatus(activity.Status)}",
+                    null,
+                    UserName(activity.CreatedBy),
+                    PersonName(activity.SupervisorPersonId))
+            };
+            if (activity.ActualAt is not null && activity.ActualEnteredAt is not null)
+            {
+                entries.Add(new CropCycleTimelineEventDto(
+                    activity.Id,
+                    "ActivityActualWork",
+                    $"{activity.ActivityTypeName} actual work",
+                    FormatTimestamp(activity.ActualAt.Value),
+                    FormatTimestamp(activity.ActualEnteredAt.Value),
+                    ActivityMapper.Coverage(activity),
+                    activity.LateEntryReason,
+                    UserName(activity.ActualEnteredByUserId),
+                    PersonName(activity.SupervisorPersonId)));
+            }
+            entries.AddRange(activity.StatusChanges.Select(change => new CropCycleTimelineEventDto(
+                change.Id,
+                "ActivityStatusChange",
+                $"{activity.ActivityTypeName} moved to {ActivityMapper.FormatStatus(change.ToStatus)}",
+                FormatTimestamp(change.RecordedAt),
+                FormatTimestamp(change.RecordedAt),
+                null,
+                change.Reason,
+                UserName(change.RecordedBy),
+                PersonName(change.OperationalPersonId))));
+            entries.AddRange(activity.EvidenceLinks.Select(link => new CropCycleTimelineEventDto(
+                link.Id,
+                "ActivitySourceReference",
+                $"Source reference added to {activity.ActivityTypeName}",
+                FormatDate(link.CapturedDate),
+                FormatTimestamp(link.RecordedAt),
+                link.SourceSheetReference,
+                null,
+                UserName(link.RecordedBy),
+                null)));
+            return entries;
+        });
+
+        return details with
+        {
+            Timeline = details.Timeline.Concat(activityTimeline)
+                .OrderByDescending(item => item.EventDate, StringComparer.Ordinal)
+                .ThenByDescending(item => item.RecordedAt, StringComparer.Ordinal)
+                .ToArray()
+        };
     }
 
     private static CropCycleFieldDto MapField(Field field) =>

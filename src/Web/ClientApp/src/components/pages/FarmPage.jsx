@@ -8,6 +8,7 @@ import { farmSetupClient, getApiError, useFarmSetup } from '../farm-setup/farmSe
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import { PersonnelRegister } from '../farm-setup/PersonnelRegister';
 
 export function FarmPage() {
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
@@ -59,7 +60,7 @@ export function FarmPage() {
       <FarmSetupProgress setup={setup} />
       <ValidationError message={error} />
 
-      {setup.isConfigured ? <FarmSummary setup={setup} /> : (
+      {setup.isConfigured ? <><FarmSummary setup={setup} /><PersonnelRegister /></> : (
         <form className="setup-form record-panel" onSubmit={createFarm}>
           <header className="form-section-heading">
             <span className="form-section-icon" aria-hidden="true"><Tractor size={19} /></span>

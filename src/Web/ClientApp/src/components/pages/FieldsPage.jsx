@@ -12,6 +12,7 @@ import { farmSetupClient, getApiError, useFarmSetup } from '../farm-setup/farmSe
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import { LineProfileForm } from '../farm-setup/LineProfileForm';
 
 export function FieldsPage() {
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
@@ -94,6 +95,7 @@ export function FieldsPage() {
           <div className="field-record-list">
             {fields.map((field) => (
               <FieldRecord key={field.id} field={field}>
+                <LineProfileForm fieldId={field.id} />
                 <div className="field-cycle-actions">
                   {field.currentCropCycle && <Link className="secondary-action" to={`/fields/${field.id}/crop-cycles/${field.currentCropCycle.id}`}><Eye size={16} /> View current cycle</Link>}
                   {activeCycleField !== field.id && <button type="button" className="secondary-action" onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> Plan crop cycle</button>}

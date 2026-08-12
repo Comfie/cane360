@@ -1,10 +1,13 @@
 namespace Cane360.Domain.Farms;
 
+using Cane360.Domain.Activities;
+
 public sealed class Tenant : BaseAuditableEntity
 {
     private readonly List<TenantMembership> _memberships = [];
     private readonly List<Farm> _farms = [];
     private readonly List<CropVariety> _cropVarieties = [];
+    private readonly List<ActivityType> _activityTypes = [];
 
     private Tenant() { }
 
@@ -22,6 +25,7 @@ public sealed class Tenant : BaseAuditableEntity
     public IReadOnlyCollection<TenantMembership> Memberships => _memberships.AsReadOnly();
     public IReadOnlyCollection<Farm> Farms => _farms.AsReadOnly();
     public IReadOnlyCollection<CropVariety> CropVarieties => _cropVarieties.AsReadOnly();
+    public IReadOnlyCollection<ActivityType> ActivityTypes => _activityTypes.AsReadOnly();
 
     public static Tenant CreateForGrower(string userId, string growerDisplayName, string? growerPhone)
     {
@@ -74,5 +78,24 @@ public sealed class Tenant : BaseAuditableEntity
         _cropVarieties.Add(cropVariety);
 
         return cropVariety;
+    }
+
+    public ActivityType AddActivityType(
+        string code,
+        string name,
+        bool supportsPlanned,
+        bool supportsUnplanned,
+        ActivityQuantityBasis quantityBasis)
+    {
+        var normalisedCode = code.Trim().ToUpperInvariant();
+        if (_activityTypes.Any(type => type.Status == RecordStatus.Active && type.Code == normalisedCode))
+        {
+            throw new InvalidOperationException($"Activity type code '{normalisedCode}' is already in use.");
+        }
+
+        var activityType = ActivityType.Create(
+            Id, normalisedCode, name, supportsPlanned, supportsUnplanned, quantityBasis);
+        _activityTypes.Add(activityType);
+        return activityType;
     }
 }

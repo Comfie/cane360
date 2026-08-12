@@ -21,7 +21,8 @@ public sealed class GetCropCyclesQueryHandler(
 
 public sealed class GetCropCycleDetailsQueryHandler(
     IFarmSetupRepository repository,
-    IUser user) : IRequestHandler<GetCropCycleDetailsQuery, CropCycleDetailsDto>
+    IUser user,
+    IIdentityService identityService) : IRequestHandler<GetCropCycleDetailsQuery, CropCycleDetailsDto>
 {
     public async Task<CropCycleDetailsDto> Handle(
         GetCropCycleDetailsQuery request,
@@ -31,6 +32,6 @@ public sealed class GetCropCycleDetailsQueryHandler(
             repository, user, false, cancellationToken);
         var field = CropCycleAccess.RequireField(tenant, request.FieldId);
         var cropCycle = CropCycleAccess.RequireCycle(field, request.CropCycleId);
-        return CropCycleMapper.MapDetails(field, cropCycle);
+        return await CropCycleMapper.MapDetailsAsync(field, cropCycle, tenant.ActiveFarm!, identityService);
     }
 }

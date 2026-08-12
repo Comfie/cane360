@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Domain.Farms;
+using Cane360.Domain.Activities;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<CropCycle> CropCycles => Set<CropCycle>();
     public DbSet<HarvestResult> HarvestResults => Set<HarvestResult>();
     public DbSet<CropCycleStatusChange> CropCycleStatusChanges => Set<CropCycleStatusChange>();
+    public DbSet<Person> Persons => Set<Person>();
+    public DbSet<PersonRoleAssignment> PersonRoleAssignments => Set<PersonRoleAssignment>();
+    public DbSet<FieldLineProfile> FieldLineProfiles => Set<FieldLineProfile>();
+    public DbSet<ActivityType> ActivityTypes => Set<ActivityType>();
+    public DbSet<Activity> Activities => Set<Activity>();
+    public DbSet<ActivityStatusChange> ActivityStatusChanges => Set<ActivityStatusChange>();
+    public DbSet<EvidenceLink> EvidenceLinks => Set<EvidenceLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

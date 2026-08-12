@@ -1,8 +1,11 @@
 namespace Cane360.Domain.Farms;
 
+using Cane360.Domain.Activities;
+
 public sealed class CropCycle : BaseAuditableEntity
 {
     private readonly List<CropCycleStatusChange> _statusChanges = [];
+    private readonly List<Activity> _activities = [];
 
     private CropCycle() { }
 
@@ -50,8 +53,9 @@ public sealed class CropCycle : BaseAuditableEntity
     public long Version { get; private set; }
     public HarvestResult? HarvestResult { get; private set; }
     public IReadOnlyCollection<CropCycleStatusChange> StatusChanges => _statusChanges.AsReadOnly();
+    public IReadOnlyCollection<Activity> Activities => _activities.AsReadOnly();
 
-    public bool AcceptsOperationalEntries => Status == CropCycleStatus.Active;
+    public bool AcceptsOperationalEntries => Status is CropCycleStatus.Active or CropCycleStatus.ReadyForHarvest;
 
     internal static CropCycle CreateDraft(
         Guid fieldId,
@@ -139,8 +143,38 @@ public sealed class CropCycle : BaseAuditableEntity
             throw new InvalidOperationException("A harvest result has already been recorded for this crop cycle.");
         }
 
+        if (_activities.Any(activity => activity.Status is not (ActivityStatus.Closed or ActivityStatus.Cancelled)))
+        {
+            throw new InvalidOperationException("All activities must be Closed or Cancelled before harvest can be recorded.");
+        }
+
         HarvestResult = global::Cane360.Domain.Farms.HarvestResult.Create(Id, harvestDate, actualTonnes);
         TransitionTo(CropCycleStatus.ReadyForHarvest, CropCycleStatus.Harvested, recordedAt, recordedBy);
+    }
+
+    public Activity CreateActivity(
+        Guid tenantId,
+        Guid farmId,
+        Guid fieldId,
+        ActivityType activityType,
+        ActivityPlanningKind kind,
+        DateOnly? plannedDate,
+        Guid supervisorPersonId)
+    {
+        if (!AcceptsOperationalEntries)
+        {
+            throw new InvalidOperationException("Activities require an Active or Ready-for-harvest crop cycle.");
+        }
+
+        if (FieldId != fieldId)
+        {
+            throw new InvalidOperationException("The crop cycle does not belong to the selected field.");
+        }
+
+        var activity = Activity.Create(
+            tenantId, farmId, fieldId, Id, activityType, kind, plannedDate, supervisorPersonId);
+        _activities.Add(activity);
+        return activity;
     }
 
     public void Close(DateTimeOffset recordedAt, string recordedBy)

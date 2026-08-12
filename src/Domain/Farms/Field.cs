@@ -1,8 +1,11 @@
 namespace Cane360.Domain.Farms;
 
+using Cane360.Domain.Activities;
+
 public sealed class Field : BaseAuditableEntity
 {
     private readonly List<CropCycle> _cropCycles = [];
+    private readonly List<FieldLineProfile> _lineProfiles = [];
 
     private Field() { }
 
@@ -37,6 +40,8 @@ public sealed class Field : BaseAuditableEntity
     public string? SoilNotes { get; private set; }
     public RecordStatus Status { get; private set; }
     public IReadOnlyCollection<CropCycle> CropCycles => _cropCycles.AsReadOnly();
+    public IReadOnlyCollection<FieldLineProfile> LineProfiles => _lineProfiles.AsReadOnly();
+    public FieldLineProfile? CurrentLineProfile => _lineProfiles.SingleOrDefault(profile => profile.EffectiveTo is null);
 
     public decimal ReportingHectares => ReportingAreaSource switch
     {
@@ -126,5 +131,28 @@ public sealed class Field : BaseAuditableEntity
         }
 
         cropCycle.Activate(recordedAt, recordedBy);
+    }
+
+    public FieldLineProfile ReplaceLineProfile(
+        decimal standardLineLengthMetres,
+        int estimatedLineCount,
+        string numberingScheme,
+        DateOnly effectiveFrom)
+    {
+        var current = CurrentLineProfile;
+        if (current is not null)
+        {
+            if (effectiveFrom <= current.EffectiveFrom)
+            {
+                throw new InvalidOperationException("A replacement line profile must start after the current profile.");
+            }
+
+            current.End(effectiveFrom.AddDays(-1));
+        }
+
+        var profile = FieldLineProfile.Create(
+            Id, standardLineLengthMetres, estimatedLineCount, numberingScheme, effectiveFrom);
+        _lineProfiles.Add(profile);
+        return profile;
     }
 }
