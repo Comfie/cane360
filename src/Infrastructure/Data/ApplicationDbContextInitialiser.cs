@@ -2,6 +2,7 @@
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ public static class InitialiserExtensions
 
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
 
+        await initialiser.MigrateAsync();
         await initialiser.SeedAsync();
     }
 }
@@ -22,14 +24,33 @@ public static class InitialiserExtensions
 public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
+    private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ApplicationDbContextInitialiser(
+        ILogger<ApplicationDbContextInitialiser> logger,
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager)
     {
         _logger = logger;
+        _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
+    }
+
+    public async Task MigrateAsync()
+    {
+        try
+        {
+            await _context.Database.MigrateAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while migrating the database.");
+            throw;
+        }
     }
 
     public async Task SeedAsync()
@@ -49,20 +70,38 @@ public class ApplicationDbContextInitialiser
     {
         var administratorRole = new IdentityRole(Roles.Administrator);
 
-        if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
+        if (!await _roleManager.RoleExistsAsync(Roles.Administrator))
         {
-            await _roleManager.CreateAsync(administratorRole);
+            EnsureSucceeded(
+                await _roleManager.CreateAsync(administratorRole),
+                "create the Administrator role");
         }
 
         var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
 
-        if (_userManager.Users.All(u => u.UserName != administrator.UserName))
+        if (await _userManager.FindByEmailAsync(administrator.Email) is null)
         {
-            await _userManager.CreateAsync(administrator, "Administrator1!");
+            EnsureSucceeded(
+                await _userManager.CreateAsync(administrator, "Administrator1!"),
+                "create the administrator user");
+
             if (!string.IsNullOrWhiteSpace(administratorRole.Name))
             {
-                await _userManager.AddToRolesAsync(administrator, [administratorRole.Name]);
+                EnsureSucceeded(
+                    await _userManager.AddToRoleAsync(administrator, administratorRole.Name),
+                    "assign the Administrator role");
             }
         }
+    }
+
+    private static void EnsureSucceeded(IdentityResult result, string operation)
+    {
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        var errors = string.Join(", ", result.Errors.Select(error => error.Description));
+        throw new InvalidOperationException($"Failed to {operation}: {errors}");
     }
 }

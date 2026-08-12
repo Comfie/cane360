@@ -1,4 +1,7 @@
+using System.Reflection;
 using Cane360.Infrastructure;
+using Cane360.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +11,11 @@ builder.AddInfrastructureServices();
 builder.AddWebServices();
 
 var app = builder.Build();
+
+if (ShouldInitialiseDatabase())
+{
+    await app.InitialiseDatabaseAsync();
+}
 
 if (!app.Environment.IsDevelopment())
 {
@@ -35,3 +43,15 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+static bool ShouldInitialiseDatabase()
+{
+    if (EF.IsDesignTime)
+    {
+        return false;
+    }
+
+    var entryAssemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
+
+    return entryAssemblyName is not "GetDocument.Insider" and not "dotnet-getdocument";
+}
