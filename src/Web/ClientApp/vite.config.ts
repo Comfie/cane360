@@ -7,6 +7,13 @@ const proxyOptions = { target, secure: false, changeOrigin: true };
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        quietDeps: true,
+      },
+    },
+  },
   server: {
     port: Number(process.env.PORT) || 5173,
     proxy: {

@@ -46,7 +46,7 @@ function NavigationLink({ item, compact = false, iconOnly = false, onNavigate })
       aria-label={iconOnly ? item.label : undefined}
       title={iconOnly ? item.label : undefined}
     >
-      <Icon size={compact ? 20 : 18} aria-hidden="true" />
+      <Icon size={compact ? 20 : 16} aria-hidden="true" />
       <span>{compact ? item.shortLabel : item.label}</span>
     </NavLink>
   );
@@ -55,7 +55,7 @@ function NavigationLink({ item, compact = false, iconOnly = false, onNavigate })
 function Brand() {
   return (
     <NavLink className="brand" to="/" aria-label="Cane360 dashboard">
-      <span className="brand-mark" aria-hidden="true"><Leaf size={22} /></span>
+      <span className="brand-mark" aria-hidden="true"><Leaf size={18} /></span>
       <span>
         <strong>Cane360</strong>
         <small>Grower operations</small>
@@ -87,8 +87,8 @@ export function DesktopNavigation({ collapsed, onToggle }) {
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed
-            ? <PanelLeftOpen size={19} aria-hidden="true" />
-            : <PanelLeftClose size={19} aria-hidden="true" />}
+            ? <PanelLeftOpen size={17} aria-hidden="true" />
+            : <PanelLeftClose size={17} aria-hidden="true" />}
         </button>
       </header>
       <div className="workspace-label">
@@ -111,7 +111,7 @@ export function DesktopNavigation({ collapsed, onToggle }) {
         <div className="sidebar-actions">
           <ThemeToggle />
           <button className="quiet-icon-button" type="button" onClick={handleLogout} aria-label="Log out">
-            <LogOut size={19} aria-hidden="true" />
+            <LogOut size={17} aria-hidden="true" />
           </button>
         </div>
       </div>

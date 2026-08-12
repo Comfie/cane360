@@ -11,7 +11,7 @@ Keep dependencies inward-facing: Domain must not depend on other projects, Appli
 - `dotnet tool restore && dotnet restore Cane360.slnx` restores EF tooling and NuGet packages.
 - `dotnet build Cane360.slnx` compiles the full solution; warnings fail the build.
 - `dotnet test Cane360.slnx --no-build` runs all NUnit tests after a successful build.
-- `dotnet run --project src/Web` starts the API and applies pending migrations.
+- `dotnet run --project src/Web` starts the API; it does not apply pending migrations.
 - From `src/Web/ClientApp`, run `npm install`, `npm start`, `npm run lint`, or `npm run build` to install, serve, lint, or bundle the client.
 - `npm run generate-api` refreshes `src/web-api-client.ts` after API contract changes.
 
@@ -29,7 +29,7 @@ Recent history uses concise Conventional Commit prefixes such as `feat:`, `refac
 
 ## Security & Configuration
 
-Never commit new credentials. Override `ConnectionStrings__Cane360Db` or `VITE_API_URL` through environment variables. Database startup migrates and seeds automatically, so verify the target database before launching the API.
+Never commit new credentials. Override `ConnectionStrings__Cane360Db` or `VITE_API_URL` through environment variables. Database startup does not migrate automatically; inspect the target and pending migrations before running EF update commands.
 
 Add durable engineering instructions for Cane360:
 

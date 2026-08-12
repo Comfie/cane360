@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { protectedNavigation } from './navigation';
 import { Dashboard } from './components/pages/Dashboard';
+import { FarmPage } from './components/pages/FarmPage';
+import { FieldsPage } from './components/pages/FieldsPage';
 import { ModulePage } from './components/pages/ModulePage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
@@ -15,7 +17,9 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
-        {protectedNavigation.slice(1).map((item) => (
+        <Route path="/farm" element={<FarmPage />} />
+        <Route path="/fields" element={<FieldsPage />} />
+        {protectedNavigation.slice(3).map((item) => (
           <Route
             key={item.id}
             path={item.path}

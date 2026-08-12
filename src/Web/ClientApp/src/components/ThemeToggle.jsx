@@ -31,7 +31,7 @@ export function ThemeToggle() {
       aria-label={labels[theme]}
       title={labels[theme]}
     >
-      <Icon size={19} aria-hidden="true" />
+      <Icon size={17} aria-hidden="true" />
     </button>
   );
 }

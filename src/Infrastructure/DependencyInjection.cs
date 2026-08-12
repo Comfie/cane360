@@ -31,6 +31,7 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
+        builder.Services.AddScoped<IFarmSetupRepository, FarmSetupRepository>();
 
         builder.Services.AddAuthentication(options =>
             {
