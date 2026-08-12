@@ -17,7 +17,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Farm> Farms => Set<Farm>();
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<Field> Fields => Set<Field>();
+    public DbSet<CropVariety> CropVarieties => Set<CropVariety>();
     public DbSet<CropCycle> CropCycles => Set<CropCycle>();
+    public DbSet<HarvestResult> HarvestResults => Set<HarvestResult>();
+    public DbSet<CropCycleStatusChange> CropCycleStatusChanges => Set<CropCycleStatusChange>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

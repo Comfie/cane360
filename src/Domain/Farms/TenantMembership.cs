@@ -8,7 +8,7 @@ public sealed class TenantMembership : BaseAuditableEntity
     {
         TenantId = tenantId;
         UserId = userId;
-        SecurityRole = "Grower";
+        SecurityRole = TenantSecurityRoles.Grower;
         Status = RecordStatus.Active;
     }
 

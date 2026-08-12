@@ -58,24 +58,4 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.IrrigationMethod,
             request.SoilNotes), cancellationToken));
 
-    [HttpPost("fields/{fieldId:guid}/crop-cycles")]
-    [EndpointSummary("Open current crop cycle")]
-    [EndpointDescription("Opens an active plant-cane or ratoon crop cycle when the field has no current cycle.")]
-    [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]
-    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<FarmSetupDto>> OpenCropCycle(
-        Guid fieldId,
-        OpenCropCycleRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new OpenCropCycleCommand(
-            fieldId,
-            request.CycleType,
-            request.RatoonNumber,
-            request.Variety,
-            request.StartDate,
-            request.ExpectedHarvestStart,
-            request.ExpectedHarvestEnd,
-            request.ExpectedYieldTonnes), cancellationToken));
 }

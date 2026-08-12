@@ -28,11 +28,38 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
             .WithOne()
             .HasForeignKey(farm => farm.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(tenant => tenant.CropVarieties)
+            .WithOne()
+            .HasForeignKey(variety => variety.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
 
     private static void ConfigureAudit<T>(EntityTypeBuilder<T> builder)
         where T : BaseAuditableEntity
+    {
+        builder.Property(entity => entity.CreatedBy).HasMaxLength(450);
+        builder.Property(entity => entity.LastModifiedBy).HasMaxLength(450);
+    }
+}
+
+internal sealed class CropVarietyConfiguration : IEntityTypeConfiguration<CropVariety>
+{
+    public void Configure(EntityTypeBuilder<CropVariety> builder)
+    {
+        builder.ToTable("CropVarieties", "farm");
+        builder.HasKey(variety => variety.Id);
+        builder.Property(variety => variety.Id).ValueGeneratedNever();
+        builder.Property(variety => variety.Code).HasMaxLength(20).IsRequired();
+        builder.Property(variety => variety.Name).HasMaxLength(80).IsRequired();
+        builder.Property(variety => variety.Status).HasConversion<string>().HasMaxLength(24);
+        builder.HasIndex(variety => new { variety.TenantId, variety.Code })
+            .IsUnique()
+            .HasFilter("\"Status\" = 'Active'");
+        ConfigureAudit(builder);
+    }
+
+    private static void ConfigureAudit(EntityTypeBuilder<CropVariety> builder)
     {
         builder.Property(entity => entity.CreatedBy).HasMaxLength(450);
         builder.Property(entity => entity.LastModifiedBy).HasMaxLength(450);
@@ -182,7 +209,18 @@ internal sealed class CropCycleConfiguration : IEntityTypeConfiguration<CropCycl
 {
     public void Configure(EntityTypeBuilder<CropCycle> builder)
     {
-        builder.ToTable("CropCycles", "farm");
+        builder.ToTable("CropCycles", "farm", table =>
+        {
+            table.HasCheckConstraint(
+                "CK_CropCycles_CycleTypeRatoonNumber",
+                "(\"CycleType\" = 'Ratoon' AND \"RatoonNumber\" > 0) OR (\"CycleType\" = 'PlantCane' AND \"RatoonNumber\" IS NULL)");
+            table.HasCheckConstraint(
+                "CK_CropCycles_ExpectedYieldTonnes",
+                "\"ExpectedYieldTonnes\" > 0");
+            table.HasCheckConstraint(
+                "CK_CropCycles_HarvestWindow",
+                "\"ExpectedHarvestStart\" >= \"StartDate\" AND \"ExpectedHarvestEnd\" >= \"ExpectedHarvestStart\"");
+        });
         builder.HasKey(cycle => cycle.Id);
         builder.Property(cycle => cycle.Id).ValueGeneratedNever();
         builder.Property(cycle => cycle.CycleType).HasConversion<string>().HasMaxLength(24);
@@ -192,6 +230,19 @@ internal sealed class CropCycleConfiguration : IEntityTypeConfiguration<CropCycl
         builder.Property(cycle => cycle.ExpectedHarvestEnd).HasColumnType("date");
         builder.Property(cycle => cycle.ExpectedYieldTonnes).HasPrecision(14, 3);
         builder.Property(cycle => cycle.Status).HasConversion<string>().HasMaxLength(32);
+        builder.Property(cycle => cycle.Version).IsConcurrencyToken();
+        builder.HasOne<CropVariety>()
+            .WithMany()
+            .HasForeignKey(cycle => cycle.CropVarietyId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(cycle => cycle.HarvestResult)
+            .WithOne()
+            .HasForeignKey<HarvestResult>(result => result.CropCycleId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(cycle => cycle.StatusChanges)
+            .WithOne()
+            .HasForeignKey(change => change.CropCycleId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(cycle => cycle.FieldId)
             .IsUnique()
             .HasFilter("\"Status\" IN ('Active', 'ReadyForHarvest')");
@@ -202,5 +253,46 @@ internal sealed class CropCycleConfiguration : IEntityTypeConfiguration<CropCycl
     {
         builder.Property(entity => entity.CreatedBy).HasMaxLength(450);
         builder.Property(entity => entity.LastModifiedBy).HasMaxLength(450);
+    }
+}
+
+internal sealed class HarvestResultConfiguration : IEntityTypeConfiguration<HarvestResult>
+{
+    public void Configure(EntityTypeBuilder<HarvestResult> builder)
+    {
+        builder.ToTable("HarvestResults", "farm", table =>
+            table.HasCheckConstraint("CK_HarvestResults_ActualTonnes", "\"ActualTonnes\" > 0"));
+        builder.HasKey(result => result.Id);
+        builder.Property(result => result.Id).ValueGeneratedNever();
+        builder.Property(result => result.HarvestDate).HasColumnType("date");
+        builder.Property(result => result.ActualTonnes).HasPrecision(14, 3);
+        builder.HasIndex(result => result.CropCycleId).IsUnique();
+        ConfigureAudit(builder);
+    }
+
+    private static void ConfigureAudit(EntityTypeBuilder<HarvestResult> builder)
+    {
+        builder.Property(entity => entity.CreatedBy).HasMaxLength(450);
+        builder.Property(entity => entity.LastModifiedBy).HasMaxLength(450);
+    }
+}
+
+internal sealed class CropCycleStatusChangeConfiguration : IEntityTypeConfiguration<CropCycleStatusChange>
+{
+    public void Configure(EntityTypeBuilder<CropCycleStatusChange> builder)
+    {
+        builder.ToTable("CropCycleStatusChanges", "farm");
+        builder.HasKey(change => change.Id);
+        builder.Property(change => change.Id).ValueGeneratedNever();
+        builder.Property(change => change.FromStatus).HasConversion<string>().HasMaxLength(32);
+        builder.Property(change => change.ToStatus).HasConversion<string>().HasMaxLength(32);
+        builder.Property(change => change.RecordedAt);
+        builder.Property(change => change.RecordedBy).HasMaxLength(450).IsRequired();
+        builder.Property(change => change.Reason).HasMaxLength(500);
+        builder.HasIndex(change => new { change.CropCycleId, change.RecordedAt });
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(change => change.RecordedBy)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

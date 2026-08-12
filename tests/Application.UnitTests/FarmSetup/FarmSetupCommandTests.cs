@@ -1,4 +1,5 @@
 using Cane360.Application.Common.Interfaces;
+using Cane360.Application.CropCycles;
 using Cane360.Application.FarmSetup;
 using Cane360.Domain.Farms;
 using Moq;
@@ -68,12 +69,12 @@ public class FarmSetupCommandTests
     [Test]
     public void CropCycleValidatorRejectsRatoonWithoutNumber()
     {
-        var validator = new OpenCropCycleCommandValidator();
-        var command = new OpenCropCycleCommand(
+        var validator = new CreateCropCycleCommandValidator();
+        var command = new CreateCropCycleCommand(
             Guid.NewGuid(),
             "Ratoon",
             null,
-            "N14",
+            Guid.NewGuid(),
             new DateOnly(2026, 8, 1),
             new DateOnly(2027, 7, 1),
             new DateOnly(2027, 8, 31),
@@ -82,7 +83,7 @@ public class FarmSetupCommandTests
         var result = validator.Validate(command);
 
         result.IsValid.ShouldBeFalse();
-        result.Errors.ShouldContain(error => error.PropertyName == nameof(OpenCropCycleCommand.RatoonNumber));
+        result.Errors.ShouldContain(error => error.PropertyName == nameof(CreateCropCycleCommand.RatoonNumber));
     }
 
     private static CreateGrowerFarmCommand ValidFarmCommand() => new(

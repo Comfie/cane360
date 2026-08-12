@@ -1,4 +1,5 @@
 import { CalendarDays, Droplets, Sprout } from 'lucide-react';
+import { formatCycleStatus } from '../crop-cycles/cropCycleView';
 
 /** @param {{ field: import('../../web-api-client').FieldDto, children?: import('react').ReactNode }} props */
 export function FieldRecord({ field, children }) {
@@ -21,7 +22,7 @@ export function FieldRecord({ field, children }) {
         <section className="cycle-summary" aria-label={`Current crop cycle for ${field.name}`}>
           <div className="cycle-icon" aria-hidden="true"><Sprout size={17} /></div>
           <div>
-            <span className="record-status"><span aria-hidden="true" /> {cycle.status}</span>
+            <span className="record-status"><span aria-hidden="true" /> {formatCycleStatus(cycle.status)}</span>
             <strong>{cycle.variety} · {cycle.cycleType === 'Ratoon' ? `Ratoon ${cycle.ratoonNumber}` : 'Plant cane'}</strong>
             <small><CalendarDays size={13} aria-hidden="true" /> Harvest window {formatDate(cycle.expectedHarvestStart)}–{formatDate(cycle.expectedHarvestEnd)}</small>
           </div>

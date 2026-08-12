@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { LandPlot, Plus, Sprout } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Eye, LandPlot, Plus, Sprout } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CreateFieldRequest, OpenCropCycleRequest } from '../../web-api-client';
+import { CreateFieldRequest } from '../../web-api-client';
+import { CropCycleForm } from '../crop-cycles/CropCycleForm';
+import { cropCyclesClient } from '../crop-cycles/cropCycleApi';
+import { CropCycleRegister } from '../crop-cycles/CropCycleRegister';
 import { EmptyState } from '../EmptyState';
 import { FieldRecord } from '../farm-setup/FieldRecord';
 import { FarmSetupProgress } from '../farm-setup/FarmSetupProgress';
@@ -14,6 +17,26 @@ export function FieldsPage() {
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
   const [isAddingField, setIsAddingField] = useState(false);
   const [activeCycleField, setActiveCycleField] = useState(/** @type {string | null} */ (null));
+  const [cycleCollections, setCycleCollections] = useState(/** @type {import('../../web-api-client').CropCycleCollectionDto[]} */ ([]));
+  const [cycleFilter, setCycleFilter] = useState('all');
+  const [loadedFieldKey, setLoadedFieldKey] = useState('');
+  const fieldIds = (setup?.farm?.fields ?? []).map((field) => field.id);
+  const fieldKey = fieldIds.join(',');
+  const areCyclesLoading = Boolean(fieldKey) && loadedFieldKey !== fieldKey;
+
+  useEffect(() => {
+    let isCurrent = true;
+    if (!fieldKey) {
+      return () => { isCurrent = false; };
+    }
+
+    Promise.all(fieldKey.split(',').map((fieldId) => cropCyclesClient.cropCyclesGET(fieldId)))
+      .then((collections) => { if (isCurrent) setCycleCollections(collections); })
+      .catch((requestError) => { if (isCurrent) setError(getApiError(requestError)); })
+      .finally(() => { if (isCurrent) setLoadedFieldKey(fieldKey); });
+
+    return () => { isCurrent = false; };
+  }, [fieldKey, setError]);
 
   if (isLoading) return <LoadingState label="Loading fields and crop cycles" />;
   if (!setup) return <ValidationError title="Field records unavailable" message={error} />;
@@ -31,9 +54,19 @@ export function FieldsPage() {
   const fields = setup.farm?.fields ?? [];
   const showFieldForm = fields.length === 0 || isAddingField;
 
+  /** @param {string} fieldId */
+  const reloadFieldCycles = async (fieldId) => {
+    try {
+      const collection = await cropCyclesClient.cropCyclesGET(fieldId);
+      setCycleCollections((current) => [...current.filter((item) => item.field.id !== fieldId), collection]);
+    } catch (requestError) {
+      setError(getApiError(requestError));
+    }
+  };
+
   return (
     <div className="page-stack">
-      <PageHeader eyebrow="Crop records" title="Fields and crop cycles" description={`Manage the reporting fields and current crop on ${setup.farm?.name}.`}>
+      <PageHeader eyebrow="Crop records" title="Fields and crop cycles" description={`Manage field plans, current crops and chronological history on ${setup.farm?.name}.`}>
         {!showFieldForm && <button type="button" className="primary-action" onClick={() => setIsAddingField(true)}><Plus size={17} /> Add field</button>}
       </PageHeader>
 
@@ -56,20 +89,20 @@ export function FieldsPage() {
         <section aria-labelledby="field-list-title">
           <div className="section-heading">
             <div><span className="eyebrow">Farm fields</span><h2 id="field-list-title">{fields.length} {fields.length === 1 ? 'field' : 'fields'} recorded</h2></div>
-            <p>Reporting hectares remain distinct from declared and mapped measurements.</p>
+            <p>Each field keeps its own current crop and full cycle register.</p>
           </div>
           <div className="field-record-list">
             {fields.map((field) => (
               <FieldRecord key={field.id} field={field}>
-                {!field.currentCropCycle && activeCycleField !== field.id && (
-                  <button type="button" className="secondary-action" onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> Open current crop cycle</button>
-                )}
-                {!field.currentCropCycle && activeCycleField === field.id && (
+                <div className="field-cycle-actions">
+                  {field.currentCropCycle && <Link className="secondary-action" to={`/fields/${field.id}/crop-cycles/${field.currentCropCycle.id}`}><Eye size={16} /> View current cycle</Link>}
+                  {activeCycleField !== field.id && <button type="button" className="secondary-action" onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> Plan crop cycle</button>}
+                </div>
+                {activeCycleField === field.id && (
                   <CropCycleForm
                     field={field}
-                    onSaved={(result) => { setSetup(result); setActiveCycleField(null); }}
+                    onSaved={async () => { setActiveCycleField(null); await reloadFieldCycles(field.id); }}
                     onCancel={() => setActiveCycleField(null)}
-                    onError={setError}
                   />
                 )}
               </FieldRecord>
@@ -77,6 +110,10 @@ export function FieldsPage() {
           </div>
         </section>
       )}
+
+      {fields.length > 0 && (areCyclesLoading
+        ? <LoadingState label="Loading crop-cycle register" />
+        : <CropCycleRegister collections={cycleCollections} filter={cycleFilter} onFilterChange={setCycleFilter} />)}
     </div>
   );
 }
@@ -118,7 +155,7 @@ function FieldForm({ onSaved, onCancel, onError }) {
     <form className="setup-form record-panel" onSubmit={saveField}>
       <header className="form-section-heading">
         <span className="form-section-icon" aria-hidden="true"><LandPlot size={19} /></span>
-        <div><span className="eyebrow">Step 2 of 3</span><h2>Add a field</h2><p>Record both measured areas, then choose the source Cane360 should report.</p></div>
+        <div><span className="eyebrow">Field setup</span><h2>Add a field</h2><p>Record both measured areas, then choose the source Cane360 should report.</p></div>
       </header>
       <fieldset className="form-grid">
         <label>Field code<input name="code" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" placeholder="e.g. A-01" required /></label>
@@ -134,53 +171,6 @@ function FieldForm({ onSaved, onCancel, onError }) {
   );
 }
 
-/** @param {{ field: import('../../web-api-client').FieldDto, onSaved: (setup: import('../../web-api-client').FarmSetupDto) => void, onCancel: () => void, onError: (message: string) => void }} props */
-function CropCycleForm({ field, onSaved, onCancel, onError }) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [cycleType, setCycleType] = useState('PlantCane');
-
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveCycle = async (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    onError('');
-    setIsSaving(true);
-
-    try {
-      const result = await farmSetupClient.cropCycles(field.id, new OpenCropCycleRequest({
-        cycleType,
-        ratoonNumber: cycleType === 'Ratoon' ? Number(data.get('ratoonNumber')) : undefined,
-        variety: String(data.get('variety')).trim(),
-        startDate: localDate(data.get('startDate')),
-        expectedHarvestStart: localDate(data.get('expectedHarvestStart')),
-        expectedHarvestEnd: localDate(data.get('expectedHarvestEnd')),
-        expectedYieldTonnes: Number(data.get('expectedYieldTonnes')),
-      }));
-      onSaved(result);
-    } catch (requestError) {
-      onError(getApiError(requestError));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <form className="cycle-form" onSubmit={saveCycle}>
-      <header><span className="eyebrow">Step 3 of 3</span><h4>Open {field.name}&apos;s current crop cycle</h4></header>
-      <fieldset className="form-grid">
-        <label>Crop type<select name="cycleType" value={cycleType} onChange={(event) => setCycleType(event.target.value)}><option value="PlantCane">Plant cane</option><option value="Ratoon">Ratoon</option></select></label>
-        {cycleType === 'Ratoon' && <label>Ratoon number<input name="ratoonNumber" type="number" min="1" max="20" step="1" inputMode="numeric" required /></label>}
-        <label>Variety<input name="variety" maxLength={80} placeholder="e.g. N14" required /></label>
-        <label>Cycle start date<input name="startDate" type="date" required /></label>
-        <label>Expected harvest from<input name="expectedHarvestStart" type="date" required /></label>
-        <label>Expected harvest to<input name="expectedHarvestEnd" type="date" required /></label>
-        <label>Expected yield (tonnes)<input name="expectedYieldTonnes" type="number" min="0.01" max="10000000" step="0.01" inputMode="decimal" required /></label>
-      </fieldset>
-      <footer className="form-actions"><p>Only one current crop cycle can be open for a field.</p><div><button type="button" className="secondary outline" onClick={onCancel}>Cancel</button><button type="submit" disabled={isSaving}>{isSaving ? 'Opening cycle…' : 'Open crop cycle'}</button></div></footer>
-    </form>
-  );
-}
-
 /** @param {FormDataEntryValue | null} value */
 function optionalValue(value) {
   const text = String(value ?? '').trim();
@@ -191,9 +181,4 @@ function optionalValue(value) {
 function optionalNumber(value) {
   const text = String(value ?? '').trim();
   return text ? Number(text) : undefined;
-}
-
-/** @param {FormDataEntryValue | null} value */
-function localDate(value) {
-  return new Date(`${String(value)}T00:00:00`);
 }

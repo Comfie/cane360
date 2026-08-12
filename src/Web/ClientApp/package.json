@@ -33,7 +33,7 @@
     "preview": "vite preview",
     "lint": "eslint ./src/",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/navigation.test.js",
+    "test": "node --test src/navigation.test.js src/components/crop-cycles/cropCycleView.test.js",
     "generate-api": "nswag run /runtime:Net100"
   }
 }

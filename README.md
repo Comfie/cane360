@@ -1,6 +1,6 @@
 # Cane360
 
-Cane360 is an ASP.NET Core 10 and React application for individual Zimbabwean sugarcane growers. The current vertical slice lets an authenticated grower create one active farm, add its fields, open each field's current crop cycle, and see those persisted records on the dashboard.
+Cane360 is an ASP.NET Core 10 and React application for individual Zimbabwean sugarcane growers. The current vertical slices cover farm and field setup plus the Draft-to-Closed crop-cycle lifecycle, harvest results, and chronological field history.
 
 ## Architecture
 
@@ -109,7 +109,7 @@ ASP.NET Core Identity is exposed through `UsersController`:
 
 Login uses the Identity application cookie. Logout and account information require authentication.
 
-## Phase 1 farm API
+## Farm and crop-cycle API
 
 All farm endpoints require the existing Identity application cookie and derive the
 grower tenant from the authenticated user; React never supplies a tenant ID.
@@ -117,10 +117,16 @@ grower tenant from the authenticated user; React never supplies a tenant ID.
 - `GET /api/FarmSetup`
 - `POST /api/FarmSetup/farm`
 - `POST /api/FarmSetup/fields`
-- `POST /api/FarmSetup/fields/{fieldId}/crop-cycles`
+- `GET|POST /api/fields/{fieldId}/crop-cycles`
+- `GET /api/fields/{fieldId}/crop-cycles/{cropCycleId}`
+- `POST /api/fields/{fieldId}/crop-cycles/{cropCycleId}/transitions/{action}`
+- `GET|POST /api/CropVarieties`
 
-The `/farm` and `/fields` screens guide the three-step setup. The dashboard then
-shows the active farm, reporting hectares, fields, current crops, and expected yield.
+Supported transition actions are `activate`, `cancel`, `ready-for-harvest`,
+`harvest`, and `close`. The `/farm` and `/fields` screens guide setup; cycle
+overviews show the current status, permanent harvest result, and real lifecycle
+events. Activities, labour, inputs, and costs remain explicitly unavailable until
+their modules are implemented.
 
 ## Verify
 
