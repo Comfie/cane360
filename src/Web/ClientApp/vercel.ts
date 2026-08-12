@@ -1,40 +1,21 @@
-const apiOriginValue = process.env.API_ORIGIN;
+import { deploymentEnv, routes, type VercelConfig } from '@vercel/config/v1';
 
-if (!apiOriginValue) {
-  throw new Error('API_ORIGIN must be configured in Vercel.');
-}
+const apiOrigin = deploymentEnv('API_ORIGIN');
 
-const apiOriginUrl = new URL(apiOriginValue);
-
-if (apiOriginUrl.protocol !== 'https:') {
-  throw new Error('API_ORIGIN must use HTTPS.');
-}
-
-const apiOrigin = apiOriginUrl.origin;
-
-export const config = {
+export const config: VercelConfig = {
   framework: 'vite',
   buildCommand: 'npm run build:vercel',
   outputDirectory: 'build',
   rewrites: [
-    {
-      source: '/api/:path*',
-      destination: `${apiOrigin}/api/:path*`,
-    },
-    {
-      source: '/:path*',
-      destination: '/index.html',
-    },
+    routes.rewrite('/api/:path*', `${apiOrigin}/api/:path*`),
+    routes.rewrite('/:path*', '/index.html'),
   ],
   headers: [
-    {
-      source: '/api/:path*',
-      headers: [
-        {
-          key: 'x-vercel-enable-rewrite-caching',
-          value: '0',
-        },
-      ],
-    },
+    routes.header('/api/:path*', [
+      {
+        key: 'x-vercel-enable-rewrite-caching',
+        value: '0',
+      },
+    ]),
   ],
 };
