@@ -1,1 +1,36 @@
 @Web_HostAddress = https://localhost:7001
+
+# Database readiness
+GET {{Web_HostAddress}}/api/Health
+
+###
+
+# Register
+POST {{Web_HostAddress}}/api/Users/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "StrongPassword1!"
+}
+
+###
+
+# Log in and retain the Identity cookie in the HTTP client
+POST {{Web_HostAddress}}/api/Users/login?useCookies=true
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "StrongPassword1!"
+}
+
+###
+
+# Current user
+GET {{Web_HostAddress}}/api/Users/manage/info
+
+###
+
+# Log out
+POST {{Web_HostAddress}}/api/Users/logout
