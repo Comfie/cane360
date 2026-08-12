@@ -84,31 +84,47 @@ public sealed class Field : BaseAuditableEntity
             soilNotes);
     }
 
-    public CropCycle OpenCurrentCropCycle(
+    public CropCycle CreateCropCycleDraft(
         CropCycleType cycleType,
         int? ratoonNumber,
+        CropVariety cropVariety,
         string variety,
         DateOnly startDate,
         DateOnly expectedHarvestStart,
         DateOnly expectedHarvestEnd,
-        decimal expectedYieldTonnes)
+        decimal expectedYieldTonnes,
+        DateTimeOffset recordedAt,
+        string recordedBy)
     {
-        if (CurrentCropCycle is not null)
-        {
-            throw new InvalidOperationException("This field already has a current crop cycle.");
-        }
-
-        var cropCycle = CropCycle.Open(
+        var cropCycle = CropCycle.CreateDraft(
             Id,
             cycleType,
             ratoonNumber,
+            cropVariety.Id,
             variety,
             startDate,
             expectedHarvestStart,
             expectedHarvestEnd,
-            expectedYieldTonnes);
+            expectedYieldTonnes,
+            recordedAt,
+            recordedBy);
         _cropCycles.Add(cropCycle);
 
         return cropCycle;
+    }
+
+    public void ActivateCropCycle(CropCycle cropCycle, DateTimeOffset recordedAt, string recordedBy)
+    {
+        if (!_cropCycles.Contains(cropCycle))
+        {
+            throw new InvalidOperationException("The crop cycle does not belong to this field.");
+        }
+
+        if (CurrentCropCycle is not null)
+        {
+            throw new InvalidOperationException("This field already has an Active or Ready-for-harvest crop cycle.");
+        }
+
+        cropCycle.Activate(recordedAt, recordedBy);
     }
 }

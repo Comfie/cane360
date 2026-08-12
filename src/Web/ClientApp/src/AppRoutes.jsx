@@ -3,6 +3,7 @@ import { protectedNavigation } from './navigation';
 import { Dashboard } from './components/pages/Dashboard';
 import { FarmPage } from './components/pages/FarmPage';
 import { FieldsPage } from './components/pages/FieldsPage';
+import { CropCycleOverviewPage } from './components/pages/CropCycleOverviewPage';
 import { ModulePage } from './components/pages/ModulePage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
@@ -19,6 +20,7 @@ export function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="/farm" element={<FarmPage />} />
         <Route path="/fields" element={<FieldsPage />} />
+        <Route path="/fields/:fieldId/crop-cycles/:cropCycleId" element={<CropCycleOverviewPage />} />
         {protectedNavigation.slice(3).map((item) => (
           <Route
             key={item.id}

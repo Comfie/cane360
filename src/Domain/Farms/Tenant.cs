@@ -4,6 +4,7 @@ public sealed class Tenant : BaseAuditableEntity
 {
     private readonly List<TenantMembership> _memberships = [];
     private readonly List<Farm> _farms = [];
+    private readonly List<CropVariety> _cropVarieties = [];
 
     private Tenant() { }
 
@@ -20,6 +21,7 @@ public sealed class Tenant : BaseAuditableEntity
     public GrowerProfile GrowerProfile { get; private set; } = null!;
     public IReadOnlyCollection<TenantMembership> Memberships => _memberships.AsReadOnly();
     public IReadOnlyCollection<Farm> Farms => _farms.AsReadOnly();
+    public IReadOnlyCollection<CropVariety> CropVarieties => _cropVarieties.AsReadOnly();
 
     public static Tenant CreateForGrower(string userId, string growerDisplayName, string? growerPhone)
     {
@@ -58,4 +60,19 @@ public sealed class Tenant : BaseAuditableEntity
     }
 
     public Farm? ActiveFarm => _farms.SingleOrDefault(farm => farm.Status == RecordStatus.Active);
+
+    public CropVariety AddCropVariety(string code, string name)
+    {
+        var normalisedCode = code.Trim().ToUpperInvariant();
+        if (_cropVarieties.Any(variety =>
+            variety.Status == RecordStatus.Active && variety.Code == normalisedCode))
+        {
+            throw new InvalidOperationException($"Crop variety code '{normalisedCode}' is already in use.");
+        }
+
+        var cropVariety = CropVariety.Create(Id, normalisedCode, name);
+        _cropVarieties.Add(cropVariety);
+
+        return cropVariety;
+    }
 }

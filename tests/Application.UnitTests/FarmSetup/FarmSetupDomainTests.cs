@@ -50,30 +50,39 @@ public class FarmSetupDomainTests
     }
 
     [Test]
-    public void FieldCanHaveOnlyOneCurrentCropCycle()
+    public void FieldCanHaveOnlyOneActiveOrReadyCropCycle()
     {
-        var farm = CreateFarm(Tenant.CreateForGrower("user-1", "Tariro Moyo", null));
+        var tenant = Tenant.CreateForGrower("user-1", "Tariro Moyo", null);
+        var farm = CreateFarm(tenant);
         var field = farm.AddField("A-01", "North block", 12.5m, null, ReportingAreaSource.Declared, "Pivot", null);
-        OpenPlantCane(field);
+        var variety = tenant.AddCropVariety("N14", "N14");
+        var first = CreatePlantCaneDraft(field, variety);
+        var second = CreatePlantCaneDraft(field, variety);
+        field.ActivateCropCycle(first, Now, "user-1");
 
-        Should.Throw<InvalidOperationException>(() => OpenPlantCane(field))
-            .Message.ShouldBe("This field already has a current crop cycle.");
+        Should.Throw<InvalidOperationException>(() => field.ActivateCropCycle(second, Now, "user-1"))
+            .Message.ShouldBe("This field already has an Active or Ready-for-harvest crop cycle.");
     }
 
     [Test]
     public void RatoonCropCycleRequiresARatoonNumber()
     {
-        var farm = CreateFarm(Tenant.CreateForGrower("user-1", "Tariro Moyo", null));
+        var tenant = Tenant.CreateForGrower("user-1", "Tariro Moyo", null);
+        var farm = CreateFarm(tenant);
         var field = farm.AddField("A-01", "North block", 12.5m, null, ReportingAreaSource.Declared, "Pivot", null);
+        var variety = tenant.AddCropVariety("N14", "N14");
 
-        Should.Throw<InvalidOperationException>(() => field.OpenCurrentCropCycle(
+        Should.Throw<InvalidOperationException>(() => field.CreateCropCycleDraft(
             CropCycleType.Ratoon,
             null,
+            variety,
             "N14",
             new DateOnly(2026, 8, 1),
             new DateOnly(2027, 7, 1),
             new DateOnly(2027, 8, 31),
-            950m));
+            950m,
+            Now,
+            "user-1"));
     }
 
     private static Farm CreateFarm(Tenant tenant) => tenant.CreateFarm(
@@ -85,12 +94,17 @@ public class FarmSetupDomainTests
         120m,
         "Furrow irrigation from estate canal");
 
-    private static CropCycle OpenPlantCane(Field field) => field.OpenCurrentCropCycle(
+    private static readonly DateTimeOffset Now = new(2026, 8, 12, 8, 0, 0, TimeSpan.Zero);
+
+    private static CropCycle CreatePlantCaneDraft(Field field, CropVariety variety) => field.CreateCropCycleDraft(
         CropCycleType.PlantCane,
         null,
+        variety,
         "N14",
         new DateOnly(2026, 8, 1),
         new DateOnly(2027, 7, 1),
         new DateOnly(2027, 8, 31),
-        950m);
+        950m,
+        Now,
+        "user-1");
 }

@@ -20,9 +20,19 @@ public enum CropCycleType
 
 public enum CropCycleStatus
 {
+    Draft,
     Active,
     ReadyForHarvest,
     Harvested,
     Closed,
     Cancelled
+}
+
+public static class TenantSecurityRoles
+{
+    public const string Grower = "Grower";
+    public const string FarmManager = "FarmManager";
+
+    public static bool CanManageCropCycles(string role) =>
+        role is Grower or FarmManager;
 }

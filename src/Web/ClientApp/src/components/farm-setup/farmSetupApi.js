@@ -6,7 +6,14 @@ export const farmSetupClient = new FarmSetupClient();
 /** @param {unknown} error */
 export function getApiError(error) {
   if (error && typeof error === 'object') {
-    const problem = /** @type {{ errors?: Record<string, string[]>, detail?: string, title?: string, message?: string }} */ (error);
+    const source = /** @type {{ result?: unknown, response?: string }} */ (error);
+    let parsedResponse;
+    try {
+      parsedResponse = source.response ? JSON.parse(source.response) : undefined;
+    } catch {
+      parsedResponse = undefined;
+    }
+    const problem = /** @type {{ errors?: Record<string, string[]>, detail?: string, title?: string, message?: string }} */ (source.result ?? parsedResponse ?? error);
     const validationMessages = Object.values(problem.errors ?? {}).flat().filter(Boolean);
 
     if (validationMessages.length > 0) return validationMessages.join(' ');

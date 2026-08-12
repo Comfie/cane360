@@ -42,7 +42,7 @@ public class FarmSetupChangeTrackingTests
     }
 
     [Test]
-    public void OpeningCropCycleOnTrackedFieldMarksOnlyTheCycleAsAdded()
+    public void CreatingCropCycleDraftMarksTheLifecycleGraphAsAdded()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql("Host=localhost;Database=change-tracking-only;Username=test")
@@ -65,19 +65,24 @@ public class FarmSetupChangeTrackingTests
             ReportingAreaSource.Declared,
             "Furrow",
             null);
+        var variety = tenant.AddCropVariety("N14", "N14");
         context.Attach(tenant);
 
-        var cropCycle = field.OpenCurrentCropCycle(
+        var cropCycle = field.CreateCropCycleDraft(
             CropCycleType.PlantCane,
             null,
+            variety,
             "N14",
             new DateOnly(2026, 8, 1),
             new DateOnly(2027, 7, 1),
             new DateOnly(2027, 8, 31),
-            95m);
+            95m,
+            new DateTimeOffset(2026, 8, 12, 8, 0, 0, TimeSpan.Zero),
+            "user-1");
         context.ChangeTracker.DetectChanges();
 
         context.Entry(cropCycle).State.ShouldBe(EntityState.Added);
+        context.Entry(cropCycle.StatusChanges.Single()).State.ShouldBe(EntityState.Added);
         context.Entry(field).State.ShouldBe(EntityState.Unchanged);
         context.Entry(farm).State.ShouldBe(EntityState.Unchanged);
     }
