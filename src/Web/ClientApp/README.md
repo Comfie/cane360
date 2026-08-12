@@ -7,7 +7,7 @@ This project uses [Vite](https://vitejs.dev/) with React 19 and TypeScript.
 ### `npm start`
 
 Runs the app in development mode with hot module replacement.
-Opens at [https://localhost:44447](https://localhost:44447).
+Opens at [http://localhost:5173](http://localhost:5173).
 
 The development server proxies API requests to the ASP.NET Core backend.
 
@@ -48,10 +48,8 @@ Access in code:
 const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
-## HTTPS Configuration
-
-The development server uses ASP.NET Core development certificates for HTTPS.
-Run `npm start` to automatically set up certificates via `aspnetcore-https.js`.
+Set `VITE_API_URL` to override the default backend URL of
+`https://localhost:7001`.
 
 ## Learn More
 

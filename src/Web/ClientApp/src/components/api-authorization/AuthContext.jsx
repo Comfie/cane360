@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    client.infoGET()
+    client.info()
       .then(() => setIsAuthenticated(true))
       .catch(() => setIsAuthenticated(false))
       .finally(() => setIsLoading(false));
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
     client.register(new RegisterRequest({ email, password }));
 
   const logout = () =>
-    client.logout({})
+    client.logout()
       .then(() => setIsAuthenticated(false));
 
   return (
