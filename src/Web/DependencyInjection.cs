@@ -21,8 +21,6 @@ public static class DependencyInjection
 
         builder.Services.AddOpenApi(options =>
             options.AddOperationTransformer<ApiExceptionOperationTransformer>());
-
-        builder.Services.AddCors();
     }
 
 }

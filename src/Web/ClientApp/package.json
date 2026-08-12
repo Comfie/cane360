@@ -30,6 +30,7 @@
     "start": "vite",
     "prebuild": "npm run generate-api",
     "build": "vite build",
+    "build:vercel": "vite build",
     "preview": "vite preview",
     "lint": "eslint ./src/",
     "typecheck": "tsc --noEmit",

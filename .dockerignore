@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vs
+.vscode
+artifacts
+docs
+tests
+**/bin
+**/obj
+**/node_modules
+src/Web/ClientApp

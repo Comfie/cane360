@@ -139,3 +139,15 @@ npm run typecheck
 npm test
 npm run build
 ```
+
+## Deploy
+
+The supported split deployment is:
+
+- React/Vite on Vercel.
+- ASP.NET Core API on Railway.
+- PostgreSQL on Railway.
+
+Vercel proxies `/api/*` to Railway so the Identity cookie remains same-origin in
+the browser. See [docs/deployment.md](docs/deployment.md) for the required
+Railway and Vercel settings, the safe migration gate, and post-deploy checks.

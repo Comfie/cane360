@@ -4,6 +4,18 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+string? portValue = Environment.GetEnvironmentVariable("PORT");
+
+if (!string.IsNullOrWhiteSpace(portValue))
+{
+    if (!int.TryParse(portValue, out int port) || port is < 1 or > 65535)
+    {
+        throw new InvalidOperationException("PORT must be a valid TCP port number.");
+    }
+
+    builder.WebHost.ConfigureKestrel(options => options.ListenAnyIP(port));
+}
+
 builder.AddApplicationServices();
 builder.AddInfrastructureServices();
 builder.AddWebServices();
@@ -29,10 +41,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors(static policy =>
-    policy.AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowAnyOrigin());
 
 app.UseFileServer();
 
