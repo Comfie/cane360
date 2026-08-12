@@ -1,3 +1,4 @@
+using Cane360.Infrastructure;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
