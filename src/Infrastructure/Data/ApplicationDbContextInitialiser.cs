@@ -1,6 +1,4 @@
 ﻿using Cane360.Domain.Constants;
-using Cane360.Domain.Entities;
-using Cane360.Domain.ValueObjects;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +15,6 @@ public static class InitialiserExtensions
 
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
 
-        await initialiser.InitialiseAsync();
         await initialiser.SeedAsync();
     }
 }
@@ -25,31 +22,14 @@ public static class InitialiserExtensions
 public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
-    private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         _logger = logger;
-        _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
-    }
-
-    public async Task InitialiseAsync()
-    {
-        try
-        {
-            // See https://jasontaylor.dev/ef-core-database-initialisation-strategies
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while initialising the database.");
-            throw;
-        }
     }
 
     public async Task SeedAsync()
@@ -67,7 +47,6 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // Default roles
         var administratorRole = new IdentityRole(Roles.Administrator);
 
         if (_roleManager.Roles.All(r => r.Name != administratorRole.Name))
@@ -75,7 +54,6 @@ public class ApplicationDbContextInitialiser
             await _roleManager.CreateAsync(administratorRole);
         }
 
-        // Default users
         var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
 
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
@@ -83,28 +61,8 @@ public class ApplicationDbContextInitialiser
             await _userManager.CreateAsync(administrator, "Administrator1!");
             if (!string.IsNullOrWhiteSpace(administratorRole.Name))
             {
-                await _userManager.AddToRolesAsync(administrator, new [] { administratorRole.Name });
+                await _userManager.AddToRolesAsync(administrator, [administratorRole.Name]);
             }
-        }
-
-        // Default data
-        // Seed, if necessary
-        if (!_context.TodoLists.Any())
-        {
-            _context.TodoLists.Add(new TodoList
-            {
-                Title = "Tasks",
-                Colour = Colour.Green,
-                Items =
-                {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
-                }
-            });
-
-            await _context.SaveChangesAsync();
         }
     }
 }

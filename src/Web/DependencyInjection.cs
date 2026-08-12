@@ -1,8 +1,5 @@
-using Azure.Identity;
 using Cane360.Application.Common.Interfaces;
-using Cane360.Infrastructure.Data;
 using Cane360.Web.Services;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,29 +15,12 @@ public static class DependencyInjection
 
         builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
 
-        // Customise default API behaviour
-        builder.Services.Configure<ApiBehaviorOptions>(options =>
-            options.SuppressModelStateInvalidFilter = true);
-
-        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddControllers();
 
         builder.Services.AddOpenApi(options =>
-        {
-            options.AddOperationTransformer<ApiExceptionOperationTransformer>();
-            options.AddOperationTransformer<IdentityApiOperationTransformer>();
-        });
+            options.AddOperationTransformer<ApiExceptionOperationTransformer>());
 
         builder.Services.AddCors();
     }
 
-    public static void AddKeyVaultIfConfigured(this IHostApplicationBuilder builder)
-    {
-        var keyVaultUri = builder.Configuration["AZURE_KEY_VAULT_ENDPOINT"];
-        if (!string.IsNullOrWhiteSpace(keyVaultUri))
-        {
-            builder.Configuration.AddAzureKeyVault(
-                new Uri(keyVaultUri),
-                new DefaultAzureCredential());
-        }
-    }
 }
