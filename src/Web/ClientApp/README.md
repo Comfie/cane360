@@ -24,11 +24,19 @@ Previews the production build locally.
 
 Runs ESLint on the src directory.
 
+### `npm run typecheck`
+
+Checks JavaScript and JSX against the repository TypeScript configuration.
+
+### `npm test`
+
+Runs the container-independent navigation contract tests.
+
 ## Project Structure
 
 - `src/` - React source code
 - `src/main.jsx` - Application entry point
-- `src/App.js` - Root component
+- `src/App.jsx` - Root component
 - `src/components/` - React components
 - `public/` - Static assets (favicon, manifest)
 - `vite.config.ts` - Vite configuration with proxy settings
@@ -36,16 +44,12 @@ Runs ESLint on the src directory.
 
 ## Environment Variables
 
-Vite environment variables must be prefixed with `VITE_` to be exposed to client code.
+`VITE_API_URL` configures the development proxy in `vite.config.ts`. It is read
+by Vite's Node process and must never contain database configuration.
 
 Example:
 ```
 VITE_API_URL=https://api.example.com
-```
-
-Access in code:
-```javascript
-const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
 Set `VITE_API_URL` to override the default backend URL of

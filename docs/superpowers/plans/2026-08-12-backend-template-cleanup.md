@@ -364,7 +364,7 @@ Expected: FAIL because the health controller and service contract do not exist.
 Set `ConnectionStrings:Cane360Db` to:
 
 ```json
-"Host=postgres.railway.internal;Port=5432;Database=railway;Username=postgres;Password=yNqwbPUhvZmucFGTqNjFrqamsbIpHNwM"
+"Host=postgres.railway.internal;Port=5432;Database=railway;Username=postgres;Password=<Railway password>"
 ```
 
 Infrastructure registration uses only:

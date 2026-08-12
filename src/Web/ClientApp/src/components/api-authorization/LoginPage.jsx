@@ -1,49 +1,73 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { AuthLayout } from '../AuthLayout';
+import { ValidationError } from '../ValidationError';
 import { useAuth } from './AuthContext';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [invalid, setInvalid] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /** @param {import('react').FormEvent<HTMLFormElement>} event */
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
     try {
       await login(email, password);
-      const returnUrl = location.state?.returnUrl || '/';
+      const requestedUrl = /** @type {{ returnUrl?: unknown } | null} */ (location.state)?.returnUrl;
+      const returnUrl = typeof requestedUrl === 'string'
+        && requestedUrl.startsWith('/')
+        && !requestedUrl.startsWith('//')
+        ? requestedUrl
+        : '/';
       navigate(returnUrl, { replace: true });
     } catch {
-      setInvalid(true);
+      setError('The email or password did not match an account. Check both fields and try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleChange = (setter) => (e) => {
-    setInvalid(false);
-    setter(e.target.value);
-  };
-
   return (
-    <article>
-      <h2>Log in</h2>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" autoComplete="username"
-          value={email} onChange={handleChange(setEmail)}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? 'login-error' : undefined} />
+    <AuthLayout title="Log in" description="Continue to your farm workspace.">
+      <form onSubmit={handleSubmit} noValidate>
+        <ValidationError title="Unable to log in" message={error} />
+
+        <label htmlFor="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          autoComplete="username"
+          inputMode="email"
+          value={email}
+          onChange={(event) => { setError(''); setEmail(event.target.value); }}
+          aria-invalid={Boolean(error) || undefined}
+          required
+        />
+
         <label htmlFor="password">Password</label>
-        <input type="password" id="password" autoComplete="current-password"
-          value={password} onChange={handleChange(setPassword)}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? 'login-error' : undefined} />
-        {invalid && <small id="login-error">Invalid email or password.</small>}
-        <button type="submit">Log in</button>
-        <p style={{ marginTop: '1rem' }}>Don't have an account? <Link to="/register">Register</Link></p>
+        <input
+          type="password"
+          id="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(event) => { setError(''); setPassword(event.target.value); }}
+          aria-invalid={Boolean(error) || undefined}
+          required
+        />
+
+        <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
+          {isSubmitting ? 'Logging in…' : 'Log in'}
+        </button>
+        <p className="auth-switch">New to Cane360? <Link to="/register">Create an account</Link></p>
       </form>
-    </article>
+    </AuthLayout>
   );
 }

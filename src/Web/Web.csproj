@@ -3,6 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Cane360.Web</RootNamespace>
     <AssemblyName>Cane360.Web</AssemblyName>
+    <UserSecretsId>Cane360-Web-Development</UserSecretsId>
     <SpaRoot>ClientApp\</SpaRoot>
     <OpenApiDocumentsDirectory>./wwwroot/openapi/</OpenApiDocumentsDirectory>
     <OpenApiGenerateDocumentsOptions>--file-name v1</OpenApiGenerateDocumentsOptions>

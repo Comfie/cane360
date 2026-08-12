@@ -15,24 +15,22 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        var connectionString = builder.Configuration.GetConnectionString("Cane360Db");
-        Guard.Against.NullOrWhiteSpace(
-            connectionString,
-            message: "Connection string 'Cane360Db' not found.");
-
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
+            var connectionString = builder.Configuration.GetConnectionString("Cane360Db");
+            Guard.Against.NullOrWhiteSpace(
+                connectionString,
+                message: "Connection string 'Cane360Db' not found.");
+
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
             options.UseNpgsql(connectionString);
         });
 
         builder.Services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
-
-        builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
         builder.Services.AddAuthentication(options =>
             {

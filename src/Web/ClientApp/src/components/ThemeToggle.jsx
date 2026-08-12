@@ -1,24 +1,37 @@
-import { Sun, Moon, Laptop } from 'lucide-react';
+import { Laptop, Moon, Sun } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 
 const icons = {
-  auto:  <Laptop size={22} strokeWidth={2} />,
-  light: <Sun    size={22} strokeWidth={2} />,
-  dark:  <Moon   size={22} strokeWidth={2} />,
+  auto: Laptop,
+  light: Sun,
+  dark: Moon,
 };
 
-const next = { auto: 'light', light: 'dark', dark: 'auto' };
+const labels = {
+  auto: 'Use system colour theme',
+  light: 'Use light colour theme',
+  dark: 'Use dark colour theme',
+};
+
+const nextTheme = {
+  auto: /** @type {const} */ ('light'),
+  light: /** @type {const} */ ('dark'),
+  dark: /** @type {const} */ ('auto'),
+};
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const Icon = icons[theme];
 
   return (
     <button
-      className="theme-toggle-btn"
-      onClick={() => setTheme(next[theme])}
-      aria-label={theme}
+      className="quiet-icon-button"
+      type="button"
+      onClick={() => setTheme(nextTheme[theme])}
+      aria-label={labels[theme]}
+      title={labels[theme]}
     >
-      {icons[theme]}
+      <Icon size={19} aria-hidden="true" />
     </button>
   );
 }

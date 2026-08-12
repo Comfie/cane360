@@ -1,7 +1,5 @@
-using System.Reflection;
 using Cane360.Infrastructure;
-using Cane360.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Cane360.Web.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,9 +10,17 @@ builder.AddWebServices();
 
 var app = builder.Build();
 
-if (ShouldInitialiseDatabase())
+if (args.Contains("--database-status", StringComparer.OrdinalIgnoreCase))
 {
-    await app.InitialiseDatabaseAsync();
+    if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Cane360Db")))
+    {
+        app.Logger.LogError("Database status was not checked because ConnectionStrings:Cane360Db is not configured.");
+        Environment.ExitCode = 1;
+        return;
+    }
+
+    Environment.ExitCode = await app.ReportDatabaseStatusAsync();
+    return;
 }
 
 if (!app.Environment.IsDevelopment())
@@ -43,15 +49,3 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
-
-static bool ShouldInitialiseDatabase()
-{
-    if (EF.IsDesignTime)
-    {
-        return false;
-    }
-
-    var entryAssemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
-
-    return entryAssemblyName is not "GetDocument.Insider" and not "dotnet-getdocument";
-}

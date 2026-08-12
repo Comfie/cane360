@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { AuthLayout } from '../AuthLayout';
+import { ValidationError } from '../ValidationError';
 import { useAuth } from './AuthContext';
 
 const MIN_PASSWORD_LENGTH = 6;
 
+/** @param {string} value */
 function validateEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
@@ -14,59 +17,78 @@ export function RegisterPage() {
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const emailValid = validateEmail(email);
   const passwordValid = password.length >= MIN_PASSWORD_LENGTH;
+  const emailInvalid = emailTouched && !emailValid;
+  const passwordInvalid = passwordTouched && !passwordValid;
 
-  const emailInvalid = emailTouched ? !emailValid : undefined;
-  const passwordInvalid = passwordTouched ? !passwordValid : undefined;
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /** @param {import('react').FormEvent<HTMLFormElement>} event */
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError('');
     setEmailTouched(true);
     setPasswordTouched(true);
+
     if (!emailValid || !passwordValid) return;
+
+    setIsSubmitting(true);
     try {
       await register(email, password);
-      navigate('/login');
+      navigate('/login', { replace: true });
     } catch {
-      setError('Registration failed. Please try again.');
+      setError('The account could not be created. The email may already be registered or the password may not meet the security rules.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <article>
-      <h2>Register</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" autoComplete="username"
+    <AuthLayout title="Create an account" description="Set up secure access before adding farm records.">
+      <form onSubmit={handleSubmit} noValidate>
+        <ValidationError title="Unable to create the account" message={error} />
+
+        <label htmlFor="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          autoComplete="username"
+          inputMode="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(event) => { setError(''); setEmail(event.target.value); }}
           onBlur={() => setEmailTouched(true)}
-          aria-invalid={emailInvalid}
-          aria-describedby="email-helper" />
-        <small id="email-helper">
-          {emailTouched && !emailValid ? 'Please enter a valid email address.' : ''}
+          aria-invalid={emailInvalid || undefined}
+          aria-describedby="email-helper"
+          required
+        />
+        <small id="email-helper" className={emailInvalid ? 'field-error' : ''}>
+          {emailInvalid ? 'Enter a complete email address.' : 'This will be your Cane360 login.'}
         </small>
+
         <label htmlFor="password">Password</label>
-        <input type="password" id="password" autoComplete="new-password"
+        <input
+          type="password"
+          id="password"
+          autoComplete="new-password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(event) => { setError(''); setPassword(event.target.value); }}
           onBlur={() => setPasswordTouched(true)}
-          aria-invalid={passwordInvalid}
-          aria-describedby="password-helper" />
-        <small id="password-helper">
-          {passwordTouched && !passwordValid
-            ? `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
-            : ''}
+          aria-invalid={passwordInvalid || undefined}
+          aria-describedby="password-helper"
+          required
+        />
+        <small id="password-helper" className={passwordInvalid ? 'field-error' : ''}>
+          {passwordInvalid ? `Use at least ${MIN_PASSWORD_LENGTH} characters.` : 'Use a strong password that you do not use elsewhere.'}
         </small>
-        <button type="submit">Register</button>
-        <p style={{ marginTop: '1rem' }}>Already have an account? <Link to="/login">Log in</Link></p>
+
+        <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
+          {isSubmitting ? 'Creating account…' : 'Create account'}
+        </button>
+        <p className="auth-switch">Already registered? <Link to="/login">Log in</Link></p>
       </form>
-    </article>
+    </AuthLayout>
   );
 }

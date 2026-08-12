@@ -1,20 +1,30 @@
-import { Home } from "./components/Home";
-import { LoginPage } from "./components/api-authorization/LoginPage";
-import { RegisterPage } from "./components/api-authorization/RegisterPage";
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { protectedNavigation } from './navigation';
+import { Dashboard } from './components/pages/Dashboard';
+import { ModulePage } from './components/pages/ModulePage';
+import { Layout } from './components/Layout';
+import { LoginPage } from './components/api-authorization/LoginPage';
+import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
+import { RegisterPage } from './components/api-authorization/RegisterPage';
 
-const AppRoutes = [
-  {
-    index: true,
-    element: <Home />
-  },
-  {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />
-  }
-];
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-export default AppRoutes;
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+        <Route index element={<Dashboard />} />
+        {protectedNavigation.slice(1).map((item) => (
+          <Route
+            key={item.id}
+            path={item.path}
+            element={<ModulePage item={item} />}
+          />
+        ))}
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
