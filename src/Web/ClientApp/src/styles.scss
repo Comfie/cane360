@@ -84,7 +84,7 @@
   --form-max-width: 64rem;
   --page-padding-inline: var(--space-4);
   --page-padding-block: var(--space-6);
-  --control-height: 2.75rem;
+  --control-height: 2.5rem;
   --card-padding: var(--space-4);
   --nav-row-height: 2.75rem;
   --mobile-header-height: 4rem;
@@ -115,6 +115,8 @@
   --pico-primary-hover-background: var(--cane-700);
   --pico-primary-border: var(--cane-600);
   --pico-primary-hover-border: var(--cane-700);
+  --pico-form-element-spacing-vertical: var(--space-2);
+  --pico-form-element-spacing-horizontal: var(--space-3);
   --pico-form-element-background-color: var(--surface-raised);
   --pico-form-element-border-color: var(--border-strong);
   --pico-form-element-active-border-color: var(--cane-500);
@@ -386,6 +388,12 @@ textarea {
     color var(--duration-fast) var(--ease-standard),
     background-color var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) var(--ease-standard);
+}
+
+// Keep framework-provided actions aligned with the compact application controls.
+#root :is(button, [type="submit"], [type="reset"], [type="button"], [role="button"]) {
+  min-height: var(--control-height);
+  font-size: var(--type-sm);
 }
 
 :where(a, button, input, select, textarea):focus-visible {
@@ -1490,6 +1498,38 @@ p {
   font-size: var(--type-sm);
 }
 
+// Date values are operational data: give native pickers a clear, consistent affordance
+// without replacing their accessible browser calendar and keyboard entry.
+input:is([type="date"], [type="datetime-local"]) {
+  cursor: pointer;
+  border-color: var(--border-strong);
+  background: linear-gradient(135deg, var(--surface-raised), var(--cane-50));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 72%, transparent);
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+input:is([type="date"], [type="datetime-local"]):hover {
+  border-color: var(--cane-400);
+  background: linear-gradient(135deg, var(--surface-raised), var(--cane-100));
+}
+
+input:is([type="date"], [type="datetime-local"])::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  margin-right: -0.25rem;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  opacity: 0.72;
+}
+
+input:is([type="date"], [type="datetime-local"])::-webkit-calendar-picker-indicator:hover {
+  background: var(--cane-200);
+  opacity: 1;
+}
+
 .form-grid :is(input, select) {
   min-height: var(--control-height);
   height: var(--control-height);
@@ -2040,6 +2080,95 @@ p {
   .auth-mobile-brand {
     display: none;
   }
+}
+
+// Phase 4 labour ledger: dense date registers and an explicit proof chain.
+.labour-toolbar { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+.labour-tabs { display: flex; gap: var(--space-1); margin: 0; }
+.labour-tabs button { display: inline-flex; min-height: 2.5rem; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); font-size: var(--type-sm); }
+.labour-tabs button[aria-current="true"] { background: var(--cane-100); color: var(--cane-800); font-weight: 750; }
+.labour-tabs button span { display: grid; min-width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 999px; background: var(--surface-raised); font-family: var(--font-data); font-size: 0.65rem; }
+.ledger-date { display: grid; margin: 0; color: var(--text-muted); font-size: var(--type-xs); font-weight: 700; }
+.ledger-date input { width: 10.75rem; margin: var(--space-1) 0 0; }
+.worker-register { overflow: hidden; padding: 0; }
+.ledger-heading, .worker-row, .attendance-row { display: grid; grid-template-columns: minmax(13rem, 1.65fr) minmax(9rem, 1fr) minmax(9rem, 0.85fr) 6.5rem; align-items: center; gap: var(--space-3); }
+.ledger-heading { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); background: var(--surface-subtle); color: var(--text-muted); font-size: var(--type-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.worker-row { width: 100%; min-height: 4rem; margin: 0; padding: var(--space-2) var(--space-4); border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; color: var(--text); text-align: left; }
+.worker-row:last-child { border-bottom: 0; }
+.worker-row:hover { background: var(--cane-50); }
+.worker-row > span:not(.worker-identity), .worker-identity > span { display: grid; gap: var(--space-1); }
+.worker-row small { color: var(--text-muted); font-size: var(--type-xs); }
+.worker-identity { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.worker-identity i { display: grid; width: 2.25rem; height: 2.25rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--cane-100); color: var(--cane-700); }
+.masked-id { font-family: var(--font-data); letter-spacing: 0.05em; }
+.labour-empty { padding: var(--space-10); text-align: center; }
+.labour-empty svg { color: var(--cane-600); }
+.labour-form, .worker-details { display: grid; gap: var(--space-5); }
+.security-note { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--cane-700); font-size: var(--type-xs); }
+.rate-list { display: grid; border-top: 1px solid var(--border); }
+.rate-list article { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: 0; padding: var(--space-3) 0; border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
+.rate-list span { color: var(--text-muted); font-size: var(--type-xs); }
+.attendance-ledger { overflow: hidden; padding: 0; }
+.attendance-ledger > header, .evidence-entry > header, .evidence-register > header { display: flex; align-items: center; justify-content: space-between; margin: 0; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: transparent; }
+.attendance-ledger header h2, .evidence-entry header h2, .evidence-register header h2 { margin: 0; font-size: var(--type-lg); }
+.attendance-ledger header > span, .evidence-register header > span { color: var(--text-muted); font-family: var(--font-data); font-size: var(--type-xs); }
+.attendance-grid .ledger-heading, .attendance-row { grid-template-columns: minmax(12rem, 1.25fr) 13rem minmax(12rem, 1fr); }
+.attendance-row { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); }
+.attendance-row > span { display: grid; }
+.attendance-row small { color: var(--text-muted); font-size: var(--type-xs); }
+.attendance-row select { margin: 0; }
+.attendance-choice { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--neutral-100); }
+.attendance-choice button { min-height: 2.25rem; margin: 0; padding: var(--space-1) var(--space-2); border: 0; background: transparent; color: var(--text-muted); font-size: var(--type-xs); }
+.attendance-choice button[aria-pressed="true"] { background: var(--surface-raised); color: var(--cane-800); font-weight: 750; box-shadow: var(--shadow-1); }
+.attendance-ledger > footer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-4); margin: 0; padding: var(--space-3) var(--space-4); background: var(--surface-subtle); }
+.attendance-ledger footer label, .attendance-ledger footer input, .attendance-ledger footer button { margin: 0; }
+.evidence-layout { display: grid; grid-template-columns: minmax(20rem, 0.82fr) minmax(28rem, 1.18fr); align-items: start; gap: var(--space-4); }
+.evidence-entry { padding: 0 0 var(--space-4); }
+.evidence-entry > .form-grid, .evidence-entry > button { margin-inline: var(--space-4); }
+.evidence-entry > .form-grid { margin-top: var(--space-4); }
+.activity-checks { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.activity-checks label { display: flex; flex-direction: row; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--type-sm); }
+.activity-checks input { width: auto; margin: 0; }
+.activity-checks small { margin-left: auto; color: var(--text-muted); }
+.evidence-register { overflow: hidden; padding: 0; }
+.evidence-register article { display: grid; grid-template-columns: minmax(11rem, 1fr) 12rem minmax(9rem, auto); align-items: center; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
+.evidence-main { display: grid; min-width: 0; }
+.evidence-main span, .evidence-main small { overflow: hidden; color: var(--text-muted); font-size: var(--type-xs); text-overflow: ellipsis; white-space: nowrap; }
+.proof-strip { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); }
+.proof-strip::before { position: absolute; top: 0.65rem; right: 16%; left: 16%; height: 2px; background: var(--border); content: ''; }
+.proof-strip > span { z-index: 1; display: grid; justify-items: center; color: var(--text-muted); font-family: var(--font-data); font-size: var(--type-xs); }
+.proof-strip > span::first-line { background: var(--surface); }
+.proof-strip span small { font-family: var(--font-ui); font-size: 0.62rem; }
+.proof-strip .is-done { color: var(--cane-700); font-weight: 800; }
+.evidence-action { display: flex; gap: var(--space-2); }
+.evidence-action :is(select, button) { min-height: 2.25rem; margin: 0; padding: var(--space-1) var(--space-2); font-size: var(--type-xs); }
+.confirmed-mark { display: inline-flex; align-items: center; justify-self: end; gap: var(--space-2); color: var(--cane-700); font-size: var(--type-xs); font-weight: 750; }
+.empty-copy { padding: var(--space-6) var(--space-4); color: var(--text-muted); text-align: center; }
+
+@media (max-width: 63.99rem) {
+  .evidence-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 39.99rem) {
+  .labour-toolbar { align-items: stretch; flex-direction: column; padding: var(--space-2); }
+  .labour-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .labour-tabs button { min-width: 0; justify-content: center; padding-inline: var(--space-1); font-size: 0.7rem; }
+  .labour-tabs button span { display: none; }
+  .ledger-date, .ledger-date input { width: 100%; }
+  .worker-register, .attendance-ledger, .evidence-register { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+  .worker-register > .ledger-heading, .attendance-grid > .ledger-heading { display: none; }
+  .worker-row { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); margin-bottom: var(--space-2); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-1); }
+  .worker-row > span:nth-child(2) { grid-column: 1; padding-left: 3rem; }
+  .worker-row > span:nth-child(3) { grid-column: 1; padding-left: 3rem; }
+  .worker-row > em { grid-column: 2; grid-row: 1; }
+  .attendance-row { grid-template-columns: 1fr; gap: var(--space-2); margin-bottom: var(--space-2); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-1); }
+  .attendance-ledger > header, .attendance-ledger > footer { border: 1px solid var(--border); border-radius: var(--radius-md); }
+  .attendance-ledger > footer { grid-template-columns: 1fr; margin-top: var(--space-2); }
+  .evidence-register article { grid-template-columns: 1fr; align-items: stretch; }
+  .proof-strip { margin-block: var(--space-2); }
+  .confirmed-mark { justify-self: start; }
+  .evidence-action { display: grid; grid-template-columns: 1fr; }
+  .rate-list article { align-items: start; flex-direction: column; }
 }
 
 @media (min-width: 80rem) {
