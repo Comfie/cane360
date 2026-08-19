@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ConfirmationDialog } from '../ConfirmationDialog';
 import { cropCyclesClient, localDate, transitionCycle } from '../crop-cycles/cropCycleApi';
 import { cycleGroup, formatCycleStatus } from '../crop-cycles/cropCycleView';
+import { DatePicker } from '../DatePicker';
 import { getApiError } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
@@ -129,7 +130,7 @@ function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }) {
   return <ConfirmationDialog title={title} description={description} confirmLabel={confirmLabel} isBusy={isBusy} onConfirm={submit} onCancel={onCancel}>
     {(action === 'Cancel' || action === 'Harvest') && <form ref={setForm} className="confirmation-form" onSubmit={(event) => event.preventDefault()}>
       {action === 'Cancel' && <label>Cancellation reason<textarea name="reason" rows={3} maxLength={500} required autoFocus /></label>}
-      {action === 'Harvest' && <><label>Harvest date<input name="harvestDate" type="date" required autoFocus /></label><label>Actual tonnes<input name="actualTonnes" type="number" min="0.001" max="1000000" step="0.001" inputMode="decimal" required /></label></>}
+      {action === 'Harvest' && <><label>Harvest date<DatePicker name="harvestDate" required autoFocus /></label><label>Actual tonnes<input name="actualTonnes" type="number" min="0.001" max="1000000" step="0.001" inputMode="decimal" required /></label></>}
       <ValidationError message={clientError} />
     </form>}
   </ConfirmationDialog>;
