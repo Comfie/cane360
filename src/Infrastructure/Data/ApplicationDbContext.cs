@@ -2,6 +2,8 @@
 using Cane360.Application.Common.Interfaces;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Activities;
+using Cane360.Domain.Auditing;
+using Cane360.Domain.Labour;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -29,10 +31,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Activity> Activities => Set<Activity>();
     public DbSet<ActivityStatusChange> ActivityStatusChanges => Set<ActivityStatusChange>();
     public DbSet<EvidenceLink> EvidenceLinks => Set<EvidenceLink>();
+    public DbSet<WorkerProfile> WorkerProfiles => Set<WorkerProfile>();
+    public DbSet<WorkerRate> WorkerRates => Set<WorkerRate>();
+    public DbSet<Attendance> Attendances => Set<Attendance>();
+    public DbSet<WorkRecord> WorkRecords => Set<WorkRecord>();
+    public DbSet<WorkRecordActivity> WorkRecordActivities => Set<WorkRecordActivity>();
+    public DbSet<WorkScope> WorkScopes => Set<WorkScope>();
+    public DbSet<WorkVerification> WorkVerifications => Set<WorkVerification>();
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.HasPostgresExtension("btree_gist");
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

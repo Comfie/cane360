@@ -101,6 +101,39 @@ public class ActivitiesControllerTests
         result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
     }
 
+    [TestCase("2026-08-12T08:30:00Z", 0)]
+    [TestCase("2026-08-12T10:30:00+02:00", 2)]
+    [TestCase("2026-08-12T03:30:00-05:00", -5)]
+    public async Task ActualWorkAcceptsOnlyExplicitOffsetTimestamps(string timestamp, int expectedOffsetHours)
+    {
+        var sender = new Mock<ISender>();
+        var activityId = Guid.NewGuid();
+        var expected = CreateDetails(activityId, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        sender.Setup(service => service.Send(
+            It.Is<RecordActualWorkCommand>(command => command.ActivityId == activityId &&
+                command.ActualAt.Offset == TimeSpan.FromHours(expectedOffsetHours)),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+        var controller = new ActivitiesController(sender.Object);
+
+        var result = await controller.ActualWork(
+            activityId, new RecordActualWorkRequest(0, timestamp, 2m, null), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
+    public async Task ActualWorkRejectsTimestampWithoutOffset()
+    {
+        var sender = new Mock<ISender>();
+        var controller = new ActivitiesController(sender.Object);
+
+        var result = await controller.ActualWork(
+            Guid.NewGuid(), new RecordActualWorkRequest(0, "2026-08-12T08:30:00", 2m, null), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<BadRequestObjectResult>();
+        sender.Verify(service => service.Send(It.IsAny<RecordActualWorkCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [TestCase("Planned")]
     [TestCase("Cancelled")]
     [TestCase("InProgress")]

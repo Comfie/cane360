@@ -15,7 +15,7 @@ export function FarmPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   if (isLoading) return <LoadingState label="Loading your farm record" />;
-  if (!setup) return <ValidationError title="Farm record unavailable" message={error} />;
+  if (!setup) return <ValidationError title="Farm record unavailable" message={error} persistent />;
 
   /** @param {import('react').FormEvent<HTMLFormElement>} event */
   const createFarm = async (event) => {

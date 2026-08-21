@@ -136,7 +136,8 @@ public sealed class Activity : BaseAuditableEntity
         Guid? operationalPersonId,
         string? reason,
         long expectedVersion,
-        bool noUnaccountedControlledInput = true)
+        bool noUnaccountedControlledInput = true,
+        bool allRequiredLabourVerified = true)
     {
         RequireVersion(expectedVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(recordedBy);
@@ -180,6 +181,11 @@ public sealed class Activity : BaseAuditableEntity
         if (targetStatus == ActivityStatus.Closed && !noUnaccountedControlledInput)
         {
             throw new InvalidOperationException("The activity cannot close while controlled inputs remain unaccounted for.");
+        }
+
+        if (targetStatus == ActivityStatus.Closed && !allRequiredLabourVerified)
+        {
+            throw new InvalidOperationException("The activity cannot close while recorded labour remains unverified.");
         }
 
         Status = targetStatus;

@@ -93,6 +93,29 @@ public class ActivityCommandTests
         repository.Verify(store => store.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
+    [TestCase("2026-08-12T08:30:00Z", "2026-08-12T08:30:00+00:00")]
+    [TestCase("2026-08-12T10:30:00+02:00", "2026-08-12T08:30:00+00:00")]
+    [TestCase("2026-08-12T03:30:00-05:00", "2026-08-12T08:30:00+00:00")]
+    [TestCase("2026-08-11T23:30:00-09:00", "2026-08-12T08:30:00+00:00")]
+    public async Task ActualWorkNormalizesOffsetBearingTimestampToUtc(string supplied, string expected)
+    {
+        var context = CreateContext();
+        var activity = context.Cycle.CreateActivity(
+            context.Tenant.Id, context.Farm.Id, context.Field.Id, context.Type,
+            ActivityPlanningKind.Planned, new DateOnly(2026, 8, 12), context.Supervisor.Id);
+        var repository = Repository(context.Tenant);
+        var handler = new RecordActualWorkCommandHandler(
+            repository.Object, User(), Identity(), new FixedTimeProvider(Now));
+
+        await handler.Handle(new RecordActualWorkCommand(
+            activity.Id, activity.Version, DateTimeOffset.Parse(supplied), 2m, null), CancellationToken.None);
+
+        activity.ActualAt.ShouldBe(DateTimeOffset.Parse(expected));
+        activity.ActualAt!.Value.Offset.ShouldBe(TimeSpan.Zero);
+        activity.EntryDelayDays.ShouldBe(0);
+        repository.Verify(store => store.SaveChangesAsync(CancellationToken.None), Times.Once);
+    }
+
     [Test]
     public async Task InvalidEvidenceDoesNotMutateOrSave()
     {

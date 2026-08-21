@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardCheck, List, Plus, Sheet, TriangleAlert, X } from 'lucide-react';
 import { CreateActivityTypeRequest, FarmPersonnelClient } from '../../web-api-client';
+import { DatePicker } from '../DatePicker';
 import { getApiError, useFarmSetup } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
@@ -61,7 +62,7 @@ export function ActivitiesPage() {
   const grouped = useMemo(() => groupActivitiesByDate(visibleActivities), [visibleActivities]);
 
   if (setupLoading || loading) return <LoadingState label="Loading the field diary" />;
-  if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} />;
+  if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent />;
 
   /** @param {string} id */
   const openDetails = async (id) => {
@@ -89,7 +90,7 @@ export function ActivitiesPage() {
         <section className="activity-list" aria-label="Activity list">{visibleActivities.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={openDetails} />)}</section>
       ) : <ActivityCalendar groups={grouped} onOpen={openDetails} />}
 
-      <section className="unavailable-strip" aria-label="Deferred capabilities"><strong>Source evidence in Phase 3</strong><span><Sheet size={15} /> Source-sheet references are available. Document/photo upload, labour, inventory, and costs are not yet available.</span></section>
+      <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational evidence</strong><span><Sheet size={15} /> Source references and confirmed labour evidence appear in the diary. Document upload, inventory, and cost posting remain deferred.</span></section>
 
       {showCreate && <ActivityDialog title="Record activity" onClose={() => setShowCreate(false)}>
         <CreateActivityForm fields={fields} types={activeTypes} supervisors={supervisors} onSaved={async (details) => { setShowCreate(false); setSelected(details); await reload(); }} onError={setError} />
@@ -155,7 +156,7 @@ function CreateActivityForm({ fields, types, supervisors, onSaved, onError }) {
     <label>Field<select required value={fieldId} onChange={(event) => setFieldId(event.target.value)}><option value="">Select field</option>{fields.filter((item) => ['Active', 'ReadyForHarvest'].includes(item.currentCropCycle?.status ?? '')).map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label>
     <label>Activity type<select name="activityTypeId" required defaultValue=""><option value="">Select type</option>{validTypes.map((type) => <option key={type.id} value={type.id}>{type.name} · {type.quantityBasis}</option>)}</select></label>
     <label>Responsible supervisor<select name="supervisorPersonId" required defaultValue=""><option value="">Select supervisor</option>{supervisors.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label>
-    {kind === 'Planned' && <label>Planned date<input name="plannedDate" type="date" defaultValue={harareToday()} required /></label>}
+    {kind === 'Planned' && <label>Planned date<DatePicker name="plannedDate" defaultValue={harareToday()} required /></label>}
   </fieldset><p className="context-note">Unplanned work needs actual work details before it can move from Draft to Planned.</p><footer className="form-actions"><span /><button disabled={saving || !field?.currentCropCycle}>{saving ? 'Recording…' : 'Record activity'}</button></footer></form>;
 }
 
@@ -165,25 +166,30 @@ function ActivityTypeForm({ types, onSaved, onError }) {
   /** @param {import('react').FormEvent<HTMLFormElement>} event */
   const save = async (event) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
+    const supportsPlanned = data.get('supportsPlanned') === 'on';
+    const supportsUnplanned = data.get('supportsUnplanned') === 'on';
+    if (!supportsPlanned && !supportsUnplanned) {
+      setSaving(false); onError('Select Planned, Unplanned, or both.'); return;
+    }
     try {
       const type = await activityTypesClient.activityTypes(new CreateActivityTypeRequest({
         code: String(data.get('code')).trim(),
         name: String(data.get('name')).trim(),
-        supportsPlanned: data.get('supportsPlanned') === 'on',
-        supportsUnplanned: data.get('supportsUnplanned') === 'on',
+        supportsPlanned,
+        supportsUnplanned,
         quantityBasis: String(data.get('quantityBasis')),
       }));
       form.reset(); onSaved(type);
     } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
   };
-  return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label><input type="checkbox" name="supportsPlanned" defaultChecked /> Planned</label><label><input type="checkbox" name="supportsUnplanned" defaultChecked /> Unplanned</label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
+  return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label className="toggle-control"><input type="checkbox" name="supportsPlanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Planned</span></label><label className="toggle-control"><input type="checkbox" name="supportsUnplanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Unplanned</span></label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
 }
 
 /** @param {{ details: import('../../web-api-client').ActivityDetailsDto, onChanged: (details: import('../../web-api-client').ActivityDetailsDto) => void, onError: (message: string) => void }} props */
 function ActivityOverview({ details, onChanged, onError }) {
   const activity = details.activity;
   const [saving, setSaving] = useState(false);
-  const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || `${harareToday()}T12:00`);
+  const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
   /** @param {string} action @param {string | undefined} reason */
   const run = async (action, reason) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
   /** @param {import('react').FormEvent<HTMLFormElement>} event */
@@ -193,9 +199,9 @@ function ActivityOverview({ details, onChanged, onError }) {
   return <div className="activity-overview">
     <div className="overview-facts"><span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span></div>
     {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18} /><div><strong>Retrospective entry · {activity.entryDelayDays} calendar days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span></div></div>}
-    {['Draft', 'Planned', 'InProgress'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3><div className="form-grid"><label>When work happened<input name="actualAt" type="datetime-local" required value={actualAtValue} onChange={(event) => setActualAtValue(event.target.value)} /></label>{activity.quantityBasis !== 'None' && <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number" min="0.0001" step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'} required defaultValue={activity.actualQuantity} /></label>}<label className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason} /></label></div><button disabled={saving}>Save actual work</button></form>}
+    {['Draft', 'Planned', 'InProgress'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3><div className="form-grid"><label>When work happened<DatePicker name="actualAt" type="datetime-local" required value={actualAtValue} onChange={setActualAtValue} /></label>{activity.quantityBasis !== 'None' && <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number" min="0.0001" step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'} required defaultValue={activity.actualQuantity} /></label>}<label className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason} /></label></div><button disabled={saving}>Save actual work</button></form>}
     <section className="lifecycle-actions"><h3>Next action</h3>{orderedActions(details.allowedTransitions).map((action) => <button key={action} type="button" className={action === 'Cancelled' ? 'secondary outline' : 'secondary-action'} disabled={saving} onClick={() => run(action, action === 'Cancelled' ? window.prompt('Cancellation reason') || '' : undefined)}>{action === 'ManagerConfirmation' ? 'Supervisor verified' : formatActivityStatus(action)}</button>)}{Object.values(details.blockedTransitions).map((message) => <p className="context-note" key={message}>{message}</p>)}</section>
-    {!['Closed', 'Cancelled'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3><div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required placeholder="e.g. Field sheet FS-204" /></label><label>Captured date<input name="capturedDate" type="date" defaultValue={harareToday()} required /></label></div><button disabled={saving}>Add reference</button><small>Metadata only. Document and photo upload is unavailable.</small></form>}
+    {!['Closed', 'Cancelled'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3><div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required placeholder="e.g. Field sheet FS-204" /></label><label>Captured date<DatePicker name="capturedDate" defaultValue={harareToday()} required /></label></div><button disabled={saving}>Add reference</button><small>Metadata only. Document and photo upload is unavailable.</small></form>}
     <section className="diary-timeline"><h3>Chronological diary</h3>{details.timeline.map((event) => <article key={`${event.type}-${event.id}`}><span className="timeline-dot" /><div><small>{formatDateTime(event.eventAt)}</small><strong>{event.title}</strong><p>{event.detail}</p><span>Entered by {event.enteredBy}{event.operationalActor ? ` · operational actor ${event.operationalActor}` : ''}</span>{event.reason && <em>{event.reason}</em>}</div></article>)}</section>
   </div>;
 }
@@ -207,3 +213,11 @@ function formatDate(value) { if (!value || value === 'Unscheduled') return 'Unsc
 /** @param {string} value */
 function formatDateTime(value) { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
 function harareToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function harareNow() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const part = (/** @type {string} */ type) => parts.find((item) => item.type === type)?.value;
+  return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
+}

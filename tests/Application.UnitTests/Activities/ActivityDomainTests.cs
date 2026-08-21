@@ -129,6 +129,25 @@ public class ActivityDomainTests
     }
 
     [Test]
+    public void CloseIsBlockedWhileRecordedLabourRemainsUnverified()
+    {
+        var context = CreateActiveActivity(ActivityQuantityBasis.None, ActivityPlanningKind.Planned);
+        context.Activity.RecordActualWork(
+            Now.AddHours(-1), null, context.Field.ReportingHectares, null,
+            context.Cycle.StartDate, Now, "user-1", null, 0);
+        context.Activity.Transition(ActivityStatus.Planned, Now, "user-1", null, null, 1);
+        context.Activity.Transition(ActivityStatus.InProgress, Now, "user-1", null, null, 2);
+        context.Activity.Transition(ActivityStatus.AwaitingVerification, Now, "user-1", null, null, 3);
+        context.Activity.Transition(ActivityStatus.ManagerConfirmation, Now, "user-1", context.Supervisor.Id, null, 4);
+        context.Activity.Transition(ActivityStatus.Completed, Now, "user-1", null, null, 5);
+
+        Should.Throw<InvalidOperationException>(() => context.Activity.Transition(
+            ActivityStatus.Closed, Now, "user-1", null, null, 6,
+            allRequiredLabourVerified: false)).Message.ShouldContain("labour remains unverified");
+        context.Activity.Status.ShouldBe(ActivityStatus.Completed);
+    }
+
+    [Test]
     public void HarvestIsBlockedUntilEveryActivityIsTerminal()
     {
         var context = CreateActiveActivity(ActivityQuantityBasis.None, ActivityPlanningKind.Planned);

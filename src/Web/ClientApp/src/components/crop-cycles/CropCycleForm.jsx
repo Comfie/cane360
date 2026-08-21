@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Sprout } from 'lucide-react';
 import { createCycle, createVariety, cropVarietiesClient, localDate } from './cropCycleApi';
+import { DatePicker } from '../DatePicker';
 import { getApiError } from '../farm-setup/farmSetupApi';
 import { ValidationError } from '../ValidationError';
 
@@ -63,9 +64,9 @@ export function CropCycleForm({ field, onSaved, onCancel }) {
         {!isAddingVariety && varieties.length > 0 && <label>Variety<select name="cropVarietyId" required defaultValue=""><option value="" disabled>Select a variety</option>{varieties.map((variety) => <option key={variety.id} value={variety.id}>{variety.code} · {variety.name}</option>)}</select></label>}
         {isAddingVariety && <><label>Variety code<input name="varietyCode" maxLength={20} placeholder="e.g. N14" required /></label><label>Variety name<input name="varietyName" maxLength={80} placeholder="e.g. N14" required /></label></>}
         <label className="inline-choice"><input type="checkbox" checked={isAddingVariety} onChange={(event) => setIsAddingVariety(event.target.checked)} /> Add a new variety</label>
-        <label>Cycle start date<input name="startDate" type="date" required /></label>
-        <label>Expected harvest from<input name="expectedHarvestStart" type="date" required /></label>
-        <label>Expected harvest to<input name="expectedHarvestEnd" type="date" required /></label>
+        <label>Cycle start date<DatePicker name="startDate" required /></label>
+        <label>Expected harvest from<DatePicker name="expectedHarvestStart" required /></label>
+        <label>Expected harvest to<DatePicker name="expectedHarvestEnd" required /></label>
         <label>Expected yield (tonnes)<input name="expectedYieldTonnes" type="number" min="0.01" max="1000000" step="0.001" inputMode="decimal" required /></label>
       </fieldset>
       {varieties.length === 0 && !isAddingVariety && <p className="form-guidance">No crop varieties exist yet. Choose “Add a new variety” to create the first one.</p>}

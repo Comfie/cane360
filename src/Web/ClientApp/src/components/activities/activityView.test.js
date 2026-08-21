@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { formatActivityStatus, groupActivitiesByDate, monthGridDates, orderedActions, quantityLabel } from './activityView.js';
 
@@ -19,6 +20,13 @@ test('groups actual work ahead of planned dates for diary placement', () => {
   ]));
   assert.equal(groups['2026-08-12'].length, 1);
   assert.equal(groups['2026-08-13'].length, 1);
+});
+
+test('actual-work entry defaults to the current Harare minute, not noon', async () => {
+  const source = await readFile(new URL('../pages/ActivitiesPage.jsx', import.meta.url), 'utf8');
+
+  assert.match(source, /\|\| harareNow\(\)/);
+  assert.doesNotMatch(source, /\$\{harareToday\(\)\}T12:00/);
 });
 
 test('places dates in a Monday-first desktop month grid', () => {

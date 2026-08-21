@@ -486,6 +486,9 @@ $RECYCLE.BIN/
 *.swp
 .azure
 
+# Local development secrets
+src/Web/appsettings.Development.Local.json
+
 # SQLite database files
 *.db
 *.db-shm

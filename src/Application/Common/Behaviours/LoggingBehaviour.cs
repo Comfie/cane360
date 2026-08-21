@@ -29,7 +29,7 @@ public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest>
             userName = await _identityService.GetUserNameAsync(userId);
         }
 
-        _logger.LogInformation("Cane360 Request: {Name} {@UserId} {@UserName} {@Request}",
-            requestName, userId, userName, request);
+        _logger.LogInformation("Cane360 Request: {Name} {UserId} {UserName} {CorrelationId}",
+            requestName, userId, userName, _user.CorrelationId);
     }
 }

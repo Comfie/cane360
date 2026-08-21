@@ -40,7 +40,7 @@ export function FieldsPage() {
   }, [fieldKey, setError]);
 
   if (isLoading) return <LoadingState label="Loading fields and crop cycles" />;
-  if (!setup) return <ValidationError title="Field records unavailable" message={error} />;
+  if (!setup) return <ValidationError title="Field records unavailable" message={error} persistent />;
 
   if (!setup.isConfigured) {
     return (
