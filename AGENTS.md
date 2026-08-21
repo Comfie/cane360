@@ -19,6 +19,10 @@ Keep dependencies inward-facing: Domain must not depend on other projects, Appli
 
 Follow `.editorconfig`: four spaces for C#, two for JavaScript/JSON/XML, LF endings, and final newlines. Use file-scoped namespaces, braces, explicit types unless inference is obvious, and sorted `System` usings. Name types, methods, and properties in PascalCase; interfaces `IPascalCase`; locals and parameters camelCase; private fields `_camelCase`. ESLint governs JSX. Centralize NuGet versions in `Directory.Packages.props`; do not add versions to individual project files.
 
+Keep each top-level C# type in its own file, with the file name matching the type name. This applies to DTOs, records, classes, interfaces, structs, and enums; do not group multiple DTOs or related types into a single source file. Generated code and private nested implementation types are exceptions.
+
+When modifying a file that contains multiple top-level C# types, separate those types into matching files as part of the change when doing so remains within the task's scope. Do not perform unrelated repository-wide cleanup.
+
 ## Testing Guidelines
 
 Use NUnit `[Test]` methods, Moq for collaborators, and Shouldly assertions. Name test classes `{Subject}Tests` and tests by observable behavior, for example `LoginReturnsUnauthorizedForInvalidCredentials`. Add focused tests beside the closest matching test namespace. Coverlet is configured, but no minimum coverage threshold is enforced.
@@ -53,7 +57,6 @@ Add durable engineering instructions for Cane360:
   AGENTS.md or prompts.
 - Never print complete connection strings.
 - Do not run destructive tests against the development database.
-- Integration tests require a separate test database.
 - Before creating or applying migrations, show the target environment and list
   pending migrations.
 - Never use EnsureDeleted against Railway.
