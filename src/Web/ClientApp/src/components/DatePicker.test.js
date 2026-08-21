@@ -22,3 +22,18 @@ test('the shared picker does not expose a native date input', async () => {
 
   assert.doesNotMatch(source, /<input\b[^>]*\btype="(?:date|datetime-local)"/);
 });
+
+test('the shared picker provides direct month and year controls', async () => {
+  const source = await readFile(new URL('./DatePicker.jsx', import.meta.url), 'utf8');
+
+  assert.match(source, /aria-label="Month"/);
+  assert.match(source, /aria-label="Year"/);
+});
+
+test('the shared picker renders its popover outside scrollable form containers', async () => {
+  const source = await readFile(new URL('./DatePicker.jsx', import.meta.url), 'utf8');
+
+  assert.match(source, /createPortal\(/);
+  assert.match(source, /document\.body/);
+  assert.match(source, /document\.addEventListener\('scroll', positionPopover, true\)/);
+});

@@ -31,6 +31,32 @@ test('labour dialog content keeps its fields and guidance inside the modal paddi
   assert.match(styles, /\.labour-form \.form-grid label > small \{[^}]*display: block;/);
 });
 
+test('activity-type checkboxes keep their native control sizing and save-action spacing', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/ActivitiesPage.jsx', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.form-grid :is\(input:not\(\[type="checkbox"\]/);
+  assert.match(styles, /\.activity-form > form > button \{[^}]*margin: var\(--space-4\) 0 0;/);
+  assert.match(styles, /\.toggle-control-track/);
+  assert.match(component, /className="toggle-control"/);
+  assert.doesNotMatch(component, /name="supports(?:Planned|Unplanned)" defaultChecked/);
+  assert.match(component, /Select Planned, Unplanned, or both\./);
+});
+
+test('record-evidence actions are separated from the final form field', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.evidence-entry > button \{[^}]*margin-top: var\(--space-4\);/);
+});
+
+test('record-work activity selections use accessible checkbox controls', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/LabourPage.jsx', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.activity-choice input:checked \+ \.activity-choice-box/);
+  assert.match(component, /className="activity-choice"/);
+});
+
 test('shared errors use a dismissible responsive toast instead of an inline card', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
   const component = await readFile(new URL('./components/ValidationError.jsx', import.meta.url), 'utf8');

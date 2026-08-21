@@ -166,25 +166,30 @@ function ActivityTypeForm({ types, onSaved, onError }) {
   /** @param {import('react').FormEvent<HTMLFormElement>} event */
   const save = async (event) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
+    const supportsPlanned = data.get('supportsPlanned') === 'on';
+    const supportsUnplanned = data.get('supportsUnplanned') === 'on';
+    if (!supportsPlanned && !supportsUnplanned) {
+      setSaving(false); onError('Select Planned, Unplanned, or both.'); return;
+    }
     try {
       const type = await activityTypesClient.activityTypes(new CreateActivityTypeRequest({
         code: String(data.get('code')).trim(),
         name: String(data.get('name')).trim(),
-        supportsPlanned: data.get('supportsPlanned') === 'on',
-        supportsUnplanned: data.get('supportsUnplanned') === 'on',
+        supportsPlanned,
+        supportsUnplanned,
         quantityBasis: String(data.get('quantityBasis')),
       }));
       form.reset(); onSaved(type);
     } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
   };
-  return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label><input type="checkbox" name="supportsPlanned" defaultChecked /> Planned</label><label><input type="checkbox" name="supportsUnplanned" defaultChecked /> Unplanned</label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
+  return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label className="toggle-control"><input type="checkbox" name="supportsPlanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Planned</span></label><label className="toggle-control"><input type="checkbox" name="supportsUnplanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Unplanned</span></label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
 }
 
 /** @param {{ details: import('../../web-api-client').ActivityDetailsDto, onChanged: (details: import('../../web-api-client').ActivityDetailsDto) => void, onError: (message: string) => void }} props */
 function ActivityOverview({ details, onChanged, onError }) {
   const activity = details.activity;
   const [saving, setSaving] = useState(false);
-  const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || `${harareToday()}T12:00`);
+  const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
   /** @param {string} action @param {string | undefined} reason */
   const run = async (action, reason) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
   /** @param {import('react').FormEvent<HTMLFormElement>} event */
@@ -208,3 +213,11 @@ function formatDate(value) { if (!value || value === 'Unscheduled') return 'Unsc
 /** @param {string} value */
 function formatDateTime(value) { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
 function harareToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function harareNow() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(new Date());
+  const part = (/** @type {string} */ type) => parts.find((item) => item.type === type)?.value;
+  return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
+}

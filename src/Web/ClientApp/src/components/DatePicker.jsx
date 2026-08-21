@@ -1,7 +1,10 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const calendarYears = Array.from({ length: 201 }, (_, index) => 1900 + index);
 
 /**
  * @param {{
@@ -32,8 +35,10 @@ export function DatePicker({
   const dialogId = useId();
   const rootRef = useRef(/** @type {HTMLDivElement | null} */ (null));
   const triggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null));
+  const popoverRef = useRef(/** @type {HTMLDivElement | null} */ (null));
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState(/** @type {{ left: number, top: number } | null} */ (null));
   const selectedValue = value ?? internalValue;
   const selectedDate = selectedValue.slice(0, 10);
   const [viewDate, setViewDate] = useState(() => parseIsoDate(selectedDate) ?? new Date());
@@ -47,7 +52,8 @@ export function DatePicker({
     if (!isOpen) return undefined;
 
     const closeFromOutside = (/** @type {PointerEvent} */ event) => {
-      if (!rootRef.current?.contains(/** @type {Node} */ (event.target))) setIsOpen(false);
+      const target = /** @type {Node} */ (event.target);
+      if (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target)) setIsOpen(false);
     };
     const closeFromKeyboard = (/** @type {KeyboardEvent} */ event) => {
       if (event.key === 'Escape') {
@@ -61,6 +67,36 @@ export function DatePicker({
     return () => {
       document.removeEventListener('pointerdown', closeFromOutside);
       document.removeEventListener('keydown', closeFromKeyboard);
+    };
+  }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return undefined;
+
+    const positionPopover = () => {
+      const trigger = triggerRef.current;
+      const popover = popoverRef.current;
+      if (!trigger || !popover) return;
+
+      const padding = 12;
+      const gap = 8;
+      const triggerBounds = trigger.getBoundingClientRect();
+      const popoverWidth = popover.offsetWidth;
+      const popoverHeight = popover.offsetHeight;
+      const left = Math.min(Math.max(triggerBounds.right - popoverWidth, padding), Math.max(padding, window.innerWidth - popoverWidth - padding));
+      const below = triggerBounds.bottom + gap;
+      const top = below + popoverHeight <= window.innerHeight - padding
+        ? below
+        : Math.max(padding, triggerBounds.top - gap - popoverHeight);
+      setPopoverPosition({ left, top });
+    };
+
+    positionPopover();
+    window.addEventListener('resize', positionPopover);
+    document.addEventListener('scroll', positionPopover, true);
+    return () => {
+      window.removeEventListener('resize', positionPopover);
+      document.removeEventListener('scroll', positionPopover, true);
     };
   }, [isOpen]);
 
@@ -121,10 +157,17 @@ export function DatePicker({
       <span className={selectedValue ? '' : 'is-placeholder'}>{formatPickerValue(selectedValue, isDateTime)}</span>
       <CalendarDays size={17} aria-hidden="true" />
     </button>
-    {isOpen && <div className="date-picker-popover" id={dialogId} role="dialog" aria-label="Choose date">
+    {isOpen && createPortal(<div ref={popoverRef} className="date-picker-popover" id={dialogId} role="dialog" aria-label="Choose date" style={{ left: popoverPosition?.left ?? 0, top: popoverPosition?.top ?? 0, visibility: popoverPosition ? 'visible' : 'hidden' }}>
       <header className="date-picker-header">
         <button type="button" className="date-picker-nav" aria-label="Previous month" onClick={() => setViewDate(shiftMonth(viewDate, -1))}><ChevronLeft size={17} /></button>
-        <strong>{new Intl.DateTimeFormat('en-ZW', { month: 'long', year: 'numeric' }).format(viewDate)}</strong>
+        <div className="date-picker-period">
+          <select aria-label="Month" value={viewDate.getMonth()} onChange={(event) => setViewDate(new Date(viewDate.getFullYear(), Number(event.target.value), 1))}>
+            {months.map((month, index) => <option key={month} value={index}>{month}</option>)}
+          </select>
+          <select aria-label="Year" value={viewDate.getFullYear()} onChange={(event) => setViewDate(new Date(Number(event.target.value), viewDate.getMonth(), 1))}>
+            {calendarYears.map((year) => <option key={year} value={year}>{year}</option>)}
+          </select>
+        </div>
         <button type="button" className="date-picker-nav" aria-label="Next month" onClick={() => setViewDate(shiftMonth(viewDate, 1))}><ChevronRight size={17} /></button>
       </header>
       <div className="date-picker-weekdays" aria-hidden="true">{weekdays.map((day) => <span key={day}>{day}</span>)}</div>
@@ -148,7 +191,7 @@ export function DatePicker({
         {!required && selectedValue && <button type="button" className="date-picker-clear" onClick={() => { commit(''); setIsOpen(false); }}>Clear</button>}
         <button type="button" onClick={() => { const today = todayIso(); setViewDate(new Date(`${today}T00:00:00`)); selectDate(today); }}>Today</button>
       </footer>
-    </div>}
+    </div>, document.body)}
   </div>;
 }
 

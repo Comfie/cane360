@@ -22,9 +22,30 @@ public class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipelineBehavio
         {
             return await next();
         }
+        catch (Cane360.Application.Common.Exceptions.ValidationException)
+        {
+            _logger.LogInformation("Cane360 Request: Validation rejected for Request {Name} {CorrelationId}",
+                typeof(TRequest).Name, _user.CorrelationId);
+
+            throw;
+        }
         catch (ConflictException)
         {
-            _logger.LogInformation("Cane360 Request: Conflict for Request {Name} {CorrelationId}",
+            _logger.LogWarning("Cane360 Request: Conflict for Request {Name} {CorrelationId}",
+                typeof(TRequest).Name, _user.CorrelationId);
+
+            throw;
+        }
+        catch (ForbiddenAccessException)
+        {
+            _logger.LogWarning("Cane360 Request: Forbidden for Request {Name} {CorrelationId}",
+                typeof(TRequest).Name, _user.CorrelationId);
+
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _logger.LogWarning("Cane360 Request: Unauthorized for Request {Name} {CorrelationId}",
                 typeof(TRequest).Name, _user.CorrelationId);
 
             throw;

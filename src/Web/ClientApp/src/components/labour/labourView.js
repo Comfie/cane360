@@ -22,3 +22,8 @@ export function dateOnly(date) {
 export function harareToday() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
+
+/** @param {string[]} activityIds */
+export function activitySelectionError(activityIds) {
+  return activityIds.length > 0 ? undefined : 'Select at least one activity on the allocated field before recording evidence.';
+}
