@@ -57,6 +57,21 @@ test('record-work activity selections use accessible checkbox controls', async (
   assert.match(component, /className="activity-choice"/);
 });
 
+test('evidence attestation controls use a dedicated action row', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.evidence-action \{[^}]*grid-column: 1 \/ -1;/);
+  assert.match(styles, /\.evidence-action button \{ white-space: nowrap;/);
+});
+
+test('evidence verification uses numbered step markers', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/LabourPage.jsx', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.proof-strip span b \{[^}]*border-radius: 50%;/);
+  assert.match(component, /<b>1<\/b><small>Entered<\/small>/);
+});
+
 test('shared errors use a dismissible responsive toast instead of an inline card', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
   const component = await readFile(new URL('./components/ValidationError.jsx', import.meta.url), 'utf8');

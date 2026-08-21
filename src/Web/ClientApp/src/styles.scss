@@ -2290,17 +2290,20 @@ p {
 .activity-choice input:focus-visible + .activity-choice-box { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .activity-checks small { margin-left: auto; color: var(--text-muted); }
 .evidence-register { overflow: hidden; padding: 0; }
-.evidence-register article { display: grid; grid-template-columns: minmax(11rem, 1fr) 12rem minmax(9rem, auto); align-items: center; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
+.evidence-register article { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; align-items: center; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
 .evidence-main { display: grid; min-width: 0; }
 .evidence-main span, .evidence-main small { overflow: hidden; color: var(--text-muted); font-size: var(--type-xs); text-overflow: ellipsis; white-space: nowrap; }
-.proof-strip { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); }
-.proof-strip::before { position: absolute; top: 0.65rem; right: 16%; left: 16%; height: 2px; background: var(--border); content: ''; }
-.proof-strip > span { z-index: 1; display: grid; justify-items: center; color: var(--text-muted); font-family: var(--font-data); font-size: var(--type-xs); }
-.proof-strip > span::first-line { background: var(--surface); }
-.proof-strip span small { font-family: var(--font-ui); font-size: 0.62rem; }
-.proof-strip .is-done { color: var(--cane-700); font-weight: 800; }
-.evidence-action { display: flex; gap: var(--space-2); }
+.proof-strip { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-1); }
+.proof-strip::before { position: absolute; top: 0.75rem; right: calc(16.667% + 0.75rem); left: calc(16.667% + 0.75rem); height: 2px; background: var(--border-strong); content: ''; }
+.proof-strip > span { z-index: 1; display: grid; justify-items: center; gap: var(--space-1); color: var(--text-muted); font-size: var(--type-xs); }
+.proof-strip span b { display: grid; width: 1.5rem; height: 1.5rem; place-items: center; border: 2px solid var(--border-strong); border-radius: 50%; background: var(--surface-raised); color: var(--text-muted); font-family: var(--font-data); font-size: 0.7rem; }
+.proof-strip span small { color: inherit; font-family: var(--font-ui); font-size: 0.62rem; font-weight: 650; line-height: 1.1; text-align: center; }
+.proof-strip .is-done { color: var(--cane-700); }
+.proof-strip .is-done b { border-color: var(--cane-600); background: var(--cane-600); color: #ffffff; box-shadow: var(--shadow-1); }
+.evidence-action { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(12rem, 1fr) auto; align-items: center; gap: var(--space-2); padding-top: var(--space-3); border-top: 1px solid var(--border); }
 .evidence-action :is(select, button) { min-height: 2.25rem; margin: 0; padding: var(--space-1) var(--space-2); font-size: var(--type-xs); }
+.evidence-action select { min-width: 0; }
+.evidence-action button { white-space: nowrap; }
 .confirmed-mark { display: inline-flex; align-items: center; justify-self: end; gap: var(--space-2); color: var(--cane-700); font-size: var(--type-xs); font-weight: 750; }
 .empty-copy { padding: var(--space-6) var(--space-4); color: var(--text-muted); text-align: center; }
 
