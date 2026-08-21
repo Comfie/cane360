@@ -36,7 +36,7 @@ public sealed record CreateActivityRequest(
 
 public sealed record RecordActualWorkRequest(
     long ExpectedVersion,
-    DateTimeOffset ActualAt,
+    string ActualAt,
     decimal? ActualQuantity,
     string? LateEntryReason);
 

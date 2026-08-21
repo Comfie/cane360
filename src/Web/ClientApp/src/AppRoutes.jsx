@@ -6,6 +6,7 @@ import { FieldsPage } from './components/pages/FieldsPage';
 import { CropCycleOverviewPage } from './components/pages/CropCycleOverviewPage';
 import { ModulePage } from './components/pages/ModulePage';
 import { ActivitiesPage } from './components/pages/ActivitiesPage';
+import { LabourPage } from './components/pages/LabourPage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
@@ -23,7 +24,8 @@ export function AppRoutes() {
         <Route path="/fields" element={<FieldsPage />} />
         <Route path="/fields/:fieldId/crop-cycles/:cropCycleId" element={<CropCycleOverviewPage />} />
         <Route path="/activities" element={<ActivitiesPage />} />
-        {protectedNavigation.slice(4).map((item) => (
+        <Route path="/labour" element={<LabourPage />} />
+        {protectedNavigation.slice(5).map((item) => (
           <Route
             key={item.id}
             path={item.path}

@@ -1,6 +1,7 @@
 using System.Globalization;
 using Cane360.Domain.Activities;
 using Cane360.Domain.Farms;
+using Cane360.Domain.Labour;
 
 namespace Cane360.Application.Activities;
 
@@ -145,7 +146,9 @@ internal static class ActivityMapper
     public static async Task<ActivityDetailsDto> MapDetailsAsync(
         Tenant tenant,
         Activity activity,
-        IIdentityService identityService)
+        IIdentityService identityService,
+        IReadOnlyList<WorkRecord>? labourRecords = null,
+        IReadOnlyList<WorkerProfile>? workers = null)
     {
         var farm = tenant.ActiveFarm!;
         var allowed = TransitionTargets
@@ -166,6 +169,12 @@ internal static class ActivityMapper
             .Append(activity.CreatedBy)
             .Append(activity.ActualEnteredByUserId)
             .Concat(activity.EvidenceLinks.Select(link => link.RecordedBy))
+            .Concat((labourRecords ?? []).SelectMany(record => new[]
+            {
+                record.EnteredByUserId,
+                record.Verification?.SupervisorVerificationEnteredByUserId,
+                record.Verification?.ManagerConfirmedByUserId
+            }))
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Distinct(StringComparer.Ordinal)
             .Cast<string>()
@@ -230,6 +239,25 @@ internal static class ActivityMapper
             null,
             link.SourceSheetReference,
             null)));
+        timeline.AddRange((labourRecords ?? []).Select(record =>
+        {
+            var worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
+            var workerName = worker is null ? "Worker" : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
+            var actor = record.Verification is null ? null : PersonName(record.Verification.SupervisorPersonId);
+            var detail = record.Status == WorkRecordStatus.Confirmed
+                ? $"{workerName} · {record.PayBasis} · confirmed labour evidence"
+                : $"{workerName} · {record.PayBasis} · {record.Status}";
+            return new ActivityTimelineEventDto(
+                record.Id,
+                "LabourEvidence",
+                "Labour evidence recorded",
+                record.WorkDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                FormatTimestamp(record.Verification?.ManagerConfirmedAt ?? record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
+                UserName(record.Verification?.ManagerConfirmedByUserId ?? record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
+                actor,
+                detail,
+                record.LateEntryReason);
+        }));
 
         return new ActivityDetailsDto(
             MapListItem(farm, activity),

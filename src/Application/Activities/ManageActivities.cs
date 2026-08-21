@@ -135,14 +135,19 @@ public sealed class GetActivitiesQueryHandler(IFarmSetupRepository repository, I
 
 public sealed class GetActivityDetailsQueryHandler(
     IFarmSetupRepository repository,
+    ILabourRepository labourRepository,
     IUser user,
     IIdentityService identityService) : IRequestHandler<GetActivityDetailsQuery, ActivityDetailsDto>
 {
     public async Task<ActivityDetailsDto> Handle(GetActivityDetailsQuery request, CancellationToken cancellationToken)
     {
         var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var farm = ActivityAccess.RequireFarm(tenant);
+        var records = await labourRepository.GetWorkRecordsAsync(
+            tenant.Id, farm.Id, null, null, request.ActivityId, false, cancellationToken);
+        var workers = await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
         return await ActivityMapper.MapDetailsAsync(
-            tenant, ActivityAccess.RequireActivity(tenant, request.ActivityId), identityService);
+            tenant, ActivityAccess.RequireActivity(tenant, request.ActivityId), identityService, records, workers);
     }
 }
 
@@ -186,12 +191,13 @@ public sealed class RecordActualWorkCommandHandler(
         ActivityAccess.RequireVersion(activity, request.ExpectedVersion);
         var field = ActivityAccess.RequireField(farm, activity.FieldId);
         var cycle = ActivityAccess.RequireOperationalCycle(field, activity.CropCycleId);
-        var eventDate = ActivityAccess.HarareDate(request.ActualAt);
+        var actualAtUtc = ActivityAccess.NormalizeUtc(request.ActualAt);
+        var eventDate = ActivityAccess.HarareDate(actualAtUtc);
         ActivityAccess.RequireSupervisor(farm, activity.SupervisorPersonId, eventDate);
         var profile = field.LineProfiles.SingleOrDefault(candidate => candidate.IsEffective(eventDate));
         var now = timeProvider.GetUtcNow();
         ActivityAccess.ApplyDomainAction(nameof(request.ActualAt), () => activity.RecordActualWork(
-            request.ActualAt,
+            actualAtUtc,
             request.ActualQuantity,
             field.ReportingHectares,
             profile,
@@ -207,6 +213,7 @@ public sealed class RecordActualWorkCommandHandler(
 
 public sealed class TransitionActivityCommandHandler(
     IFarmSetupRepository repository,
+    ILabourRepository labourRepository,
     IUser user,
     IIdentityService identityService,
     TimeProvider timeProvider) : IRequestHandler<TransitionActivityCommand, ActivityDetailsDto>
@@ -228,6 +235,10 @@ public sealed class TransitionActivityCommandHandler(
             operationalPersonId = activity.SupervisorPersonId;
         }
 
+        var allRequiredLabourVerified = target != ActivityStatus.Closed ||
+            !await labourRepository.HasIncompleteWorkForActivityAsync(
+                tenant.Id, farm.Id, activity.Id, cancellationToken);
+
         ActivityAccess.ApplyDomainAction(nameof(request.TargetStatus), () => activity.Transition(
             target,
             timeProvider.GetUtcNow(),
@@ -235,7 +246,8 @@ public sealed class TransitionActivityCommandHandler(
             operationalPersonId,
             request.Reason,
             request.ExpectedVersion,
-            noUnaccountedControlledInput: true));
+            noUnaccountedControlledInput: true,
+            allRequiredLabourVerified: allRequiredLabourVerified));
         await repository.SaveChangesAsync(cancellationToken);
         return await ActivityMapper.MapDetailsAsync(tenant, activity, identityService);
     }

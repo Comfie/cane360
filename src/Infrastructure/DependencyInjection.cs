@@ -2,18 +2,22 @@ using Cane360.Application.Common.Interfaces;
 using Cane360.Infrastructure.Data;
 using Cane360.Infrastructure.Data.Interceptors;
 using Cane360.Infrastructure.Identity;
+using Cane360.Infrastructure.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Cane360.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
+    public static void AddInfrastructureServices(
+        this IHostApplicationBuilder builder,
+        bool validateNationalIdOnStart = true)
     {
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
@@ -32,6 +36,16 @@ public static class DependencyInjection
         builder.Services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IFarmSetupRepository, FarmSetupRepository>();
+        builder.Services.AddScoped<ILabourRepository, LabourRepository>();
+        OptionsBuilder<NationalIdProtectionOptions> nationalIdOptions = builder.Services
+            .AddOptions<NationalIdProtectionOptions>()
+            .Bind(builder.Configuration.GetSection(NationalIdProtectionOptions.SectionName));
+        if (validateNationalIdOnStart)
+        {
+            nationalIdOptions.ValidateOnStart();
+        }
+        builder.Services.AddSingleton<IValidateOptions<NationalIdProtectionOptions>, NationalIdProtectionOptionsValidator>();
+        builder.Services.AddSingleton<IWorkerSensitiveDataProtector, WorkerSensitiveDataProtector>();
 
         builder.Services.AddAuthentication(options =>
             {

@@ -34,7 +34,7 @@ export function CropCycleOverviewPage() {
   }, [fieldId, cropCycleId]);
 
   if (isLoading) return <LoadingState label="Opening crop-cycle logbook" />;
-  if (!details) return <ValidationError title="Crop-cycle overview unavailable" message={error} />;
+  if (!details) return <ValidationError title="Crop-cycle overview unavailable" message={error} persistent />;
 
   const cycle = details.cropCycle;
 
@@ -100,7 +100,7 @@ export function CropCycleOverviewPage() {
         <div className="section-heading"><div><span className="eyebrow">Operational records</span><h2 id="future-history-title">Cycle-linked information</h2></div><p>Only implemented, persisted records appear in Cane360 history.</p></div>
         <div className="unavailable-grid">
           <UnavailableHistory icon={CalendarDays} title="Activities" />
-          <UnavailableHistory icon={Users} title="Labour" />
+          <UnavailableHistory icon={Users} title="Payroll and labour cost posting" />
           <UnavailableHistory icon={Warehouse} title="Inputs" />
           <UnavailableHistory icon={Coins} title="Costs" />
         </div>

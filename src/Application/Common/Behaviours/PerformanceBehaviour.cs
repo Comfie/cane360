@@ -45,8 +45,8 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
                 userName = await _identityService.GetUserNameAsync(userId);
             }
 
-            _logger.LogWarning("Cane360 Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@UserId} {@UserName} {@Request}",
-                requestName, elapsedMilliseconds, userId, userName, request);
+            _logger.LogWarning("Cane360 Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {UserId} {UserName} {CorrelationId}",
+                requestName, elapsedMilliseconds, userId, userName, _user.CorrelationId);
         }
 
         return response;

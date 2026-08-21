@@ -13,7 +13,7 @@ export function Dashboard() {
   const { setup, error, isLoading } = useFarmSetup();
 
   if (isLoading) return <LoadingState label="Preparing your farm overview" />;
-  if (!setup) return <ValidationError title="Dashboard unavailable" message={error} />;
+  if (!setup) return <ValidationError title="Dashboard unavailable" message={error} persistent />;
 
   const farm = setup.farm;
   const fields = farm?.fields ?? [];

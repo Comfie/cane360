@@ -2,6 +2,7 @@ using System.Globalization;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Activities;
 using Cane360.Application.Activities;
+using Cane360.Domain.Labour;
 
 namespace Cane360.Application.CropCycles;
 
@@ -114,7 +115,9 @@ internal static class CropCycleMapper
         Field field,
         CropCycle cycle,
         Farm farm,
-        IIdentityService identityService)
+        IIdentityService identityService,
+        IReadOnlyList<WorkRecord>? labourRecords = null,
+        IReadOnlyList<WorkerProfile>? workers = null)
     {
         var details = MapDetails(field, cycle);
         var userIds = cycle.Activities
@@ -124,7 +127,14 @@ internal static class CropCycleMapper
                 .Concat(activity.EvidenceLinks.Select(link => link.RecordedBy)))
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Distinct(StringComparer.Ordinal)
-            .Cast<string>();
+            .Cast<string>()
+            .Concat((labourRecords ?? []).SelectMany(record => new[]
+            {
+                record.EnteredByUserId,
+                record.Verification?.SupervisorVerificationEnteredByUserId,
+                record.Verification?.ManagerConfirmedByUserId
+            }).Where(value => !string.IsNullOrWhiteSpace(value)).Cast<string>())
+            .Distinct(StringComparer.Ordinal);
         var users = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var userId in userIds)
         {
@@ -183,12 +193,41 @@ internal static class CropCycleMapper
                 null)));
             return entries;
         });
+        var cycleActivityIds = cycle.Activities.Select(activity => activity.Id).ToHashSet();
+        var labourTimeline = (labourRecords ?? [])
+            .Where(record => record.Activities.Any(link => cycleActivityIds.Contains(link.ActivityId)))
+            .GroupBy(record => record.Id)
+            .Select(group => group.First())
+            .Select(record =>
+            {
+                var worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
+                var workerName = worker is null ? "Worker" : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
+                var activityNames = cycle.Activities
+                    .Where(activity => record.Activities.Any(link => link.ActivityId == activity.Id))
+                    .OrderBy(activity => activity.ActivityTypeName, StringComparer.Ordinal)
+                    .ThenBy(activity => activity.ActivityTypeCode, StringComparer.Ordinal)
+                    .ThenBy(activity => activity.Id)
+                    .Select(activity => activity.ActivityTypeName)
+                    .ToArray();
+                return new CropCycleTimelineEventDto(
+                    record.Id,
+                    "LabourEvidence",
+                    $"Labour evidence · {string.Join(", ", activityNames)}",
+                    record.WorkDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    FormatTimestamp(record.Verification?.ManagerConfirmedAt ?? record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
+                    $"{workerName} · {record.PayBasis} · {record.Status}",
+                    record.LateEntryReason,
+                    UserName(record.Verification?.ManagerConfirmedByUserId ?? record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
+                    record.Verification is null ? null : PersonName(record.Verification.SupervisorPersonId));
+            });
 
         return details with
         {
-            Timeline = details.Timeline.Concat(activityTimeline)
+            Timeline = details.Timeline.Concat(activityTimeline).Concat(labourTimeline)
                 .OrderByDescending(item => item.EventDate, StringComparer.Ordinal)
                 .ThenByDescending(item => item.RecordedAt, StringComparer.Ordinal)
+                .ThenBy(item => item.Type, StringComparer.Ordinal)
+                .ThenBy(item => item.Id)
                 .ToArray()
         };
     }

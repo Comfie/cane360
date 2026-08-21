@@ -1100,6 +1100,124 @@ export class ActivityTypesClient {
     }
 }
 
+export class AttendanceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @param workDate (optional)
+     * @return OK
+     */
+    attendanceGET(workDate: string | undefined): Promise<AttendanceRegisterDto> {
+        let url_ = this.baseUrl + "/api/attendance?";
+        if (workDate === null)
+            throw new globalThis.Error("The parameter 'workDate' cannot be null.");
+        else if (workDate !== undefined)
+            url_ += "workDate=" + encodeURIComponent("" + workDate) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttendanceGET(_response);
+        });
+    }
+
+    protected processAttendanceGET(response: Response): Promise<AttendanceRegisterDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AttendanceRegisterDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AttendanceRegisterDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    attendancePUT(body: RecordAttendanceRequest): Promise<AttendanceRegisterDto> {
+        let url_ = this.baseUrl + "/api/attendance";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttendancePUT(_response);
+        });
+    }
+
+    protected processAttendancePUT(response: Response): Promise<AttendanceRegisterDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AttendanceRegisterDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AttendanceRegisterDto>(null as any);
+    }
+}
+
 export class CropCyclesClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -2607,6 +2725,717 @@ export class UsersClient {
     }
 }
 
+export class WorkerRatesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    rates(workerId: string, body: CreateWorkerRateRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/rates";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRates(_response);
+        });
+    }
+
+    protected processRates(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    end2(workerId: string, rateId: string, body: EndWorkerRateRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/rates/{rateId}/end";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        if (rateId === undefined || rateId === null)
+            throw new globalThis.Error("The parameter 'rateId' must be defined.");
+        url_ = url_.replace("{rateId}", encodeURIComponent("" + rateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processEnd2(_response);
+        });
+    }
+
+    protected processEnd2(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+}
+
+export class WorkersClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    workersAll(): Promise<WorkerListItemDto[]> {
+        let url_ = this.baseUrl + "/api/workers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkersAll(_response);
+        });
+    }
+
+    protected processWorkersAll(response: Response): Promise<WorkerListItemDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(WorkerListItemDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerListItemDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    workersPOST(body: CreateWorkerRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkersPOST(_response);
+        });
+    }
+
+    protected processWorkersPOST(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    workersGET(workerId: string): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkersGET(_response);
+        });
+    }
+
+    protected processWorkersGET(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    archive2(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/archive";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchive2(_response);
+        });
+    }
+
+    protected processArchive2(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerDetailsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+}
+
+export class WorkRecordsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @param workDate (optional)
+     * @param workerId (optional)
+     * @param activityId (optional)
+     * @return OK
+     */
+    workRecordsAll(workDate: string | undefined, workerId: string | undefined, activityId: string | undefined): Promise<WorkRecordDto[]> {
+        let url_ = this.baseUrl + "/api/work-records?";
+        if (workDate === null)
+            throw new globalThis.Error("The parameter 'workDate' cannot be null.");
+        else if (workDate !== undefined)
+            url_ += "workDate=" + encodeURIComponent("" + workDate) + "&";
+        if (workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' cannot be null.");
+        else if (workerId !== undefined)
+            url_ += "workerId=" + encodeURIComponent("" + workerId) + "&";
+        if (activityId === null)
+            throw new globalThis.Error("The parameter 'activityId' cannot be null.");
+        else if (activityId !== undefined)
+            url_ += "activityId=" + encodeURIComponent("" + activityId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkRecordsAll(_response);
+        });
+    }
+
+    protected processWorkRecordsAll(response: Response): Promise<WorkRecordDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(WorkRecordDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkRecordDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    workRecords(body: CreateWorkRecordRequest): Promise<WorkRecordDto> {
+        let url_ = this.baseUrl + "/api/work-records";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkRecords(_response);
+        });
+    }
+
+    protected processWorkRecords(response: Response): Promise<WorkRecordDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkRecordDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkRecordDto>(null as any);
+    }
+
+    /**
+     * @param workDate (optional)
+     * @return OK
+     */
+    referenceData(workDate: string | undefined): Promise<LabourReferenceDataDto> {
+        let url_ = this.baseUrl + "/api/work-records/reference-data?";
+        if (workDate === null)
+            throw new globalThis.Error("The parameter 'workDate' cannot be null.");
+        else if (workDate !== undefined)
+            url_ += "workDate=" + encodeURIComponent("" + workDate) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReferenceData(_response);
+        });
+    }
+
+    protected processReferenceData(response: Response): Promise<LabourReferenceDataDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = LabourReferenceDataDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<LabourReferenceDataDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    supervisorVerification(workRecordId: string, body: VerifyWorkRecordRequest): Promise<WorkRecordDto> {
+        let url_ = this.baseUrl + "/api/work-records/{workRecordId}/supervisor-verification";
+        if (workRecordId === undefined || workRecordId === null)
+            throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
+        url_ = url_.replace("{workRecordId}", encodeURIComponent("" + workRecordId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSupervisorVerification(_response);
+        });
+    }
+
+    protected processSupervisorVerification(response: Response): Promise<WorkRecordDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkRecordDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkRecordDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    managerConfirmation2(workRecordId: string, body: ConfirmWorkRecordRequest): Promise<WorkRecordDto> {
+        let url_ = this.baseUrl + "/api/work-records/{workRecordId}/manager-confirmation";
+        if (workRecordId === undefined || workRecordId === null)
+            throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
+        url_ = url_.replace("{workRecordId}", encodeURIComponent("" + workRecordId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processManagerConfirmation2(_response);
+        });
+    }
+
+    protected processManagerConfirmation2(response: Response): Promise<WorkRecordDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkRecordDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkRecordDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    corrections(workRecordId: string, body: CorrectWorkRecordRequest): Promise<WorkRecordDto> {
+        let url_ = this.baseUrl + "/api/work-records/{workRecordId}/corrections";
+        if (workRecordId === undefined || workRecordId === null)
+            throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
+        url_ = url_.replace("{workRecordId}", encodeURIComponent("" + workRecordId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCorrections(_response);
+        });
+    }
+
+    protected processCorrections(response: Response): Promise<WorkRecordDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkRecordDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkRecordDto>(null as any);
+    }
+}
+
 export class ActivityCollectionDto implements IActivityCollectionDto {
     items!: ActivityListItemDto[];
     page!: number;
@@ -3129,6 +3958,278 @@ export interface IAddSourceReferenceRequest {
     [key: string]: any;
 }
 
+export class ArchiveWorkerRequest implements IArchiveWorkerRequest {
+    activeTo!: string;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IArchiveWorkerRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.activeTo = _data["activeTo"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): ArchiveWorkerRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ArchiveWorkerRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["activeTo"] = this.activeTo;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IArchiveWorkerRequest {
+    activeTo: string;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class AttendanceEntryRequest implements IAttendanceEntryRequest {
+    workerId!: string;
+    status!: string;
+    fieldId!: string | undefined;
+    expectedVersion!: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAttendanceEntryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.status = _data["status"];
+            this.fieldId = _data["fieldId"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): AttendanceEntryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AttendanceEntryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["status"] = this.status;
+        data["fieldId"] = this.fieldId;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IAttendanceEntryRequest {
+    workerId: string;
+    status: string;
+    fieldId: string | undefined;
+    expectedVersion: number | undefined;
+
+    [key: string]: any;
+}
+
+export class AttendanceRegisterDto implements IAttendanceRegisterDto {
+    workDate!: Date;
+    rows!: AttendanceRowDto[];
+    fields!: LabourFieldDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IAttendanceRegisterDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.rows = [];
+            this.fields = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workDate = _data["workDate"] ? new Date(_data["workDate"].toString()) : undefined as any;
+            if (Array.isArray(_data["rows"])) {
+                this.rows = [] as any;
+                for (let item of _data["rows"])
+                    this.rows!.push(AttendanceRowDto.fromJS(item));
+            }
+            if (Array.isArray(_data["fields"])) {
+                this.fields = [] as any;
+                for (let item of _data["fields"])
+                    this.fields!.push(LabourFieldDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AttendanceRegisterDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AttendanceRegisterDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workDate"] = this.workDate ? formatDate(this.workDate) : undefined as any;
+        if (Array.isArray(this.rows)) {
+            data["rows"] = [];
+            for (let item of this.rows)
+                data["rows"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.fields)) {
+            data["fields"] = [];
+            for (let item of this.fields)
+                data["fields"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IAttendanceRegisterDto {
+    workDate: Date;
+    rows: AttendanceRowDto[];
+    fields: LabourFieldDto[];
+
+    [key: string]: any;
+}
+
+export class AttendanceRowDto implements IAttendanceRowDto {
+    workerId!: string;
+    workerName!: string;
+    employmentType!: string;
+    attendanceId!: string | undefined;
+    workDate!: Date;
+    status!: string | undefined;
+    fieldId!: string | undefined;
+    fieldName!: string | undefined;
+    entryDelayDays!: number;
+    version!: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAttendanceRowDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.workerName = _data["workerName"];
+            this.employmentType = _data["employmentType"];
+            this.attendanceId = _data["attendanceId"];
+            this.workDate = _data["workDate"] ? new Date(_data["workDate"].toString()) : undefined as any;
+            this.status = _data["status"];
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.entryDelayDays = _data["entryDelayDays"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): AttendanceRowDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AttendanceRowDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["workerName"] = this.workerName;
+        data["employmentType"] = this.employmentType;
+        data["attendanceId"] = this.attendanceId;
+        data["workDate"] = this.workDate ? formatDate(this.workDate) : undefined as any;
+        data["status"] = this.status;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["entryDelayDays"] = this.entryDelayDays;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IAttendanceRowDto {
+    workerId: string;
+    workerName: string;
+    employmentType: string;
+    attendanceId: string | undefined;
+    workDate: Date;
+    status: string | undefined;
+    fieldId: string | undefined;
+    fieldName: string | undefined;
+    entryDelayDays: number;
+    version: number | undefined;
+
+    [key: string]: any;
+}
+
 export class CancelCropCycleRequest implements ICancelCropCycleRequest {
     expectedVersion!: number;
     reason!: string;
@@ -3177,6 +4278,137 @@ export class CancelCropCycleRequest implements ICancelCropCycleRequest {
 export interface ICancelCropCycleRequest {
     expectedVersion: number;
     reason: string;
+
+    [key: string]: any;
+}
+
+export class ConfirmWorkRecordRequest implements IConfirmWorkRecordRequest {
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IConfirmWorkRecordRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): ConfirmWorkRecordRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ConfirmWorkRecordRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IConfirmWorkRecordRequest {
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class CorrectWorkRecordRequest implements ICorrectWorkRecordRequest {
+    expectedVersion!: number;
+    correctionReason!: string;
+    payBasis!: string;
+    activityIds!: string[];
+    quantity!: number | undefined;
+    scope!: WorkScopeRequest | undefined;
+    lateEntryReason!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICorrectWorkRecordRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.activityIds = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.correctionReason = _data["correctionReason"];
+            this.payBasis = _data["payBasis"];
+            if (Array.isArray(_data["activityIds"])) {
+                this.activityIds = [] as any;
+                for (let item of _data["activityIds"])
+                    this.activityIds!.push(item);
+            }
+            this.quantity = _data["quantity"];
+            this.scope = _data["scope"] ? WorkScopeRequest.fromJS(_data["scope"]) : undefined as any;
+            this.lateEntryReason = _data["lateEntryReason"];
+        }
+    }
+
+    static fromJS(data: any): CorrectWorkRecordRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CorrectWorkRecordRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["correctionReason"] = this.correctionReason;
+        data["payBasis"] = this.payBasis;
+        if (Array.isArray(this.activityIds)) {
+            data["activityIds"] = [];
+            for (let item of this.activityIds)
+                data["activityIds"].push(item);
+        }
+        data["quantity"] = this.quantity;
+        data["scope"] = this.scope ? this.scope.toJSON() : undefined as any;
+        data["lateEntryReason"] = this.lateEntryReason;
+        return data;
+    }
+}
+
+export interface ICorrectWorkRecordRequest {
+    expectedVersion: number;
+    correctionReason: string;
+    payBasis: string;
+    activityIds: string[];
+    quantity: number | undefined;
+    scope: WorkScopeRequest | undefined;
+    lateEntryReason: string | undefined;
 
     [key: string]: any;
 }
@@ -3660,6 +4892,221 @@ export interface ICreatePersonRequest {
     activeFrom: Date;
     roles: string[];
     isPrimaryManager: boolean;
+
+    [key: string]: any;
+}
+
+export class CreateWorkerRateRequest implements ICreateWorkerRateRequest {
+    basis!: string;
+    activityTypeId!: string | undefined;
+    rateUsd!: number;
+    effectiveFrom!: string;
+    effectiveTo!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateWorkerRateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.basis = _data["basis"];
+            this.activityTypeId = _data["activityTypeId"];
+            this.rateUsd = _data["rateUsd"];
+            this.effectiveFrom = _data["effectiveFrom"];
+            this.effectiveTo = _data["effectiveTo"];
+        }
+    }
+
+    static fromJS(data: any): CreateWorkerRateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateWorkerRateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["basis"] = this.basis;
+        data["activityTypeId"] = this.activityTypeId;
+        data["rateUsd"] = this.rateUsd;
+        data["effectiveFrom"] = this.effectiveFrom;
+        data["effectiveTo"] = this.effectiveTo;
+        return data;
+    }
+}
+
+export interface ICreateWorkerRateRequest {
+    basis: string;
+    activityTypeId: string | undefined;
+    rateUsd: number;
+    effectiveFrom: string;
+    effectiveTo: string | undefined;
+
+    [key: string]: any;
+}
+
+export class CreateWorkerRequest implements ICreateWorkerRequest {
+    personId!: string | undefined;
+    displayName!: string | undefined;
+    phone!: string | undefined;
+    employmentType!: string;
+    activeFrom!: string;
+    nationalId!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateWorkerRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.personId = _data["personId"];
+            this.displayName = _data["displayName"];
+            this.phone = _data["phone"];
+            this.employmentType = _data["employmentType"];
+            this.activeFrom = _data["activeFrom"];
+            this.nationalId = _data["nationalId"];
+        }
+    }
+
+    static fromJS(data: any): CreateWorkerRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateWorkerRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["personId"] = this.personId;
+        data["displayName"] = this.displayName;
+        data["phone"] = this.phone;
+        data["employmentType"] = this.employmentType;
+        data["activeFrom"] = this.activeFrom;
+        data["nationalId"] = this.nationalId;
+        return data;
+    }
+}
+
+export interface ICreateWorkerRequest {
+    personId: string | undefined;
+    displayName: string | undefined;
+    phone: string | undefined;
+    employmentType: string;
+    activeFrom: string;
+    nationalId: string;
+
+    [key: string]: any;
+}
+
+export class CreateWorkRecordRequest implements ICreateWorkRecordRequest {
+    workerId!: string;
+    workDate!: string;
+    payBasis!: string;
+    activityIds!: string[];
+    quantity!: number | undefined;
+    scope!: WorkScopeRequest | undefined;
+    lateEntryReason!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateWorkRecordRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.activityIds = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.workDate = _data["workDate"];
+            this.payBasis = _data["payBasis"];
+            if (Array.isArray(_data["activityIds"])) {
+                this.activityIds = [] as any;
+                for (let item of _data["activityIds"])
+                    this.activityIds!.push(item);
+            }
+            this.quantity = _data["quantity"];
+            this.scope = _data["scope"] ? WorkScopeRequest.fromJS(_data["scope"]) : undefined as any;
+            this.lateEntryReason = _data["lateEntryReason"];
+        }
+    }
+
+    static fromJS(data: any): CreateWorkRecordRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateWorkRecordRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["workDate"] = this.workDate;
+        data["payBasis"] = this.payBasis;
+        if (Array.isArray(this.activityIds)) {
+            data["activityIds"] = [];
+            for (let item of this.activityIds)
+                data["activityIds"].push(item);
+        }
+        data["quantity"] = this.quantity;
+        data["scope"] = this.scope ? this.scope.toJSON() : undefined as any;
+        data["lateEntryReason"] = this.lateEntryReason;
+        return data;
+    }
+}
+
+export interface ICreateWorkRecordRequest {
+    workerId: string;
+    workDate: string;
+    payBasis: string;
+    activityIds: string[];
+    quantity: number | undefined;
+    scope: WorkScopeRequest | undefined;
+    lateEntryReason: string | undefined;
 
     [key: string]: any;
 }
@@ -4299,6 +5746,58 @@ export interface IEndPersonRoleRequest {
     [key: string]: any;
 }
 
+export class EndWorkerRateRequest implements IEndWorkerRateRequest {
+    effectiveTo!: string;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IEndWorkerRateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.effectiveTo = _data["effectiveTo"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): EndWorkerRateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new EndWorkerRateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["effectiveTo"] = this.effectiveTo;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IEndWorkerRateRequest {
+    effectiveTo: string;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class EvidenceLinkDto implements IEvidenceLinkDto {
     id!: string;
     role!: string;
@@ -4834,6 +6333,271 @@ export interface IHarvestResultDto {
     [key: string]: any;
 }
 
+export class LabourActivityDto implements ILabourActivityDto {
+    id!: string;
+    activityTypeId!: string;
+    name!: string;
+    fieldId!: string;
+    workDate!: Date;
+    quantityBasis!: string;
+    status!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ILabourActivityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.activityTypeId = _data["activityTypeId"];
+            this.name = _data["name"];
+            this.fieldId = _data["fieldId"];
+            this.workDate = _data["workDate"] ? new Date(_data["workDate"].toString()) : undefined as any;
+            this.quantityBasis = _data["quantityBasis"];
+            this.status = _data["status"];
+        }
+    }
+
+    static fromJS(data: any): LabourActivityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LabourActivityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["activityTypeId"] = this.activityTypeId;
+        data["name"] = this.name;
+        data["fieldId"] = this.fieldId;
+        data["workDate"] = this.workDate ? formatDate(this.workDate) : undefined as any;
+        data["quantityBasis"] = this.quantityBasis;
+        data["status"] = this.status;
+        return data;
+    }
+}
+
+export interface ILabourActivityDto {
+    id: string;
+    activityTypeId: string;
+    name: string;
+    fieldId: string;
+    workDate: Date;
+    quantityBasis: string;
+    status: string;
+
+    [key: string]: any;
+}
+
+export class LabourFieldDto implements ILabourFieldDto {
+    id!: string;
+    code!: string;
+    name!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ILabourFieldDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): LabourFieldDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LabourFieldDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface ILabourFieldDto {
+    id: string;
+    code: string;
+    name: string;
+
+    [key: string]: any;
+}
+
+export class LabourPersonDto implements ILabourPersonDto {
+    id!: string;
+    displayName!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ILabourPersonDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+        }
+    }
+
+    static fromJS(data: any): LabourPersonDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LabourPersonDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        return data;
+    }
+}
+
+export interface ILabourPersonDto {
+    id: string;
+    displayName: string;
+
+    [key: string]: any;
+}
+
+export class LabourReferenceDataDto implements ILabourReferenceDataDto {
+    fields!: LabourFieldDto[];
+    activities!: LabourActivityDto[];
+    supervisors!: LabourPersonDto[];
+
+    [key: string]: any;
+
+    constructor(data?: ILabourReferenceDataDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.fields = [];
+            this.activities = [];
+            this.supervisors = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["fields"])) {
+                this.fields = [] as any;
+                for (let item of _data["fields"])
+                    this.fields!.push(LabourFieldDto.fromJS(item));
+            }
+            if (Array.isArray(_data["activities"])) {
+                this.activities = [] as any;
+                for (let item of _data["activities"])
+                    this.activities!.push(LabourActivityDto.fromJS(item));
+            }
+            if (Array.isArray(_data["supervisors"])) {
+                this.supervisors = [] as any;
+                for (let item of _data["supervisors"])
+                    this.supervisors!.push(LabourPersonDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): LabourReferenceDataDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new LabourReferenceDataDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.fields)) {
+            data["fields"] = [];
+            for (let item of this.fields)
+                data["fields"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.activities)) {
+            data["activities"] = [];
+            for (let item of this.activities)
+                data["activities"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.supervisors)) {
+            data["supervisors"] = [];
+            for (let item of this.supervisors)
+                data["supervisors"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ILabourReferenceDataDto {
+    fields: LabourFieldDto[];
+    activities: LabourActivityDto[];
+    supervisors: LabourPersonDto[];
+
+    [key: string]: any;
+}
+
 export class LoginRequest implements ILoginRequest {
     email!: string;
     password!: string;
@@ -5166,7 +6930,7 @@ export interface IProblemDetails {
 
 export class RecordActualWorkRequest implements IRecordActualWorkRequest {
     expectedVersion!: number;
-    actualAt!: Date;
+    actualAt!: string;
     actualQuantity!: number | undefined;
     lateEntryReason!: string | undefined;
 
@@ -5188,7 +6952,7 @@ export class RecordActualWorkRequest implements IRecordActualWorkRequest {
                     this[property] = _data[property];
             }
             this.expectedVersion = _data["expectedVersion"];
-            this.actualAt = _data["actualAt"] ? new Date(_data["actualAt"].toString()) : undefined as any;
+            this.actualAt = _data["actualAt"];
             this.actualQuantity = _data["actualQuantity"];
             this.lateEntryReason = _data["lateEntryReason"];
         }
@@ -5208,7 +6972,7 @@ export class RecordActualWorkRequest implements IRecordActualWorkRequest {
                 data[property] = this[property];
         }
         data["expectedVersion"] = this.expectedVersion;
-        data["actualAt"] = this.actualAt ? this.actualAt.toISOString() : undefined as any;
+        data["actualAt"] = this.actualAt;
         data["actualQuantity"] = this.actualQuantity;
         data["lateEntryReason"] = this.lateEntryReason;
         return data;
@@ -5217,9 +6981,76 @@ export class RecordActualWorkRequest implements IRecordActualWorkRequest {
 
 export interface IRecordActualWorkRequest {
     expectedVersion: number;
-    actualAt: Date;
+    actualAt: string;
     actualQuantity: number | undefined;
     lateEntryReason: string | undefined;
+
+    [key: string]: any;
+}
+
+export class RecordAttendanceRequest implements IRecordAttendanceRequest {
+    workDate!: string;
+    lateEntryReason!: string | undefined;
+    entries!: AttendanceEntryRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: IRecordAttendanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.entries = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workDate = _data["workDate"];
+            this.lateEntryReason = _data["lateEntryReason"];
+            if (Array.isArray(_data["entries"])) {
+                this.entries = [] as any;
+                for (let item of _data["entries"])
+                    this.entries!.push(AttendanceEntryRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RecordAttendanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecordAttendanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workDate"] = this.workDate;
+        data["lateEntryReason"] = this.lateEntryReason;
+        if (Array.isArray(this.entries)) {
+            data["entries"] = [];
+            for (let item of this.entries)
+                data["entries"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRecordAttendanceRequest {
+    workDate: string;
+    lateEntryReason: string | undefined;
+    entries: AttendanceEntryRequest[];
 
     [key: string]: any;
 }
@@ -5572,6 +7403,58 @@ export interface IValidationProblemDetails {
     [key: string]: any;
 }
 
+export class VerifyWorkRecordRequest implements IVerifyWorkRecordRequest {
+    supervisorPersonId!: string;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IVerifyWorkRecordRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.supervisorPersonId = _data["supervisorPersonId"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): VerifyWorkRecordRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new VerifyWorkRecordRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["supervisorPersonId"] = this.supervisorPersonId;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IVerifyWorkRecordRequest {
+    supervisorPersonId: string;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class VersionedRequest implements IVersionedRequest {
     expectedVersion!: number;
 
@@ -5616,6 +7499,579 @@ export class VersionedRequest implements IVersionedRequest {
 
 export interface IVersionedRequest {
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class WorkerDetailsDto implements IWorkerDetailsDto {
+    worker!: WorkerListItemDto;
+    rates!: WorkerRateDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerDetailsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.worker = new WorkerListItemDto();
+            this.rates = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.worker = _data["worker"] ? WorkerListItemDto.fromJS(_data["worker"]) : new WorkerListItemDto();
+            if (Array.isArray(_data["rates"])) {
+                this.rates = [] as any;
+                for (let item of _data["rates"])
+                    this.rates!.push(WorkerRateDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WorkerDetailsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerDetailsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["worker"] = this.worker ? this.worker.toJSON() : undefined as any;
+        if (Array.isArray(this.rates)) {
+            data["rates"] = [];
+            for (let item of this.rates)
+                data["rates"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IWorkerDetailsDto {
+    worker: WorkerListItemDto;
+    rates: WorkerRateDto[];
+
+    [key: string]: any;
+}
+
+export class WorkerListItemDto implements IWorkerListItemDto {
+    id!: string;
+    personId!: string;
+    displayName!: string;
+    phone!: string | undefined;
+    employmentType!: string;
+    activeFrom!: Date;
+    activeTo!: Date | undefined;
+    status!: string;
+    nationalIdMask!: string;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerListItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.personId = _data["personId"];
+            this.displayName = _data["displayName"];
+            this.phone = _data["phone"];
+            this.employmentType = _data["employmentType"];
+            this.activeFrom = _data["activeFrom"] ? new Date(_data["activeFrom"].toString()) : undefined as any;
+            this.activeTo = _data["activeTo"] ? new Date(_data["activeTo"].toString()) : undefined as any;
+            this.status = _data["status"];
+            this.nationalIdMask = _data["nationalIdMask"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): WorkerListItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerListItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["personId"] = this.personId;
+        data["displayName"] = this.displayName;
+        data["phone"] = this.phone;
+        data["employmentType"] = this.employmentType;
+        data["activeFrom"] = this.activeFrom ? formatDate(this.activeFrom) : undefined as any;
+        data["activeTo"] = this.activeTo ? formatDate(this.activeTo) : undefined as any;
+        data["status"] = this.status;
+        data["nationalIdMask"] = this.nationalIdMask;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IWorkerListItemDto {
+    id: string;
+    personId: string;
+    displayName: string;
+    phone: string | undefined;
+    employmentType: string;
+    activeFrom: Date;
+    activeTo: Date | undefined;
+    status: string;
+    nationalIdMask: string;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class WorkerRateDto implements IWorkerRateDto {
+    id!: string;
+    basis!: string;
+    activityTypeId!: string | undefined;
+    activityTypeName!: string | undefined;
+    rateUsd!: number;
+    effectiveFrom!: Date;
+    effectiveTo!: Date | undefined;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerRateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.basis = _data["basis"];
+            this.activityTypeId = _data["activityTypeId"];
+            this.activityTypeName = _data["activityTypeName"];
+            this.rateUsd = _data["rateUsd"];
+            this.effectiveFrom = _data["effectiveFrom"] ? new Date(_data["effectiveFrom"].toString()) : undefined as any;
+            this.effectiveTo = _data["effectiveTo"] ? new Date(_data["effectiveTo"].toString()) : undefined as any;
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): WorkerRateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerRateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["basis"] = this.basis;
+        data["activityTypeId"] = this.activityTypeId;
+        data["activityTypeName"] = this.activityTypeName;
+        data["rateUsd"] = this.rateUsd;
+        data["effectiveFrom"] = this.effectiveFrom ? formatDate(this.effectiveFrom) : undefined as any;
+        data["effectiveTo"] = this.effectiveTo ? formatDate(this.effectiveTo) : undefined as any;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IWorkerRateDto {
+    id: string;
+    basis: string;
+    activityTypeId: string | undefined;
+    activityTypeName: string | undefined;
+    rateUsd: number;
+    effectiveFrom: Date;
+    effectiveTo: Date | undefined;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class WorkRecordDto implements IWorkRecordDto {
+    id!: string;
+    workerId!: string;
+    workerName!: string;
+    attendanceId!: string;
+    fieldId!: string;
+    fieldName!: string;
+    workDate!: Date;
+    payBasis!: string;
+    appliedRateUsd!: number;
+    quantity!: number | undefined;
+    calculatedAmountUsd!: number | undefined;
+    status!: string;
+    activityIds!: string[];
+    activityNames!: string[];
+    scopes!: WorkScopeDto[];
+    verification!: WorkVerificationDto | undefined;
+    enteredAt!: Date;
+    entryDelayDays!: number;
+    correctsWorkRecordId!: string | undefined;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkRecordDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.activityIds = [];
+            this.activityNames = [];
+            this.scopes = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.workerId = _data["workerId"];
+            this.workerName = _data["workerName"];
+            this.attendanceId = _data["attendanceId"];
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.workDate = _data["workDate"] ? new Date(_data["workDate"].toString()) : undefined as any;
+            this.payBasis = _data["payBasis"];
+            this.appliedRateUsd = _data["appliedRateUsd"];
+            this.quantity = _data["quantity"];
+            this.calculatedAmountUsd = _data["calculatedAmountUsd"];
+            this.status = _data["status"];
+            if (Array.isArray(_data["activityIds"])) {
+                this.activityIds = [] as any;
+                for (let item of _data["activityIds"])
+                    this.activityIds!.push(item);
+            }
+            if (Array.isArray(_data["activityNames"])) {
+                this.activityNames = [] as any;
+                for (let item of _data["activityNames"])
+                    this.activityNames!.push(item);
+            }
+            if (Array.isArray(_data["scopes"])) {
+                this.scopes = [] as any;
+                for (let item of _data["scopes"])
+                    this.scopes!.push(WorkScopeDto.fromJS(item));
+            }
+            this.verification = _data["verification"] ? WorkVerificationDto.fromJS(_data["verification"]) : undefined as any;
+            this.enteredAt = _data["enteredAt"] ? new Date(_data["enteredAt"].toString()) : undefined as any;
+            this.entryDelayDays = _data["entryDelayDays"];
+            this.correctsWorkRecordId = _data["correctsWorkRecordId"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): WorkRecordDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkRecordDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["workerId"] = this.workerId;
+        data["workerName"] = this.workerName;
+        data["attendanceId"] = this.attendanceId;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["workDate"] = this.workDate ? formatDate(this.workDate) : undefined as any;
+        data["payBasis"] = this.payBasis;
+        data["appliedRateUsd"] = this.appliedRateUsd;
+        data["quantity"] = this.quantity;
+        data["calculatedAmountUsd"] = this.calculatedAmountUsd;
+        data["status"] = this.status;
+        if (Array.isArray(this.activityIds)) {
+            data["activityIds"] = [];
+            for (let item of this.activityIds)
+                data["activityIds"].push(item);
+        }
+        if (Array.isArray(this.activityNames)) {
+            data["activityNames"] = [];
+            for (let item of this.activityNames)
+                data["activityNames"].push(item);
+        }
+        if (Array.isArray(this.scopes)) {
+            data["scopes"] = [];
+            for (let item of this.scopes)
+                data["scopes"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["verification"] = this.verification ? this.verification.toJSON() : undefined as any;
+        data["enteredAt"] = this.enteredAt ? this.enteredAt.toISOString() : undefined as any;
+        data["entryDelayDays"] = this.entryDelayDays;
+        data["correctsWorkRecordId"] = this.correctsWorkRecordId;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IWorkRecordDto {
+    id: string;
+    workerId: string;
+    workerName: string;
+    attendanceId: string;
+    fieldId: string;
+    fieldName: string;
+    workDate: Date;
+    payBasis: string;
+    appliedRateUsd: number;
+    quantity: number | undefined;
+    calculatedAmountUsd: number | undefined;
+    status: string;
+    activityIds: string[];
+    activityNames: string[];
+    scopes: WorkScopeDto[];
+    verification: WorkVerificationDto | undefined;
+    enteredAt: Date;
+    entryDelayDays: number;
+    correctsWorkRecordId: string | undefined;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class WorkScopeDto implements IWorkScopeDto {
+    type!: string;
+    activityId!: string;
+    fieldLineProfileId!: string | undefined;
+    startLine!: number | undefined;
+    endLine!: number | undefined;
+    sectionName!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkScopeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.activityId = _data["activityId"];
+            this.fieldLineProfileId = _data["fieldLineProfileId"];
+            this.startLine = _data["startLine"];
+            this.endLine = _data["endLine"];
+            this.sectionName = _data["sectionName"];
+        }
+    }
+
+    static fromJS(data: any): WorkScopeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkScopeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["activityId"] = this.activityId;
+        data["fieldLineProfileId"] = this.fieldLineProfileId;
+        data["startLine"] = this.startLine;
+        data["endLine"] = this.endLine;
+        data["sectionName"] = this.sectionName;
+        return data;
+    }
+}
+
+export interface IWorkScopeDto {
+    type: string;
+    activityId: string;
+    fieldLineProfileId: string | undefined;
+    startLine: number | undefined;
+    endLine: number | undefined;
+    sectionName: string | undefined;
+
+    [key: string]: any;
+}
+
+export class WorkScopeRequest implements IWorkScopeRequest {
+    type!: string;
+    startLine!: number | undefined;
+    endLine!: number | undefined;
+    sectionName!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkScopeRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.startLine = _data["startLine"];
+            this.endLine = _data["endLine"];
+            this.sectionName = _data["sectionName"];
+        }
+    }
+
+    static fromJS(data: any): WorkScopeRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkScopeRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["startLine"] = this.startLine;
+        data["endLine"] = this.endLine;
+        data["sectionName"] = this.sectionName;
+        return data;
+    }
+}
+
+export interface IWorkScopeRequest {
+    type: string;
+    startLine: number | undefined;
+    endLine: number | undefined;
+    sectionName: string | undefined;
+
+    [key: string]: any;
+}
+
+export class WorkVerificationDto implements IWorkVerificationDto {
+    supervisorPersonId!: string;
+    supervisorName!: string;
+    supervisorVerifiedAt!: Date;
+    attestation!: string;
+    managerConfirmedAt!: Date | undefined;
+    managerConfirmedByUserId!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkVerificationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.supervisorPersonId = _data["supervisorPersonId"];
+            this.supervisorName = _data["supervisorName"];
+            this.supervisorVerifiedAt = _data["supervisorVerifiedAt"] ? new Date(_data["supervisorVerifiedAt"].toString()) : undefined as any;
+            this.attestation = _data["attestation"];
+            this.managerConfirmedAt = _data["managerConfirmedAt"] ? new Date(_data["managerConfirmedAt"].toString()) : undefined as any;
+            this.managerConfirmedByUserId = _data["managerConfirmedByUserId"];
+        }
+    }
+
+    static fromJS(data: any): WorkVerificationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkVerificationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["supervisorPersonId"] = this.supervisorPersonId;
+        data["supervisorName"] = this.supervisorName;
+        data["supervisorVerifiedAt"] = this.supervisorVerifiedAt ? this.supervisorVerifiedAt.toISOString() : undefined as any;
+        data["attestation"] = this.attestation;
+        data["managerConfirmedAt"] = this.managerConfirmedAt ? this.managerConfirmedAt.toISOString() : undefined as any;
+        data["managerConfirmedByUserId"] = this.managerConfirmedByUserId;
+        return data;
+    }
+}
+
+export interface IWorkVerificationDto {
+    supervisorPersonId: string;
+    supervisorName: string;
+    supervisorVerifiedAt: Date;
+    attestation: string;
+    managerConfirmedAt: Date | undefined;
+    managerConfirmedByUserId: string | undefined;
 
     [key: string]: any;
 }

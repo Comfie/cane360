@@ -4,5 +4,5 @@ public interface IUser
 {
     string? Id { get; }
     List<string>? Roles { get; }
-
+    string? CorrelationId { get; }
 }

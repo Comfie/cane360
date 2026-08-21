@@ -1,4 +1,5 @@
 using Cane360.Application.Activities;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Activities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -64,13 +65,23 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
     public async Task<ActionResult<ActivityDetailsDto>> ActualWork(
         Guid activityId,
         RecordActualWorkRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new RecordActualWorkCommand(
+        CancellationToken cancellationToken)
+    {
+        if (!TransportValueParser.TryParseOffsetTimestamp(request.ActualAt, out var actualAt))
+        {
+            return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                [nameof(request.ActualAt)] = ["Timestamp must include Z or an explicit UTC offset."]
+            }));
+        }
+
+        return Ok(await sender.Send(new RecordActualWorkCommand(
             activityId,
             request.ExpectedVersion,
-            request.ActualAt,
+            actualAt,
             request.ActualQuantity,
             request.LateEntryReason), cancellationToken));
+    }
 
     [HttpPost("{activityId:guid}/source-references")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]

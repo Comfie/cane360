@@ -93,4 +93,6 @@ internal static class ActivityAccess
         var zone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare");
         return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(value, zone).DateTime);
     }
+
+    public static DateTimeOffset NormalizeUtc(DateTimeOffset value) => value.ToUniversalTime();
 }

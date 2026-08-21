@@ -27,7 +27,7 @@ export function createActivity(values) {
 export function recordActual(activityId, expectedVersion, actualAt, actualQuantity, lateEntryReason) {
   return activitiesClient.actualWork(activityId, new RecordActualWorkRequest({
     expectedVersion,
-    actualAt: new Date(actualAt),
+    actualAt: new Date(actualAt).toISOString(),
     actualQuantity,
     lateEntryReason,
   }));

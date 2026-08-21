@@ -62,7 +62,7 @@ export function ActivitiesPage() {
   const grouped = useMemo(() => groupActivitiesByDate(visibleActivities), [visibleActivities]);
 
   if (setupLoading || loading) return <LoadingState label="Loading the field diary" />;
-  if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} />;
+  if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent />;
 
   /** @param {string} id */
   const openDetails = async (id) => {
@@ -90,7 +90,7 @@ export function ActivitiesPage() {
         <section className="activity-list" aria-label="Activity list">{visibleActivities.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={openDetails} />)}</section>
       ) : <ActivityCalendar groups={grouped} onOpen={openDetails} />}
 
-      <section className="unavailable-strip" aria-label="Deferred capabilities"><strong>Source evidence in Phase 3</strong><span><Sheet size={15} /> Source-sheet references are available. Document/photo upload, labour, inventory, and costs are not yet available.</span></section>
+      <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational evidence</strong><span><Sheet size={15} /> Source references and confirmed labour evidence appear in the diary. Document upload, inventory, and cost posting remain deferred.</span></section>
 
       {showCreate && <ActivityDialog title="Record activity" onClose={() => setShowCreate(false)}>
         <CreateActivityForm fields={fields} types={activeTypes} supervisors={supervisors} onSaved={async (details) => { setShowCreate(false); setSelected(details); await reload(); }} onError={setError} />

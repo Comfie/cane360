@@ -1,8 +1,18 @@
 using Cane360.Infrastructure;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+bool isOpenApiDocumentGeneration = OpenApiDocumentGeneration.IsRequested();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile(
+        "appsettings.Development.Local.json",
+        optional: true,
+        reloadOnChange: true);
+}
 
 string? portValue = Environment.GetEnvironmentVariable("PORT");
 
@@ -17,7 +27,7 @@ if (!string.IsNullOrWhiteSpace(portValue))
 }
 
 builder.AddApplicationServices();
-builder.AddInfrastructureServices();
+builder.AddInfrastructureServices(validateNationalIdOnStart: !isOpenApiDocumentGeneration);
 builder.AddWebServices();
 
 var app = builder.Build();
