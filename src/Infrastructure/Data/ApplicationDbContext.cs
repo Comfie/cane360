@@ -4,6 +4,7 @@ using Cane360.Domain.Farms;
 using Cane360.Domain.Activities;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Labour;
+using Cane360.Domain.Inventory;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<WorkScope> WorkScopes => Set<WorkScope>();
     public DbSet<WorkVerification> WorkVerifications => Set<WorkVerification>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+    public DbSet<UnitOfMeasure> UnitOfMeasures => Set<UnitOfMeasure>();
+    public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<InventoryLot> InventoryLots => Set<InventoryLot>();
+    public DbSet<StockReceipt> StockReceipts => Set<StockReceipt>();
+    public DbSet<StockReceiptLine> StockReceiptLines => Set<StockReceiptLine>();
+    public DbSet<StockPosition> StockPositions => Set<StockPosition>();
+    public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<ApprovalDecision> ApprovalDecisions => Set<ApprovalDecision>();
+    public DbSet<CorrectionRecord> CorrectionRecords => Set<CorrectionRecord>();
+    public DbSet<InventoryAuditEventLink> InventoryAuditEventLinks => Set<InventoryAuditEventLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

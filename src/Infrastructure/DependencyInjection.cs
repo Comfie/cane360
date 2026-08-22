@@ -20,6 +20,7 @@ public static class DependencyInjection
         bool validateNationalIdOnStart = true)
     {
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
+        builder.Services.AddScoped<ISaveChangesInterceptor, AppendOnlyEntityInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
@@ -37,6 +38,7 @@ public static class DependencyInjection
             provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IFarmSetupRepository, FarmSetupRepository>();
         builder.Services.AddScoped<ILabourRepository, LabourRepository>();
+        builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
         OptionsBuilder<NationalIdProtectionOptions> nationalIdOptions = builder.Services
             .AddOptions<NationalIdProtectionOptions>()
             .Bind(builder.Configuration.GetSection(NationalIdProtectionOptions.SectionName));

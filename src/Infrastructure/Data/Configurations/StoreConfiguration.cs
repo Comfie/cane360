@@ -14,6 +14,7 @@ internal sealed class StoreConfiguration : IEntityTypeConfiguration<Store>
         builder.ToTable("Stores", "farm");
         builder.HasKey(store => store.Id);
         builder.Property(store => store.Id).ValueGeneratedNever();
+        builder.HasAlternateKey(store => new { store.Id, store.FarmId });
         builder.Property(store => store.Code).HasMaxLength(20).IsRequired();
         builder.Property(store => store.Name).HasMaxLength(120).IsRequired();
         builder.Property(store => store.Status).HasConversion<string>().HasMaxLength(24);

@@ -15,6 +15,7 @@ internal sealed class AuditEventConfiguration : IEntityTypeConfiguration<AuditEv
         builder.ToTable("AuditEvents", "audit");
         builder.HasKey(audit => audit.Id);
         builder.Property(audit => audit.Id).ValueGeneratedNever();
+        builder.HasAlternateKey(audit => new { audit.Id, audit.TenantId, audit.FarmId });
         builder.Property(audit => audit.SubjectType).HasMaxLength(80).IsRequired();
         builder.Property(audit => audit.Action).HasMaxLength(80).IsRequired();
         builder.Property(audit => audit.AuthenticatedUserId).HasMaxLength(450).IsRequired();

@@ -2235,6 +2235,126 @@ p {
   }
 }
 
+// Phase 5A inventory: a compact store daybook with an immutable-ledger rhythm.
+.inventory-commandbar,
+.inventory-commandbar .store-identity,
+.inventory-tabs,
+.ledger-title,
+.catalogue-section > header,
+.catalogue-section > header > div,
+.inventory-empty,
+.inventory-control-rail > div,
+.row-actions,
+.receipt-state {
+  display: flex;
+  align-items: center;
+}
+
+.inventory-commandbar {
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+
+.store-identity { gap: var(--space-3); min-width: 13rem; }
+.store-identity > span { display: grid; width: 2rem; height: 2rem; place-items: center; border-radius: var(--radius-sm); background: var(--cane-100); color: var(--cane-800); }
+.store-identity div, .inventory-stock-row > span:first-child, .receipt-row > span, .movement-row > span, .catalogue-list span { display: grid; min-width: 0; }
+.store-identity small, .inventory-stock-row small, .receipt-row small, .movement-row small, .catalogue-list small { color: var(--text-muted); font-size: var(--type-xs); }
+.store-identity strong { color: var(--text-strong); font-size: var(--type-sm); }
+.inventory-tabs { gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--neutral-100); }
+.inventory-tabs button { display: inline-flex; width: auto; min-height: 2.15rem; align-items: center; gap: var(--space-2); margin: 0; padding: var(--space-1) var(--space-3); border: 0; background: transparent; color: var(--text-muted); font-size: var(--type-xs); }
+.inventory-tabs button[aria-current="true"] { background: var(--surface-raised); color: var(--text-strong); box-shadow: var(--shadow-1); }
+.inventory-tabs span { display: grid; min-width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 999px; background: var(--neutral-200); font-family: var(--font-data); font-size: 0.65rem; }
+
+.inventory-register-layout { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: var(--space-4); align-items: start; }
+.stock-register, .receipt-register, .movement-register { overflow: hidden; }
+.ledger-title { justify-content: space-between; gap: var(--space-4); margin: 0; padding: var(--space-4); border-bottom: 1px solid var(--border); background: var(--surface-subtle); }
+.ledger-title h2 { margin: var(--space-1) 0 0; font-size: var(--type-lg); }
+.ledger-title > strong { color: var(--cane-800); font-family: var(--font-data); font-size: var(--type-xl); }
+.ledger-title > small { color: var(--text-muted); font-size: var(--type-xs); }
+.inventory-ledger-head, .inventory-stock-row { display: grid; grid-template-columns: minmax(13rem, 2fr) repeat(3, minmax(7rem, 0.8fr)); gap: var(--space-4); align-items: center; }
+.receipt-ledger-head, .receipt-row { display: grid; grid-template-columns: 1.1fr 0.7fr minmax(10rem, 1.4fr) 0.7fr minmax(11rem, 1fr); gap: var(--space-4); align-items: center; }
+.movement-ledger-head, .movement-row { display: grid; grid-template-columns: minmax(13rem, 1.6fr) minmax(10rem, 1fr) 0.8fr 0.8fr 0.8fr; gap: var(--space-4); align-items: center; }
+.inventory-ledger-head, .receipt-ledger-head, .movement-ledger-head { padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); background: var(--neutral-100); color: var(--text-muted); font-size: 0.68rem; font-weight: 750; letter-spacing: 0.04em; text-transform: uppercase; }
+.inventory-stock-row, .receipt-row, .movement-row { margin: 0; padding: var(--space-3) var(--space-4); border: 0; border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
+.inventory-stock-row:last-child, .receipt-row:last-child, .movement-row:last-child { border-bottom: 0; }
+.inventory-stock-row b, .inventory-stock-row > strong, .receipt-row b, .movement-row b, .movement-row > strong { color: var(--text-strong); font-family: var(--font-data); font-size: var(--type-xs); }
+.inventory-control-rail { position: sticky; top: var(--space-4); padding: var(--space-4); border-top: 3px solid var(--cane-600); }
+.inventory-control-rail h2 { margin: var(--space-1) 0 var(--space-2); font-size: var(--type-lg); }
+.inventory-control-rail > p { margin-bottom: var(--space-5); color: var(--text-muted); font-size: var(--type-sm); }
+.inventory-control-rail > div { gap: var(--space-3); padding: var(--space-3) 0; border-top: 1px solid var(--border); color: var(--cane-700); }
+.inventory-control-rail > div span { display: grid; }
+.inventory-control-rail > div strong { color: var(--text-strong); font-size: var(--type-sm); }
+.inventory-control-rail > div small { color: var(--text-muted); font-size: var(--type-xs); }
+.receipt-state { justify-content: space-between; gap: var(--space-2); }
+.receipt-state button, .row-actions button { width: auto; min-height: 1.9rem; margin: 0; padding: var(--space-1) var(--space-2); font-size: var(--type-xs); }
+.row-actions { gap: var(--space-1); }
+.receipt-state .text-action { border: 0; background: transparent; color: var(--cane-700); box-shadow: none; }
+.movement-row em { width: max-content; padding: 0.18rem var(--space-2); border-radius: 999px; font-size: 0.68rem; font-style: normal; font-weight: 750; }
+.movement-in { background: var(--cane-100); color: var(--cane-800); }
+.movement-out { background: var(--warning-50); color: var(--warning-700); }
+.inventory-empty { gap: var(--space-3); padding: var(--space-8) var(--space-4); color: var(--cane-700); }
+.inventory-empty > div { display: grid; }
+.inventory-empty strong { color: var(--text-strong); }
+.inventory-empty span { color: var(--text-muted); font-size: var(--type-sm); }
+
+.catalogue-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.catalogue-section { overflow: hidden; }
+.catalogue-section > header { justify-content: space-between; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: var(--surface-subtle); }
+.catalogue-section > header > div { gap: var(--space-2); color: var(--cane-700); }
+.catalogue-section h2 { margin: 0; color: var(--text-strong); font-size: var(--type-base); }
+.catalogue-section .text-action, .receipt-lines .text-action { display: inline-flex; width: auto; min-height: 0; align-items: center; gap: var(--space-1); margin: 0; padding: 0; border: 0; background: transparent; color: var(--cane-700); font-size: var(--type-xs); font-weight: 750; box-shadow: none; }
+.catalogue-list { display: grid; }
+.catalogue-list article { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border: 0; border-bottom: 1px solid var(--border); background: transparent; box-shadow: none; }
+.catalogue-list article:last-child { border-bottom: 0; }
+.catalogue-list em { padding: 0.15rem var(--space-2); border-radius: 999px; background: var(--neutral-100); color: var(--text-muted); font-size: 0.68rem; font-style: normal; white-space: nowrap; }
+
+.inventory-dialog { width: min(62rem, calc(100vw - 2rem)); }
+.inventory-form { display: grid; gap: var(--space-5); margin: 0; padding: var(--space-5); }
+.inventory-form .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.inventory-form label { min-width: 0; margin: 0; color: var(--text-strong); font-size: var(--type-xs); font-weight: 700; }
+.inventory-form label :is(input, select, .date-picker) { margin-top: var(--space-1); }
+.inventory-form .is-wide { grid-column: 1 / -1; }
+.inventory-form .form-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin: 0; padding: var(--space-4) 0 0; border-top: 1px solid var(--border); background: transparent; }
+.inventory-form .form-actions span { color: var(--text-muted); font-size: var(--type-xs); }
+.inventory-form .form-actions button { width: auto; margin: 0; }
+.receipt-lines { display: grid; gap: var(--space-3); margin: 0; padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.receipt-lines legend { padding: 0 var(--space-2); color: var(--text-strong); font-size: var(--type-sm); font-weight: 750; }
+.receipt-line { display: grid; grid-template-columns: minmax(10rem, 1.6fr) minmax(8rem, 1fr) minmax(7rem, 0.8fr) minmax(7rem, 0.8fr) 2rem; gap: var(--space-2); align-items: end; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
+.receipt-line .line-remove { display: grid; width: 2rem; height: var(--control-height); margin: 0 0 1px; padding: 0; place-items: center; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text-muted); }
+.warning-copy { display: block; margin-top: var(--space-1); color: var(--warning-700); font-weight: 600; }
+
+@media (max-width: 63.99rem) {
+  .inventory-commandbar { align-items: stretch; flex-direction: column; }
+  .inventory-tabs { overflow-x: auto; }
+  .inventory-tabs button { flex: 0 0 auto; }
+  .inventory-register-layout { grid-template-columns: 1fr; }
+  .inventory-control-rail { position: static; }
+  .catalogue-grid { grid-template-columns: 1fr; }
+  .receipt-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .receipt-line .line-remove { grid-column: 2; justify-self: end; }
+}
+
+@media (max-width: 39.99rem) {
+  .inventory-commandbar { padding: var(--space-3); }
+  .inventory-tabs { width: calc(100vw - (var(--page-padding-inline) * 2) - (var(--space-3) * 2)); }
+  .ledger-title { align-items: flex-start; flex-direction: column; }
+  .inventory-ledger-head, .receipt-ledger-head, .movement-ledger-head { display: none; }
+  .inventory-stock-row, .receipt-row, .movement-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2) var(--space-3); }
+  .inventory-stock-row > span:first-child, .receipt-row > span:first-child, .movement-row > span:first-child { grid-column: 1 / -1; }
+  .inventory-stock-row > :nth-child(even), .receipt-row > :nth-child(even), .movement-row > :nth-child(even) { justify-self: start; }
+  .receipt-row > span:nth-child(3) { grid-column: 1 / -1; }
+  .receipt-state { grid-column: 1 / -1; justify-content: flex-start; }
+  .movement-row > em { justify-self: start; }
+  .inventory-dialog { width: calc(100vw - 1rem); }
+  .inventory-form { padding: var(--space-4); }
+  .inventory-form .form-grid, .receipt-line { grid-template-columns: 1fr; }
+  .inventory-form .is-wide, .receipt-line .line-remove { grid-column: 1; }
+  .receipt-line .line-remove { justify-self: end; }
+  .inventory-form .form-actions { align-items: stretch; flex-direction: column; }
+  .inventory-form .form-actions button { width: 100%; }
+}
+
 // Phase 4 labour ledger: dense date registers and an explicit proof chain.
 .labour-toolbar { display: flex; align-items: end; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
 .labour-tabs { display: flex; gap: var(--space-1); margin: 0; }

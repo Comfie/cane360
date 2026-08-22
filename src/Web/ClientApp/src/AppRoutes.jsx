@@ -7,6 +7,7 @@ import { CropCycleOverviewPage } from './components/pages/CropCycleOverviewPage'
 import { ModulePage } from './components/pages/ModulePage';
 import { ActivitiesPage } from './components/pages/ActivitiesPage';
 import { LabourPage } from './components/pages/LabourPage';
+import { InventoryPage } from './components/pages/InventoryPage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
@@ -25,7 +26,8 @@ export function AppRoutes() {
         <Route path="/fields/:fieldId/crop-cycles/:cropCycleId" element={<CropCycleOverviewPage />} />
         <Route path="/activities" element={<ActivitiesPage />} />
         <Route path="/labour" element={<LabourPage />} />
-        {protectedNavigation.slice(5).map((item) => (
+        <Route path="/inventory" element={<InventoryPage />} />
+        {protectedNavigation.slice(6).map((item) => (
           <Route
             key={item.id}
             path={item.path}
