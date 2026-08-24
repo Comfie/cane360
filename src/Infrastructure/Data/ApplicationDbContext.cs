@@ -56,6 +56,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<InputRequestLine> InputRequestLines => Set<InputRequestLine>();
     public DbSet<StockIssue> StockIssues => Set<StockIssue>();
     public DbSet<StockIssueLine> StockIssueLines => Set<StockIssueLine>();
+    public DbSet<FieldReceipt> FieldReceipts => Set<FieldReceipt>();
+    public DbSet<FieldReceiptLine> FieldReceiptLines => Set<FieldReceiptLine>();
+    public DbSet<InputApplication> InputApplications => Set<InputApplication>();
+    public DbSet<InputApplicationLine> InputApplicationLines => Set<InputApplicationLine>();
+    public DbSet<StockReturn> StockReturns => Set<StockReturn>();
+    public DbSet<StockReturnLine> StockReturnLines => Set<StockReturnLine>();
+    public DbSet<InventoryLoss> InventoryLosses => Set<InventoryLoss>();
+    public DbSet<OperationalCostPosting> OperationalCostPostings => Set<OperationalCostPosting>();
+    public DbSet<ControlException> ControlExceptions => Set<ControlException>();
+    public DbSet<FieldAccountabilityCorrection> FieldAccountabilityCorrections => Set<FieldAccountabilityCorrection>();
     public DbSet<ManagerInvitation> ManagerInvitations => Set<ManagerInvitation>();
 
     protected override void OnModelCreating(ModelBuilder builder)

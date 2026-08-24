@@ -1196,12 +1196,18 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Property<Guid>("FarmId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("FieldAccountabilityCorrectionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
                     b.Property<Guid?>("InputRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLossId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Outcome")
@@ -1229,23 +1235,106 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
 
+                    b.HasIndex("FieldAccountabilityCorrectionId", "SubjectVersion")
+                        .IsUnique()
+                        .HasFilter("\"FieldAccountabilityCorrectionId\" IS NOT NULL");
+
                     b.HasIndex("InputRequestId", "SubjectVersion")
                         .IsUnique()
                         .HasFilter("\"InputRequestId\" IS NOT NULL");
+
+                    b.HasIndex("InventoryLossId", "SubjectVersion")
+                        .IsUnique()
+                        .HasFilter("\"InventoryLossId\" IS NOT NULL");
 
                     b.HasIndex("StockReceiptId", "SubjectVersion")
                         .IsUnique()
                         .HasFilter("\"StockReceiptId\" IS NOT NULL");
 
+                    b.HasIndex("FieldAccountabilityCorrectionId", "TenantId", "FarmId");
+
                     b.HasIndex("InputRequestId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryLossId", "TenantId", "FarmId");
 
                     b.HasIndex("StockReceiptId", "TenantId", "FarmId");
 
                     b.ToTable("ApprovalDecisions", "inventory", t =>
                         {
-                            t.HasCheckConstraint("CK_ApprovalDecisions_OneSubject", "num_nonnulls(\"StockReceiptId\", \"InputRequestId\") = 1");
+                            t.HasCheckConstraint("CK_ApprovalDecisions_OneSubject", "num_nonnulls(\"StockReceiptId\", \"InputRequestId\", \"InventoryLossId\", \"FieldAccountabilityCorrectionId\") = 1");
 
-                            t.HasCheckConstraint("CK_ApprovalDecisions_Role", "(\"StockReceiptId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"InputRequestId\" IS NULL OR \"ApproverRole\" IN ('Grower', 'FarmManager'))");
+                            t.HasCheckConstraint("CK_ApprovalDecisions_Role", "(\"StockReceiptId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"InputRequestId\" IS NULL OR \"ApproverRole\" IN ('Grower', 'FarmManager')) AND (\"InventoryLossId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"FieldAccountabilityCorrectionId\" IS NULL OR \"ApproverRole\" = 'Grower')");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.ControlException", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AppliedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<decimal>("ApprovedLossQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("IssuedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("ReturnedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("StockIssueLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UnaccountedQuantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockIssueLineId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "ActivityId", "Status");
+
+                    b.HasIndex("TenantId", "FarmId", "StockIssueLineId", "Code")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Open'");
+
+                    b.ToTable("ControlExceptions", "audit", t =>
+                        {
+                            t.HasCheckConstraint("CK_ControlExceptions_Nonnegative", "\"UnaccountedQuantity\" >= 0");
                         });
                 });
 
@@ -1310,6 +1399,488 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.ToTable("CorrectionRecords", "inventory", t =>
                         {
                             t.HasCheckConstraint("CK_CorrectionRecords_OneSource", "num_nonnulls(\"OriginalStockReceiptId\", \"OriginalStockIssueId\") = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldAccountabilityCorrection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("AppliedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FieldReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InputApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLossId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RequestIdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<long>("SourceVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid?>("StockReturnId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("FieldReceiptId", "TenantId", "FarmId");
+
+                    b.HasIndex("InputApplicationId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryLossId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockReturnId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "RequestIdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "FarmId", "ActivityId", "Status");
+
+                    b.ToTable("FieldAccountabilityCorrections", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_FieldAccountabilityCorrections_OneOriginal", "num_nonnulls(\"FieldReceiptId\", \"InputApplicationId\", \"StockReturnId\", \"InventoryLossId\") = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldReceipt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CropCycleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("EnteredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EnteredByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<int>("EntryDelayDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FieldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LateEntryReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RecipientPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<Guid>("StockIssueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnteredByUserId");
+
+                    b.HasIndex("CropCycleId", "FieldId");
+
+                    b.HasIndex("FieldId", "FarmId");
+
+                    b.HasIndex("RecipientPersonId", "FarmId");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockIssueId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "StockIssueId", "Status");
+
+                    b.ToTable("FieldReceipts", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_FieldReceipts_Delay", "\"EntryDelayDays\" >= 0");
+
+                            t.HasCheckConstraint("CK_FieldReceipts_LateReason", "\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldReceiptLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FieldReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("IssueUnitCostUsdSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<string>("ItemCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ItemNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("LotCodeSnapshot")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<Guid>("StockIssueLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UnitOfMeasureId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StockIssueLineId");
+
+                    b.HasIndex("FieldReceiptId", "StockIssueLineId")
+                        .IsUnique();
+
+                    b.HasIndex("UnitOfMeasureId", "TenantId");
+
+                    b.HasIndex("FieldReceiptId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryItemId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryLotId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockIssueLineId", "TenantId", "FarmId");
+
+                    b.ToTable("FieldReceiptLines", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_FieldReceiptLines_Quantity", "\"Quantity\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.InputApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ConfirmationIdempotencyKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("CoverageBasis")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("EnteredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EnteredByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsLateConfirmation")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LateConfirmationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("ManagerConfirmedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ManagerConfirmedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("SupervisorAttestationEnteredByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("SupervisorAttestationNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("SupervisorAttestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("SupervisorPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("VerifiedCoverage")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnteredByUserId");
+
+                    b.HasIndex("ManagerConfirmedByUserId");
+
+                    b.HasIndex("SupervisorAttestationEnteredByUserId");
+
+                    b.HasIndex("SupervisorPersonId", "FarmId");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "ActivityId", "Status");
+
+                    b.ToTable("InputApplications", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_InputApplications_Coverage", "\"VerifiedCoverage\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.InputApplicationLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ActualRate")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<decimal>("AppliedQuantity")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<decimal>("CoverageSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FieldReceiptLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InputApplicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("IssueUnitCostUsdSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<string>("ItemCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ItemNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("LotCodeSnapshot")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<decimal>("LowerTolerancePercentSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<decimal>("RateVariance")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<Guid>("RuleIdSnapshot")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("RuleRateSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<long>("RuleVersionSnapshot")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("StockIssueLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UnitOfMeasureId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UpperTolerancePercentSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StockIssueLineId");
+
+                    b.HasIndex("InputApplicationId", "FieldReceiptLineId")
+                        .IsUnique();
+
+                    b.HasIndex("UnitOfMeasureId", "TenantId");
+
+                    b.HasIndex("FieldReceiptLineId", "TenantId", "FarmId");
+
+                    b.HasIndex("InputApplicationId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryItemId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryLotId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockIssueLineId", "TenantId", "FarmId");
+
+                    b.ToTable("InputApplicationLines", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_InputApplicationLines_Quantity", "\"AppliedQuantity\" > 0 AND \"CoverageSnapshot\" > 0");
                         });
                 });
 
@@ -1619,7 +2190,22 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Property<Guid>("AuditEventId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ControlExceptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CorrectionRecordId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FieldAccountabilityCorrectionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FieldReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InputApplicationId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("InputRequestId")
@@ -1631,16 +2217,25 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Property<Guid?>("InventoryItemId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("InventoryLossId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("InventoryLotId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ManagerInvitationId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("OperationalCostPostingId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("StockIssueId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("StockReceiptId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("StockReturnId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("SupplierId")
@@ -1661,19 +2256,35 @@ namespace Cane360.Infrastructure.Data.Migrations
 
                     b.HasIndex("AuditEventId", "TenantId", "FarmId");
 
+                    b.HasIndex("ControlExceptionId", "TenantId", "FarmId");
+
+                    b.HasIndex("CorrectionRecordId", "TenantId", "FarmId");
+
+                    b.HasIndex("FieldAccountabilityCorrectionId", "TenantId", "FarmId");
+
+                    b.HasIndex("FieldReceiptId", "TenantId", "FarmId");
+
+                    b.HasIndex("InputApplicationId", "TenantId", "FarmId");
+
                     b.HasIndex("InputRequestId", "TenantId", "FarmId");
 
                     b.HasIndex("InventoryApplicationRuleId", "TenantId", "FarmId");
 
                     b.HasIndex("InventoryItemId", "TenantId", "FarmId");
 
+                    b.HasIndex("InventoryLossId", "TenantId", "FarmId");
+
                     b.HasIndex("InventoryLotId", "TenantId", "FarmId");
 
                     b.HasIndex("ManagerInvitationId", "TenantId", "FarmId");
 
+                    b.HasIndex("OperationalCostPostingId", "TenantId", "FarmId");
+
                     b.HasIndex("StockIssueId", "TenantId", "FarmId");
 
                     b.HasIndex("StockReceiptId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockReturnId", "TenantId", "FarmId");
 
                     b.HasIndex("SupplierId", "TenantId", "FarmId");
 
@@ -1685,7 +2296,7 @@ namespace Cane360.Infrastructure.Data.Migrations
 
                     b.ToTable("InventoryAuditEventLinks", "inventory", t =>
                         {
-                            t.HasCheckConstraint("CK_InventoryAuditEventLinks_OneSubject", "num_nonnulls(\"UnitOfMeasureId\", \"InventoryItemId\", \"SupplierId\", \"InventoryLotId\", \"StockReceiptId\", \"InventoryApplicationRuleId\", \"InputRequestId\", \"StockIssueId\", \"ManagerInvitationId\") = 1");
+                            t.HasCheckConstraint("CK_InventoryAuditEventLinks_OneSubject", "num_nonnulls(\"UnitOfMeasureId\", \"InventoryItemId\", \"SupplierId\", \"InventoryLotId\", \"StockReceiptId\", \"InventoryApplicationRuleId\", \"InputRequestId\", \"StockIssueId\", \"ManagerInvitationId\", \"FieldReceiptId\", \"InputApplicationId\", \"StockReturnId\", \"InventoryLossId\", \"OperationalCostPostingId\", \"ControlExceptionId\", \"CorrectionRecordId\", \"FieldAccountabilityCorrectionId\") = 1");
                         });
                 });
 
@@ -1793,6 +2404,117 @@ namespace Cane360.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Cane360.Domain.Inventory.InventoryLoss", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("IssueUnitCostUsdSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<string>("ItemCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ItemNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("LossType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("LotCodeSnapshot")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("StockIssueLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("SubmittedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UnitOfMeasureId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubmittedByUserId");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockIssueLineId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "StockIssueLineId", "Status");
+
+                    b.ToTable("InventoryLosses", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_InventoryLosses_Quantity", "\"Quantity\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("Cane360.Domain.Inventory.InventoryLot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1848,6 +2570,90 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.ToTable("InventoryLots", "inventory", t =>
                         {
                             t.HasCheckConstraint("CK_InventoryLots_Status", "\"Status\" IN ('Active', 'Archived')");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.OperationalCostPosting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasPrecision(20, 2)
+                        .HasColumnType("numeric(20,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("CropCycleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FieldId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InputApplicationLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLossId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PostingIdentity")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid?>("ReversalOfOperationalCostPostingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("SourceQuantitySnapshot")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UnitCostUsdSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostingIdentity")
+                        .IsUnique();
+
+                    b.HasIndex("ReversalOfOperationalCostPostingId")
+                        .IsUnique()
+                        .HasFilter("\"ReversalOfOperationalCostPostingId\" IS NOT NULL");
+
+                    b.HasIndex("CropCycleId", "FieldId");
+
+                    b.HasIndex("InputApplicationLineId", "Category")
+                        .IsUnique()
+                        .HasFilter("\"InputApplicationLineId\" IS NOT NULL AND \"ReversalOfOperationalCostPostingId\" IS NULL");
+
+                    b.HasIndex("InventoryLossId", "Category")
+                        .IsUnique()
+                        .HasFilter("\"InventoryLossId\" IS NOT NULL AND \"ReversalOfOperationalCostPostingId\" IS NULL");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("InputApplicationLineId", "TenantId", "FarmId");
+
+                    b.HasIndex("InventoryLossId", "TenantId", "FarmId");
+
+                    b.ToTable("OperationalCostPostings", "finance", t =>
+                        {
+                            t.HasCheckConstraint("CK_OperationalCostPostings_ActiveSource", "\"ReversalOfOperationalCostPostingId\" IS NOT NULL OR ((\"Category\" = 'AppliedInput') = (\"InputApplicationLineId\" IS NOT NULL))");
+
+                            t.HasCheckConstraint("CK_OperationalCostPostings_OneSource", "num_nonnulls(\"InputApplicationLineId\", \"InventoryLossId\") = 1");
                         });
                 });
 
@@ -2134,6 +2940,9 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Property<Guid?>("StockReceiptLineId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("StockReturnLineId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("StoreId")
                         .HasColumnType("uuid");
 
@@ -2163,6 +2972,8 @@ namespace Cane360.Infrastructure.Data.Migrations
 
                     b.HasIndex("StockReceiptLineId");
 
+                    b.HasIndex("StockReturnLineId");
+
                     b.HasIndex("OperationalPersonId", "FarmId");
 
                     b.HasIndex("StockPositionId", "PostingSequence");
@@ -2173,15 +2984,17 @@ namespace Cane360.Infrastructure.Data.Migrations
 
                     b.HasIndex("StockReceiptLineId", "TenantId", "FarmId");
 
+                    b.HasIndex("StockReturnLineId", "TenantId", "FarmId");
+
                     b.HasIndex("TenantId", "FarmId", "StoreId", "InventoryItemId", "InventoryLotId", "PostingSequence");
 
                     b.ToTable("StockMovements", "inventory", t =>
                         {
                             t.HasCheckConstraint("CK_StockMovements_NonzeroQuantity", "\"SignedQuantity\" <> 0");
 
-                            t.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\") = 1");
+                            t.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\", \"StockReturnLineId\") = 1");
 
-                            t.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal', 'ReturnReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_StockMovements_Signs", "sign(\"SignedQuantity\") = sign(\"SignedValueUsd\") OR \"SignedValueUsd\" = 0");
                         });
@@ -2435,6 +3248,171 @@ namespace Cane360.Infrastructure.Data.Migrations
                             t.HasCheckConstraint("CK_StockReceiptLines_NonnegativeCost", "\"UnitCostUsd\" >= 0 AND \"LineValueUsd\" >= 0");
 
                             t.HasCheckConstraint("CK_StockReceiptLines_PositiveQuantity", "\"Quantity\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.StockReturn", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PostedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("PostingIdempotencyKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("ReceiverPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("ReturnDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ReversalIdempotencyKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("ReversedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SenderPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("StoreId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostedByUserId");
+
+                    b.HasIndex("PostingIdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("\"PostingIdempotencyKey\" IS NOT NULL");
+
+                    b.HasIndex("ReversalIdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("\"ReversalIdempotencyKey\" IS NOT NULL");
+
+                    b.HasIndex("ReceiverPersonId", "FarmId");
+
+                    b.HasIndex("SenderPersonId", "FarmId");
+
+                    b.HasIndex("StoreId", "FarmId");
+
+                    b.HasIndex("ActivityId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "ActivityId", "Status");
+
+                    b.ToTable("StockReturns", "inventory");
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.StockReturnLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InventoryItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InventoryLotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("IssueUnitCostUsdSnapshot")
+                        .HasPrecision(20, 6)
+                        .HasColumnType("numeric(20,6)");
+
+                    b.Property<string>("ItemCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ItemNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("LotCodeSnapshot")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("numeric(18,6)");
+
+                    b.Property<Guid>("StockIssueLineId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StockPositionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StockReturnId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UnitCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UnitOfMeasureId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StockIssueLineId");
+
+                    b.HasIndex("StockReturnId", "StockIssueLineId")
+                        .IsUnique();
+
+                    b.HasIndex("StockIssueLineId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockPositionId", "TenantId", "FarmId");
+
+                    b.HasIndex("StockReturnId", "TenantId", "FarmId");
+
+                    b.ToTable("StockReturnLines", "inventory", t =>
+                        {
+                            t.HasCheckConstraint("CK_StockReturnLines_Quantity", "\"Quantity\" > 0");
                         });
                 });
 
@@ -3598,9 +4576,21 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Cane360.Domain.Inventory.FieldAccountabilityCorrection", null)
+                        .WithMany()
+                        .HasForeignKey("FieldAccountabilityCorrectionId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Cane360.Domain.Inventory.InputRequest", null)
                         .WithMany()
                         .HasForeignKey("InputRequestId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLoss", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLossId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -3609,6 +4599,23 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasForeignKey("StockReceiptId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.ControlException", b =>
+                {
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.StockIssueLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.CorrectionRecord", b =>
@@ -3644,6 +4651,203 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasForeignKey("OriginalStockReceiptId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldAccountabilityCorrection", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.FieldReceipt", null)
+                        .WithMany()
+                        .HasForeignKey("FieldReceiptId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.InputApplication", null)
+                        .WithMany()
+                        .HasForeignKey("InputApplicationId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLoss", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLossId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.StockReturn", null)
+                        .WithMany()
+                        .HasForeignKey("StockReturnId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldReceipt", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("EnteredByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Farms.CropCycle", null)
+                        .WithMany()
+                        .HasForeignKey("CropCycleId", "FieldId")
+                        .HasPrincipalKey("Id", "FieldId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Farms.Field", null)
+                        .WithMany()
+                        .HasForeignKey("FieldId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("RecipientPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.StockIssue", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldReceiptLine", b =>
+                {
+                    b.HasOne("Cane360.Domain.Inventory.UnitOfMeasure", null)
+                        .WithMany()
+                        .HasForeignKey("UnitOfMeasureId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.FieldReceipt", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("FieldReceiptId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryItem", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLot", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLotId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.StockIssueLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.InputApplication", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("EnteredByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("ManagerConfirmedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("SupervisorAttestationEnteredByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("SupervisorPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.InputApplicationLine", b =>
+                {
+                    b.HasOne("Cane360.Domain.Inventory.UnitOfMeasure", null)
+                        .WithMany()
+                        .HasForeignKey("UnitOfMeasureId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.FieldReceiptLine", null)
+                        .WithMany()
+                        .HasForeignKey("FieldReceiptLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InputApplication", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("InputApplicationId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryItem", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryItemId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLot", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLotId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.StockIssueLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.InputRequest", b =>
@@ -3753,6 +4957,36 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Cane360.Domain.Inventory.ControlException", null)
+                        .WithMany()
+                        .HasForeignKey("ControlExceptionId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.CorrectionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CorrectionRecordId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.FieldAccountabilityCorrection", null)
+                        .WithMany()
+                        .HasForeignKey("FieldAccountabilityCorrectionId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.FieldReceipt", null)
+                        .WithMany()
+                        .HasForeignKey("FieldReceiptId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.InputApplication", null)
+                        .WithMany()
+                        .HasForeignKey("InputApplicationId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Cane360.Domain.Inventory.InputRequest", null)
                         .WithMany()
                         .HasForeignKey("InputRequestId", "TenantId", "FarmId")
@@ -3771,6 +5005,12 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLoss", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLossId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Cane360.Domain.Inventory.InventoryLot", null)
                         .WithMany()
                         .HasForeignKey("InventoryLotId", "TenantId", "FarmId")
@@ -3783,6 +5023,12 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Cane360.Domain.Inventory.OperationalCostPosting", null)
+                        .WithMany()
+                        .HasForeignKey("OperationalCostPostingId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Cane360.Domain.Inventory.StockIssue", null)
                         .WithMany()
                         .HasForeignKey("StockIssueId", "TenantId", "FarmId")
@@ -3792,6 +5038,12 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.HasOne("Cane360.Domain.Inventory.StockReceipt", null)
                         .WithMany()
                         .HasForeignKey("StockReceiptId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.StockReturn", null)
+                        .WithMany()
+                        .HasForeignKey("StockReturnId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -3819,6 +5071,29 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Cane360.Domain.Inventory.InventoryLoss", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.StockIssueLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Cane360.Domain.Inventory.InventoryLot", b =>
                 {
                     b.HasOne("Cane360.Domain.Inventory.InventoryItem", null)
@@ -3827,6 +5102,40 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.OperationalCostPosting", b =>
+                {
+                    b.HasOne("Cane360.Domain.Inventory.OperationalCostPosting", null)
+                        .WithMany()
+                        .HasForeignKey("ReversalOfOperationalCostPostingId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Farms.CropCycle", null)
+                        .WithMany()
+                        .HasForeignKey("CropCycleId", "FieldId")
+                        .HasPrincipalKey("Id", "FieldId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.InputApplicationLine", null)
+                        .WithMany()
+                        .HasForeignKey("InputApplicationLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.InventoryLoss", null)
+                        .WithMany()
+                        .HasForeignKey("InventoryLossId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.StockIssue", b =>
@@ -3951,6 +5260,12 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasForeignKey("StockReceiptLineId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Inventory.StockReturnLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockReturnLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.StockPosition", b =>
@@ -4055,6 +5370,66 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasForeignKey("InventoryLotId", "InventoryItemId", "TenantId", "FarmId")
                         .HasPrincipalKey("Id", "InventoryItemId", "TenantId", "FarmId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.StockReturn", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("PostedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("ReceiverPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("SenderPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Farms.Store", null)
+                        .WithMany()
+                        .HasForeignKey("StoreId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Activity", null)
+                        .WithMany()
+                        .HasForeignKey("ActivityId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.StockReturnLine", b =>
+                {
+                    b.HasOne("Cane360.Domain.Inventory.StockIssueLine", null)
+                        .WithMany()
+                        .HasForeignKey("StockIssueLineId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.StockPosition", null)
+                        .WithMany()
+                        .HasForeignKey("StockPositionId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Inventory.StockReturn", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("StockReturnId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.Supplier", b =>
@@ -4335,6 +5710,16 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Navigation("Memberships");
                 });
 
+            modelBuilder.Entity("Cane360.Domain.Inventory.FieldReceipt", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.InputApplication", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
             modelBuilder.Entity("Cane360.Domain.Inventory.InputRequest", b =>
                 {
                     b.Navigation("Lines");
@@ -4346,6 +5731,11 @@ namespace Cane360.Infrastructure.Data.Migrations
                 });
 
             modelBuilder.Entity("Cane360.Domain.Inventory.StockReceipt", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Inventory.StockReturn", b =>
                 {
                     b.Navigation("Lines");
                 });

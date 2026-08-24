@@ -23,6 +23,14 @@ public sealed class InventoryAuditEventLink : BaseEntity
     public Guid? InputRequestId { get; private set; }
     public Guid? StockIssueId { get; private set; }
     public Guid? ManagerInvitationId { get; private set; }
+    public Guid? FieldReceiptId { get; private set; }
+    public Guid? InputApplicationId { get; private set; }
+    public Guid? StockReturnId { get; private set; }
+    public Guid? InventoryLossId { get; private set; }
+    public Guid? OperationalCostPostingId { get; private set; }
+    public Guid? ControlExceptionId { get; private set; }
+    public Guid? CorrectionRecordId { get; private set; }
+    public Guid? FieldAccountabilityCorrectionId { get; private set; }
 
     public static InventoryAuditEventLink ForUnit(
         Guid auditEventId, Guid tenantId, Guid farmId, Guid unitId) =>
@@ -59,4 +67,21 @@ public sealed class InventoryAuditEventLink : BaseEntity
     public static InventoryAuditEventLink ForInvitation(
         Guid auditEventId, Guid tenantId, Guid farmId, Guid invitationId) =>
         new(auditEventId, tenantId, farmId) { ManagerInvitationId = invitationId };
+
+    public static InventoryAuditEventLink ForFieldReceipt(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { FieldReceiptId = id };
+    public static InventoryAuditEventLink ForApplication(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { InputApplicationId = id };
+    public static InventoryAuditEventLink ForReturn(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { StockReturnId = id };
+    public static InventoryAuditEventLink ForLoss(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { InventoryLossId = id };
+    public static InventoryAuditEventLink ForCost(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { OperationalCostPostingId = id };
+    public static InventoryAuditEventLink ForException(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { ControlExceptionId = id };
+    public static InventoryAuditEventLink ForCorrection(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { CorrectionRecordId = id };
+    public static InventoryAuditEventLink ForFieldAccountabilityCorrection(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { FieldAccountabilityCorrectionId = id };
 }

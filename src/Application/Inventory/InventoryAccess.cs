@@ -39,6 +39,12 @@ internal static class InventoryAccess
             throw new ForbiddenAccessException();
     }
 
+    public static void RequireFarmManager(Tenant tenant, string userId)
+    {
+        if (SecurityRole(tenant, userId) != TenantSecurityRoles.FarmManager)
+            throw new ForbiddenAccessException();
+    }
+
     public static (Field Field, CropCycle Cycle, Activity Activity) RequireOperationalActivity(
         Farm farm, Guid activityId)
     {

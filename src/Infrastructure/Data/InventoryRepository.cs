@@ -230,6 +230,39 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         Track(context.StockIssues.Where(issue => issue.TenantId == tenantId && issue.FarmId == farmId && issue.Id == issueId)
             .Include(issue => issue.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
 
+    public Task<StockIssueLine?> GetStockIssueLineAsync(Guid tenantId, Guid farmId, Guid issueLineId, bool trackChanges, CancellationToken cancellationToken) => Track(context.StockIssueLines.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == issueLineId), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public async Task<IReadOnlyList<FieldReceipt>> GetFieldReceiptsAsync(Guid tenantId, Guid farmId, Guid? issueId, bool trackChanges, CancellationToken cancellationToken) { var query = context.FieldReceipts.Where(x => x.TenantId == tenantId && x.FarmId == farmId); if (issueId.HasValue) query = query.Where(x => x.StockIssueId == issueId); return await Track(query.Include(x => x.Lines), trackChanges).ToListAsync(cancellationToken); }
+    public Task<FieldReceipt?> GetFieldReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges, CancellationToken cancellationToken) => Track(context.FieldReceipts.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == receiptId).Include(x => x.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public async Task<IReadOnlyList<InputApplication>> GetInputApplicationsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken) { var query = context.InputApplications.Where(x => x.TenantId == tenantId && x.FarmId == farmId); if (activityId.HasValue) query = query.Where(x => x.ActivityId == activityId); return await Track(query.Include(x => x.Lines), trackChanges).ToListAsync(cancellationToken); }
+    public Task<InputApplication?> GetInputApplicationAsync(Guid tenantId, Guid farmId, Guid applicationId, bool trackChanges, CancellationToken cancellationToken) => Track(context.InputApplications.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == applicationId).Include(x => x.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public async Task<IReadOnlyList<StockReturn>> GetStockReturnsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken) { var query = context.StockReturns.Where(x => x.TenantId == tenantId && x.FarmId == farmId); if (activityId.HasValue) query = query.Where(x => x.ActivityId == activityId); return await Track(query.Include(x => x.Lines), trackChanges).ToListAsync(cancellationToken); }
+    public Task<StockReturn?> GetStockReturnAsync(Guid tenantId, Guid farmId, Guid returnId, bool trackChanges, CancellationToken cancellationToken) => Track(context.StockReturns.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == returnId).Include(x => x.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public async Task<IReadOnlyList<InventoryLoss>> GetInventoryLossesAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken) { var query = context.InventoryLosses.Where(x => x.TenantId == tenantId && x.FarmId == farmId); if (activityId.HasValue) query = query.Where(x => x.ActivityId == activityId); return await Track(query, trackChanges).ToListAsync(cancellationToken); }
+    public Task<InventoryLoss?> GetInventoryLossAsync(Guid tenantId, Guid farmId, Guid lossId, bool trackChanges, CancellationToken cancellationToken) => Track(context.InventoryLosses.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == lossId), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public Task<ApprovalDecision?> GetInventoryLossApprovalAsync(Guid lossId, long subjectVersion, CancellationToken cancellationToken) => context.ApprovalDecisions.AsNoTracking().SingleOrDefaultAsync(x => x.InventoryLossId == lossId && x.SubjectVersion == subjectVersion, cancellationToken);
+    public async Task<decimal> GetFieldReceivedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken) => await context.FieldReceiptLines.Where(x => x.StockIssueLineId == issueLineId && context.FieldReceipts.Any(r => r.Id == x.FieldReceiptId && r.Status == FieldReceiptStatus.Recorded)).SumAsync(x => (decimal?)x.Quantity, cancellationToken) ?? 0;
+    public async Task<decimal> GetConfirmedAppliedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken) => await context.InputApplicationLines.Where(x => x.StockIssueLineId == issueLineId && context.InputApplications.Any(a => a.Id == x.InputApplicationId && a.Status == InputApplicationStatus.ManagerConfirmed)).SumAsync(x => (decimal?)x.AppliedQuantity, cancellationToken) ?? 0;
+    public async Task<decimal> GetPostedReturnedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken) => await context.StockReturnLines.Where(x => x.StockIssueLineId == issueLineId && context.StockReturns.Any(r => r.Id == x.StockReturnId && r.Status == StockReturnStatus.Posted)).SumAsync(x => (decimal?)x.Quantity, cancellationToken) ?? 0;
+    public async Task<decimal> GetApprovedLossQuantityAsync(Guid issueLineId, CancellationToken cancellationToken) => await context.InventoryLosses.Where(x => x.StockIssueLineId == issueLineId && x.Status == InventoryLossStatus.Approved).SumAsync(x => (decimal?)x.Quantity, cancellationToken) ?? 0;
+    public Task<bool> HasBlockingInventoryExceptionAsync(Guid tenantId, Guid farmId, Guid activityId, CancellationToken cancellationToken) => context.ControlExceptions.AnyAsync(x => x.TenantId == tenantId && x.FarmId == farmId && x.ActivityId == activityId && x.Status == ControlExceptionStatus.Open, cancellationToken);
+    public async Task<IReadOnlyList<ControlException>> GetControlExceptionsAsync(Guid tenantId, Guid farmId, Guid? activityId, CancellationToken cancellationToken) { var query = context.ControlExceptions.AsNoTracking().Where(x => x.TenantId == tenantId && x.FarmId == farmId); if (activityId.HasValue) query = query.Where(x => x.ActivityId == activityId); return await query.ToListAsync(cancellationToken); }
+    public Task<ControlException?> GetOpenControlExceptionAsync(Guid tenantId, Guid farmId, Guid issueLineId, CancellationToken cancellationToken) => context.ControlExceptions.SingleOrDefaultAsync(x => x.TenantId == tenantId && x.FarmId == farmId && x.StockIssueLineId == issueLineId && x.Status == ControlExceptionStatus.Open, cancellationToken);
+    public Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionAsync(Guid tenantId, Guid farmId, Guid correctionId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.FieldAccountabilityCorrections.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.Id == correctionId), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.FieldAccountabilityCorrections.Where(x => x.TenantId == tenantId && x.FarmId == farmId && x.RequestIdempotencyKey == idempotencyKey), trackChanges).SingleOrDefaultAsync(cancellationToken);
+    public Task<ApprovalDecision?> GetFieldAccountabilityCorrectionApprovalAsync(Guid correctionId, long subjectVersion, CancellationToken cancellationToken) =>
+        context.ApprovalDecisions.AsNoTracking().SingleOrDefaultAsync(x => x.FieldAccountabilityCorrectionId == correctionId && x.SubjectVersion == subjectVersion, cancellationToken);
+    public Task<bool> HasOperationalCostPostingAsync(Guid applicationLineId, OperationalCostCategory category, CancellationToken cancellationToken) => context.OperationalCostPostings.AnyAsync(x => x.InputApplicationLineId == applicationLineId && x.Category == category && x.ReversalOfOperationalCostPostingId == null && !context.OperationalCostPostings.Any(reversal => reversal.ReversalOfOperationalCostPostingId == x.Id), cancellationToken);
+    public async Task<IReadOnlyList<OperationalCostPosting>> GetActiveOperationalCostPostingsAsync(Guid? applicationLineId, Guid? inventoryLossId, CancellationToken cancellationToken) =>
+        await context.OperationalCostPostings.Where(x => x.ReversalOfOperationalCostPostingId == null && !context.OperationalCostPostings.Any(reversal => reversal.ReversalOfOperationalCostPostingId == x.Id) &&
+            (applicationLineId.HasValue ? x.InputApplicationLineId == applicationLineId : x.InventoryLossId == inventoryLossId))
+            .OrderBy(x => x.Id).ToListAsync(cancellationToken);
+    public Task<bool> HasConfirmedApplicationForFieldReceiptAsync(Guid fieldReceiptId, CancellationToken cancellationToken) =>
+        context.InputApplicationLines.AnyAsync(line => context.InputApplications.Any(application =>
+            application.Status == InputApplicationStatus.ManagerConfirmed && application.Id == line.InputApplicationId) &&
+            context.FieldReceiptLines.Any(receiptLine => receiptLine.FieldReceiptId == fieldReceiptId && receiptLine.Id == line.FieldReceiptLineId), cancellationToken);
+
     public async Task<decimal> GetPostedIssueQuantityAsync(Guid requestLineId, CancellationToken cancellationToken) =>
         -await context.StockMovements.AsNoTracking()
             .Where(movement => movement.StockIssueLineId.HasValue &&
@@ -241,6 +274,11 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
             .Where(movement => movement.StockIssueLineId.HasValue && !movement.ReversalOfStockMovementId.HasValue &&
                 context.StockIssueLines.Any(line => line.StockIssueId == issueId && line.Id == movement.StockIssueLineId))
             .OrderBy(movement => movement.PostingSequence).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<StockMovement>> GetReturnMovementsAsync(Guid stockReturnId, CancellationToken cancellationToken) =>
+        await context.StockMovements.AsNoTracking().Where(movement => !movement.ReversalOfStockMovementId.HasValue &&
+            context.StockReturnLines.Any(line => line.StockReturnId == stockReturnId && line.Id == movement.StockReturnLineId) &&
+            movement.MovementType == StockMovementType.StockReturn).OrderBy(movement => movement.PostingSequence).ToListAsync(cancellationToken);
 
     public Task<bool> HasDependentFieldAccountabilityAsync(Guid issueId, CancellationToken cancellationToken) =>
         Task.FromResult(false);
@@ -312,6 +350,30 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         if (locked is null) throw new NotFoundException(issueId.ToString(), "Stock issue");
     }
 
+    public async Task LockActivityAsync(Guid tenantId, Guid farmId, Guid activityId, CancellationToken cancellationToken)
+    {
+        var locked = await context.Activities.FromSqlInterpolated($"SELECT * FROM activities.\"Activities\" WHERE \"Id\" = {activityId} AND \"TenantId\" = {tenantId} AND \"FarmId\" = {farmId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+        if (locked is null) throw new NotFoundException(activityId.ToString(), "Activity");
+    }
+
+    public async Task LockStockIssueLinesAsync(IReadOnlyCollection<Guid> issueLineIds, CancellationToken cancellationToken)
+    {
+        foreach (var issueLineId in issueLineIds.Order())
+        {
+            var locked = await context.StockIssueLines.FromSqlInterpolated($"SELECT * FROM inventory.\"StockIssueLines\" WHERE \"Id\" = {issueLineId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+            if (locked is null) throw new NotFoundException(issueLineId.ToString(), "Stock issue line");
+        }
+    }
+
+    public async Task LockFieldReceiptLinesAsync(IReadOnlyCollection<Guid> receiptLineIds, CancellationToken cancellationToken)
+    {
+        foreach (var receiptLineId in receiptLineIds.Order())
+        {
+            var locked = await context.FieldReceiptLines.FromSqlInterpolated($"SELECT * FROM inventory.\"FieldReceiptLines\" WHERE \"Id\" = {receiptLineId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+            if (locked is null) throw new NotFoundException(receiptLineId.ToString(), "Field receipt line");
+        }
+    }
+
     public void Add(UnitOfMeasure unit) => context.UnitOfMeasures.Add(unit);
     public void Add(InventoryItem item) => context.InventoryItems.Add(item);
     public void Add(Supplier supplier) => context.Suppliers.Add(supplier);
@@ -326,6 +388,13 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
     public void Add(InventoryApplicationRule rule) => context.InventoryApplicationRules.Add(rule);
     public void Add(InputRequest request) => context.InputRequests.Add(request);
     public void Add(StockIssue issue) => context.StockIssues.Add(issue);
+    public void Add(FieldReceipt receipt) => context.FieldReceipts.Add(receipt);
+    public void Add(InputApplication application) => context.InputApplications.Add(application);
+    public void Add(StockReturn stockReturn) => context.StockReturns.Add(stockReturn);
+    public void Add(InventoryLoss loss) => context.InventoryLosses.Add(loss);
+    public void Add(OperationalCostPosting posting) => context.OperationalCostPostings.Add(posting);
+    public void Add(ControlException controlException) => context.ControlExceptions.Add(controlException);
+    public void Add(FieldAccountabilityCorrection correction) => context.FieldAccountabilityCorrections.Add(correction);
     public void Add(ManagerInvitation invitation) => context.ManagerInvitations.Add(invitation);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)

@@ -14,6 +14,7 @@ internal sealed class CorrectionRecordConfiguration : IEntityTypeConfiguration<C
             table.HasCheckConstraint("CK_CorrectionRecords_OneSource", "num_nonnulls(\"OriginalStockReceiptId\", \"OriginalStockIssueId\") = 1"));
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
+        builder.HasAlternateKey(entity => new { entity.Id, entity.TenantId, entity.FarmId });
         builder.Property(entity => entity.Reason).HasMaxLength(500).IsRequired();
         builder.Property(entity => entity.AuthorisedByUserId).HasMaxLength(450).IsRequired();
         builder.HasOne<StockReceipt>().WithMany().HasForeignKey(entity => new { entity.OriginalStockReceiptId, entity.TenantId, entity.FarmId })

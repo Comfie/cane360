@@ -61,6 +61,41 @@ internal static class InventoryAudit
             occurredAt, invitation.PersonId, reason, summary,
             auditId => InventoryAuditEventLink.ForInvitation(auditId, tenant.Id, farm.Id, invitation.Id));
 
+    public static void FieldReceipt(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        FieldReceipt receipt, string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(FieldReceipt), receipt.Id, action, at,
+            receipt.RecipientPersonId, reason, summary, id => InventoryAuditEventLink.ForFieldReceipt(id, tenant.Id, farm.Id, receipt.Id));
+
+    public static void Application(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        InputApplication application, string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(InputApplication), application.Id, action, at,
+            application.SupervisorPersonId, reason, summary, id => InventoryAuditEventLink.ForApplication(id, tenant.Id, farm.Id, application.Id));
+
+    public static void Return(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        StockReturn stockReturn, string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(StockReturn), stockReturn.Id, action, at,
+            stockReturn.ReceiverPersonId, reason, summary, id => InventoryAuditEventLink.ForReturn(id, tenant.Id, farm.Id, stockReturn.Id));
+
+    public static void Loss(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        InventoryLoss loss, string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(InventoryLoss), loss.Id, action, at,
+            null, reason, summary, id => InventoryAuditEventLink.ForLoss(id, tenant.Id, farm.Id, loss.Id));
+
+    public static void Correction(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        FieldAccountabilityCorrection correction, string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(FieldAccountabilityCorrection), correction.Id, action, at,
+            null, reason, summary, id => InventoryAuditEventLink.ForFieldAccountabilityCorrection(id, tenant.Id, farm.Id, correction.Id));
+
+    public static void Cost(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        OperationalCostPosting posting, string action, DateTimeOffset at, string summary) =>
+        Record(repository, tenant, farm, user, nameof(OperationalCostPosting), posting.Id, action, at,
+            null, null, summary, id => InventoryAuditEventLink.ForCost(id, tenant.Id, farm.Id, posting.Id));
+
+    public static void Exception(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        ControlException controlException, string action, DateTimeOffset at, string summary) =>
+        Record(repository, tenant, farm, user, nameof(ControlException), controlException.Id, action, at,
+            null, null, summary, id => InventoryAuditEventLink.ForException(id, tenant.Id, farm.Id, controlException.Id));
+
     private static void Record(
         IInventoryRepository repository,
         Tenant tenant,

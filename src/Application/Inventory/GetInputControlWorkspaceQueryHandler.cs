@@ -22,6 +22,23 @@ public sealed class GetInputControlWorkspaceQueryHandler(
         var items = await inventoryRepository.GetItemsAsync(tenant.Id, farm.Id, false, cancellationToken);
         var lots = await inventoryRepository.GetLotsAsync(tenant.Id, farm.Id, null, false, cancellationToken);
         var invitations = await inventoryRepository.GetManagerInvitationsAsync(tenant.Id, farm.Id, false, cancellationToken);
+        var fieldReceipts = await inventoryRepository.GetFieldReceiptsAsync(tenant.Id, farm.Id, null, false, cancellationToken);
+        var losses = await inventoryRepository.GetInventoryLossesAsync(tenant.Id, farm.Id, request.ActivityId, false, cancellationToken);
+        var accountability = new List<InputAccountabilityDto>();
+        foreach (var issue in issues.Where(candidate => candidate.Status == StockIssueStatus.Posted))
+        {
+            var issueRequest = requests.SingleOrDefault(candidate => candidate.Id == issue.InputRequestId) ??
+                (await inventoryRepository.GetInputRequestAsync(tenant.Id, farm.Id, issue.InputRequestId, false, cancellationToken));
+            if (issueRequest is null) continue;
+            foreach (var line in issue.Lines)
+            {
+                var values = await InventoryAccountability.GetAsync(inventoryRepository, line, cancellationToken);
+                accountability.Add(new InputAccountabilityDto(issue.Id, line.Id, issueRequest.ActivityId,
+                    line.ItemCodeSnapshot, line.LotCodeSnapshot, line.UnitCodeSnapshot, line.Quantity,
+                    values.Received, values.Applied, values.Returned, values.Loss, values.Unaccounted,
+                    values.Unaccounted != 0));
+            }
+        }
 
         var requestDtos = new List<InputRequestDto>();
         foreach (var inputRequest in requests)
@@ -75,7 +92,16 @@ public sealed class GetInputControlWorkspaceQueryHandler(
                     role.Role.ToString(), role.IsPrimary, role.EffectiveFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                     role.EffectiveTo?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))).ToArray())).ToArray(),
             invitations.Select(invitation => new ManagerInvitationDto(invitation.Id, invitation.PersonId,
-                invitation.ExpiresAt, invitation.RevokedAt, invitation.RedeemedAt, invitation.Version)).ToArray());
+                invitation.ExpiresAt, invitation.RevokedAt, invitation.RedeemedAt, invitation.Version)).ToArray(),
+            fieldReceipts.Select(receipt => new FieldReceiptDto(receipt.Id, receipt.StockIssueId, receipt.FieldId,
+                receipt.CropCycleId, receipt.ActivityId, receipt.RecipientPersonId, receipt.ReceivedAt,
+                receipt.Status.ToString(), receipt.Version, receipt.Lines.Select(line => new FieldReceiptLineDto(
+                    line.Id, line.StockIssueLineId, line.ItemCodeSnapshot, line.LotCodeSnapshot,
+                    line.UnitCodeSnapshot, line.Quantity)).ToArray())).ToArray(),
+            losses.Select(loss => new InventoryLossDto(loss.Id, loss.ActivityId, loss.StockIssueLineId,
+                loss.ItemCodeSnapshot, loss.LotCodeSnapshot, loss.UnitCodeSnapshot, loss.Quantity,
+                loss.LossType.ToString(), loss.Reason, loss.Status.ToString(), loss.Version)).ToArray(),
+            accountability);
     }
 
     private static (Cane360.Domain.Farms.Field Field, Cane360.Domain.Activities.Activity Activity) FindActivity(

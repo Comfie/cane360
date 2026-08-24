@@ -59,7 +59,7 @@ export function decideOpeningBalance(receiptId, expectedVersion, outcome, reason
 
 /** @param {string} receiptId @param {number} expectedVersion */
 export function postReceipt(receiptId, expectedVersion) {
-  return inventoryClient.post2(receiptId, new PostStockReceiptRequest({
+  return inventoryClient.post3(receiptId, new PostStockReceiptRequest({
     expectedVersion,
     idempotencyKey: operationKey('receipt-post'),
   }));
@@ -67,7 +67,7 @@ export function postReceipt(receiptId, expectedVersion) {
 
 /** @param {string} receiptId @param {number} expectedVersion @param {string} reason */
 export function reverseReceipt(receiptId, expectedVersion, reason) {
-  return inventoryClient.reverse2(receiptId, new ReverseStockReceiptRequest({
+  return inventoryClient.reverse3(receiptId, new ReverseStockReceiptRequest({
     expectedVersion,
     reason,
     idempotencyKey: operationKey('receipt-reversal'),
