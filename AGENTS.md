@@ -19,6 +19,10 @@ Keep dependencies inward-facing: Domain must not depend on other projects, Appli
 
 Follow `.editorconfig`: four spaces for C#, two for JavaScript/JSON/XML, LF endings, and final newlines. Use file-scoped namespaces, braces, explicit types unless inference is obvious, and sorted `System` usings. Name types, methods, and properties in PascalCase; interfaces `IPascalCase`; locals and parameters camelCase; private fields `_camelCase`. ESLint governs JSX. Centralize NuGet versions in `Directory.Packages.props`; do not add versions to individual project files.
 
+Keep each top-level C# type in its own file, with the file name matching the type name. This applies to DTOs, records, classes, interfaces, structs, and enums; do not group multiple DTOs or related types into a single source file. Generated code and private nested implementation types are exceptions.
+
+When modifying a file that contains multiple top-level C# types, separate those types into matching files as part of the change when doing so remains within the task's scope. Do not perform unrelated repository-wide cleanup.
+
 ## Testing Guidelines
 
 Use NUnit `[Test]` methods, Moq for collaborators, and Shouldly assertions. Name test classes `{Subject}Tests` and tests by observable behavior, for example `LoginReturnsUnauthorizedForInvalidCredentials`. Add focused tests beside the closest matching test namespace. Coverlet is configured, but no minimum coverage threshold is enforced.
@@ -52,11 +56,22 @@ Add durable engineering instructions for Cane360:
 - Never put database credentials in source files, documentation, logs, tests,
   AGENTS.md or prompts.
 - Never print complete connection strings.
-- Do not run destructive tests against the development database.
-- Integration tests require a separate test database.
+- Railway Development is the integration and acceptance test database unless the
+  user explicitly approves a different target. Do not require or create a
+  separate test database by default.
+- Never run tests against production or pilot data.
+- Scope every shared-database test query and assertion to a uniquely labelled
+  synthetic tenant and test-run identifier; never query or modify non-test
+  tenants and never assert global table counts.
+- Do not run destructive tests against Railway Development. Never use
+  `EnsureDeleted`, `EnsureCreated`, database or schema drops, truncation, bulk
+  deletion, migration rollback, or automatic committed-data cleanup.
+- Transactional tests may roll back their own uncommitted work. Multi-connection,
+  concurrency, and authenticated tests may retain clearly labelled synthetic
+  records.
+- Tests and application startup must never apply migrations automatically.
 - Before creating or applying migrations, show the target environment and list
   pending migrations.
-- Never use EnsureDeleted against Railway.
 - Preserve the existing authentication mechanism.
 - Ask before adding production dependencies.
 - Run relevant backend tests, frontend linting, type checking and production

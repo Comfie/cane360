@@ -98,4 +98,20 @@ public sealed class Tenant : BaseAuditableEntity
         _activityTypes.Add(activityType);
         return activityType;
     }
+
+    public TenantMembership AddFarmManagerMembership(string userId, Guid personId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        if (_memberships.Any(membership => membership.Status == RecordStatus.Active &&
+            (membership.UserId == userId || membership.PersonId == personId)))
+        {
+            throw new InvalidOperationException("This user or manager person already has an active tenant membership.");
+        }
+        var farm = ActiveFarm ?? throw new InvalidOperationException("A FarmManager membership requires an active farm.");
+        if (farm.Persons.All(person => person.Id != personId))
+            throw new InvalidOperationException("The FarmManager person must belong to this tenant's active farm.");
+        var membership = TenantMembership.CreateFarmManager(Id, farm.Id, userId.Trim(), personId);
+        _memberships.Add(membership);
+        return membership;
+    }
 }

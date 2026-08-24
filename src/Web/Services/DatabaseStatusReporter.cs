@@ -52,16 +52,3 @@ public sealed class DatabaseStatusReporter(
         }
     }
 }
-
-public static class DatabaseStatusReporterExtensions
-{
-    public static async Task<int> ReportDatabaseStatusAsync(
-        this WebApplication app,
-        CancellationToken cancellationToken = default)
-    {
-        await using var scope = app.Services.CreateAsyncScope();
-        var reporter = scope.ServiceProvider.GetRequiredService<DatabaseStatusReporter>();
-
-        return await reporter.ReportAsync(cancellationToken);
-    }
-}

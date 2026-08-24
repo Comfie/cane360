@@ -4,6 +4,7 @@ import { CreateActivityTypeRequest, FarmPersonnelClient } from '../../web-api-cl
 import { DatePicker } from '../DatePicker';
 import { getApiError, useFarmSetup } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
+import { ActivityInputsPanel } from '../inventory/ActivityInputsPanel';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
 import {
@@ -90,7 +91,7 @@ export function ActivitiesPage() {
         <section className="activity-list" aria-label="Activity list">{visibleActivities.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={openDetails} />)}</section>
       ) : <ActivityCalendar groups={grouped} onOpen={openDetails} />}
 
-      <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational evidence</strong><span><Sheet size={15} /> Source references and confirmed labour evidence appear in the diary. Document upload, inventory, and cost posting remain deferred.</span></section>
+      <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational evidence</strong><span><Sheet size={15} /> Source references, confirmed labour evidence, and controlled input requests appear in the diary. Document upload remains deferred.</span></section>
 
       {showCreate && <ActivityDialog title="Record activity" onClose={() => setShowCreate(false)}>
         <CreateActivityForm fields={fields} types={activeTypes} supervisors={supervisors} onSaved={async (details) => { setShowCreate(false); setSelected(details); await reload(); }} onError={setError} />
@@ -199,6 +200,7 @@ function ActivityOverview({ details, onChanged, onError }) {
   return <div className="activity-overview">
     <div className="overview-facts"><span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span></div>
     {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18} /><div><strong>Retrospective entry · {activity.entryDelayDays} calendar days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span></div></div>}
+    <ActivityInputsPanel activityId={activity.id} activityStatus={activity.status} onError={onError} />
     {['Draft', 'Planned', 'InProgress'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3><div className="form-grid"><label>When work happened<DatePicker name="actualAt" type="datetime-local" required value={actualAtValue} onChange={setActualAtValue} /></label>{activity.quantityBasis !== 'None' && <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number" min="0.0001" step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'} required defaultValue={activity.actualQuantity} /></label>}<label className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason} /></label></div><button disabled={saving}>Save actual work</button></form>}
     <section className="lifecycle-actions"><h3>Next action</h3>{orderedActions(details.allowedTransitions).map((action) => <button key={action} type="button" className={action === 'Cancelled' ? 'secondary outline' : 'secondary-action'} disabled={saving} onClick={() => run(action, action === 'Cancelled' ? window.prompt('Cancellation reason') || '' : undefined)}>{action === 'ManagerConfirmation' ? 'Supervisor verified' : formatActivityStatus(action)}</button>)}{Object.values(details.blockedTransitions).map((message) => <p className="context-note" key={message}>{message}</p>)}</section>
     {!['Closed', 'Cancelled'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3><div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required placeholder="e.g. Field sheet FS-204" /></label><label>Captured date<DatePicker name="capturedDate" defaultValue={harareToday()} required /></label></div><button disabled={saving}>Add reference</button><small>Metadata only. Document and photo upload is unavailable.</small></form>}

@@ -6,6 +6,11 @@ public sealed class PersonRoleAssignment : BaseEntity
 
     private PersonRoleAssignment(Guid farmId, Guid personId, PersonRole role, bool isPrimary, DateOnly effectiveFrom)
     {
+        if (isPrimary && role != PersonRole.FarmManager)
+        {
+            throw new InvalidOperationException("Only a FarmManager role assignment may be primary.");
+        }
+
         FarmId = farmId;
         PersonId = personId;
         Role = role;

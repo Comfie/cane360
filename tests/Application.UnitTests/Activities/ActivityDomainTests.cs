@@ -18,6 +18,18 @@ public class ActivityDomainTests
     }
 
     [Test]
+    public void OnlyFarmManagerRoleMayBePrimary()
+    {
+        var tenant = Tenant.CreateForGrower("user-1", "Tariro Moyo", null);
+        var farm = tenant.CreateFarm(
+            "FARM", "Farm", "Address", "Location", "Lease", 10m, "Furrow");
+        var person = farm.AddPerson("Supervisor", null, new DateOnly(2026, 1, 1));
+
+        Should.Throw<InvalidOperationException>(() => farm.AssignRole(
+            person, PersonRole.Supervisor, true, new DateOnly(2026, 1, 1)));
+    }
+
+    [Test]
     public void ActiveAndReadyCyclesAcceptActivitiesButDraftDoesNot()
     {
         var context = CreateContext(ActivityQuantityBasis.None);
