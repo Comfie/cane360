@@ -109,6 +109,32 @@ public sealed class Farm : BaseAuditableEntity
         return person;
     }
 
+    public void UpdateDetails(
+        string code,
+        string name,
+        string address,
+        string location,
+        string tenure,
+        decimal declaredHectares,
+        string irrigationContext)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(code);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(address);
+        ArgumentException.ThrowIfNullOrWhiteSpace(location);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenure);
+        ArgumentException.ThrowIfNullOrWhiteSpace(irrigationContext);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(declaredHectares);
+
+        Code = NormaliseCode(code);
+        Name = name.Trim();
+        Address = address.Trim();
+        Location = location.Trim();
+        Tenure = tenure.Trim();
+        DeclaredHectares = declaredHectares;
+        IrrigationContext = irrigationContext.Trim();
+    }
+
     public PersonRoleAssignment AssignRole(
         Person person,
         PersonRole role,
@@ -128,6 +154,31 @@ public sealed class Farm : BaseAuditableEntity
         }
 
         return person.AssignRole(role, isPrimary, effectiveFrom);
+    }
+
+    public void UpdatePerson(
+        Person person,
+        string displayName,
+        string? phone,
+        PersonRole role,
+        bool isPrimary,
+        DateOnly roleEffectiveFrom,
+        long expectedVersion)
+    {
+        if (!_persons.Contains(person))
+        {
+            throw new InvalidOperationException("The person does not belong to this farm.");
+        }
+
+        if (role == PersonRole.FarmManager && isPrimary && _persons.Any(candidate =>
+            candidate != person && candidate.RoleAssignments.Any(assignment =>
+                assignment.Role == PersonRole.FarmManager && assignment.IsPrimary && assignment.EffectiveTo is null)))
+        {
+            throw new InvalidOperationException("This farm already has a current primary farm manager.");
+        }
+
+        person.UpdateDetailsAndReplaceCurrentRoles(
+            displayName, phone, role, isPrimary, roleEffectiveFrom, expectedVersion);
     }
 
     private static string NormaliseCode(string code) => code.Trim().ToUpperInvariant();

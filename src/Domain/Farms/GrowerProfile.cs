@@ -17,4 +17,11 @@ public sealed class GrowerProfile : BaseAuditableEntity
 
     internal static GrowerProfile Create(Guid tenantId, string displayName, string? phone) =>
         new(tenantId, displayName, phone);
+
+    public void Update(string displayName, string? phone)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+        DisplayName = displayName.Trim();
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+    }
 }

@@ -34,6 +34,24 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(Get), new { }, result);
     }
 
+    [HttpPut("{personId:guid}")]
+    [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PersonnelRegisterDto>> Update(
+        Guid personId,
+        UpdatePersonRequest request,
+        CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new UpdatePersonCommand(
+            personId,
+            request.DisplayName,
+            request.Phone,
+            request.Role,
+            request.IsPrimaryManager,
+            request.RoleEffectiveFrom,
+            request.ExpectedVersion), cancellationToken));
+
     [HttpPost("{personId:guid}/deactivate")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

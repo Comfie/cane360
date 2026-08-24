@@ -1,7 +1,7 @@
-import { Droplets, LandPlot, MapPin, UserRound } from 'lucide-react';
+import { Droplets, LandPlot, MapPin, Pencil, UserRound } from 'lucide-react';
 
-/** @param {{ setup: import('../../web-api-client').FarmSetupDto, compact?: boolean }} props */
-export function FarmSummary({ setup, compact = false }) {
+/** @param {{ setup: import('../../web-api-client').FarmSetupDto, compact?: boolean, onEdit?: () => void }} props */
+export function FarmSummary({ setup, compact = false, onEdit }) {
   const farm = setup.farm;
   if (!farm) return null;
 
@@ -12,7 +12,10 @@ export function FarmSummary({ setup, compact = false }) {
           <span className="record-code">{farm.code}</span>
           <h2 id="farm-summary-title">{farm.name}</h2>
         </div>
-        <span className="record-status"><span aria-hidden="true" /> Active farm</span>
+        <div className="farm-summary-actions">
+          <span className="record-status"><span aria-hidden="true" /> Active farm</span>
+          {onEdit && <button type="button" className="farm-summary-edit" onClick={onEdit} aria-label="Edit farm information" title="Edit farm information"><Pencil size={16} /></button>}
+        </div>
       </header>
       <dl className="record-details">
         <div><dt><UserRound size={16} aria-hidden="true" /> Grower</dt><dd>{setup.grower?.displayName}</dd></div>

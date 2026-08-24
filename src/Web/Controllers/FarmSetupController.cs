@@ -39,6 +39,27 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.DeclaredHectares,
             request.IrrigationContext), cancellationToken));
 
+    [HttpPut("farm")]
+    [EndpointSummary("Update grower farm")]
+    [EndpointDescription("Updates the authenticated grower's profile and active farm details.")]
+    [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FarmSetupDto>> UpdateFarm(
+        UpdateFarmInformationRequest request,
+        CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new UpdateFarmInformationCommand(
+            request.GrowerDisplayName,
+            request.GrowerPhone,
+            request.FarmCode,
+            request.FarmName,
+            request.Address,
+            request.Location,
+            request.Tenure,
+            request.DeclaredHectares,
+            request.IrrigationContext), cancellationToken));
+
     [HttpPost("fields")]
     [EndpointSummary("Create field")]
     [EndpointDescription("Adds a uniquely coded field to the authenticated grower's active farm.")]

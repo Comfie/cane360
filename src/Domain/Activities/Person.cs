@@ -50,6 +50,43 @@ public sealed class Person : BaseAuditableEntity
         return assignment;
     }
 
+    public void UpdateDetailsAndReplaceCurrentRoles(
+        string displayName,
+        string? phone,
+        PersonRole role,
+        bool isPrimary,
+        DateOnly roleEffectiveFrom,
+        long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Status != RecordStatus.Active)
+        {
+            throw new InvalidOperationException("Inactive personnel records cannot be updated.");
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+        if (roleEffectiveFrom < ActiveFrom)
+        {
+            throw new InvalidOperationException("The role effective date cannot be before the person became active.");
+        }
+
+        var currentRoles = _roleAssignments.Where(assignment => assignment.EffectiveTo is null).ToArray();
+        if (currentRoles.Any(assignment => assignment.EffectiveFrom >= roleEffectiveFrom))
+        {
+            throw new InvalidOperationException("The role effective date must be after the start date of each current role.");
+        }
+
+        DisplayName = displayName.Trim();
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        foreach (var currentRole in currentRoles)
+        {
+            currentRole.End(roleEffectiveFrom.AddDays(-1));
+        }
+
+        _roleAssignments.Add(PersonRoleAssignment.Create(FarmId, Id, role, isPrimary, roleEffectiveFrom));
+        Version++;
+    }
+
     public void EndRole(Guid assignmentId, DateOnly effectiveTo, long expectedVersion)
     {
         RequireVersion(expectedVersion);

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowRight, Tractor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CreateGrowerFarmRequest } from '../../web-api-client';
+import { FarmProfileEditor } from '../farm-setup/FarmProfileEditor';
 import { FarmSetupProgress } from '../farm-setup/FarmSetupProgress';
 import { FarmSummary } from '../farm-setup/FarmSummary';
 import { farmSetupClient, getApiError, useFarmSetup } from '../farm-setup/farmSetupApi';
@@ -13,6 +14,7 @@ import { PersonnelRegister } from '../farm-setup/PersonnelRegister';
 export function FarmPage() {
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingFarm, setIsEditingFarm] = useState(false);
 
   if (isLoading) return <LoadingState label="Loading your farm record" />;
   if (!setup) return <ValidationError title="Farm record unavailable" message={error} persistent />;
@@ -60,7 +62,7 @@ export function FarmPage() {
       <FarmSetupProgress setup={setup} />
       <ValidationError message={error} />
 
-      {setup.isConfigured ? <><FarmSummary setup={setup} /><PersonnelRegister /></> : (
+      {setup.isConfigured ? <><FarmSummary setup={setup} onEdit={() => { setError(''); setIsEditingFarm(true); }} /><PersonnelRegister />{isEditingFarm && <FarmProfileEditor setup={setup} onClose={() => setIsEditingFarm(false)} onSaved={(result) => { setSetup(result); setIsEditingFarm(false); }} />}</> : (
         <form className="setup-form record-panel" onSubmit={createFarm}>
           <header className="form-section-heading">
             <span className="form-section-icon" aria-hidden="true"><Tractor size={19} /></span>

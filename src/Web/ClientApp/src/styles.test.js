@@ -43,6 +43,33 @@ test('activity-type checkboxes keep their native control sizing and save-action 
   assert.match(component, /Select Planned, Unplanned, or both\./);
 });
 
+test('personnel creation and editing use a modal, with the primary-manager switch only for Farm managers', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/farm-setup/PersonnelRegister.jsx', import.meta.url), 'utf8');
+
+  assert.match(component, /<dialog open className="activity-dialog personnel-dialog"/);
+  assert.match(component, /role === 'FarmManager' && <label className="toggle-control personnel-primary-toggle">/);
+  assert.match(component, /checked=\{isPrimaryManager\}/);
+  assert.match(component, /setIsPrimaryManager\(false\)/);
+  assert.match(component, /farmPersonnelPUT\(editingPerson\.id, new UpdatePersonRequest/);
+  assert.match(component, /onClick=\{\(\) => openEditPerson\(person\)\}/);
+  assert.match(component, /aria-label=\{`Edit \$\{person\.displayName\}`\}/);
+  assert.match(styles, /\.personnel-primary-toggle \{[^}]*grid-column: 1 \/ -1;/);
+  assert.match(styles, /\.personnel-form-actions \{[^}]*justify-content: flex-end;/);
+});
+
+test('farm information is edited in a modal with a compact summary action', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const summary = await readFile(new URL('./components/farm-setup/FarmSummary.jsx', import.meta.url), 'utf8');
+  const editor = await readFile(new URL('./components/farm-setup/FarmProfileEditor.jsx', import.meta.url), 'utf8');
+
+  assert.match(summary, /aria-label="Edit farm information"/);
+  assert.match(editor, /<dialog open className="activity-dialog farm-profile-dialog"/);
+  assert.match(editor, /farmSetupClient\.farmPUT\(new UpdateFarmInformationRequest/);
+  assert.match(styles, /\.farm-summary-edit \{[^}]*width: 2\.25rem;/);
+  assert.match(styles, /\.farm-profile-dialog \{[^}]*width: min\(54rem/);
+});
+
 test('record-evidence actions are separated from the final form field', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
 
