@@ -56,10 +56,22 @@ Add durable engineering instructions for Cane360:
 - Never put database credentials in source files, documentation, logs, tests,
   AGENTS.md or prompts.
 - Never print complete connection strings.
-- Do not run destructive tests against the development database.
+- Railway Development is the integration and acceptance test database unless the
+  user explicitly approves a different target. Do not require or create a
+  separate test database by default.
+- Never run tests against production or pilot data.
+- Scope every shared-database test query and assertion to a uniquely labelled
+  synthetic tenant and test-run identifier; never query or modify non-test
+  tenants and never assert global table counts.
+- Do not run destructive tests against Railway Development. Never use
+  `EnsureDeleted`, `EnsureCreated`, database or schema drops, truncation, bulk
+  deletion, migration rollback, or automatic committed-data cleanup.
+- Transactional tests may roll back their own uncommitted work. Multi-connection,
+  concurrency, and authenticated tests may retain clearly labelled synthetic
+  records.
+- Tests and application startup must never apply migrations automatically.
 - Before creating or applying migrations, show the target environment and list
   pending migrations.
-- Never use EnsureDeleted against Railway.
 - Preserve the existing authentication mechanism.
 - Ask before adding production dependencies.
 - Run relevant backend tests, frontend linting, type checking and production
