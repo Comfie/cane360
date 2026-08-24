@@ -89,6 +89,26 @@ public sealed class StockIssuePostingTests
     }
 
     [Test]
+    public async Task IssuePostingRejectsQuantityAboveApprovedOutstandingWithoutMovement()
+    {
+        var setup = CreateSetup();
+        var repository = RepositoryForConflict(setup, new StockLedgerSnapshot(100m, 300m));
+        repository.Setup(value => value.GetPostedIssueQuantityAsync(
+            setup.RequestLine.Id, It.IsAny<CancellationToken>())).ReturnsAsync(70m);
+        var farmRepository = new Mock<IFarmSetupRepository>();
+        farmRepository.Setup(value => value.GetTenantForUserAsync(
+            "grower-user", false, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Tenant);
+        var user = new Mock<IUser>();
+        user.Setup(value => value.Id).Returns("grower-user");
+        var handler = new PostStockIssueCommandHandler(farmRepository.Object, repository.Object,
+            user.Object, new FixedTimeProvider(Now));
+
+        await Should.ThrowAsync<Cane360.Application.Common.Exceptions.ConflictException>(() => handler.Handle(
+            new PostStockIssueCommand(setup.Issue.Id, setup.Issue.Version, "over-approved"), CancellationToken.None));
+        repository.Verify(value => value.Add(It.IsAny<StockMovement>()), Times.Never);
+    }
+
+    [Test]
     public async Task FarmManagerCannotAuthoriseIssueReversal()
     {
         var setup = CreateSetup();

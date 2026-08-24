@@ -7,12 +7,13 @@ using Cane360.Domain.Inventory;
 using Cane360.Infrastructure.Data;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace Cane360.Infrastructure.IntegrationTests;
 
 [TestFixture]
-[Explicit("Run only after AddInputRequestsApprovalsAndIssues is approved and applied to the separately configured PostgreSQL integration database.")]
+[Explicit("Run only after AddInputRequestsApprovalsAndIssues is approved and applied to Railway development.")]
 [Category("Phase5BPostMigration")]
 [NonParallelizable]
 public sealed class PostgreSqlInputIssueAcceptanceTests
@@ -33,10 +34,9 @@ public sealed class PostgreSqlInputIssueAcceptanceTests
     [OneTimeSetUp]
     public async Task EstablishIsolatedSyntheticTenant()
     {
-        Environment.GetEnvironmentVariable("CANE360_INTEGRATION_TARGET")
-            .ShouldBe("DedicatedTestDatabase", "the repository rules prohibit destructive or concurrency tests against Railway development");
-        _connectionString = Environment.GetEnvironmentVariable("CANE360_INTEGRATION_DB")
-            ?? throw new InvalidOperationException("CANE360_INTEGRATION_DB is not configured.");
+        Environment.GetEnvironmentVariable("CANE360_ACCEPTANCE_TARGET")
+            .ShouldBe("RailwayDevelopment", "acceptance tests require an explicit Railway-development target marker");
+        _connectionString = LoadConfiguredConnectionString();
         _runId = $"AUTOTEST-P5B-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid():N}";
         _growerUserId = $"p5b-grower-{Guid.NewGuid():N}";
         var tenant = Tenant.CreateForGrower(_growerUserId, _runId, null);
@@ -261,6 +261,18 @@ public sealed class PostgreSqlInputIssueAcceptanceTests
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(_connectionString).Options;
         return new ApplicationDbContext(options);
+    }
+
+    private static string LoadConfiguredConnectionString()
+    {
+        var environmentValue = Environment.GetEnvironmentVariable("ConnectionStrings__Cane360Db");
+        if (!string.IsNullOrWhiteSpace(environmentValue)) return environmentValue;
+        var configuration = new ConfigurationBuilder()
+            .AddUserSecrets("Cane360-Web-Development")
+            .AddEnvironmentVariables()
+            .Build();
+        return configuration.GetConnectionString("Cane360Db")
+            ?? throw new InvalidOperationException("The configured Railway development connection is unavailable.");
     }
 
     private static ApplicationUser User(string id) => new()

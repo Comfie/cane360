@@ -26,6 +26,24 @@ public sealed class InputApprovalCommandTests
     }
 
     [Test]
+    public async Task FarmManagerMayApproveRequestInsideInclusiveTolerance()
+    {
+        var context = CreateContext(100m);
+        var handler = Handler(context, "manager-user", out var inventory);
+        ApprovalDecision? decision = null;
+        inventory.Setup(repository => repository.Add(It.IsAny<ApprovalDecision>()))
+            .Callback<ApprovalDecision>(value => decision = value);
+
+        await handler.Handle(new DecideInputRequestCommand(context.Request.Id, context.Request.Version,
+            ApprovalOutcome.Approved, null, "manager-normal-decision"), CancellationToken.None);
+
+        decision.ShouldNotBeNull();
+        decision.ApproverRole.ShouldBe(TenantSecurityRoles.FarmManager);
+        decision.SubjectVersion.ShouldBe(context.Request.Version - 1);
+        context.Request.Status.ShouldBe(InputRequestStatus.Approved);
+    }
+
+    [Test]
     public async Task GrowerDecisionCreatesImmutableExactVersionApproval()
     {
         var context = CreateContext(120m);
