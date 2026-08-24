@@ -4,5 +4,7 @@ public enum StockMovementType
 {
     PurchaseReceipt,
     OpeningBalance,
-    ReceiptReversal
+    ReceiptReversal,
+    StockIssue,
+    IssueReversal
 }

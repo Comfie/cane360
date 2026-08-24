@@ -81,7 +81,7 @@ public sealed class ReverseStockReceiptCommandHandler(
         foreach (var original in originals)
         {
             var reversal = StockMovement.CreateReversal(
-                original, lines[original.StockReceiptLineId], InventoryAccess.HarareDate(now), now, userId,
+                original, lines[original.StockReceiptLineId!.Value], InventoryAccess.HarareDate(now), now, userId,
                 $"movement:{original.Id:N}:reversal");
             inventoryRepository.Add(reversal);
             inventoryRepository.Add(CorrectionRecord.CreateReceiptReversal(

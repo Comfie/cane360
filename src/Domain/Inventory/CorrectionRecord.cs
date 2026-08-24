@@ -7,7 +7,8 @@ public sealed class CorrectionRecord : BaseEntity
     private CorrectionRecord(
         Guid tenantId,
         Guid farmId,
-        Guid originalReceiptId,
+        Guid? originalReceiptId,
+        Guid? originalIssueId,
         Guid originalStockMovementId,
         Guid correctingStockMovementId,
         string reason,
@@ -17,6 +18,7 @@ public sealed class CorrectionRecord : BaseEntity
         TenantId = tenantId;
         FarmId = farmId;
         OriginalStockReceiptId = originalReceiptId;
+        OriginalStockIssueId = originalIssueId;
         OriginalStockMovementId = originalStockMovementId;
         CorrectingStockMovementId = correctingStockMovementId;
         Reason = reason.Trim();
@@ -26,7 +28,8 @@ public sealed class CorrectionRecord : BaseEntity
 
     public Guid TenantId { get; private set; }
     public Guid FarmId { get; private set; }
-    public Guid OriginalStockReceiptId { get; private set; }
+    public Guid? OriginalStockReceiptId { get; private set; }
+    public Guid? OriginalStockIssueId { get; private set; }
     public Guid OriginalStockMovementId { get; private set; }
     public Guid CorrectingStockMovementId { get; private set; }
     public string Reason { get; private set; } = string.Empty;
@@ -46,7 +49,18 @@ public sealed class CorrectionRecord : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         ArgumentException.ThrowIfNullOrWhiteSpace(authorisedByUserId);
         return new CorrectionRecord(
-            tenantId, farmId, originalReceiptId, originalStockMovementId, correctingStockMovementId,
+            tenantId, farmId, originalReceiptId, null, originalStockMovementId, correctingStockMovementId,
             reason, authorisedByUserId, authorisedAt);
+    }
+
+    public static CorrectionRecord CreateIssueReversal(
+        Guid tenantId, Guid farmId, Guid issueId, Guid originalStockMovementId,
+        Guid correctingStockMovementId, string reason, string authorisedByUserId,
+        DateTimeOffset authorisedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        ArgumentException.ThrowIfNullOrWhiteSpace(authorisedByUserId);
+        return new CorrectionRecord(tenantId, farmId, null, issueId, originalStockMovementId,
+            correctingStockMovementId, reason, authorisedByUserId, authorisedAt);
     }
 }

@@ -37,6 +37,30 @@ internal static class InventoryAudit
             receipt.ReceivedByPersonId, reason, summary,
             auditId => InventoryAuditEventLink.ForReceipt(auditId, tenant.Id, farm.Id, receipt.Id));
 
+    public static void Rule(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        InventoryApplicationRule rule, string action, DateTimeOffset occurredAt, string summary) =>
+        Record(repository, tenant, farm, user, nameof(InventoryApplicationRule), rule.Id, action,
+            occurredAt, null, null, summary,
+            auditId => InventoryAuditEventLink.ForRule(auditId, tenant.Id, farm.Id, rule.Id));
+
+    public static void Request(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        InputRequest request, string action, DateTimeOffset occurredAt, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(InputRequest), request.Id, action,
+            occurredAt, null, reason, summary,
+            auditId => InventoryAuditEventLink.ForRequest(auditId, tenant.Id, farm.Id, request.Id));
+
+    public static void Issue(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        StockIssue issue, string action, DateTimeOffset occurredAt, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(StockIssue), issue.Id, action,
+            occurredAt, issue.IssuerPersonId, reason, summary,
+            auditId => InventoryAuditEventLink.ForIssue(auditId, tenant.Id, farm.Id, issue.Id));
+
+    public static void Invitation(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user,
+        ManagerInvitation invitation, string action, DateTimeOffset occurredAt, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(ManagerInvitation), invitation.Id, action,
+            occurredAt, invitation.PersonId, reason, summary,
+            auditId => InventoryAuditEventLink.ForInvitation(auditId, tenant.Id, farm.Id, invitation.Id));
+
     private static void Record(
         IInventoryRepository repository,
         Tenant tenant,

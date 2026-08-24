@@ -19,6 +19,10 @@ public sealed class InventoryAuditEventLink : BaseEntity
     public Guid? SupplierId { get; private set; }
     public Guid? InventoryLotId { get; private set; }
     public Guid? StockReceiptId { get; private set; }
+    public Guid? InventoryApplicationRuleId { get; private set; }
+    public Guid? InputRequestId { get; private set; }
+    public Guid? StockIssueId { get; private set; }
+    public Guid? ManagerInvitationId { get; private set; }
 
     public static InventoryAuditEventLink ForUnit(
         Guid auditEventId, Guid tenantId, Guid farmId, Guid unitId) =>
@@ -39,4 +43,20 @@ public sealed class InventoryAuditEventLink : BaseEntity
     public static InventoryAuditEventLink ForReceipt(
         Guid auditEventId, Guid tenantId, Guid farmId, Guid receiptId) =>
         new(auditEventId, tenantId, farmId) { StockReceiptId = receiptId };
+
+    public static InventoryAuditEventLink ForRule(
+        Guid auditEventId, Guid tenantId, Guid farmId, Guid ruleId) =>
+        new(auditEventId, tenantId, farmId) { InventoryApplicationRuleId = ruleId };
+
+    public static InventoryAuditEventLink ForRequest(
+        Guid auditEventId, Guid tenantId, Guid farmId, Guid requestId) =>
+        new(auditEventId, tenantId, farmId) { InputRequestId = requestId };
+
+    public static InventoryAuditEventLink ForIssue(
+        Guid auditEventId, Guid tenantId, Guid farmId, Guid issueId) =>
+        new(auditEventId, tenantId, farmId) { StockIssueId = issueId };
+
+    public static InventoryAuditEventLink ForInvitation(
+        Guid auditEventId, Guid tenantId, Guid farmId, Guid invitationId) =>
+        new(auditEventId, tenantId, farmId) { ManagerInvitationId = invitationId };
 }

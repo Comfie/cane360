@@ -9,6 +9,8 @@ public interface IFarmSetupRepository
         bool trackChanges,
         CancellationToken cancellationToken);
 
+    Task<Tenant?> GetTenantAsync(Guid tenantId, bool trackChanges, CancellationToken cancellationToken);
+
     void Add(Tenant tenant);
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

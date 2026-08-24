@@ -5,6 +5,7 @@ import { DatePicker } from '../DatePicker';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import { InputControlsWorkspace } from '../inventory/InputControlsWorkspace';
 import {
   createItem,
   createLot,
@@ -60,6 +61,7 @@ export function InventoryPage() {
         <button type="button" aria-current={tab === 'receipts'} onClick={() => setTab('receipts')}>Receipts <span>{workspace.receipts.length}</span></button>
         <button type="button" aria-current={tab === 'ledger'} onClick={() => setTab('ledger')}>Movement ledger <span>{workspace.recentMovements.length}</span></button>
         <button type="button" aria-current={tab === 'catalogue'} onClick={() => setTab('catalogue')}>Catalogue</button>
+        <button type="button" aria-current={tab === 'inputs'} onClick={() => setTab('inputs')}>Inputs</button>
       </nav>
     </section>
 
@@ -67,6 +69,7 @@ export function InventoryPage() {
     {tab === 'receipts' && <ReceiptRegister receipts={workspace.receipts} onChanged={reload} onError={setError} />}
     {tab === 'ledger' && <MovementLedger movements={workspace.recentMovements} />}
     {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} />}
+    {tab === 'inputs' && <InputControlsWorkspace onError={setError} />}
 
     {dialog === 'receipt' && <InventoryDialog title="Record stock receipt" onClose={() => setDialog('')}><ReceiptForm workspace={workspace} onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'unit' && <InventoryDialog title="Add stock unit" onClose={() => setDialog('')}><UnitForm onSaved={changed} onError={setError} /></InventoryDialog>}

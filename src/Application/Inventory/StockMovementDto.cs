@@ -16,5 +16,6 @@ public sealed record StockMovementDto(
     DateTimeOffset PostedAt,
     string PostedByUserId,
     Guid? OperationalPersonId,
-    Guid StockReceiptLineId,
+    Guid? StockReceiptLineId,
+    Guid? StockIssueLineId,
     Guid? ReversalOfStockMovementId);

@@ -51,6 +51,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<ApprovalDecision> ApprovalDecisions => Set<ApprovalDecision>();
     public DbSet<CorrectionRecord> CorrectionRecords => Set<CorrectionRecord>();
     public DbSet<InventoryAuditEventLink> InventoryAuditEventLinks => Set<InventoryAuditEventLink>();
+    public DbSet<InventoryApplicationRule> InventoryApplicationRules => Set<InventoryApplicationRule>();
+    public DbSet<InputRequest> InputRequests => Set<InputRequest>();
+    public DbSet<InputRequestLine> InputRequestLines => Set<InputRequestLine>();
+    public DbSet<StockIssue> StockIssues => Set<StockIssue>();
+    public DbSet<StockIssueLine> StockIssueLines => Set<StockIssueLine>();
+    public DbSet<ManagerInvitation> ManagerInvitations => Set<ManagerInvitation>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -14,7 +14,8 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         {
             table.HasCheckConstraint("CK_StockMovements_NonzeroQuantity", "\"SignedQuantity\" <> 0");
             table.HasCheckConstraint("CK_StockMovements_Signs", "sign(\"SignedQuantity\") = sign(\"SignedValueUsd\") OR \"SignedValueUsd\" = 0");
-            table.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" = 'ReceiptReversal') = (\"ReversalOfStockMovementId\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\") = 1");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -36,6 +37,10 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
             .HasForeignKey(entity => new { entity.StockReceiptLineId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockIssueLine>().WithMany()
+            .HasForeignKey(entity => new { entity.StockIssueLineId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<StockMovement>().WithMany().HasForeignKey(entity => entity.ReversalOfStockMovementId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Cane360.Domain.Activities.Person>().WithMany()
@@ -46,5 +51,6 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.HasIndex(entity => new { entity.TenantId, entity.FarmId, entity.StoreId, entity.InventoryItemId, entity.InventoryLotId, entity.PostingSequence });
         builder.HasIndex(entity => new { entity.StockPositionId, entity.PostingSequence });
         builder.HasIndex(entity => entity.StockReceiptLineId);
+        builder.HasIndex(entity => entity.StockIssueLineId);
     }
 }

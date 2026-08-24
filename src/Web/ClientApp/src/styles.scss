@@ -124,6 +124,54 @@
   --pico-del-color: var(--error-700);
 }
 
+.activity-inputs-panel,
+.input-approval-queue,
+.input-issue-register,
+.rule-register,
+.manager-access {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.activity-inputs-panel > header,
+.activity-inputs-panel article,
+.input-approval-queue > article,
+.input-issue-register > article {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.activity-inputs-panel h3 { margin: 2px 0 0; }
+.activity-input-list { display: grid; gap: 8px; margin-top: 10px; }
+.activity-input-list article,
+.input-approval-queue > article,
+.input-issue-register > article { border-top: 1px solid var(--border); padding: 10px 0; }
+.activity-input-list span,
+.request-metrics span { display: grid; gap: 2px; }
+.input-request-inline,
+.input-rule-form { align-items: end; display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 12px 0; }
+.input-request-inline { grid-template-columns: 2fr 1fr auto; }
+.input-controls-workspace { display: grid; gap: 14px; }
+.request-metrics { display: grid; flex: 1; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.invitation-token { align-items: flex-start; background: var(--surface-subtle); border-radius: 10px; display: flex; gap: 10px; margin: 12px 0; padding: 12px; }
+.invitation-token span { display: grid; gap: 5px; min-width: 0; }
+.invitation-token code { overflow-wrap: anywhere; user-select: all; }
+
+@media (max-width: 640px) {
+  .activity-inputs-panel > header,
+  .activity-inputs-panel article,
+  .input-approval-queue > article,
+  .input-issue-register > article { align-items: stretch; flex-direction: column; }
+  .input-request-inline,
+  .input-rule-form,
+  .request-metrics { grid-template-columns: 1fr; }
+  .input-controls-workspace .inventory-tabs { overflow-x: auto; }
+  .input-controls-workspace .row-actions button { min-height: 44px; }
+}
+
 // Phase 3 field diary: dense, chronological, and consistent with farm records.
 .activity-toolbar {
   display: flex;

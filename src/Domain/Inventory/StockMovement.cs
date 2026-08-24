@@ -43,6 +43,41 @@ public sealed class StockMovement : BaseEntity
         ReversalOfStockMovementId = reversalOfStockMovementId;
     }
 
+    private StockMovement(
+        StockIssue issue,
+        StockIssueLine issueLine,
+        StockMovementType movementType,
+        decimal signedQuantity,
+        decimal signedValueUsd,
+        DateOnly eventDate,
+        DateTimeOffset postedAt,
+        string postedByUserId,
+        string postingIdentity,
+        Guid? reversalOfStockMovementId)
+    {
+        TenantId = issue.TenantId;
+        FarmId = issue.FarmId;
+        StoreId = issue.StoreId;
+        StockPositionId = issueLine.StockPositionId;
+        InventoryItemId = issueLine.InventoryItemId;
+        InventoryLotId = issueLine.InventoryLotId;
+        UnitOfMeasureId = issueLine.UnitOfMeasureId;
+        ItemCodeSnapshot = issueLine.ItemCodeSnapshot;
+        ItemNameSnapshot = issueLine.ItemNameSnapshot;
+        LotCodeSnapshot = issueLine.LotCodeSnapshot;
+        UnitCodeSnapshot = issueLine.UnitCodeSnapshot;
+        MovementType = movementType;
+        SignedQuantity = decimal.Round(signedQuantity, 6, MidpointRounding.AwayFromZero);
+        SignedValueUsd = decimal.Round(signedValueUsd, 6, MidpointRounding.AwayFromZero);
+        EventDate = eventDate;
+        PostedAt = postedAt;
+        PostedByUserId = postedByUserId.Trim();
+        OperationalPersonId = issue.IssuerPersonId;
+        PostingIdentity = postingIdentity.Trim();
+        StockIssueLineId = issueLine.Id;
+        ReversalOfStockMovementId = reversalOfStockMovementId;
+    }
+
     public Guid TenantId { get; private set; }
     public Guid FarmId { get; private set; }
     public Guid StoreId { get; private set; }
@@ -63,7 +98,8 @@ public sealed class StockMovement : BaseEntity
     public Guid? OperationalPersonId { get; private set; }
     public long PostingSequence { get; private set; }
     public string PostingIdentity { get; private set; } = string.Empty;
-    public Guid StockReceiptLineId { get; private set; }
+    public Guid? StockReceiptLineId { get; private set; }
+    public Guid? StockIssueLineId { get; private set; }
     public Guid? ReversalOfStockMovementId { get; private set; }
 
     public static StockMovement CreateReceipt(
@@ -118,4 +154,24 @@ public sealed class StockMovement : BaseEntity
             original.OperationalPersonId,
             postingIdentity,
             original.Id);
+
+    public static StockMovement CreateIssue(
+        StockIssue issue,
+        StockIssueLine line,
+        DateTimeOffset postedAt,
+        string postedByUserId,
+        string postingIdentity) =>
+        new(issue, line, StockMovementType.StockIssue, -line.Quantity, -line.IssueValueUsd!.Value,
+            issue.IssueDate, postedAt, postedByUserId, postingIdentity, null);
+
+    public static StockMovement CreateIssueReversal(
+        StockMovement original,
+        StockIssue issue,
+        StockIssueLine line,
+        DateOnly eventDate,
+        DateTimeOffset postedAt,
+        string postedByUserId,
+        string postingIdentity) =>
+        new(issue, line, StockMovementType.IssueReversal, -original.SignedQuantity,
+            -original.SignedValueUsd, eventDate, postedAt, postedByUserId, postingIdentity, original.Id);
 }

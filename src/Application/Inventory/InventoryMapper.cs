@@ -43,7 +43,8 @@ internal static class InventoryMapper
         movement.ItemCodeSnapshot, movement.ItemNameSnapshot, movement.LotCodeSnapshot,
         movement.UnitCodeSnapshot, movement.MovementType.ToString(), movement.SignedQuantity,
         movement.SignedValueUsd, movement.EventDate, movement.PostedAt, movement.PostedByUserId,
-        movement.OperationalPersonId, movement.StockReceiptLineId, movement.ReversalOfStockMovementId);
+        movement.OperationalPersonId, movement.StockReceiptLineId, movement.StockIssueLineId,
+        movement.ReversalOfStockMovementId);
 
     public static InventoryWorkspaceDto Workspace(
         Tenant tenant,

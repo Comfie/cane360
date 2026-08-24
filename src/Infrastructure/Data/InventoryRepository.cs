@@ -2,6 +2,7 @@ using System.Data;
 using Cane360.Application.Common.Exceptions;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Domain.Auditing;
+using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -170,6 +171,90 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         return false;
     }
 
+    public async Task<IReadOnlyList<InventoryApplicationRule>> GetRulesAsync(
+        Guid tenantId, Guid farmId, CancellationToken cancellationToken) =>
+        await context.InventoryApplicationRules.AsNoTracking()
+            .Where(rule => rule.TenantId == tenantId && rule.FarmId == farmId)
+            .OrderBy(rule => rule.InventoryItemId).ThenByDescending(rule => rule.EffectiveFrom)
+            .ToListAsync(cancellationToken);
+
+    public Task<InventoryApplicationRule?> GetEffectiveRuleAsync(
+        Guid tenantId, Guid farmId, Guid itemId, Guid activityTypeId, DateOnly date,
+        CancellationToken cancellationToken) => context.InventoryApplicationRules.AsNoTracking()
+        .SingleOrDefaultAsync(rule => rule.TenantId == tenantId && rule.FarmId == farmId &&
+            rule.InventoryItemId == itemId && rule.ActivityTypeId == activityTypeId &&
+            rule.EffectiveFrom <= date && (rule.EffectiveTo == null || rule.EffectiveTo >= date), cancellationToken);
+
+    public async Task<(decimal Quantity, decimal ValueUsd)> GetItemStockSnapshotAsync(
+        Guid tenantId, Guid farmId, Guid itemId, CancellationToken cancellationToken)
+    {
+        var snapshot = await context.StockMovements.AsNoTracking()
+            .Where(movement => movement.TenantId == tenantId && movement.FarmId == farmId &&
+                movement.InventoryItemId == itemId)
+            .GroupBy(_ => 1)
+            .Select(group => new { Quantity = group.Sum(x => x.SignedQuantity), Value = group.Sum(x => x.SignedValueUsd) })
+            .SingleOrDefaultAsync(cancellationToken);
+        return snapshot is null ? (0, 0) : (snapshot.Quantity, snapshot.Value);
+    }
+
+    public async Task<IReadOnlyList<InputRequest>> GetInputRequestsAsync(
+        Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        var query = context.InputRequests.Where(request => request.TenantId == tenantId && request.FarmId == farmId);
+        if (activityId.HasValue) query = query.Where(request => request.ActivityId == activityId);
+        return await Track(query.Include(request => request.Lines), trackChanges)
+            .OrderByDescending(request => request.Created).ToListAsync(cancellationToken);
+    }
+
+    public Task<InputRequest?> GetInputRequestAsync(
+        Guid tenantId, Guid farmId, Guid requestId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.InputRequests.Where(request => request.TenantId == tenantId && request.FarmId == farmId && request.Id == requestId)
+            .Include(request => request.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+
+    public Task<ApprovalDecision?> GetInputRequestApprovalAsync(
+        Guid requestId, long subjectVersion, CancellationToken cancellationToken) =>
+        context.ApprovalDecisions.AsNoTracking().SingleOrDefaultAsync(decision =>
+            decision.InputRequestId == requestId && decision.SubjectVersion == subjectVersion, cancellationToken);
+
+    public async Task<IReadOnlyList<StockIssue>> GetStockIssuesAsync(
+        Guid tenantId, Guid farmId, Guid? requestId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        var query = context.StockIssues.Where(issue => issue.TenantId == tenantId && issue.FarmId == farmId);
+        if (requestId.HasValue) query = query.Where(issue => issue.InputRequestId == requestId);
+        return await Track(query.Include(issue => issue.Lines), trackChanges)
+            .OrderByDescending(issue => issue.Created).ToListAsync(cancellationToken);
+    }
+
+    public Task<StockIssue?> GetStockIssueAsync(
+        Guid tenantId, Guid farmId, Guid issueId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.StockIssues.Where(issue => issue.TenantId == tenantId && issue.FarmId == farmId && issue.Id == issueId)
+            .Include(issue => issue.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+
+    public async Task<decimal> GetPostedIssueQuantityAsync(Guid requestLineId, CancellationToken cancellationToken) =>
+        -await context.StockMovements.AsNoTracking()
+            .Where(movement => movement.StockIssueLineId.HasValue &&
+                context.StockIssueLines.Any(line => line.Id == movement.StockIssueLineId && line.InputRequestLineId == requestLineId))
+            .SumAsync(movement => movement.SignedQuantity, cancellationToken);
+
+    public async Task<IReadOnlyList<StockMovement>> GetIssueMovementsAsync(Guid issueId, CancellationToken cancellationToken) =>
+        await context.StockMovements.AsNoTracking()
+            .Where(movement => movement.StockIssueLineId.HasValue && !movement.ReversalOfStockMovementId.HasValue &&
+                context.StockIssueLines.Any(line => line.StockIssueId == issueId && line.Id == movement.StockIssueLineId))
+            .OrderBy(movement => movement.PostingSequence).ToListAsync(cancellationToken);
+
+    public Task<bool> HasDependentFieldAccountabilityAsync(Guid issueId, CancellationToken cancellationToken) =>
+        Task.FromResult(false);
+
+    public Task<ManagerInvitation?> GetManagerInvitationByHashAsync(
+        string tokenHash, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.ManagerInvitations.Where(invitation => invitation.TokenHash == tokenHash), trackChanges)
+            .SingleOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<ManagerInvitation>> GetManagerInvitationsAsync(
+        Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken) =>
+        await Track(context.ManagerInvitations.Where(invitation => invitation.TenantId == tenantId && invitation.FarmId == farmId), trackChanges)
+            .OrderByDescending(invitation => invitation.Created).ToListAsync(cancellationToken);
+
     public async Task<IInventoryTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken) =>
         new InventoryTransaction(await context.Database.BeginTransactionAsync(
             IsolationLevel.Serializable, cancellationToken));
@@ -206,6 +291,27 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         }
     }
 
+    public async Task LockInputRequestLinesAsync(
+        IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken)
+    {
+        foreach (var requestLineId in requestLineIds.Order())
+        {
+            var locked = await context.InputRequestLines.FromSqlInterpolated(
+                    $"SELECT * FROM inventory.\"InputRequestLines\" WHERE \"Id\" = {requestLineId} FOR UPDATE")
+                .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+            if (locked is null) throw new NotFoundException(requestLineId.ToString(), "Input request line");
+        }
+    }
+
+    public async Task LockStockIssueAsync(
+        Guid tenantId, Guid farmId, Guid issueId, CancellationToken cancellationToken)
+    {
+        var locked = await context.StockIssues.FromSqlInterpolated(
+                $"SELECT * FROM inventory.\"StockIssues\" WHERE \"Id\" = {issueId} AND \"TenantId\" = {tenantId} AND \"FarmId\" = {farmId} FOR UPDATE")
+            .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+        if (locked is null) throw new NotFoundException(issueId.ToString(), "Stock issue");
+    }
+
     public void Add(UnitOfMeasure unit) => context.UnitOfMeasures.Add(unit);
     public void Add(InventoryItem item) => context.InventoryItems.Add(item);
     public void Add(Supplier supplier) => context.Suppliers.Add(supplier);
@@ -217,6 +323,10 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
     public void Add(CorrectionRecord correction) => context.CorrectionRecords.Add(correction);
     public void Add(InventoryAuditEventLink auditLink) => context.InventoryAuditEventLinks.Add(auditLink);
     public void Add(AuditEvent auditEvent) => context.AuditEvents.Add(auditEvent);
+    public void Add(InventoryApplicationRule rule) => context.InventoryApplicationRules.Add(rule);
+    public void Add(InputRequest request) => context.InputRequests.Add(request);
+    public void Add(StockIssue issue) => context.StockIssues.Add(issue);
+    public void Add(ManagerInvitation invitation) => context.ManagerInvitations.Add(invitation);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -242,6 +352,12 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
                 "IX_Suppliers_FarmId_Code" => "This supplier code already exists on the farm.",
                 "IX_InventoryLots_InventoryItemId_Code" => "This lot code already exists for the item.",
                 "IX_StockMovements_PostingIdentity" => "This stock posting has already been recorded.",
+                "EX_InventoryApplicationRules_NoOverlap" => "An application rule already covers part of this effective period for the item and activity type.",
+                "IX_InputRequests_SubmissionIdempotencyKey" => "This request submission has already been recorded.",
+                "IX_StockIssues_PostingIdempotencyKey" => "This stock issue posting has already been recorded.",
+                "IX_StockIssues_ReversalIdempotencyKey" => "This stock issue reversal has already been recorded.",
+                "IX_ManagerInvitations_TokenHash" => "This manager invitation token already exists.",
+                "IX_ManagerInvitations_TenantId_PersonId" => "An active invitation already exists for this farm manager.",
                 _ => null
             };
             if (conflict is not null) throw new ConflictException(conflict);

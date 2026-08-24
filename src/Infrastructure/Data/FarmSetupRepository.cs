@@ -59,6 +59,23 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
         return await query.SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<Tenant?> GetTenantAsync(Guid tenantId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Tenant> query = BaseTenantQuery().Where(tenant => tenant.Id == tenantId);
+        if (!trackChanges) query = query.AsNoTracking();
+        return await query.SingleOrDefaultAsync(cancellationToken);
+    }
+
+    private IQueryable<Tenant> BaseTenantQuery() => context.Tenants
+        .AsSplitQuery()
+        .Include(tenant => tenant.GrowerProfile)
+        .Include(tenant => tenant.Memberships)
+        .Include(tenant => tenant.ActivityTypes)
+        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Store)
+        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons).ThenInclude(person => person.RoleAssignments)
+        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.LineProfiles)
+        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.Activities);
+
     public void Add(Tenant tenant) => context.Tenants.Add(tenant);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)

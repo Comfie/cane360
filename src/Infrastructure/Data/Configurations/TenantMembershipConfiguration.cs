@@ -11,7 +11,9 @@ internal sealed class TenantMembershipConfiguration : IEntityTypeConfiguration<T
 {
     public void Configure(EntityTypeBuilder<TenantMembership> builder)
     {
-        builder.ToTable("TenantMemberships", "identity");
+        builder.ToTable("TenantMemberships", "identity", table =>
+            table.HasCheckConstraint("CK_TenantMemberships_RolePerson",
+                "(\"SecurityRole\" = 'Grower' AND \"FarmId\" IS NULL AND \"PersonId\" IS NULL) OR (\"SecurityRole\" = 'FarmManager' AND \"FarmId\" IS NOT NULL AND \"PersonId\" IS NOT NULL)"));
         builder.HasKey(membership => membership.Id);
         builder.Property(membership => membership.Id).ValueGeneratedNever();
         builder.Property(membership => membership.UserId).HasMaxLength(450).IsRequired();
@@ -22,6 +24,16 @@ internal sealed class TenantMembershipConfiguration : IEntityTypeConfiguration<T
             .WithMany()
             .HasForeignKey(membership => membership.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Farm>().WithMany()
+            .HasForeignKey(membership => new { membership.FarmId, membership.TenantId })
+            .HasPrincipalKey(farm => new { FarmId = farm.Id, farm.TenantId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Person>().WithMany()
+            .HasForeignKey(membership => new { membership.PersonId, membership.FarmId })
+            .HasPrincipalKey(person => new { PersonId = person.Id, FarmId = person.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(membership => new { membership.PersonId, membership.FarmId }).IsUnique()
+            .HasFilter("\"PersonId\" IS NOT NULL AND \"Status\" = 'Active'");
         ConfigureAudit(builder);
     }
 
