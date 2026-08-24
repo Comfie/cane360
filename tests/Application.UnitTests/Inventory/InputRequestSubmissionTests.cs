@@ -51,7 +51,7 @@ public sealed class InputRequestSubmissionTests
             "FERT", "Fertilising", true, true, ActivityQuantityBasis.Hectares);
         var farm = tenant.CreateFarm("FARM", "Farm", "Address", "Location", "Lease", 20m, "Furrow");
         var supervisor = farm.AddPerson("Supervisor", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(supervisor, PersonRole.Supervisor, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var field = farm.AddField("A1", "Block A", 10m, null,
             ReportingAreaSource.Declared, "Furrow", null);
         var cycle = field.CreateCropCycleDraft(CropCycleType.PlantCane, null, variety, variety.Name,

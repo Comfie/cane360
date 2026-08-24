@@ -46,9 +46,9 @@ public sealed class PostgreSqlInputIssueAcceptanceTests
         var farm = tenant.CreateFarm($"F{Guid.NewGuid():N}"[..20], _runId,
             "Synthetic address", "Integration database", "Synthetic", 10m, "Synthetic");
         var supervisor = farm.AddPerson($"{_runId} supervisor", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(supervisor, PersonRole.Supervisor, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var issuer = farm.AddPerson($"{_runId} storekeeper", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(issuer, PersonRole.Storekeeper, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(issuer, PersonRole.Storekeeper, false, new DateOnly(2026, 1, 1));
         var recipient = farm.AddPerson($"{_runId} recipient", null, new DateOnly(2026, 1, 1));
         var field = farm.AddField("P5B-A", "Synthetic block", 10m, null,
             ReportingAreaSource.Declared, "Synthetic", null);

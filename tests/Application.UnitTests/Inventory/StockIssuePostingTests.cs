@@ -196,9 +196,9 @@ public sealed class StockIssuePostingTests
         farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
         tenant.AddFarmManagerMembership("manager-user", manager.Id);
         var supervisor = farm.AddPerson("Supervisor", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(supervisor, PersonRole.Supervisor, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var storekeeper = farm.AddPerson("Storekeeper", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(storekeeper, PersonRole.Storekeeper, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(storekeeper, PersonRole.Storekeeper, false, new DateOnly(2026, 1, 1));
         var recipient = farm.AddPerson("Recipient", null, new DateOnly(2026, 1, 1));
         var field = farm.AddField("A1", "Block A", 10m, null,
             ReportingAreaSource.Declared, "Furrow", null);

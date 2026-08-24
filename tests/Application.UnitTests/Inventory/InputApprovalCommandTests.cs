@@ -92,7 +92,7 @@ public sealed class InputApprovalCommandTests
         farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
         tenant.AddFarmManagerMembership("manager-user", manager.Id);
         var supervisor = farm.AddPerson("Supervisor", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(supervisor, PersonRole.Supervisor, true, new DateOnly(2026, 1, 1));
+        farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var field = farm.AddField("A1", "Block A", 10m, null,
             ReportingAreaSource.Declared, "Furrow", null);
         var cycle = field.CreateCropCycleDraft(CropCycleType.PlantCane, null, variety, variety.Name,
