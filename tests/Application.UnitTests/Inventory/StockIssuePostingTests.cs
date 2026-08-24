@@ -24,6 +24,9 @@ public sealed class StockIssuePostingTests
         var repository = new Mock<IInventoryRepository>();
         repository.Setup(value => value.BeginSerializableTransactionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(transaction.Object);
+        repository.Setup(value => value.LockActivityAsync(setup.Tenant.Id, setup.Farm.Id,
+            setup.Activity.Id, It.IsAny<CancellationToken>())).Callback(() => calls.Add("activity"))
+            .Returns(Task.CompletedTask);
         repository.Setup(value => value.LockStoreAsync(setup.Tenant.Id, setup.Farm.Id,
             setup.Farm.Store.Id, It.IsAny<CancellationToken>())).Callback(() => calls.Add("store"))
             .Returns(Task.CompletedTask);
@@ -40,6 +43,8 @@ public sealed class StockIssuePostingTests
             setup.Issue.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(setup.Issue);
         repository.Setup(value => value.GetInputRequestAsync(setup.Tenant.Id, setup.Farm.Id,
             setup.Request.Id, true, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Request);
+        repository.Setup(value => value.GetInputRequestAsync(setup.Tenant.Id, setup.Farm.Id,
+            setup.Request.Id, false, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Request);
         repository.Setup(value => value.GetPostedIssueQuantityAsync(
             setup.RequestLine.Id, It.IsAny<CancellationToken>())).ReturnsAsync(0m);
         repository.Setup(value => value.GetPositionSnapshotAsync(
@@ -61,7 +66,7 @@ public sealed class StockIssuePostingTests
         await handler.Handle(new PostStockIssueCommand(
             setup.Issue.Id, setup.Issue.Version, "issue-key"), CancellationToken.None);
 
-        calls.ShouldBe(["store", "source", "request-lines", "positions", "save", "commit"]);
+        calls.ShouldBe(["activity", "store", "source", "request-lines", "positions", "save", "commit"]);
         setup.Issue.Status.ShouldBe(StockIssueStatus.Posted);
         setup.Issue.Lines.Single().IssueUnitCostUsd.ShouldBe(3m);
         movement.ShouldNotBeNull();
@@ -134,6 +139,8 @@ public sealed class StockIssuePostingTests
         var repository = new Mock<IInventoryRepository>();
         repository.Setup(value => value.BeginSerializableTransactionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(transaction.Object);
+        repository.Setup(value => value.LockActivityAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
+            It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         repository.Setup(value => value.GetStockIssueAsync(setup.Tenant.Id, setup.Farm.Id,
             setup.Issue.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(setup.Issue);
         repository.Setup(value => value.LockStoreAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
@@ -167,6 +174,8 @@ public sealed class StockIssuePostingTests
         var repository = new Mock<IInventoryRepository>();
         repository.Setup(value => value.BeginSerializableTransactionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(transaction.Object);
+        repository.Setup(value => value.LockActivityAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
+            It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         repository.Setup(value => value.LockStoreAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
             It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         repository.Setup(value => value.LockStockIssueAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
@@ -179,6 +188,8 @@ public sealed class StockIssuePostingTests
             setup.Issue.Id, It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(setup.Issue);
         repository.Setup(value => value.GetInputRequestAsync(setup.Tenant.Id, setup.Farm.Id,
             setup.Request.Id, true, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Request);
+        repository.Setup(value => value.GetInputRequestAsync(setup.Tenant.Id, setup.Farm.Id,
+            setup.Request.Id, false, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Request);
         repository.Setup(value => value.GetPostedIssueQuantityAsync(
             setup.RequestLine.Id, It.IsAny<CancellationToken>())).ReturnsAsync(0m);
         repository.Setup(value => value.GetPositionSnapshotAsync(
@@ -228,7 +239,11 @@ public sealed class StockIssuePostingTests
     }
 
     private sealed record PostingSetup(Tenant Tenant, Farm Farm, InputRequest Request,
-        InputRequestLine RequestLine, StockPosition Position, StockIssue Issue);
+        InputRequestLine RequestLine, StockPosition Position, StockIssue Issue)
+    {
+        public Activity Activity => Farm.Fields.SelectMany(farmField => farmField.CropCycles)
+            .SelectMany(cycle => cycle.Activities).Single();
+    }
 
     private sealed class FixedTimeProvider(DateTimeOffset value) : TimeProvider
     {

@@ -6,5 +6,7 @@ public enum StockMovementType
     OpeningBalance,
     ReceiptReversal,
     StockIssue,
-    IssueReversal
+    IssueReversal,
+    StockReturn,
+    ReturnReversal
 }

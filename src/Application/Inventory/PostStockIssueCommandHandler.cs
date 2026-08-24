@@ -29,8 +29,13 @@ public sealed class PostStockIssueCommandHandler(
         var candidate = await inventoryRepository.GetStockIssueAsync(
             tenant.Id, farm.Id, command.StockIssueId, false, cancellationToken)
             ?? throw new NotFoundException(command.StockIssueId.ToString(), "Stock issue");
+        var candidateRequest = await inventoryRepository.GetInputRequestAsync(
+            tenant.Id, farm.Id, candidate.InputRequestId, false, cancellationToken)
+            ?? throw new NotFoundException(candidate.InputRequestId.ToString(), "Input request");
+        var candidateContext = InventoryAccess.RequireOperationalActivity(farm, candidateRequest.ActivityId);
 
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
+        await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, candidateContext.Activity.Id, cancellationToken);
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
         await inventoryRepository.LockStockIssueAsync(tenant.Id, farm.Id, candidate.Id, cancellationToken);
         await inventoryRepository.LockInputRequestLinesAsync(
@@ -45,7 +50,7 @@ public sealed class PostStockIssueCommandHandler(
         var request = await inventoryRepository.GetInputRequestAsync(
             tenant.Id, farm.Id, issue.InputRequestId, true, cancellationToken)
             ?? throw new NotFoundException(issue.InputRequestId.ToString(), "Input request");
-        InventoryAccess.RequireOperationalActivity(farm, request.ActivityId);
+        var context = InventoryAccess.RequireOperationalActivity(farm, request.ActivityId);
         var issuer = InventoryAccess.RequireActivePerson(farm, issue.IssuerPersonId, "Issuer");
         if (!issuer.HasEffectiveRole(Cane360.Domain.Activities.PersonRole.Storekeeper, issue.IssueDate))
             throw new ConflictException("The named issuer no longer has an effective Storekeeper role for the issue date.");
@@ -79,6 +84,12 @@ public sealed class PostStockIssueCommandHandler(
         InventoryAccess.ApplyDomainAction(nameof(command.ExpectedVersion), () => request.RecordIssued(totalIssued, request.Version));
         InventoryAudit.Issue(inventoryRepository, tenant, farm, user, issue, "Posted", now,
             issue.LateEntryReason, "Stock issue posted; issue is not crop-cycle consumption and no cost posting was created.");
+        foreach (var line in issue.Lines)
+        {
+            if (await inventoryRepository.GetOpenControlExceptionAsync(tenant.Id, farm.Id, line.Id, cancellationToken) is null)
+                inventoryRepository.Add(ControlException.Open(tenant.Id, farm.Id, context.Activity.Id,
+                    line.Id, line.Quantity, 0, 0, 0, line.Quantity, now));
+        }
         await inventoryRepository.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }

@@ -3103,6 +3103,640 @@ export class InputControlsClient {
     /**
      * @return OK
      */
+    fieldReceipts(body: CreateFieldReceiptRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/input-controls/field-receipts";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processFieldReceipts(_response);
+        });
+    }
+
+    protected processFieldReceipts(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    applications(body: CreateInputApplicationRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/input-controls/applications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processApplications(_response);
+        });
+    }
+
+    protected processApplications(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    attestation(applicationId: string, body: AttestInputApplicationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/applications/{applicationId}/attestation";
+        if (applicationId === undefined || applicationId === null)
+            throw new globalThis.Error("The parameter 'applicationId' must be defined.");
+        url_ = url_.replace("{applicationId}", encodeURIComponent("" + applicationId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttestation(_response);
+        });
+    }
+
+    protected processAttestation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    confirmation(applicationId: string, body: ConfirmInputApplicationRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/applications/{applicationId}/confirmation";
+        if (applicationId === undefined || applicationId === null)
+            throw new globalThis.Error("The parameter 'applicationId' must be defined.");
+        url_ = url_.replace("{applicationId}", encodeURIComponent("" + applicationId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirmation(_response);
+        });
+    }
+
+    protected processConfirmation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    returns(body: CreateStockReturnRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/input-controls/returns";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReturns(_response);
+        });
+    }
+
+    protected processReturns(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    post2(stockReturnId: string, body: PostStockReturnRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/post";
+        if (stockReturnId === undefined || stockReturnId === null)
+            throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
+        url_ = url_.replace("{stockReturnId}", encodeURIComponent("" + stockReturnId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPost2(_response);
+        });
+    }
+
+    protected processPost2(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reverse2(stockReturnId: string, body: ReverseStockReturnRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/reverse";
+        if (stockReturnId === undefined || stockReturnId === null)
+            throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
+        url_ = url_.replace("{stockReturnId}", encodeURIComponent("" + stockReturnId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReverse2(_response);
+        });
+    }
+
+    protected processReverse2(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    losses(body: CreateInventoryLossRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/input-controls/losses";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processLosses(_response);
+        });
+    }
+
+    protected processLosses(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    submit2(lossId: string, body: VersionedInventoryRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/submit";
+        if (lossId === undefined || lossId === null)
+            throw new globalThis.Error("The parameter 'lossId' must be defined.");
+        url_ = url_.replace("{lossId}", encodeURIComponent("" + lossId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmit2(_response);
+        });
+    }
+
+    protected processSubmit2(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    decision2(lossId: string, body: DecideInventoryLossRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/decision";
+        if (lossId === undefined || lossId === null)
+            throw new globalThis.Error("The parameter 'lossId' must be defined.");
+        url_ = url_.replace("{lossId}", encodeURIComponent("" + lossId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDecision2(_response);
+        });
+    }
+
+    protected processDecision2(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    corrections(body: CreateFieldAccountabilityCorrectionRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/input-controls/corrections";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCorrections(_response);
+        });
+    }
+
+    protected processCorrections(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    decision3(correctionId: string, body: DecideFieldAccountabilityCorrectionRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/input-controls/corrections/{correctionId}/decision";
+        if (correctionId === undefined || correctionId === null)
+            throw new globalThis.Error("The parameter 'correctionId' must be defined.");
+        url_ = url_.replace("{correctionId}", encodeURIComponent("" + correctionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDecision3(_response);
+        });
+    }
+
+    protected processDecision3(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     managerInvitations(body: CreateManagerInvitationRequest): Promise<CreatedManagerInvitationDto> {
         let url_ = this.baseUrl + "/api/input-controls/manager-invitations";
         url_ = url_.replace(/[?&]$/, "");
@@ -3811,7 +4445,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    post2(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
+    post3(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/post";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -3830,11 +4464,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPost2(_response);
+            return this.processPost3(_response);
         });
     }
 
-    protected processPost2(response: Response): Promise<StockReceiptDto> {
+    protected processPost3(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3867,7 +4501,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    reverse2(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
+    reverse3(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/reverse";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -3886,11 +4520,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverse2(_response);
+            return this.processReverse3(_response);
         });
     }
 
-    protected processReverse2(response: Response): Promise<StockReceiptDto> {
+    protected processReverse3(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4795,7 +5429,7 @@ export class WorkRecordsClient {
     /**
      * @return OK
      */
-    corrections(workRecordId: string, body: CorrectWorkRecordRequest): Promise<WorkRecordDto> {
+    corrections2(workRecordId: string, body: CorrectWorkRecordRequest): Promise<WorkRecordDto> {
         let url_ = this.baseUrl + "/api/work-records/{workRecordId}/corrections";
         if (workRecordId === undefined || workRecordId === null)
             throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
@@ -4814,11 +5448,11 @@ export class WorkRecordsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCorrections(_response);
+            return this.processCorrections2(_response);
         });
     }
 
-    protected processCorrections(response: Response): Promise<WorkRecordDto> {
+    protected processCorrections2(response: Response): Promise<WorkRecordDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5643,6 +6277,62 @@ export interface IAttendanceRowDto {
     [key: string]: any;
 }
 
+export class AttestInputApplicationRequest implements IAttestInputApplicationRequest {
+    supervisorPersonId!: string;
+    note!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAttestInputApplicationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.supervisorPersonId = _data["supervisorPersonId"];
+            this.note = _data["note"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): AttestInputApplicationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AttestInputApplicationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["supervisorPersonId"] = this.supervisorPersonId;
+        data["note"] = this.note;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IAttestInputApplicationRequest {
+    supervisorPersonId: string;
+    note: string | undefined;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class CancelCropCycleRequest implements ICancelCropCycleRequest {
     expectedVersion!: number;
     reason!: string;
@@ -5743,6 +6433,62 @@ export class CancelInputRequestRequest implements ICancelInputRequestRequest {
 export interface ICancelInputRequestRequest {
     expectedVersion: number;
     reason: string;
+
+    [key: string]: any;
+}
+
+export class ConfirmInputApplicationRequest implements IConfirmInputApplicationRequest {
+    lateConfirmationReason!: string | undefined;
+    expectedVersion!: number;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IConfirmInputApplicationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.lateConfirmationReason = _data["lateConfirmationReason"];
+            this.expectedVersion = _data["expectedVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ConfirmInputApplicationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ConfirmInputApplicationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["lateConfirmationReason"] = this.lateConfirmationReason;
+        data["expectedVersion"] = this.expectedVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IConfirmInputApplicationRequest {
+    lateConfirmationReason: string | undefined;
+    expectedVersion: number;
+    idempotencyKey: string;
 
     [key: string]: any;
 }
@@ -6198,6 +6944,217 @@ export interface ICreatedManagerInvitationDto {
     [key: string]: any;
 }
 
+export class CreateFieldAccountabilityCorrectionRequest implements ICreateFieldAccountabilityCorrectionRequest {
+    fieldReceiptId!: string | undefined;
+    inputApplicationId!: string | undefined;
+    stockReturnId!: string | undefined;
+    inventoryLossId!: string | undefined;
+    sourceVersion!: number;
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateFieldAccountabilityCorrectionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.fieldReceiptId = _data["fieldReceiptId"];
+            this.inputApplicationId = _data["inputApplicationId"];
+            this.stockReturnId = _data["stockReturnId"];
+            this.inventoryLossId = _data["inventoryLossId"];
+            this.sourceVersion = _data["sourceVersion"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): CreateFieldAccountabilityCorrectionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFieldAccountabilityCorrectionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["fieldReceiptId"] = this.fieldReceiptId;
+        data["inputApplicationId"] = this.inputApplicationId;
+        data["stockReturnId"] = this.stockReturnId;
+        data["inventoryLossId"] = this.inventoryLossId;
+        data["sourceVersion"] = this.sourceVersion;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface ICreateFieldAccountabilityCorrectionRequest {
+    fieldReceiptId: string | undefined;
+    inputApplicationId: string | undefined;
+    stockReturnId: string | undefined;
+    inventoryLossId: string | undefined;
+    sourceVersion: number;
+    reason: string;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class CreateFieldReceiptLineRequest implements ICreateFieldReceiptLineRequest {
+    stockIssueLineId!: string;
+    quantity!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateFieldReceiptLineRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): CreateFieldReceiptLineRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFieldReceiptLineRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface ICreateFieldReceiptLineRequest {
+    stockIssueLineId: string;
+    quantity: number;
+
+    [key: string]: any;
+}
+
+export class CreateFieldReceiptRequest implements ICreateFieldReceiptRequest {
+    stockIssueId!: string;
+    fieldId!: string;
+    cropCycleId!: string;
+    activityId!: string;
+    recipientPersonId!: string;
+    receivedAt!: Date;
+    lateEntryReason!: string | undefined;
+    lines!: CreateFieldReceiptLineRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: ICreateFieldReceiptRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.lines = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.stockIssueId = _data["stockIssueId"];
+            this.fieldId = _data["fieldId"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.activityId = _data["activityId"];
+            this.recipientPersonId = _data["recipientPersonId"];
+            this.receivedAt = _data["receivedAt"] ? new Date(_data["receivedAt"].toString()) : undefined as any;
+            this.lateEntryReason = _data["lateEntryReason"];
+            if (Array.isArray(_data["lines"])) {
+                this.lines = [] as any;
+                for (let item of _data["lines"])
+                    this.lines!.push(CreateFieldReceiptLineRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateFieldReceiptRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFieldReceiptRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["stockIssueId"] = this.stockIssueId;
+        data["fieldId"] = this.fieldId;
+        data["cropCycleId"] = this.cropCycleId;
+        data["activityId"] = this.activityId;
+        data["recipientPersonId"] = this.recipientPersonId;
+        data["receivedAt"] = this.receivedAt ? this.receivedAt.toISOString() : undefined as any;
+        data["lateEntryReason"] = this.lateEntryReason;
+        if (Array.isArray(this.lines)) {
+            data["lines"] = [];
+            for (let item of this.lines)
+                data["lines"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICreateFieldReceiptRequest {
+    stockIssueId: string;
+    fieldId: string;
+    cropCycleId: string;
+    activityId: string;
+    recipientPersonId: string;
+    receivedAt: Date;
+    lateEntryReason: string | undefined;
+    lines: CreateFieldReceiptLineRequest[];
+
+    [key: string]: any;
+}
+
 export class CreateFieldRequest implements ICreateFieldRequest {
     code!: string;
     name!: string;
@@ -6346,6 +7303,137 @@ export interface ICreateGrowerFarmRequest {
     tenure: string;
     declaredHectares: number;
     irrigationContext: string;
+
+    [key: string]: any;
+}
+
+export class CreateInputApplicationLineRequest implements ICreateInputApplicationLineRequest {
+    fieldReceiptLineId!: string;
+    stockIssueLineId!: string;
+    appliedQuantity!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateInputApplicationLineRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.fieldReceiptLineId = _data["fieldReceiptLineId"];
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.appliedQuantity = _data["appliedQuantity"];
+        }
+    }
+
+    static fromJS(data: any): CreateInputApplicationLineRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateInputApplicationLineRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["fieldReceiptLineId"] = this.fieldReceiptLineId;
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["appliedQuantity"] = this.appliedQuantity;
+        return data;
+    }
+}
+
+export interface ICreateInputApplicationLineRequest {
+    fieldReceiptLineId: string;
+    stockIssueLineId: string;
+    appliedQuantity: number;
+
+    [key: string]: any;
+}
+
+export class CreateInputApplicationRequest implements ICreateInputApplicationRequest {
+    activityId!: string;
+    appliedAt!: Date;
+    coverageBasis!: number;
+    verifiedCoverage!: number;
+    lines!: CreateInputApplicationLineRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: ICreateInputApplicationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.lines = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.activityId = _data["activityId"];
+            this.appliedAt = _data["appliedAt"] ? new Date(_data["appliedAt"].toString()) : undefined as any;
+            this.coverageBasis = _data["coverageBasis"];
+            this.verifiedCoverage = _data["verifiedCoverage"];
+            if (Array.isArray(_data["lines"])) {
+                this.lines = [] as any;
+                for (let item of _data["lines"])
+                    this.lines!.push(CreateInputApplicationLineRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateInputApplicationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateInputApplicationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["activityId"] = this.activityId;
+        data["appliedAt"] = this.appliedAt ? this.appliedAt.toISOString() : undefined as any;
+        data["coverageBasis"] = this.coverageBasis;
+        data["verifiedCoverage"] = this.verifiedCoverage;
+        if (Array.isArray(this.lines)) {
+            data["lines"] = [];
+            for (let item of this.lines)
+                data["lines"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICreateInputApplicationRequest {
+    activityId: string;
+    appliedAt: Date;
+    coverageBasis: number;
+    verifiedCoverage: number;
+    lines: CreateInputApplicationLineRequest[];
 
     [key: string]: any;
 }
@@ -6609,6 +7697,70 @@ export interface ICreateInventoryItemRequest {
     reorderLevel: number | undefined;
     lotTrackingPolicy: string;
     expiryPolicy: string;
+
+    [key: string]: any;
+}
+
+export class CreateInventoryLossRequest implements ICreateInventoryLossRequest {
+    activityId!: string;
+    stockIssueLineId!: string;
+    quantity!: number;
+    lossType!: number;
+    reason!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateInventoryLossRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.activityId = _data["activityId"];
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.quantity = _data["quantity"];
+            this.lossType = _data["lossType"];
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): CreateInventoryLossRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateInventoryLossRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["activityId"] = this.activityId;
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["quantity"] = this.quantity;
+        data["lossType"] = this.lossType;
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface ICreateInventoryLossRequest {
+    activityId: string;
+    stockIssueLineId: string;
+    quantity: number;
+    lossType: number;
+    reason: string;
 
     [key: string]: any;
 }
@@ -7074,6 +8226,133 @@ export interface ICreateStockReceiptRequest {
     reason: string | undefined;
     lateEntryReason: string | undefined;
     lines: CreateStockReceiptLineRequest[];
+
+    [key: string]: any;
+}
+
+export class CreateStockReturnLineRequest implements ICreateStockReturnLineRequest {
+    stockIssueLineId!: string;
+    quantity!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateStockReturnLineRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): CreateStockReturnLineRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateStockReturnLineRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface ICreateStockReturnLineRequest {
+    stockIssueLineId: string;
+    quantity: number;
+
+    [key: string]: any;
+}
+
+export class CreateStockReturnRequest implements ICreateStockReturnRequest {
+    activityId!: string;
+    returnDate!: Date;
+    senderPersonId!: string;
+    receiverPersonId!: string;
+    lines!: CreateStockReturnLineRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: ICreateStockReturnRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.lines = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.activityId = _data["activityId"];
+            this.returnDate = _data["returnDate"] ? new Date(_data["returnDate"].toString()) : undefined as any;
+            this.senderPersonId = _data["senderPersonId"];
+            this.receiverPersonId = _data["receiverPersonId"];
+            if (Array.isArray(_data["lines"])) {
+                this.lines = [] as any;
+                for (let item of _data["lines"])
+                    this.lines!.push(CreateStockReturnLineRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateStockReturnRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateStockReturnRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["activityId"] = this.activityId;
+        data["returnDate"] = this.returnDate ? formatDate(this.returnDate) : undefined as any;
+        data["senderPersonId"] = this.senderPersonId;
+        data["receiverPersonId"] = this.receiverPersonId;
+        if (Array.isArray(this.lines)) {
+            data["lines"] = [];
+            for (let item of this.lines)
+                data["lines"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICreateStockReturnRequest {
+    activityId: string;
+    returnDate: Date;
+    senderPersonId: string;
+    receiverPersonId: string;
+    lines: CreateStockReturnLineRequest[];
 
     [key: string]: any;
 }
@@ -7992,6 +9271,66 @@ export interface IDeactivatePersonRequest {
     [key: string]: any;
 }
 
+export class DecideFieldAccountabilityCorrectionRequest implements IDecideFieldAccountabilityCorrectionRequest {
+    outcome!: string;
+    expectedVersion!: number;
+    reason!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IDecideFieldAccountabilityCorrectionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.outcome = _data["outcome"];
+            this.expectedVersion = _data["expectedVersion"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): DecideFieldAccountabilityCorrectionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecideFieldAccountabilityCorrectionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["outcome"] = this.outcome;
+        data["expectedVersion"] = this.expectedVersion;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IDecideFieldAccountabilityCorrectionRequest {
+    outcome: string;
+    expectedVersion: number;
+    reason: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class DecideInputRequestRequest implements IDecideInputRequestRequest {
     expectedVersion!: number;
     outcome!: string;
@@ -8046,6 +9385,66 @@ export class DecideInputRequestRequest implements IDecideInputRequestRequest {
 export interface IDecideInputRequestRequest {
     expectedVersion: number;
     outcome: string;
+    reason: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class DecideInventoryLossRequest implements IDecideInventoryLossRequest {
+    expectedVersion!: number;
+    outcome!: number;
+    reason!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IDecideInventoryLossRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.outcome = _data["outcome"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): DecideInventoryLossRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecideInventoryLossRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["outcome"] = this.outcome;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IDecideInventoryLossRequest {
+    expectedVersion: number;
+    outcome: number;
     reason: string | undefined;
     idempotencyKey: string;
 
@@ -8643,6 +10042,169 @@ export interface IFieldLineProfileDto {
     [key: string]: any;
 }
 
+export class FieldReceiptDto implements IFieldReceiptDto {
+    id!: string;
+    stockIssueId!: string;
+    fieldId!: string;
+    cropCycleId!: string;
+    activityId!: string;
+    recipientPersonId!: string;
+    receivedAt!: Date;
+    status!: string;
+    version!: number;
+    lines!: FieldReceiptLineDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IFieldReceiptDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.lines = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.stockIssueId = _data["stockIssueId"];
+            this.fieldId = _data["fieldId"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.activityId = _data["activityId"];
+            this.recipientPersonId = _data["recipientPersonId"];
+            this.receivedAt = _data["receivedAt"] ? new Date(_data["receivedAt"].toString()) : undefined as any;
+            this.status = _data["status"];
+            this.version = _data["version"];
+            if (Array.isArray(_data["lines"])) {
+                this.lines = [] as any;
+                for (let item of _data["lines"])
+                    this.lines!.push(FieldReceiptLineDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): FieldReceiptDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FieldReceiptDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["stockIssueId"] = this.stockIssueId;
+        data["fieldId"] = this.fieldId;
+        data["cropCycleId"] = this.cropCycleId;
+        data["activityId"] = this.activityId;
+        data["recipientPersonId"] = this.recipientPersonId;
+        data["receivedAt"] = this.receivedAt ? this.receivedAt.toISOString() : undefined as any;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        if (Array.isArray(this.lines)) {
+            data["lines"] = [];
+            for (let item of this.lines)
+                data["lines"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IFieldReceiptDto {
+    id: string;
+    stockIssueId: string;
+    fieldId: string;
+    cropCycleId: string;
+    activityId: string;
+    recipientPersonId: string;
+    receivedAt: Date;
+    status: string;
+    version: number;
+    lines: FieldReceiptLineDto[];
+
+    [key: string]: any;
+}
+
+export class FieldReceiptLineDto implements IFieldReceiptLineDto {
+    id!: string;
+    stockIssueLineId!: string;
+    itemCode!: string;
+    lotCode!: string | undefined;
+    unitCode!: string;
+    quantity!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IFieldReceiptLineDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.itemCode = _data["itemCode"];
+            this.lotCode = _data["lotCode"];
+            this.unitCode = _data["unitCode"];
+            this.quantity = _data["quantity"];
+        }
+    }
+
+    static fromJS(data: any): FieldReceiptLineDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FieldReceiptLineDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["itemCode"] = this.itemCode;
+        data["lotCode"] = this.lotCode;
+        data["unitCode"] = this.unitCode;
+        data["quantity"] = this.quantity;
+        return data;
+    }
+}
+
+export interface IFieldReceiptLineDto {
+    id: string;
+    stockIssueLineId: string;
+    itemCode: string;
+    lotCode: string | undefined;
+    unitCode: string;
+    quantity: number;
+
+    [key: string]: any;
+}
+
 export class GrowerDto implements IGrowerDto {
     displayName!: string;
     phone!: string | undefined;
@@ -8803,6 +10365,102 @@ export interface IHarvestResultDto {
     [key: string]: any;
 }
 
+export class InputAccountabilityDto implements IInputAccountabilityDto {
+    stockIssueId!: string;
+    stockIssueLineId!: string;
+    activityId!: string;
+    itemCode!: string;
+    lotCode!: string | undefined;
+    unitCode!: string;
+    issuedQuantity!: number;
+    fieldReceivedQuantity!: number;
+    confirmedAppliedQuantity!: number;
+    postedReturnedQuantity!: number;
+    approvedLossQuantity!: number;
+    unaccountedQuantity!: number;
+    isBlocking!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IInputAccountabilityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.stockIssueId = _data["stockIssueId"];
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.activityId = _data["activityId"];
+            this.itemCode = _data["itemCode"];
+            this.lotCode = _data["lotCode"];
+            this.unitCode = _data["unitCode"];
+            this.issuedQuantity = _data["issuedQuantity"];
+            this.fieldReceivedQuantity = _data["fieldReceivedQuantity"];
+            this.confirmedAppliedQuantity = _data["confirmedAppliedQuantity"];
+            this.postedReturnedQuantity = _data["postedReturnedQuantity"];
+            this.approvedLossQuantity = _data["approvedLossQuantity"];
+            this.unaccountedQuantity = _data["unaccountedQuantity"];
+            this.isBlocking = _data["isBlocking"];
+        }
+    }
+
+    static fromJS(data: any): InputAccountabilityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InputAccountabilityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["stockIssueId"] = this.stockIssueId;
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["activityId"] = this.activityId;
+        data["itemCode"] = this.itemCode;
+        data["lotCode"] = this.lotCode;
+        data["unitCode"] = this.unitCode;
+        data["issuedQuantity"] = this.issuedQuantity;
+        data["fieldReceivedQuantity"] = this.fieldReceivedQuantity;
+        data["confirmedAppliedQuantity"] = this.confirmedAppliedQuantity;
+        data["postedReturnedQuantity"] = this.postedReturnedQuantity;
+        data["approvedLossQuantity"] = this.approvedLossQuantity;
+        data["unaccountedQuantity"] = this.unaccountedQuantity;
+        data["isBlocking"] = this.isBlocking;
+        return data;
+    }
+}
+
+export interface IInputAccountabilityDto {
+    stockIssueId: string;
+    stockIssueLineId: string;
+    activityId: string;
+    itemCode: string;
+    lotCode: string | undefined;
+    unitCode: string;
+    issuedQuantity: number;
+    fieldReceivedQuantity: number;
+    confirmedAppliedQuantity: number;
+    postedReturnedQuantity: number;
+    approvedLossQuantity: number;
+    unaccountedQuantity: number;
+    isBlocking: boolean;
+
+    [key: string]: any;
+}
+
 export class InputControlWorkspaceDto implements IInputControlWorkspaceDto {
     session!: TenantSessionDto;
     rules!: InventoryApplicationRuleDto[];
@@ -8813,6 +10471,9 @@ export class InputControlWorkspaceDto implements IInputControlWorkspaceDto {
     activityTypes!: ActivityTypeDto[];
     people!: PersonDto[];
     invitations!: ManagerInvitationDto[];
+    fieldReceipts!: FieldReceiptDto[];
+    losses!: InventoryLossDto[];
+    accountability!: InputAccountabilityDto[];
 
     [key: string]: any;
 
@@ -8833,6 +10494,9 @@ export class InputControlWorkspaceDto implements IInputControlWorkspaceDto {
             this.activityTypes = [];
             this.people = [];
             this.invitations = [];
+            this.fieldReceipts = [];
+            this.losses = [];
+            this.accountability = [];
         }
     }
 
@@ -8882,6 +10546,21 @@ export class InputControlWorkspaceDto implements IInputControlWorkspaceDto {
                 this.invitations = [] as any;
                 for (let item of _data["invitations"])
                     this.invitations!.push(ManagerInvitationDto.fromJS(item));
+            }
+            if (Array.isArray(_data["fieldReceipts"])) {
+                this.fieldReceipts = [] as any;
+                for (let item of _data["fieldReceipts"])
+                    this.fieldReceipts!.push(FieldReceiptDto.fromJS(item));
+            }
+            if (Array.isArray(_data["losses"])) {
+                this.losses = [] as any;
+                for (let item of _data["losses"])
+                    this.losses!.push(InventoryLossDto.fromJS(item));
+            }
+            if (Array.isArray(_data["accountability"])) {
+                this.accountability = [] as any;
+                for (let item of _data["accountability"])
+                    this.accountability!.push(InputAccountabilityDto.fromJS(item));
             }
         }
     }
@@ -8940,6 +10619,21 @@ export class InputControlWorkspaceDto implements IInputControlWorkspaceDto {
             for (let item of this.invitations)
                 data["invitations"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.fieldReceipts)) {
+            data["fieldReceipts"] = [];
+            for (let item of this.fieldReceipts)
+                data["fieldReceipts"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.losses)) {
+            data["losses"] = [];
+            for (let item of this.losses)
+                data["losses"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.accountability)) {
+            data["accountability"] = [];
+            for (let item of this.accountability)
+                data["accountability"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -8954,6 +10648,9 @@ export interface IInputControlWorkspaceDto {
     activityTypes: ActivityTypeDto[];
     people: PersonDto[];
     invitations: ManagerInvitationDto[];
+    fieldReceipts: FieldReceiptDto[];
+    losses: InventoryLossDto[];
+    accountability: InputAccountabilityDto[];
 
     [key: string]: any;
 }
@@ -9359,6 +11056,94 @@ export interface IInventoryItemDto {
     lotTrackingPolicy: string;
     expiryPolicy: string;
     costingMethod: string;
+    status: string;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class InventoryLossDto implements IInventoryLossDto {
+    id!: string;
+    activityId!: string;
+    stockIssueLineId!: string;
+    itemCode!: string;
+    lotCode!: string | undefined;
+    unitCode!: string;
+    quantity!: number;
+    lossType!: string;
+    reason!: string;
+    status!: string;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryLossDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.activityId = _data["activityId"];
+            this.stockIssueLineId = _data["stockIssueLineId"];
+            this.itemCode = _data["itemCode"];
+            this.lotCode = _data["lotCode"];
+            this.unitCode = _data["unitCode"];
+            this.quantity = _data["quantity"];
+            this.lossType = _data["lossType"];
+            this.reason = _data["reason"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): InventoryLossDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryLossDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["activityId"] = this.activityId;
+        data["stockIssueLineId"] = this.stockIssueLineId;
+        data["itemCode"] = this.itemCode;
+        data["lotCode"] = this.lotCode;
+        data["unitCode"] = this.unitCode;
+        data["quantity"] = this.quantity;
+        data["lossType"] = this.lossType;
+        data["reason"] = this.reason;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IInventoryLossDto {
+    id: string;
+    activityId: string;
+    stockIssueLineId: string;
+    itemCode: string;
+    lotCode: string | undefined;
+    unitCode: string;
+    quantity: number;
+    lossType: string;
+    reason: string;
     status: string;
     version: number;
 
@@ -10229,6 +12014,58 @@ export interface IPostStockReceiptRequest {
     [key: string]: any;
 }
 
+export class PostStockReturnRequest implements IPostStockReturnRequest {
+    expectedVersion!: number;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPostStockReturnRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): PostStockReturnRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PostStockReturnRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IPostStockReturnRequest {
+    expectedVersion: number;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class ProblemDetails implements IProblemDetails {
     type?: string | undefined;
     title?: string | undefined;
@@ -10741,6 +12578,62 @@ export class ReverseStockReceiptRequest implements IReverseStockReceiptRequest {
 }
 
 export interface IReverseStockReceiptRequest {
+    expectedVersion: number;
+    reason: string;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class ReverseStockReturnRequest implements IReverseStockReturnRequest {
+    expectedVersion!: number;
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IReverseStockReturnRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ReverseStockReturnRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReverseStockReturnRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IReverseStockReturnRequest {
     expectedVersion: number;
     reason: string;
     idempotencyKey: string;

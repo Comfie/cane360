@@ -6,6 +6,7 @@ namespace Cane360.Application.Activities;
 public sealed class TransitionActivityCommandHandler(
     IFarmSetupRepository repository,
     ILabourRepository labourRepository,
+    IInventoryRepository inventoryRepository,
     IUser user,
     IIdentityService identityService,
     TimeProvider timeProvider) : IRequestHandler<TransitionActivityCommand, ActivityDetailsDto>
@@ -30,6 +31,20 @@ public sealed class TransitionActivityCommandHandler(
         var allRequiredLabourVerified = target != ActivityStatus.Closed ||
             !await labourRepository.HasIncompleteWorkForActivityAsync(
                 tenant.Id, farm.Id, activity.Id, cancellationToken);
+
+        if (target == ActivityStatus.Closed)
+        {
+            await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
+            await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, activity.Id, cancellationToken);
+            var hasBlockingInventoryException = await inventoryRepository.HasBlockingInventoryExceptionAsync(
+                tenant.Id, farm.Id, activity.Id, cancellationToken);
+            ActivityAccess.ApplyDomainAction(nameof(request.TargetStatus), () => activity.Transition(
+                target, timeProvider.GetUtcNow(), ActivityAccess.RequireUserId(user), operationalPersonId,
+                request.Reason, request.ExpectedVersion, !hasBlockingInventoryException, allRequiredLabourVerified));
+            await repository.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return await ActivityMapper.MapDetailsAsync(tenant, activity, identityService);
+        }
 
         ActivityAccess.ApplyDomainAction(nameof(request.TargetStatus), () => activity.Transition(
             target,

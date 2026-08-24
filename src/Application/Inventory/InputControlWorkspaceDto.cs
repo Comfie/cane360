@@ -11,4 +11,7 @@ public sealed record InputControlWorkspaceDto(
     IReadOnlyList<InventoryLotDto> Lots,
     IReadOnlyList<ActivityTypeDto> ActivityTypes,
     IReadOnlyList<PersonDto> People,
-    IReadOnlyList<ManagerInvitationDto> Invitations);
+    IReadOnlyList<ManagerInvitationDto> Invitations,
+    IReadOnlyList<FieldReceiptDto> FieldReceipts,
+    IReadOnlyList<InventoryLossDto> Losses,
+    IReadOnlyList<InputAccountabilityDto> Accountability);

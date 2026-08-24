@@ -31,8 +31,32 @@ public interface IInventoryRepository
     Task<ApprovalDecision?> GetInputRequestApprovalAsync(Guid requestId, long subjectVersion, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockIssue>> GetStockIssuesAsync(Guid tenantId, Guid farmId, Guid? requestId, bool trackChanges, CancellationToken cancellationToken);
     Task<StockIssue?> GetStockIssueAsync(Guid tenantId, Guid farmId, Guid issueId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockIssueLine?> GetStockIssueLineAsync(Guid tenantId, Guid farmId, Guid issueLineId, bool trackChanges, CancellationToken cancellationToken);
+    Task<IReadOnlyList<FieldReceipt>> GetFieldReceiptsAsync(Guid tenantId, Guid farmId, Guid? issueId, bool trackChanges, CancellationToken cancellationToken);
+    Task<FieldReceipt?> GetFieldReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges, CancellationToken cancellationToken);
+    Task<IReadOnlyList<InputApplication>> GetInputApplicationsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
+    Task<InputApplication?> GetInputApplicationAsync(Guid tenantId, Guid farmId, Guid applicationId, bool trackChanges, CancellationToken cancellationToken);
+    Task<IReadOnlyList<StockReturn>> GetStockReturnsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockReturn?> GetStockReturnAsync(Guid tenantId, Guid farmId, Guid returnId, bool trackChanges, CancellationToken cancellationToken);
+    Task<IReadOnlyList<InventoryLoss>> GetInventoryLossesAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
+    Task<InventoryLoss?> GetInventoryLossAsync(Guid tenantId, Guid farmId, Guid lossId, bool trackChanges, CancellationToken cancellationToken);
+    Task<ApprovalDecision?> GetInventoryLossApprovalAsync(Guid lossId, long subjectVersion, CancellationToken cancellationToken);
+    Task<decimal> GetFieldReceivedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
+    Task<decimal> GetConfirmedAppliedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
+    Task<decimal> GetPostedReturnedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
+    Task<decimal> GetApprovedLossQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
+    Task<bool> HasBlockingInventoryExceptionAsync(Guid tenantId, Guid farmId, Guid activityId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ControlException>> GetControlExceptionsAsync(Guid tenantId, Guid farmId, Guid? activityId, CancellationToken cancellationToken);
+    Task<ControlException?> GetOpenControlExceptionAsync(Guid tenantId, Guid farmId, Guid issueLineId, CancellationToken cancellationToken);
+    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionAsync(Guid tenantId, Guid farmId, Guid correctionId, bool trackChanges, CancellationToken cancellationToken);
+    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, bool trackChanges, CancellationToken cancellationToken);
+    Task<ApprovalDecision?> GetFieldAccountabilityCorrectionApprovalAsync(Guid correctionId, long subjectVersion, CancellationToken cancellationToken);
+    Task<bool> HasOperationalCostPostingAsync(Guid applicationLineId, OperationalCostCategory category, CancellationToken cancellationToken);
+    Task<IReadOnlyList<OperationalCostPosting>> GetActiveOperationalCostPostingsAsync(Guid? applicationLineId, Guid? inventoryLossId, CancellationToken cancellationToken);
+    Task<bool> HasConfirmedApplicationForFieldReceiptAsync(Guid fieldReceiptId, CancellationToken cancellationToken);
     Task<decimal> GetPostedIssueQuantityAsync(Guid requestLineId, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockMovement>> GetIssueMovementsAsync(Guid issueId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<StockMovement>> GetReturnMovementsAsync(Guid stockReturnId, CancellationToken cancellationToken);
     Task<bool> HasDependentFieldAccountabilityAsync(Guid issueId, CancellationToken cancellationToken);
     Task<ManagerInvitation?> GetManagerInvitationByHashAsync(string tokenHash, bool trackChanges, CancellationToken cancellationToken);
     Task<IReadOnlyList<ManagerInvitation>> GetManagerInvitationsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
@@ -44,6 +68,9 @@ public interface IInventoryRepository
     Task LockStockPositionsAsync(IReadOnlyCollection<Guid> positionIds, CancellationToken cancellationToken);
     Task LockInputRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken);
     Task LockStockIssueAsync(Guid tenantId, Guid farmId, Guid issueId, CancellationToken cancellationToken);
+    Task LockActivityAsync(Guid tenantId, Guid farmId, Guid activityId, CancellationToken cancellationToken);
+    Task LockStockIssueLinesAsync(IReadOnlyCollection<Guid> issueLineIds, CancellationToken cancellationToken);
+    Task LockFieldReceiptLinesAsync(IReadOnlyCollection<Guid> receiptLineIds, CancellationToken cancellationToken);
 
     void Add(UnitOfMeasure unit);
     void Add(InventoryItem item);
@@ -59,6 +86,13 @@ public interface IInventoryRepository
     void Add(InventoryApplicationRule rule);
     void Add(InputRequest request);
     void Add(StockIssue issue);
+    void Add(FieldReceipt receipt);
+    void Add(InputApplication application);
+    void Add(StockReturn stockReturn);
+    void Add(InventoryLoss loss);
+    void Add(OperationalCostPosting posting);
+    void Add(ControlException controlException);
+    void Add(FieldAccountabilityCorrection correction);
     void Add(ManagerInvitation invitation);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
