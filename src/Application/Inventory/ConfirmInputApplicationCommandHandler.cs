@@ -26,6 +26,9 @@ public sealed class ConfirmInputApplicationCommandHandler(
         InventoryAccess.ApplyDomainAction(nameof(command.ExpectedVersion), () => application.Confirm(now, userId, command.LateConfirmationReason, late, command.ExpectedVersion, command.IdempotencyKey));
         InventoryAudit.Application(inventoryRepository, tenant, farm, user, application, "ManagerConfirmed", now,
             command.LateConfirmationReason, "Manager confirmation posted applied-input costs.");
+        // Reconciliation reads authoritative rows. Persist the confirmation first so the same serializable
+        // transaction sees this application's newly confirmed quantity when resolving its control exception.
+        await inventoryRepository.SaveChangesAsync(cancellationToken);
         foreach (var line in application.Lines)
         {
             if (!await inventoryRepository.HasOperationalCostPostingAsync(line.Id, OperationalCostCategory.AppliedInput, cancellationToken))

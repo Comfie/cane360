@@ -12,7 +12,7 @@ internal sealed class InventoryAuditEventLinkConfiguration : IEntityTypeConfigur
         builder.ToTable("InventoryAuditEventLinks", "inventory", table =>
             table.HasCheckConstraint(
                 "CK_InventoryAuditEventLinks_OneSubject",
-                "num_nonnulls(\"UnitOfMeasureId\", \"InventoryItemId\", \"SupplierId\", \"InventoryLotId\", \"StockReceiptId\", \"InventoryApplicationRuleId\", \"InputRequestId\", \"StockIssueId\", \"ManagerInvitationId\", \"FieldReceiptId\", \"InputApplicationId\", \"StockReturnId\", \"InventoryLossId\", \"OperationalCostPostingId\", \"ControlExceptionId\", \"CorrectionRecordId\", \"FieldAccountabilityCorrectionId\") = 1"));
+                "num_nonnulls(\"UnitOfMeasureId\", \"InventoryItemId\", \"SupplierId\", \"InventoryLotId\", \"StockReceiptId\", \"InventoryApplicationRuleId\", \"InputRequestId\", \"StockIssueId\", \"ManagerInvitationId\", \"FieldReceiptId\", \"InputApplicationId\", \"StockReturnId\", \"InventoryLossId\", \"OperationalCostPostingId\", \"ControlExceptionId\", \"CorrectionRecordId\", \"FieldAccountabilityCorrectionId\", \"StockCountId\", \"StockAdjustmentId\", \"InventoryLeakageExportId\") = 1"));
         builder.HasKey(link => link.Id);
         builder.Property(link => link.Id).ValueGeneratedNever();
         builder.HasOne<AuditEvent>().WithMany()
@@ -63,9 +63,15 @@ internal sealed class InventoryAuditEventLinkConfiguration : IEntityTypeConfigur
         builder.HasOne<ControlException>().WithMany().HasForeignKey(link => new { link.ControlExceptionId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<CorrectionRecord>().WithMany().HasForeignKey(link => new { link.CorrectionRecordId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<FieldAccountabilityCorrection>().WithMany().HasForeignKey(link => new { link.FieldAccountabilityCorrectionId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockCount>().WithMany().HasForeignKey(link => new { link.StockCountId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockAdjustment>().WithMany().HasForeignKey(link => new { link.StockAdjustmentId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryLeakageExport>().WithMany().HasForeignKey(link => new { link.InventoryLeakageExportId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(link => link.AuditEventId).IsUnique();
         builder.HasIndex(link => new { link.TenantId, link.FarmId, link.StockReceiptId });
         builder.HasIndex(link => new { link.TenantId, link.FarmId, link.InputRequestId });
         builder.HasIndex(link => new { link.TenantId, link.FarmId, link.StockIssueId });
+        builder.HasIndex(link => new { link.TenantId, link.FarmId, link.StockCountId });
+        builder.HasIndex(link => new { link.TenantId, link.FarmId, link.StockAdjustmentId });
+        builder.HasIndex(link => new { link.TenantId, link.FarmId, link.InventoryLeakageExportId });
     }
 }

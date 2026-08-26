@@ -101,7 +101,31 @@ public sealed class StockMovement : BaseEntity
     public Guid? StockReceiptLineId { get; private set; }
     public Guid? StockIssueLineId { get; private set; }
     public Guid? StockReturnLineId { get; private set; }
+    public Guid? StockAdjustmentId { get; private set; }
     public Guid? ReversalOfStockMovementId { get; private set; }
+
+    public static StockMovement CreateAdjustment(StockAdjustment adjustment, DateTimeOffset postedAt,
+        string postedByUserId, string postingIdentity, Guid? reversalOfStockMovementId = null, Guid? movementId = null)
+    {
+        var movement = new StockMovement
+        {
+            TenantId = adjustment.TenantId, FarmId = adjustment.FarmId, StoreId = adjustment.StoreId,
+            StockPositionId = adjustment.StockPositionId, InventoryItemId = adjustment.InventoryItemId,
+            InventoryLotId = adjustment.InventoryLotId, UnitOfMeasureId = adjustment.UnitOfMeasureId,
+            ItemCodeSnapshot = adjustment.ItemCodeSnapshot, ItemNameSnapshot = adjustment.ItemNameSnapshot,
+            LotCodeSnapshot = adjustment.LotCodeSnapshot, UnitCodeSnapshot = adjustment.UnitCodeSnapshot,
+            MovementType = reversalOfStockMovementId.HasValue ? StockMovementType.AdjustmentReversal : StockMovementType.StockAdjustment,
+            // A reversal is represented by a separately created adjustment whose signed quantity and value are
+            // already the exact opposites of the original. Negating again here would repeat the original movement.
+            SignedQuantity = decimal.Round(adjustment.SignedQuantity, 6, MidpointRounding.AwayFromZero),
+            SignedValueUsd = decimal.Round(adjustment.SignedValueUsdSnapshot!.Value, 6, MidpointRounding.AwayFromZero),
+            EventDate = adjustment.EventDate, PostedAt = postedAt, PostedByUserId = postedByUserId.Trim(),
+            PostingIdentity = postingIdentity.Trim(), StockAdjustmentId = adjustment.Id,
+            ReversalOfStockMovementId = reversalOfStockMovementId
+        };
+        if (movementId.HasValue) movement.Id = movementId.Value;
+        return movement;
+    }
 
     public static StockMovement CreateReceipt(
         Guid tenantId,

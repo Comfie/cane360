@@ -18,6 +18,17 @@ public interface IInventoryRepository
     Task<StockReceipt?> GetReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockMovement>> GetMovementsAsync(Guid tenantId, Guid farmId, Guid? itemId, CancellationToken cancellationToken);
     Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetStockOnHandAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<StockCount>> GetStockCountsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockCount?> GetStockCountAsync(Guid tenantId, Guid farmId, Guid countId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockCountLine?> GetStockCountLineAsync(Guid tenantId, Guid farmId, Guid lineId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockCount?> GetActiveStockCountAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
+    Task<long> GetHighestPostingSequenceAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetNonZeroStockAtCutoffAsync(Guid tenantId, Guid farmId, Guid storeId, long cutoffPostingSequence, CancellationToken cancellationToken);
+    Task<IReadOnlyList<StockAdjustment>> GetStockAdjustmentsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
+    Task<StockAdjustment?> GetStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, bool trackChanges, CancellationToken cancellationToken);
+    Task<ApprovalDecision?> GetStockAdjustmentApprovalAsync(Guid adjustmentId, long subjectVersion, CancellationToken cancellationToken);
+    Task<bool> HasLaterStockPositionMovementsAsync(Guid stockPositionId, long postingSequence, CancellationToken cancellationToken);
+    Task<LeakageReportingSource> GetLeakageReportingSourceAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
     Task<ApprovalDecision?> GetOpeningApprovalAsync(Guid receiptId, long subjectVersion, CancellationToken cancellationToken);
     Task<StockPosition?> GetPositionAsync(Guid tenantId, Guid farmId, Guid storeId, Guid itemId, Guid? lotId, bool trackChanges, CancellationToken cancellationToken);
     Task<StockLedgerSnapshot> GetPositionSnapshotAsync(Guid positionId, CancellationToken cancellationToken);
@@ -64,6 +75,9 @@ public interface IInventoryRepository
     Task<IInventoryTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken);
     void ResetTrackedChanges();
     Task LockStoreAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
+    Task EnsureStorePostingNotFrozenAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
+    Task LockStockCountAsync(Guid tenantId, Guid farmId, Guid countId, CancellationToken cancellationToken);
+    Task LockStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, CancellationToken cancellationToken);
     Task LockReceiptSourceAsync(Guid tenantId, Guid farmId, Guid receiptId, CancellationToken cancellationToken);
     Task LockStockPositionsAsync(IReadOnlyCollection<Guid> positionIds, CancellationToken cancellationToken);
     Task LockInputRequestLinesAsync(IReadOnlyCollection<Guid> requestLineIds, CancellationToken cancellationToken);
@@ -79,6 +93,9 @@ public interface IInventoryRepository
     void Add(StockReceipt receipt);
     void Add(StockPosition position);
     void Add(StockMovement movement);
+    void Add(StockCount count);
+    void Add(StockAdjustment adjustment);
+    void Add(InventoryLeakageExport export);
     void Add(ApprovalDecision approval);
     void Add(CorrectionRecord correction);
     void Add(InventoryAuditEventLink auditLink);

@@ -10,6 +10,7 @@ import {
   PostStockReceiptRequest,
   ReverseStockReceiptRequest,
   VersionedInventoryRequest,
+  CreateStockCountRequest,
 } from '../../web-api-client';
 
 export const inventoryClient = new InventoryClient();
@@ -73,6 +74,17 @@ export function reverseReceipt(receiptId, expectedVersion, reason) {
     idempotencyKey: operationKey('receipt-reversal'),
   }));
 }
+
+/** @param {{eventDate: string, notes: string, countingPersons: string}} values */
+export function createStockCount(values) { return inventoryClient.counts(new CreateStockCountRequest(values)); }
+/** @param {string} countId @param {number} expectedVersion */
+export function startStockCount(countId, expectedVersion) { return inventoryClient.start(countId, new VersionedInventoryRequest({ expectedVersion })); }
+/** @param {string} countId @param {number} expectedVersion */
+export function reviewStockCount(countId, expectedVersion) { return inventoryClient.review(countId, new VersionedInventoryRequest({ expectedVersion })); }
+/** @returns {Promise<import('../../web-api-client').StockCountDto[]>} */
+export function getStockCounts() { return inventoryClient.countsAll(); }
+/** @returns {Promise<import('../../web-api-client').StockAdjustmentDto[]>} */
+export function getStockAdjustments() { return inventoryClient.adjustmentsAll(); }
 
 /** @param {string} operation */
 export function operationKey(operation) {

@@ -40,6 +40,7 @@ export function PersonnelRegister() {
     setEditingPerson(null);
     setAdding(true);
   };
+  /** @param {import('../../web-api-client').PersonDto} person */
   const openEditPerson = (person) => {
     const currentRoles = person.roles.filter((assignment) => !assignment.effectiveTo);
     const currentRole = currentRoles[0];

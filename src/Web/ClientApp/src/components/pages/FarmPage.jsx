@@ -28,7 +28,7 @@ export function FarmPage() {
     setIsSaving(true);
 
     try {
-      const result = await farmSetupClient.farm(new CreateGrowerFarmRequest({
+      const result = await farmSetupClient.farmPOST(new CreateGrowerFarmRequest({
         growerDisplayName: String(data.get('growerDisplayName')).trim(),
         growerPhone: optionalValue(data.get('growerPhone')),
         farmCode: String(data.get('farmCode')).trim(),

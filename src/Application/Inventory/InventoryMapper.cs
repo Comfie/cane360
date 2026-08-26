@@ -44,7 +44,24 @@ internal static class InventoryMapper
         movement.UnitCodeSnapshot, movement.MovementType.ToString(), movement.SignedQuantity,
         movement.SignedValueUsd, movement.EventDate, movement.PostedAt, movement.PostedByUserId,
         movement.OperationalPersonId, movement.StockReceiptLineId, movement.StockIssueLineId,
-        movement.ReversalOfStockMovementId);
+        movement.ReversalOfStockMovementId, movement.StockAdjustmentId);
+
+    public static StockCountDto Count(StockCount count) => new(count.Id, count.StoreId, count.Status.ToString(),
+        count.EventDate, count.Notes, count.CountingPersons, count.CutoffPostingSequence, count.StartedAt,
+        count.ReviewedAt, count.ClosedAt, count.CancellationReason, count.Version,
+        count.Lines.OrderBy(line => line.ItemCodeSnapshot).ThenBy(line => line.LotCodeSnapshot).Select(line => new StockCountLineDto(
+            line.Id, line.StockPositionId, line.InventoryItemId, line.InventoryLotId, line.ItemCodeSnapshot,
+            line.ItemNameSnapshot, line.LotCodeSnapshot, line.UnitCodeSnapshot, line.ExpectedQuantity,
+            line.ExpectedValueUsd, line.CountedQuantity, line.VarianceQuantity, line.Notes, line.EnteredAt,
+            line.Version, line.PostedStockAdjustmentId)).ToArray());
+
+    public static StockAdjustmentDto Adjustment(StockAdjustment adjustment) => new(adjustment.Id, adjustment.StoreId,
+        adjustment.StockPositionId, adjustment.StockCountLineId, adjustment.AdjustmentType.ToString(), adjustment.Status.ToString(),
+        adjustment.ItemCodeSnapshot, adjustment.ItemNameSnapshot, adjustment.LotCodeSnapshot, adjustment.UnitCodeSnapshot,
+        adjustment.SignedQuantity, adjustment.ExplicitUnitValueUsd, adjustment.UnitCostUsdSnapshot,
+        adjustment.SignedValueUsdSnapshot, adjustment.Reason, adjustment.EventDate, adjustment.Version,
+        adjustment.StockMovementId, adjustment.ReversalOfStockAdjustmentId, adjustment.ReversalStockAdjustmentId,
+        adjustment.CancellationReason);
 
     public static InventoryWorkspaceDto Workspace(
         Tenant tenant,

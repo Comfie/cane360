@@ -1,0 +1,25 @@
+using Cane360.Application.Common.Exceptions;
+using Cane360.Domain.Inventory;
+
+namespace Cane360.Application.Inventory;
+
+public sealed class ReverseStockAdjustmentCommandHandler(IFarmSetupRepository farmRepository, IInventoryRepository inventoryRepository,
+    IUser user, TimeProvider timeProvider) : IRequestHandler<ReverseStockAdjustmentCommand, StockAdjustmentDto>
+{
+    public async Task<StockAdjustmentDto> Handle(ReverseStockAdjustmentCommand command, CancellationToken cancellationToken)
+    {
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrower(tenant, userId);
+        var candidate = await inventoryRepository.GetStockAdjustmentAsync(tenant.Id, farm.Id, command.StockAdjustmentId, false, cancellationToken) ?? throw new NotFoundException(command.StockAdjustmentId.ToString(), "Stock adjustment");
+        await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken); await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.LockStockAdjustmentAsync(tenant.Id, farm.Id, candidate.Id, cancellationToken); await inventoryRepository.LockStockPositionsAsync([candidate.StockPositionId], cancellationToken);
+        var original = await inventoryRepository.GetStockAdjustmentAsync(tenant.Id, farm.Id, candidate.Id, true, cancellationToken) ?? throw new NotFoundException(candidate.Id.ToString(), "Stock adjustment");
+        if (original.Status != StockAdjustmentStatus.Posted || original.ReversalStockAdjustmentId.HasValue || !original.StockMovementId.HasValue) throw new ConflictException("Only an unreversed posted adjustment can be corrected.");
+        var snapshot = await inventoryRepository.GetPositionSnapshotAsync(original.StockPositionId, cancellationToken); if (snapshot.Quantity - original.SignedQuantity < 0 || snapshot.ValueUsd - original.SignedValueUsdSnapshot!.Value < 0) throw new ConflictException("This reversal would make the current stock quantity or value negative.");
+        var item = await inventoryRepository.GetItemAsync(tenant.Id, farm.Id, original.InventoryItemId, false, cancellationToken) ?? throw new NotFoundException(original.InventoryItemId.ToString(), "Inventory item"); var lot = original.InventoryLotId.HasValue ? await inventoryRepository.GetLotAsync(tenant.Id, farm.Id, original.InventoryLotId.Value, false, cancellationToken) : null; var unit = await inventoryRepository.GetUnitAsync(tenant.Id, original.UnitOfMeasureId, false, cancellationToken) ?? throw new NotFoundException(original.UnitOfMeasureId.ToString(), "Stock unit"); var position = await inventoryRepository.GetPositionAsync(tenant.Id, farm.Id, original.StoreId, original.InventoryItemId, original.InventoryLotId, false, cancellationToken) ?? throw new NotFoundException(original.StockPositionId.ToString(), "Stock position");
+        var correction = StockAdjustment.Create(tenant.Id, farm.Id, original.StoreId, position, item, lot, unit, null, StockAdjustmentType.PositiveCorrection, -original.SignedQuantity, original.UnitCostUsdSnapshot, null, null, command.Reason, original.EventDate, userId);
+        var now = timeProvider.GetUtcNow(); var movementId = Guid.NewGuid(); correction.PostAuthorisedReversal(original.UnitCostUsdSnapshot!.Value, now, movementId, original.Id); original.MarkReversed(correction.Id);
+        if (original.StockCountLineId.HasValue) { var line = await inventoryRepository.GetStockCountLineAsync(tenant.Id, farm.Id, original.StockCountLineId.Value, true, cancellationToken) ?? throw new NotFoundException(original.StockCountLineId.Value.ToString(), "Stock count line"); var count = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, line.StockCountId, true, cancellationToken) ?? throw new NotFoundException(line.StockCountId.ToString(), "Stock count"); if (count.Status == StockCountStatus.Closed) count.ReopenAfterAdjustmentReversal(original.Id); line.Reopen(original.Id); }
+        inventoryRepository.Add(correction); inventoryRepository.Add(StockMovement.CreateAdjustment(correction, now, userId, $"adjustment-reversal:{original.Id:N}:{command.IdempotencyKey}", original.StockMovementId, movementId));
+        InventoryAudit.Adjustment(inventoryRepository, tenant, farm, user, original, "Reversed", now, command.Reason, "Grower-authorised append-only reversal reopened the source exception where applicable."); InventoryAudit.Adjustment(inventoryRepository, tenant, farm, user, correction, "PostedCorrection", now, command.Reason, "Posted immutable correction movement opposite to the authorised adjustment.");
+        await inventoryRepository.SaveChangesAsync(cancellationToken); await transaction.CommitAsync(cancellationToken); return InventoryMapper.Adjustment(correction);
+    }
+}

@@ -37,6 +37,7 @@ public sealed class PostStockIssueCommandHandler(
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
         await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, candidateContext.Activity.Id, cancellationToken);
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
+        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
         await inventoryRepository.LockStockIssueAsync(tenant.Id, farm.Id, candidate.Id, cancellationToken);
         await inventoryRepository.LockInputRequestLinesAsync(
             candidate.Lines.Select(line => line.InputRequestLineId).Distinct().Order().ToArray(), cancellationToken);

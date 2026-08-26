@@ -8,5 +8,7 @@ public enum StockMovementType
     StockIssue,
     IssueReversal,
     StockReturn,
-    ReturnReversal
+    ReturnReversal,
+    StockAdjustment,
+    AdjustmentReversal
 }

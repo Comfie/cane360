@@ -35,6 +35,9 @@ public class InventoryPostingTests
         repository.Setup(value => value.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, It.IsAny<CancellationToken>()))
             .Callback(() => calls.Add("store"))
             .Returns(Task.CompletedTask);
+        repository.Setup(value => value.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id, It.IsAny<CancellationToken>()))
+            .Callback(() => calls.Add("freeze"))
+            .Returns(Task.CompletedTask);
         repository.Setup(value => value.LockReceiptSourceAsync(tenant.Id, farm.Id, receipt.Id, It.IsAny<CancellationToken>()))
             .Callback(() => calls.Add("source"))
             .Returns(Task.CompletedTask);
@@ -68,7 +71,7 @@ public class InventoryPostingTests
         var result = await handler.Handle(
             new PostStockReceiptCommand(receipt.Id, receipt.Version, "post-key-1"), CancellationToken.None);
 
-        calls.ShouldBe(["store", "source", "position", "save", "commit"]);
+        calls.ShouldBe(["store", "freeze", "source", "position", "save", "commit"]);
         movement.ShouldNotBeNull();
         movement.SignedQuantity.ShouldBe(20m);
         movement.SignedValueUsd.ShouldBe(50m);

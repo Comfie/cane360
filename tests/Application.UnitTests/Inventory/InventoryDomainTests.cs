@@ -66,4 +66,38 @@ public class InventoryDomainTests
 
         lot.InventoryItemId.ShouldBe(genericItem.Id);
     }
+
+    [Test]
+    public void CountPreservesExpectedSnapshotAndAllowsEntryCorrectionOnlyWhileInProgress()
+    {
+        var tenantId = Guid.NewGuid(); var farmId = Guid.NewGuid(); var storeId = Guid.NewGuid();
+        var unit = UnitOfMeasure.Create(tenantId, "kg", "Kilogram", "Mass", 3);
+        var item = InventoryItem.Create(tenantId, farmId, "FERT-1", "Fertiliser", InventoryItemCategory.Fertiliser, unit, null, LotTrackingPolicy.None, ExpiryPolicy.None);
+        var position = StockPosition.Create(tenantId, farmId, storeId, item.Id, null);
+        var count = StockCount.Create(tenantId, farmId, storeId, "Morning count", "A. Counter", new DateOnly(2026, 8, 25), "manager");
+        var line = StockCountLine.Create(count, position, item, null, unit, 10m, 25m);
+        count.Start(42, [line], DateTimeOffset.UtcNow, count.Version);
+
+        line.Enter(8m, "First entry", DateTimeOffset.UtcNow, "manager", line.Version);
+        line.Enter(9m, "Corrected entry", DateTimeOffset.UtcNow, "manager", line.Version);
+
+        count.CutoffPostingSequence.ShouldBe(42); line.ExpectedQuantity.ShouldBe(10m); line.ExpectedValueUsd.ShouldBe(25m); line.VarianceQuantity.ShouldBe(-1m);
+        count.MoveToReview(DateTimeOffset.UtcNow, count.Version);
+        count.Status.ShouldBe(StockCountStatus.Review);
+    }
+
+    [Test]
+    public void CountClosesOnlyWhenEveryVarianceHasPostedAdjustment()
+    {
+        var tenantId = Guid.NewGuid(); var farmId = Guid.NewGuid(); var storeId = Guid.NewGuid();
+        var unit = UnitOfMeasure.Create(tenantId, "kg", "Kilogram", "Mass", 3);
+        var item = InventoryItem.Create(tenantId, farmId, "FERT-1", "Fertiliser", InventoryItemCategory.Fertiliser, unit, null, LotTrackingPolicy.None, ExpiryPolicy.None);
+        var position = StockPosition.Create(tenantId, farmId, storeId, item.Id, null); var count = StockCount.Create(tenantId, farmId, storeId, "", "Counter", new DateOnly(2026, 8, 25), "manager"); var line = StockCountLine.Create(count, position, item, null, unit, 10m, 25m);
+        count.Start(1, [line], DateTimeOffset.UtcNow, count.Version); line.Enter(8m, null, DateTimeOffset.UtcNow, "manager", line.Version); count.MoveToReview(DateTimeOffset.UtcNow, count.Version); count.ResolveReview(DateTimeOffset.UtcNow, count.Version);
+
+        count.Status.ShouldBe(StockCountStatus.PendingAdjustment);
+        Should.Throw<InvalidOperationException>(() => count.CloseAfterAdjustments(DateTimeOffset.UtcNow));
+        line.Resolve(Guid.NewGuid()); count.CloseAfterAdjustments(DateTimeOffset.UtcNow);
+        count.Status.ShouldBe(StockCountStatus.Closed);
+    }
 }

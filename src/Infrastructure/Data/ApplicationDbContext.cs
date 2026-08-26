@@ -48,6 +48,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<StockReceiptLine> StockReceiptLines => Set<StockReceiptLine>();
     public DbSet<StockPosition> StockPositions => Set<StockPosition>();
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
+    public DbSet<StockCount> StockCounts => Set<StockCount>();
+    public DbSet<StockCountLine> StockCountLines => Set<StockCountLine>();
+    public DbSet<StockAdjustment> StockAdjustments => Set<StockAdjustment>();
+    public DbSet<InventoryLeakageExport> InventoryLeakageExports => Set<InventoryLeakageExport>();
     public DbSet<ApprovalDecision> ApprovalDecisions => Set<ApprovalDecision>();
     public DbSet<CorrectionRecord> CorrectionRecords => Set<CorrectionRecord>();
     public DbSet<InventoryAuditEventLink> InventoryAuditEventLinks => Set<InventoryAuditEventLink>();

@@ -45,6 +45,7 @@ public sealed class ReverseStockReceiptCommandHandler(
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
 
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
+        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
         await inventoryRepository.LockReceiptSourceAsync(tenant.Id, farm.Id, request.ReceiptId, cancellationToken);
         var receipt = await inventoryRepository.GetReceiptAsync(
             tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)

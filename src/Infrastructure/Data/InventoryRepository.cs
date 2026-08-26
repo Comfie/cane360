@@ -108,6 +108,58 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         }).ToArray();
     }
 
+    public async Task<IReadOnlyList<StockCount>> GetStockCountsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken) =>
+        await Track(context.StockCounts.Where(count => count.TenantId == tenantId && count.FarmId == farmId)
+            .Include(count => count.Lines), trackChanges).OrderByDescending(count => count.Created).ToListAsync(cancellationToken);
+
+    public Task<StockCount?> GetStockCountAsync(Guid tenantId, Guid farmId, Guid countId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.StockCounts.Where(count => count.TenantId == tenantId && count.FarmId == farmId && count.Id == countId)
+            .Include(count => count.Lines), trackChanges).SingleOrDefaultAsync(cancellationToken);
+
+    public Task<StockCountLine?> GetStockCountLineAsync(Guid tenantId, Guid farmId, Guid lineId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.StockCountLines.Where(line => line.TenantId == tenantId && line.FarmId == farmId && line.Id == lineId), trackChanges).SingleOrDefaultAsync(cancellationToken);
+
+    public Task<StockCount?> GetActiveStockCountAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken) =>
+        context.StockCounts.AsNoTracking().SingleOrDefaultAsync(count => count.TenantId == tenantId && count.FarmId == farmId && count.StoreId == storeId && count.Status == StockCountStatus.InProgress, cancellationToken);
+
+    public async Task<long> GetHighestPostingSequenceAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken) =>
+        await context.StockMovements.AsNoTracking().Where(movement => movement.TenantId == tenantId && movement.FarmId == farmId && movement.StoreId == storeId)
+            .MaxAsync(movement => (long?)movement.PostingSequence, cancellationToken) ?? 0;
+
+    public async Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetNonZeroStockAtCutoffAsync(Guid tenantId, Guid farmId, Guid storeId, long cutoffPostingSequence, CancellationToken cancellationToken)
+    {
+        var positions = await context.StockPositions.AsNoTracking().Where(position => position.TenantId == tenantId && position.FarmId == farmId && position.StoreId == storeId).ToListAsync(cancellationToken);
+        var sums = await context.StockMovements.AsNoTracking().Where(movement => movement.TenantId == tenantId && movement.FarmId == farmId && movement.StoreId == storeId && movement.PostingSequence <= cutoffPostingSequence)
+            .GroupBy(movement => movement.StockPositionId).Select(group => new { PositionId = group.Key, Quantity = group.Sum(movement => movement.SignedQuantity), Value = group.Sum(movement => movement.SignedValueUsd) }).ToDictionaryAsync(value => value.PositionId, cancellationToken);
+        return positions.Where(position => sums.TryGetValue(position.Id, out var snapshot) && snapshot.Quantity != 0)
+            .Select(position => (position, new StockLedgerSnapshot(sums[position.Id].Quantity, sums[position.Id].Value))).ToArray();
+    }
+
+    public async Task<IReadOnlyList<StockAdjustment>> GetStockAdjustmentsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken) =>
+        await Track(context.StockAdjustments.Where(adjustment => adjustment.TenantId == tenantId && adjustment.FarmId == farmId), trackChanges)
+            .OrderByDescending(adjustment => adjustment.Created).ToListAsync(cancellationToken);
+
+    public Task<StockAdjustment?> GetStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, bool trackChanges, CancellationToken cancellationToken) =>
+        Track(context.StockAdjustments.Where(adjustment => adjustment.TenantId == tenantId && adjustment.FarmId == farmId && adjustment.Id == adjustmentId), trackChanges).SingleOrDefaultAsync(cancellationToken);
+
+    public Task<ApprovalDecision?> GetStockAdjustmentApprovalAsync(Guid adjustmentId, long subjectVersion, CancellationToken cancellationToken) =>
+        context.ApprovalDecisions.AsNoTracking().SingleOrDefaultAsync(decision => decision.StockAdjustmentId == adjustmentId && decision.SubjectVersion == subjectVersion, cancellationToken);
+
+    public Task<bool> HasLaterStockPositionMovementsAsync(Guid stockPositionId, long postingSequence, CancellationToken cancellationToken) =>
+        context.StockMovements.AsNoTracking().AnyAsync(movement => movement.StockPositionId == stockPositionId && movement.PostingSequence > postingSequence, cancellationToken);
+
+    public async Task<LeakageReportingSource> GetLeakageReportingSourceAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken) =>
+        new(await context.ControlExceptions.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.InputApplications.AsNoTracking().Include(value => value.Lines).Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.InventoryLosses.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.StockCounts.AsNoTracking().Include(value => value.Lines).Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.StockAdjustments.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.StockIssues.AsNoTracking().Include(value => value.Lines).Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.InputRequests.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.FieldReceipts.AsNoTracking().Include(value => value.Lines).Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.ApprovalDecisions.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken),
+            await context.StockMovements.AsNoTracking().Where(value => value.TenantId == tenantId && value.FarmId == farmId).ToListAsync(cancellationToken));
+
     public Task<ApprovalDecision?> GetOpeningApprovalAsync(
         Guid receiptId, long subjectVersion, CancellationToken cancellationToken) =>
         context.ApprovalDecisions.AsNoTracking().SingleOrDefaultAsync(entity =>
@@ -308,6 +360,31 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
         if (locked is null) throw new NotFoundException(storeId.ToString(), "Store");
     }
 
+    public async Task EnsureStorePostingNotFrozenAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken)
+    {
+        if (await context.StockCounts.AsNoTracking().AnyAsync(count => count.TenantId == tenantId && count.FarmId == farmId && count.StoreId == storeId && count.Status == StockCountStatus.InProgress, cancellationToken))
+            throw new ConflictException("Store postings are frozen while a physical stock count is in progress.");
+    }
+
+    public async Task LockStockCountAsync(Guid tenantId, Guid farmId, Guid countId, CancellationToken cancellationToken)
+    {
+        var locked = await context.StockCounts.FromSqlInterpolated($"SELECT * FROM inventory.\"StockCounts\" WHERE \"Id\" = {countId} AND \"TenantId\" = {tenantId} AND \"FarmId\" = {farmId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+        if (locked is null) throw new NotFoundException(countId.ToString(), "Stock count");
+    }
+
+    public async Task LockStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var locked = await context.StockAdjustments.FromSqlInterpolated($"SELECT * FROM inventory.\"StockAdjustments\" WHERE \"Id\" = {adjustmentId} AND \"TenantId\" = {tenantId} AND \"FarmId\" = {farmId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+            if (locked is null) throw new NotFoundException(adjustmentId.ToString(), "Stock adjustment");
+        }
+        catch (Exception exception) when (IsSerializationFailure(exception))
+        {
+            throw new InventorySerializationFailureException("The serializable stock-adjustment lock must be retried.", exception);
+        }
+    }
+
     public async Task LockReceiptSourceAsync(
         Guid tenantId, Guid farmId, Guid receiptId, CancellationToken cancellationToken)
     {
@@ -381,6 +458,9 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
     public void Add(StockReceipt receipt) => context.StockReceipts.Add(receipt);
     public void Add(StockPosition position) => context.StockPositions.Add(position);
     public void Add(StockMovement movement) => context.StockMovements.Add(movement);
+    public void Add(StockCount count) => context.StockCounts.Add(count);
+    public void Add(StockAdjustment adjustment) => context.StockAdjustments.Add(adjustment);
+    public void Add(InventoryLeakageExport export) => context.InventoryLeakageExports.Add(export);
     public void Add(ApprovalDecision approval) => context.ApprovalDecisions.Add(approval);
     public void Add(CorrectionRecord correction) => context.CorrectionRecords.Add(correction);
     public void Add(InventoryAuditEventLink auditLink) => context.InventoryAuditEventLinks.Add(auditLink);

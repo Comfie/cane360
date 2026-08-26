@@ -11,6 +11,7 @@ public sealed class ApprovalDecision : BaseEntity
         Guid? inputRequestId,
         Guid? inventoryLossId,
         Guid? fieldAccountabilityCorrectionId,
+        Guid? stockAdjustmentId,
         long subjectVersion,
         ApprovalOutcome outcome,
         string approverUserId,
@@ -25,6 +26,7 @@ public sealed class ApprovalDecision : BaseEntity
         InputRequestId = inputRequestId;
         InventoryLossId = inventoryLossId;
         FieldAccountabilityCorrectionId = fieldAccountabilityCorrectionId;
+        StockAdjustmentId = stockAdjustmentId;
         SubjectVersion = subjectVersion;
         Outcome = outcome;
         ApproverUserId = approverUserId.Trim();
@@ -40,6 +42,7 @@ public sealed class ApprovalDecision : BaseEntity
     public Guid? InputRequestId { get; private set; }
     public Guid? InventoryLossId { get; private set; }
     public Guid? FieldAccountabilityCorrectionId { get; private set; }
+    public Guid? StockAdjustmentId { get; private set; }
     public long SubjectVersion { get; private set; }
     public ApprovalOutcome Outcome { get; private set; }
     public string ApproverUserId { get; private set; } = string.Empty;
@@ -68,7 +71,7 @@ public sealed class ApprovalDecision : BaseEntity
             throw new InvalidOperationException("A rejection reason is required.");
         }
         return new ApprovalDecision(
-            tenantId, farmId, receiptId, null, null, null, subjectVersion, outcome,
+            tenantId, farmId, receiptId, null, null, null, null, subjectVersion, outcome,
             approverUserId, approverRole, decidedAt, reason, idempotencyKey);
     }
 
@@ -82,7 +85,7 @@ public sealed class ApprovalDecision : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         if (outcome == ApprovalOutcome.Rejected && string.IsNullOrWhiteSpace(reason))
             throw new InvalidOperationException("A rejection reason is required.");
-        return new ApprovalDecision(tenantId, farmId, null, inputRequestId, null, null, subjectVersion,
+        return new ApprovalDecision(tenantId, farmId, null, inputRequestId, null, null, null, subjectVersion,
             outcome, approverUserId, approverRole, decidedAt, reason, idempotencyKey);
     }
 
@@ -94,7 +97,7 @@ public sealed class ApprovalDecision : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(approverRole);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         if (outcome == ApprovalOutcome.Rejected && string.IsNullOrWhiteSpace(reason)) throw new InvalidOperationException("A rejection reason is required.");
-        return new ApprovalDecision(tenantId, farmId, null, null, inventoryLossId, null, subjectVersion,
+        return new ApprovalDecision(tenantId, farmId, null, null, inventoryLossId, null, null, subjectVersion,
             outcome, approverUserId, approverRole, decidedAt, reason, idempotencyKey);
     }
 
@@ -108,7 +111,19 @@ public sealed class ApprovalDecision : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         if (outcome == ApprovalOutcome.Rejected && string.IsNullOrWhiteSpace(reason))
             throw new InvalidOperationException("A rejection reason is required.");
-        return new ApprovalDecision(tenantId, farmId, null, null, null, correctionId, subjectVersion,
+        return new ApprovalDecision(tenantId, farmId, null, null, null, correctionId, null, subjectVersion,
+            outcome, approverUserId, approverRole, decidedAt, reason, idempotencyKey);
+    }
+
+    public static ApprovalDecision CreateStockAdjustmentDecision(Guid tenantId, Guid farmId, Guid adjustmentId,
+        long subjectVersion, ApprovalOutcome outcome, string approverUserId, string approverRole,
+        DateTimeOffset decidedAt, string? reason, string idempotencyKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(approverUserId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(approverRole);
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        if (outcome == ApprovalOutcome.Rejected && string.IsNullOrWhiteSpace(reason)) throw new InvalidOperationException("A rejection reason is required.");
+        return new ApprovalDecision(tenantId, farmId, null, null, null, null, adjustmentId, subjectVersion,
             outcome, approverUserId, approverRole, decidedAt, reason, idempotencyKey);
     }
 }

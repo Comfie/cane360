@@ -14,8 +14,8 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         {
             table.HasCheckConstraint("CK_StockMovements_NonzeroQuantity", "\"SignedQuantity\" <> 0");
             table.HasCheckConstraint("CK_StockMovements_Signs", "sign(\"SignedQuantity\") = sign(\"SignedValueUsd\") OR \"SignedValueUsd\" = 0");
-            table.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal', 'ReturnReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
-            table.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\", \"StockReturnLineId\") = 1");
+            table.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal', 'ReturnReversal', 'AdjustmentReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\", \"StockReturnLineId\", \"StockAdjustmentId\") = 1");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -45,6 +45,8 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
             .HasForeignKey(entity => new { entity.StockReturnLineId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockAdjustment>().WithMany().HasForeignKey(entity => new { entity.StockAdjustmentId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(adjustment => new { adjustment.Id, adjustment.TenantId, adjustment.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<StockMovement>().WithMany().HasForeignKey(entity => entity.ReversalOfStockMovementId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Cane360.Domain.Activities.Person>().WithMany()
@@ -57,5 +59,6 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.HasIndex(entity => entity.StockReceiptLineId);
         builder.HasIndex(entity => entity.StockIssueLineId);
         builder.HasIndex(entity => entity.StockReturnLineId);
+        builder.HasIndex(entity => entity.StockAdjustmentId).IsUnique().HasFilter("\"StockAdjustmentId\" IS NOT NULL");
     }
 }

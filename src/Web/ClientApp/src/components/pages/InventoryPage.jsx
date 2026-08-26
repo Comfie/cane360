@@ -11,11 +11,16 @@ import {
   createLot,
   createReceipt,
   createSupplier,
+  createStockCount,
   createUnit,
   decideOpeningBalance,
   inventoryClient,
   postReceipt,
   reverseReceipt,
+  getStockAdjustments,
+  getStockCounts,
+  reviewStockCount,
+  startStockCount,
   submitOpeningBalance,
 } from '../inventory/inventoryApi';
 import {
@@ -34,12 +39,14 @@ export function InventoryPage() {
   const [dialog, setDialog] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [counts, setCounts] = useState(/** @type {import('../../web-api-client').StockCountDto[]} */ ([]));
+  const [adjustments, setAdjustments] = useState(/** @type {import('../../web-api-client').StockAdjustmentDto[]} */ ([]));
 
-  const reload = async () => setWorkspace(await inventoryClient.inventory());
+  const reload = async () => { const [nextWorkspace, nextCounts, nextAdjustments] = await Promise.all([inventoryClient.inventory(), getStockCounts(), getStockAdjustments()]); setWorkspace(nextWorkspace); setCounts(nextCounts); setAdjustments(nextAdjustments); };
   useEffect(() => {
     let current = true;
-    inventoryClient.inventory()
-      .then((result) => { if (current) setWorkspace(result); })
+    Promise.all([inventoryClient.inventory(), getStockCounts(), getStockAdjustments()])
+      .then(([result, nextCounts, nextAdjustments]) => { if (current) { setWorkspace(result); setCounts(nextCounts); setAdjustments(nextAdjustments); } })
       .catch((requestError) => { if (current) setError(getApiError(requestError)); })
       .finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
@@ -62,6 +69,8 @@ export function InventoryPage() {
         <button type="button" aria-current={tab === 'ledger'} onClick={() => setTab('ledger')}>Movement ledger <span>{workspace.recentMovements.length}</span></button>
         <button type="button" aria-current={tab === 'catalogue'} onClick={() => setTab('catalogue')}>Catalogue</button>
         <button type="button" aria-current={tab === 'inputs'} onClick={() => setTab('inputs')}>Inputs</button>
+        <button type="button" aria-current={tab === 'counts'} onClick={() => setTab('counts')}>Counts <span>{counts.filter((count) => count.status === 'InProgress').length}</span></button>
+        <button type="button" aria-current={tab === 'adjustments'} onClick={() => setTab('adjustments')}>Adjustments <span>{adjustments.filter((adjustment) => adjustment.status === 'PendingGrowerApproval').length}</span></button>
       </nav>
     </section>
 
@@ -70,14 +79,36 @@ export function InventoryPage() {
     {tab === 'ledger' && <MovementLedger movements={workspace.recentMovements} />}
     {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} />}
     {tab === 'inputs' && <InputControlsWorkspace onError={setError} />}
+    {tab === 'counts' && <CountRegister counts={counts} onChanged={reload} onError={setError} onOpen={() => setDialog('count')} />}
+    {tab === 'adjustments' && <AdjustmentRegister adjustments={adjustments} />}
 
     {dialog === 'receipt' && <InventoryDialog title="Record stock receipt" onClose={() => setDialog('')}><ReceiptForm workspace={workspace} onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'unit' && <InventoryDialog title="Add stock unit" onClose={() => setDialog('')}><UnitForm onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'item' && <InventoryDialog title="Add inventory item" onClose={() => setDialog('')}><ItemForm units={workspace.units} onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'supplier' && <InventoryDialog title="Add supplier" onClose={() => setDialog('')}><SupplierForm onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'lot' && <InventoryDialog title="Add item lot" onClose={() => setDialog('')}><LotForm items={workspace.items} onSaved={changed} onError={setError} /></InventoryDialog>}
+    {dialog === 'count' && <InventoryDialog title="Start a full-store count" onClose={() => setDialog('')}><CountForm onSaved={changed} onError={setError} /></InventoryDialog>}
   </div>;
 }
+
+/** @param {{counts: import('../../web-api-client').StockCountDto[], onChanged: () => Promise<void>, onError: (message: string) => void, onOpen: () => void}} props */
+function CountRegister({ counts, onChanged, onError, onOpen }) {
+  const [working, setWorking] = useState('');
+  /** @param {import('../../web-api-client').StockCountDto} count @param {'start' | 'review'} kind */
+  const action = async (count, kind) => { setWorking(count.id); onError(''); try { if (kind === 'start') await startStockCount(count.id, count.version); if (kind === 'review') await reviewStockCount(count.id, count.version); await onChanged(); } catch (error) { onError(getApiError(error)); } finally { setWorking(''); } };
+  return <section className="count-register record-panel"><header className="ledger-title"><div><span className="eyebrow">Physical evidence</span><h2>Full-store counts</h2></div><button className="primary-action" onClick={onOpen}><ClipboardCheck size={16} /> New count</button></header><p className="count-warning">Starting a count freezes receipt, issue, return, reversal and adjustment postings until review or cancellation.</p>{counts.length ? counts.map((count) => <article className="count-row" key={count.id}><span><strong>{count.status} · cut-off {count.cutoffPostingSequence ?? 'not started'}</strong><small>{count.countingPersons} · {count.lines.filter((line) => line.countedQuantity != null).length}/{count.lines.length} counted</small></span><b>{count.lines.reduce((total, line) => total + Math.abs(line.varianceQuantity), 0)} variance</b><span className="row-actions">{count.status === 'Draft' && <button disabled={working === count.id} onClick={() => action(count, 'start')}>Start & freeze</button>}{count.status === 'InProgress' && <button disabled={working === count.id} onClick={() => action(count, 'review')}>Review & release</button>}</span></article>) : <InventoryEmpty icon={ClipboardCheck} title="No physical counts" copy="Create a count when the Store can pause postings." />}</section>;
+}
+
+/** @param {{onSaved: () => Promise<void>, onError: (message: string) => void}} props */
+function CountForm({ onSaved, onError }) {
+  const [saving, setSaving] = useState(false);
+  /** @param {import('react').FormEvent<HTMLFormElement>} event */
+  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); onError(''); try { await createStockCount({ eventDate: harareToday(), notes: String(data.get('notes') || ''), countingPersons: String(data.get('countingPersons')) }); await onSaved(); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
+  return <form className="inventory-form" onSubmit={save}><p className="context-note">This is a full-store count. Stock is not changed by count entry; non-zero variances require Grower-approved adjustments.</p><div className="form-grid"><label>Named counting persons<input name="countingPersons" maxLength={1000} required /></label><label className="is-wide">Count notes<input name="notes" maxLength={1000} /></label></div><footer className="form-actions"><span>Starting later will capture a fixed ledger cut-off.</span><button disabled={saving}>Create draft count</button></footer></form>;
+}
+
+/** @param {{adjustments: import('../../web-api-client').StockAdjustmentDto[]}} props */
+function AdjustmentRegister({ adjustments }) { return <section className="count-register record-panel"><header className="ledger-title"><div><span className="eyebrow">Grower control</span><h2>Store adjustments</h2></div></header>{adjustments.length ? adjustments.map((adjustment) => <article className="count-row" key={adjustment.id}><span><strong>{adjustment.itemCode} · {adjustment.adjustmentType}</strong><small>{adjustment.reason} · {adjustment.status}</small></span><b>{adjustment.signedQuantity > 0 ? '+' : ''}{quantity(adjustment.signedQuantity, adjustment.unitCode)}</b><strong>{usd(adjustment.signedValueUsdSnapshot || 0)}</strong></article>) : <InventoryEmpty icon={ShieldCheck} title="No adjustment decisions" copy="Draft write-offs and discoveries require exact-version Grower approval." />}</section>; }
 
 /** @param {{workspace: import('../../web-api-client').InventoryWorkspaceDto}} props */
 function StockRegister({ workspace }) {

@@ -14,6 +14,7 @@ public sealed class ReverseStockReturnCommandHandler(IFarmSetupRepository farmRe
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
         await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, candidate.ActivityId, cancellationToken);
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken);
+        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken);
         await inventoryRepository.LockStockPositionsAsync(candidate.Lines.Select(x => x.StockPositionId).Distinct().Order().ToArray(), cancellationToken);
         var stockReturn = await inventoryRepository.GetStockReturnAsync(tenant.Id, farm.Id, candidate.Id, true, cancellationToken)
             ?? throw new NotFoundException(candidate.Id.ToString(), "Stock return");

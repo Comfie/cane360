@@ -18,4 +18,5 @@ public sealed record StockMovementDto(
     Guid? OperationalPersonId,
     Guid? StockReceiptLineId,
     Guid? StockIssueLineId,
-    Guid? ReversalOfStockMovementId);
+    Guid? ReversalOfStockMovementId,
+    Guid? StockAdjustmentId);

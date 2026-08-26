@@ -96,6 +96,16 @@ internal static class InventoryAudit
         Record(repository, tenant, farm, user, nameof(ControlException), controlException.Id, action, at,
             null, null, summary, id => InventoryAuditEventLink.ForException(id, tenant.Id, farm.Id, controlException.Id));
 
+    public static void Count(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user, StockCount count,
+        string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(StockCount), count.Id, action, at, null, reason, summary,
+            id => InventoryAuditEventLink.ForStockCount(id, tenant.Id, farm.Id, count.Id));
+
+    public static void Adjustment(IInventoryRepository repository, Tenant tenant, Farm farm, IUser user, StockAdjustment adjustment,
+        string action, DateTimeOffset at, string? reason, string summary) =>
+        Record(repository, tenant, farm, user, nameof(StockAdjustment), adjustment.Id, action, at, null, reason, summary,
+            id => InventoryAuditEventLink.ForStockAdjustment(id, tenant.Id, farm.Id, adjustment.Id));
+
     private static void Record(
         IInventoryRepository repository,
         Tenant tenant,

@@ -31,6 +31,9 @@ public sealed class InventoryAuditEventLink : BaseEntity
     public Guid? ControlExceptionId { get; private set; }
     public Guid? CorrectionRecordId { get; private set; }
     public Guid? FieldAccountabilityCorrectionId { get; private set; }
+    public Guid? StockCountId { get; private set; }
+    public Guid? StockAdjustmentId { get; private set; }
+    public Guid? InventoryLeakageExportId { get; private set; }
 
     public static InventoryAuditEventLink ForUnit(
         Guid auditEventId, Guid tenantId, Guid farmId, Guid unitId) =>
@@ -84,4 +87,10 @@ public sealed class InventoryAuditEventLink : BaseEntity
         new(auditEventId, tenantId, farmId) { CorrectionRecordId = id };
     public static InventoryAuditEventLink ForFieldAccountabilityCorrection(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
         new(auditEventId, tenantId, farmId) { FieldAccountabilityCorrectionId = id };
+    public static InventoryAuditEventLink ForStockCount(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { StockCountId = id };
+    public static InventoryAuditEventLink ForStockAdjustment(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { StockAdjustmentId = id };
+    public static InventoryAuditEventLink ForLeakageExport(Guid auditEventId, Guid tenantId, Guid farmId, Guid id) =>
+        new(auditEventId, tenantId, farmId) { InventoryLeakageExportId = id };
 }
