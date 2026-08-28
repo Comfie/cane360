@@ -107,7 +107,8 @@ test('responsive desktop tables and mobile cards keep workflows available', () =
   assert.match(stylesSource, /\.payroll-page \.section-heading[\s\S]*padding: var\(--space-4\) var\(--space-5\)/);
   assert.match(stylesSource, /\.payroll-page \.record-panel \{ min-width: 0; overflow: hidden; \}/);
   assert.match(stylesSource, /@media \(max-width: 39\.99rem\)[\s\S]*\.period-table > article, \.preflight-table > article \{ display: grid; grid-template-columns: 1fr/);
-  assert.match(stylesSource, /\.advance-actions \{ position: sticky/);
+  assert.match(stylesSource, /\.advance-actions \{ display: flex; flex-wrap: wrap/);
+  assert.doesNotMatch(stylesSource, /\.advance-actions \{ position: sticky/);
   assert.match(stylesSource, /\.advance-actions button \{ min-height: 2\.75rem/);
 });
 
