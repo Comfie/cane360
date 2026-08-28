@@ -35,7 +35,7 @@
     "preview": "vite preview",
     "lint": "eslint ./src/",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/styles.test.js src/navigation.test.js src/components/apiError.test.js src/components/crop-cycles/cropCycleView.test.js src/components/activities/activityView.test.js src/components/labour/labourView.test.js src/components/inventory/inventoryView.test.js src/components/inventory/inputControlView.test.js",
+    "test": "node --test src/styles.test.js src/navigation.test.js src/components/apiError.test.js src/components/crop-cycles/cropCycleView.test.js src/components/activities/activityView.test.js src/components/labour/labourView.test.js src/components/inventory/inventoryView.test.js src/components/inventory/inputControlView.test.js src/components/payroll/payrollView.test.js",
     "generate-api": "nswag run /runtime:Net100 && node scripts/normalize-generated-client.cjs"
   }
 }

@@ -10,8 +10,13 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    var builder = WebApplication.CreateBuilder(args);
     bool isOpenApiDocumentGeneration = OpenApiDocumentGeneration.IsRequested();
+    if (isOpenApiDocumentGeneration)
+    {
+        Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+    }
+
+    var builder = WebApplication.CreateBuilder(args);
 
     if (builder.Environment.IsDevelopment())
     {

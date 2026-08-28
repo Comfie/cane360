@@ -1,5 +1,6 @@
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Inventory;
+using Cane360.Domain.Payroll;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -27,7 +28,7 @@ public sealed class AppendOnlyEntityInterceptor : SaveChangesInterceptor
     {
         if (context is null) return;
         foreach (var entry in context.ChangeTracker.Entries().Where(entry =>
-            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink) &&
+            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink or PayrollAuditEventLink or AdvanceApproval or AdvanceIssue) &&
             entry.State is EntityState.Modified or EntityState.Deleted))
         {
             throw new InvalidOperationException($"{entry.Metadata.ClrType.Name} records are append-only.");

@@ -48,7 +48,7 @@ export const protectedNavigation = Object.freeze([
   },
   {
     id: 'labour',
-    path: '/labour',
+    path: '/payroll',
     label: 'Labour and Payroll',
     shortLabel: 'Labour',
     eyebrow: 'People and pay',

@@ -4510,6 +4510,464 @@ namespace Cane360.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("AdvanceVersion")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("AmountUsdSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("DecidedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("GrowerUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int>("InstallmentCountSnapshot")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("InstallmentScheduleSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkerAdvanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrowerUserId");
+
+                    b.HasIndex("WorkerAdvanceId", "AdvanceVersion")
+                        .IsUnique();
+
+                    b.HasIndex("TenantId", "FarmId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("WorkerAdvanceId", "TenantId", "FarmId");
+
+                    b.ToTable("AdvanceApprovals", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_AdvanceApprovals_AmountSnapshot", "\"AmountUsdSnapshot\" > 0");
+
+                            t.HasCheckConstraint("CK_AdvanceApprovals_InstallmentCountSnapshot", "\"InstallmentCountSnapshot\" > 0");
+
+                            t.HasCheckConstraint("CK_AdvanceApprovals_ScheduleSnapshot", "length(\"InstallmentScheduleSnapshot\") > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceInstallment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PayrollPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Sequence")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("WorkerAdvanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkerAdvanceId", "Sequence")
+                        .IsUnique();
+
+                    b.HasIndex("PayrollPeriodId", "TenantId", "FarmId");
+
+                    b.HasIndex("WorkerAdvanceId", "TenantId", "FarmId");
+
+                    b.ToTable("AdvanceInstallments", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_AdvanceInstallments_Amount", "\"AmountUsd\" > 0");
+
+                            t.HasCheckConstraint("CK_AdvanceInstallments_Sequence", "\"Sequence\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceIssue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<string>("ExternalReference")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MaskedRecipientNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("PayingPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid?>("ReceivingWorkerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RecordedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TransactionStatus")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool?>("WorkerAcknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("WorkerAdvanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("WorkerAdvanceId")
+                        .IsUnique();
+
+                    b.HasIndex("PayingPersonId", "FarmId");
+
+                    b.HasIndex("ReceivingWorkerId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "ExternalReference")
+                        .IsUnique()
+                        .HasFilter("\"ExternalReference\" IS NOT NULL");
+
+                    b.HasIndex("TenantId", "FarmId", "IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("WorkerAdvanceId", "TenantId", "FarmId");
+
+                    b.ToTable("AdvanceIssues", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_AdvanceIssues_Amount", "\"AmountUsd\" > 0");
+
+                            t.HasCheckConstraint("CK_AdvanceIssues_Method", "(\"PaymentMethod\" = 'Cash' AND \"PayingPersonId\" IS NOT NULL AND \"ReceivingWorkerId\" IS NOT NULL AND \"WorkerAcknowledged\" = true) OR (\"PaymentMethod\" = 'MobileMoney' AND \"Provider\" IS NOT NULL AND \"MaskedRecipientNumber\" IS NOT NULL AND \"ExternalReference\" IS NOT NULL AND \"TransactionStatus\" IS NOT NULL AND length(trim(\"Provider\")) > 0 AND length(trim(\"MaskedRecipientNumber\")) > 0 AND length(trim(\"ExternalReference\")) > 0 AND length(trim(\"TransactionStatus\")) > 0)");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.PayrollAuditEventLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AdvanceApprovalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AdvanceIssueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuditEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PayrollPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("WorkerAdvanceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuditEventId")
+                        .IsUnique();
+
+                    b.HasIndex("FarmId", "TenantId");
+
+                    b.HasIndex("AdvanceApprovalId", "TenantId", "FarmId");
+
+                    b.HasIndex("AdvanceIssueId", "TenantId", "FarmId");
+
+                    b.HasIndex("AuditEventId", "TenantId", "FarmId");
+
+                    b.HasIndex("PayrollPeriodId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "PayrollPeriodId");
+
+                    b.HasIndex("TenantId", "FarmId", "WorkerAdvanceId");
+
+                    b.HasIndex("WorkerAdvanceId", "TenantId", "FarmId");
+
+                    b.ToTable("PayrollAuditEventLinks", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_PayrollAuditEventLinks_OneSubject", "num_nonnulls(\"PayrollPeriodId\", \"WorkerAdvanceId\", \"AdvanceApprovalId\", \"AdvanceIssueId\") = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.PayrollPeriod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CancelledByPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CancelledByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CreatedByPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset?>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OpenedByPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OpenedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CancelledByUserId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("CancelledByPersonId", "FarmId");
+
+                    b.HasIndex("CreatedByPersonId", "FarmId");
+
+                    b.HasIndex("FarmId", "TenantId");
+
+                    b.HasIndex("OpenedByPersonId", "FarmId");
+
+                    b.HasIndex("FarmId", "Year", "Month")
+                        .IsUnique()
+                        .HasDatabaseName("UX_PayrollPeriods_Farm_Year_Month");
+
+                    b.ToTable("PayrollPeriods", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_PayrollPeriods_Dates", "\"StartDate\" = make_date(\"Year\", \"Month\", 1) AND \"EndDate\" = (make_date(\"Year\", \"Month\", 1) + interval '1 month - 1 day')::date");
+
+                            t.HasCheckConstraint("CK_PayrollPeriods_Month", "\"Month\" BETWEEN 1 AND 12");
+
+                            t.HasCheckConstraint("CK_PayrollPeriods_Status", "\"Status\" IN ('Draft', 'Open', 'Cancelled')");
+                        });
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.WorkerAdvance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ApprovedAmountUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("InstallmentCount")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RecoveryStartPayrollPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("RequestedAmountUsd")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateOnly>("RequestedEventDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RequestingPersonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("WorkerProfileId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("RequestingPersonId", "FarmId");
+
+                    b.HasIndex("RecoveryStartPayrollPeriodId", "TenantId", "FarmId");
+
+                    b.HasIndex("WorkerProfileId", "TenantId", "FarmId");
+
+                    b.HasIndex("TenantId", "FarmId", "WorkerProfileId", "Status");
+
+                    b.ToTable("WorkerAdvances", "payroll", t =>
+                        {
+                            t.HasCheckConstraint("CK_WorkerAdvances_Amounts", "\"RequestedAmountUsd\" > 0 AND (\"ApprovedAmountUsd\" IS NULL OR \"ApprovedAmountUsd\" > 0)");
+
+                            t.HasCheckConstraint("CK_WorkerAdvances_Installments", "\"InstallmentCount\" > 0");
+
+                            t.HasCheckConstraint("CK_WorkerAdvances_Status", "\"Status\" IN ('Draft', 'PendingGrowerApproval', 'Approved', 'Rejected', 'Issued', 'Cancelled')");
+                        });
+                });
+
             modelBuilder.Entity("Cane360.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -6198,6 +6656,181 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceApproval", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("GrowerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Payroll.WorkerAdvance", null)
+                        .WithMany()
+                        .HasForeignKey("WorkerAdvanceId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceInstallment", b =>
+                {
+                    b.HasOne("Cane360.Domain.Payroll.PayrollPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("PayrollPeriodId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Payroll.WorkerAdvance", null)
+                        .WithMany("Installments")
+                        .HasForeignKey("WorkerAdvanceId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.AdvanceIssue", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("PayingPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Labour.WorkerProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivingWorkerId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Payroll.WorkerAdvance", null)
+                        .WithMany()
+                        .HasForeignKey("WorkerAdvanceId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.PayrollAuditEventLink", b =>
+                {
+                    b.HasOne("Cane360.Domain.Farms.Farm", null)
+                        .WithMany()
+                        .HasForeignKey("FarmId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Payroll.AdvanceApproval", null)
+                        .WithMany()
+                        .HasForeignKey("AdvanceApprovalId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Payroll.AdvanceIssue", null)
+                        .WithMany()
+                        .HasForeignKey("AdvanceIssueId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Auditing.AuditEvent", null)
+                        .WithMany()
+                        .HasForeignKey("AuditEventId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Payroll.PayrollPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("PayrollPeriodId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Payroll.WorkerAdvance", null)
+                        .WithMany()
+                        .HasForeignKey("WorkerAdvanceId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.PayrollPeriod", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CancelledByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("CancelledByPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Farms.Farm", null)
+                        .WithMany()
+                        .HasForeignKey("FarmId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("OpenedByPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.WorkerAdvance", b =>
+                {
+                    b.HasOne("Cane360.Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Activities.Person", null)
+                        .WithMany()
+                        .HasForeignKey("RequestingPersonId", "FarmId")
+                        .HasPrincipalKey("Id", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Cane360.Domain.Payroll.PayrollPeriod", null)
+                        .WithMany()
+                        .HasForeignKey("RecoveryStartPayrollPeriodId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Labour.WorkerProfile", null)
+                        .WithMany()
+                        .HasForeignKey("WorkerProfileId", "TenantId", "FarmId")
+                        .HasPrincipalKey("Id", "TenantId", "FarmId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -6343,6 +6976,11 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Navigation("Scopes");
 
                     b.Navigation("Verification");
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Payroll.WorkerAdvance", b =>
+                {
+                    b.Navigation("Installments");
                 });
 #pragma warning restore 612, 618
         }

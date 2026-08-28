@@ -4,5 +4,6 @@ global using Cane360.Application.Common.Exceptions;
 global using Cane360.Domain.Activities;
 global using Cane360.Domain.Farms;
 global using Cane360.Domain.Inventory;
+global using Cane360.Domain.Payroll;
 global using FluentValidation;
 global using MediatR;

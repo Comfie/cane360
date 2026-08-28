@@ -5,6 +5,7 @@ using Cane360.Domain.Activities;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Labour;
 using Cane360.Domain.Inventory;
+using Cane360.Domain.Payroll;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<ControlException> ControlExceptions => Set<ControlException>();
     public DbSet<FieldAccountabilityCorrection> FieldAccountabilityCorrections => Set<FieldAccountabilityCorrection>();
     public DbSet<ManagerInvitation> ManagerInvitations => Set<ManagerInvitation>();
+    public DbSet<PayrollPeriod> PayrollPeriods => Set<PayrollPeriod>();
+    public DbSet<WorkerAdvance> WorkerAdvances => Set<WorkerAdvance>();
+    public DbSet<AdvanceInstallment> AdvanceInstallments => Set<AdvanceInstallment>();
+    public DbSet<AdvanceApproval> AdvanceApprovals => Set<AdvanceApproval>();
+    public DbSet<AdvanceIssue> AdvanceIssues => Set<AdvanceIssue>();
+    public DbSet<PayrollAuditEventLink> PayrollAuditEventLinks => Set<PayrollAuditEventLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -7,7 +7,7 @@ const expectedRoutes = [
   '/farm',
   '/fields',
   '/activities',
-  '/labour',
+  '/payroll',
   '/inventory',
   '/finance',
   '/reports',
