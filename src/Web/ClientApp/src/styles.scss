@@ -3039,3 +3039,129 @@ p {
 .reconciliation-strip .resolved { background: #ecfdf5; color: #166534; }
 .blocking-note { display: block; margin-top: .45rem; color: #9a3412; }
 @media (max-width: 480px) { .reconciliation-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Phase 6A payroll readiness */
+.payroll-page { min-width: 0; }
+.payroll-page > * { min-width: 0; max-width: 100%; }
+.payroll-page .record-panel { min-width: 0; overflow: hidden; }
+.payroll-boundary, .success-banner { display: flex; align-items: center; gap: var(--space-3); margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--cane-200); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--cane-50) 78%, white); }
+.payroll-boundary span { flex: 1; min-width: 0; }
+.payroll-boundary em { padding: .2rem .55rem; border-radius: 999px; background: var(--cane-800); color: white; font-size: .72rem; font-style: normal; font-weight: 750; }
+.success-banner { border-color: color-mix(in srgb, var(--cane-500) 42%, transparent); color: var(--cane-800); }
+.payroll-page .section-heading {
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+}
+.payroll-page .section-heading h2 { display: flex; align-items: center; gap: var(--space-2); }
+.payroll-create-period, .preflight-filters, .advance-filters { display: flex; align-items: end; gap: var(--space-3); padding: var(--space-4); border-block: 1px solid var(--border); background: var(--surface-subtle); }
+.payroll-create-period label, .preflight-filters label, .advance-filters label { display: grid; flex: 1; min-width: 0; gap: var(--space-1); font-size: .74rem; font-weight: 700; }
+.payroll-create-period button { min-width: 12rem; }
+.payroll-table { min-width: 0; }
+.payroll-table-heading, .payroll-table > article { display: grid; align-items: start; gap: var(--space-4); padding: var(--space-4) var(--space-5); }
+.period-table .payroll-table-heading, .period-table > article { grid-template-columns: minmax(9rem, 1.25fr) minmax(8rem, 1fr) minmax(6.5rem, .75fr) minmax(9rem, 1fr) minmax(9rem, auto); }
+.preflight-table .payroll-table-heading, .preflight-table > article { grid-template-columns: minmax(9rem, 1fr) minmax(10rem, 1.15fr) minmax(10rem, 1fr) minmax(13rem, 1.5fr); }
+.payroll-table-heading { color: var(--text-muted); background: var(--surface-subtle); font-size: .68rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.payroll-table > article { position: relative; border-top: 1px solid var(--border); }
+.payroll-table > article.is-selected { box-shadow: inset .22rem 0 var(--cane-600); background: color-mix(in srgb, var(--cane-50) 48%, transparent); }
+.payroll-table > article > span { display: grid; min-width: 0; gap: .18rem; }
+.payroll-table small { color: var(--text-muted); line-height: 1.38; }
+.payroll-row-select { display: grid; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; text-align: left; box-shadow: none; }
+.payroll-row-select:is(:hover, :focus-visible) strong { color: var(--cane-700); }
+.inline-confirm { grid-column: 1 / -1; display: flex; align-items: end; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--error-200); border-radius: var(--radius-md); background: var(--error-50); }
+.inline-confirm label { display: grid; flex: 1; gap: var(--space-1); }
+.inline-confirm span { display: flex; gap: var(--space-2); }
+.payroll-empty { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-height: 7rem; padding: var(--space-5); color: var(--text-muted); text-align: left; }
+.payroll-empty span { display: grid; gap: var(--space-1); }
+.preflight-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+.preflight-summary span { display: grid; gap: var(--space-1); padding: var(--space-4); background: var(--surface-raised); }
+.preflight-summary strong { font-size: 1.35rem; }
+.monthly-proration-warning { display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: 1px solid color-mix(in srgb, #c68b2d 45%, transparent); background: color-mix(in srgb, #fff1ce 72%, transparent); color: #6f4a0b; }
+.monthly-proration-warning span { display: grid; gap: .1rem; }
+.preflight-group-totals { display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--border); }
+.preflight-group-totals > div { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.preflight-group-totals > div > span { display: grid; padding: .35rem .55rem; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: .76rem; }
+.preflight-group-totals small { color: var(--text-muted); }
+.monthly-mark { width: fit-content; padding: .12rem .4rem; border-radius: 999px; background: #fff1ce; color: #76500b; font-size: .66rem; font-style: normal; font-weight: 750; }
+.blocker-list { display: grid; gap: .3rem; margin: .4rem 0; padding: 0; list-style: none; }
+.blocker-list li { display: grid; gap: .12rem; padding-left: .55rem; border-left: 2px solid var(--error-200); }
+.blocker-list code { width: fit-content; color: var(--error-700); font-size: .62rem; overflow-wrap: anywhere; }
+.blocker-list span { font-size: .72rem; line-height: 1.35; }
+.preflight-table details { margin-top: var(--space-2); }
+.preflight-table summary { display: flex; align-items: center; gap: var(--space-1); color: var(--cane-700); font-size: .72rem; font-weight: 750; cursor: pointer; }
+.preflight-table details ol { display: grid; gap: .35rem; margin: .5rem 0 0; padding-left: 1.1rem; }
+.preflight-table details li { display: grid; font-size: .7rem; }
+.preflight-table details code { color: var(--text-muted); }
+.payroll-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); }
+.payroll-pagination span { color: var(--text-muted); font-size: .74rem; }
+.payroll-pagination button { display: inline-flex; align-items: center; gap: var(--space-1); }
+.advance-editor, .issue-form { margin: var(--space-4); padding: var(--space-4); border: 1px solid var(--cane-200); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--cane-50) 45%, var(--surface-raised)); box-shadow: var(--shadow-1); }
+.advance-editor > header, .issue-form > header, .schedule-preview > header, .planned-installments > header, .advance-details > header { display: flex; align-items: start; justify-content: space-between; gap: var(--space-3); }
+.advance-editor h3, .issue-form h3, .advance-details h3 { margin: 0; }
+.schedule-actions { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+.schedule-actions > button { width: fit-content; }
+.schedule-preview { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--border); }
+.schedule-preview > header, .schedule-preview > span { display: grid; grid-template-columns: 2.5rem minmax(8rem, 1fr) auto auto; align-items: center; gap: var(--space-2); padding: .55rem .7rem; background: var(--surface-raised); }
+.schedule-preview > header { grid-template-columns: 1fr auto; }
+.schedule-preview em { color: var(--cane-700); font-size: .65rem; font-style: normal; font-weight: 750; }
+.advance-workspace { display: grid; grid-template-columns: minmax(15rem, .8fr) minmax(24rem, 1.6fr); min-width: 0; border-top: 1px solid var(--border); }
+.advance-register { border-right: 1px solid var(--border); }
+.advance-register > button { display: flex; width: 100%; align-items: start; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; color: inherit; text-align: left; box-shadow: none; }
+.advance-register > button.is-selected { box-shadow: inset .22rem 0 var(--cane-600); background: var(--cane-50); }
+.advance-register > button > span { display: grid; min-width: 0; gap: .18rem; }
+.advance-register small { color: var(--text-muted); }
+.advance-details { min-width: 0; padding: var(--space-4); }
+.advance-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-2); margin: var(--space-4) 0; }
+.advance-metrics span { display: grid; gap: .15rem; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.planned-installments, .approval-history, .issue-history { margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border); }
+.planned-installments > span { display: grid; grid-template-columns: 2rem 1fr auto; gap: var(--space-2); padding: .45rem 0; border-bottom: 1px dotted var(--border); }
+.planned-installments p, .approval-history p, .issue-history p { color: var(--text-muted); font-size: .75rem; }
+.approval-history > span { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: var(--space-2); padding: .4rem 0; }
+.issue-history > div { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .25rem var(--space-2); }
+.issue-history > div small { grid-column: 2; }
+.rejection-reason { display: grid; gap: var(--space-1); margin-top: var(--space-4); }
+.advance-actions { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-4) calc(var(--space-4) * -1) calc(var(--space-4) * -1); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--surface-raised) 94%, transparent); backdrop-filter: blur(8px); }
+.advance-actions small { flex: 1 1 100%; color: var(--text-muted); }
+.issue-form .acknowledgement { display: flex; align-items: center; gap: var(--space-2); min-height: 2.75rem; }
+.issue-form .acknowledgement input { width: 1.2rem; height: 1.2rem; }
+
+@media (max-width: 63.99rem) {
+  .period-table .payroll-table-heading, .period-table > article { grid-template-columns: minmax(9rem, 1.2fr) minmax(8rem, 1fr) minmax(6rem, .7fr) minmax(9rem, 1fr); }
+  .period-table .payroll-table-heading span:last-child { display: none; }
+  .period-table > article > .row-actions { grid-column: 1 / -1; }
+  .preflight-table .payroll-table-heading, .preflight-table > article { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .advance-workspace { grid-template-columns: minmax(13rem, .7fr) minmax(20rem, 1.3fr); }
+}
+
+@media (max-width: 39.99rem) {
+  .payroll-page .section-heading { padding: var(--space-4); }
+  .payroll-boundary { align-items: flex-start; }
+  .payroll-boundary em { margin-left: auto; }
+  .payroll-create-period, .preflight-filters, .advance-filters { display: grid; grid-template-columns: 1fr; align-items: stretch; }
+  .payroll-create-period button { min-width: 0; }
+  .payroll-table-heading { display: none; }
+  .period-table > article, .preflight-table > article { display: grid; grid-template-columns: 1fr; gap: var(--space-3); margin: var(--space-3); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-1); }
+  .period-table > article > .row-actions { grid-column: auto; }
+  .inline-confirm { display: grid; grid-column: auto; }
+  .inline-confirm span { display: grid; }
+  .preflight-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .preflight-group-totals { grid-template-columns: 1fr; }
+  .preflight-group-totals > div { align-items: stretch; }
+  .preflight-group-totals > div > strong { flex: 1 1 100%; }
+  .preflight-group-totals > div > span { flex: 1 1 100%; }
+  .payroll-pagination { flex-wrap: wrap; }
+  .payroll-pagination span { order: -1; flex: 1 1 100%; text-align: center; }
+  .advance-editor, .issue-form { margin: var(--space-3); padding: var(--space-3); }
+  .advance-editor .form-grid, .issue-form .form-grid { grid-template-columns: 1fr; }
+  .schedule-preview > span { grid-template-columns: 2rem 1fr auto; }
+  .schedule-preview > span em { grid-column: 2 / -1; }
+  .advance-workspace { display: block; }
+  .advance-register { border-right: 0; border-bottom: 1px solid var(--border); }
+  .advance-register > button { min-height: 3.25rem; }
+  .advance-details { padding: var(--space-3); }
+  .advance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .approval-history > span { grid-template-columns: auto 1fr; }
+  .approval-history > span small { grid-column: 1 / -1; }
+  .advance-actions { margin-inline: calc(var(--space-3) * -1); margin-bottom: calc(var(--space-3) * -1); padding-bottom: max(var(--space-3), env(safe-area-inset-bottom)); }
+  .advance-actions button { min-height: 2.75rem; }
+}

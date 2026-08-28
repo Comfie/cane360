@@ -5664,6 +5664,858 @@ export class InventoryClient {
     }
 }
 
+export class PayrollClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    workspace(): Promise<PayrollWorkspaceDto> {
+        let url_ = this.baseUrl + "/api/payroll/workspace";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkspace(_response);
+        });
+    }
+
+    protected processWorkspace(response: Response): Promise<PayrollWorkspaceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollWorkspaceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollWorkspaceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    periodsAll(): Promise<PayrollPeriodDto[]> {
+        let url_ = this.baseUrl + "/api/payroll/periods";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPeriodsAll(_response);
+        });
+    }
+
+    protected processPeriodsAll(response: Response): Promise<PayrollPeriodDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PayrollPeriodDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPeriodDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    periods(body: CreatePayrollPeriodRequest): Promise<PayrollPeriodDto> {
+        let url_ = this.baseUrl + "/api/payroll/periods";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPeriods(_response);
+        });
+    }
+
+    protected processPeriods(response: Response): Promise<PayrollPeriodDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPeriodDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPeriodDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    open(periodId: string, body: VersionedPayrollRequest): Promise<PayrollPeriodDto> {
+        let url_ = this.baseUrl + "/api/payroll/periods/{periodId}/open";
+        if (periodId === undefined || periodId === null)
+            throw new globalThis.Error("The parameter 'periodId' must be defined.");
+        url_ = url_.replace("{periodId}", encodeURIComponent("" + periodId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOpen(_response);
+        });
+    }
+
+    protected processOpen(response: Response): Promise<PayrollPeriodDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPeriodDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPeriodDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cancel4(periodId: string, body: CancelPayrollPeriodRequest): Promise<PayrollPeriodDto> {
+        let url_ = this.baseUrl + "/api/payroll/periods/{periodId}/cancel";
+        if (periodId === undefined || periodId === null)
+            throw new globalThis.Error("The parameter 'periodId' must be defined.");
+        url_ = url_.replace("{periodId}", encodeURIComponent("" + periodId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCancel4(_response);
+        });
+    }
+
+    protected processCancel4(response: Response): Promise<PayrollPeriodDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPeriodDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPeriodDto>(null as any);
+    }
+
+    /**
+     * @param workerId (optional)
+     * @param eligible (optional)
+     * @param evidenceType (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
+     * @return OK
+     */
+    preflight(periodId: string, workerId: string | undefined, eligible: boolean | undefined, evidenceType: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<PayrollPreflightDto> {
+        let url_ = this.baseUrl + "/api/payroll/periods/{periodId}/preflight?";
+        if (periodId === undefined || periodId === null)
+            throw new globalThis.Error("The parameter 'periodId' must be defined.");
+        url_ = url_.replace("{periodId}", encodeURIComponent("" + periodId));
+        if (workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' cannot be null.");
+        else if (workerId !== undefined)
+            url_ += "workerId=" + encodeURIComponent("" + workerId) + "&";
+        if (eligible === null)
+            throw new globalThis.Error("The parameter 'eligible' cannot be null.");
+        else if (eligible !== undefined)
+            url_ += "eligible=" + encodeURIComponent("" + eligible) + "&";
+        if (evidenceType === null)
+            throw new globalThis.Error("The parameter 'evidenceType' cannot be null.");
+        else if (evidenceType !== undefined)
+            url_ += "evidenceType=" + encodeURIComponent("" + evidenceType) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPreflight(_response);
+        });
+    }
+
+    protected processPreflight(response: Response): Promise<PayrollPreflightDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPreflightDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPreflightDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    advancesAll(): Promise<WorkerAdvanceDto[]> {
+        let url_ = this.baseUrl + "/api/payroll/advances";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAdvancesAll(_response);
+        });
+    }
+
+    protected processAdvancesAll(response: Response): Promise<WorkerAdvanceDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(WorkerAdvanceDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    advancesPOST(body: CreateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAdvancesPOST(_response);
+        });
+    }
+
+    protected processAdvancesPOST(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    advancesGET(advanceId: string): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAdvancesGET(_response);
+        });
+    }
+
+    protected processAdvancesGET(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    advancesPUT(advanceId: string, body: UpdateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAdvancesPUT(_response);
+        });
+    }
+
+    protected processAdvancesPUT(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    schedulePreview(body: PreviewAdvanceScheduleRequest): Promise<AdvanceSchedulePreviewDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/schedule-preview";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSchedulePreview(_response);
+        });
+    }
+
+    protected processSchedulePreview(response: Response): Promise<AdvanceSchedulePreviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdvanceSchedulePreviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdvanceSchedulePreviewDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cancel5(advanceId: string, body: CancelWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/cancel";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCancel5(_response);
+        });
+    }
+
+    protected processCancel5(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    submit4(advanceId: string, body: VersionedPayrollRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/submit";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmit4(_response);
+        });
+    }
+
+    protected processSubmit4(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    decision5(advanceId: string, body: DecideWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/decision";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDecision5(_response);
+        });
+    }
+
+    protected processDecision5(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    issue(advanceId: string, body: IssueWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+        let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/issue";
+        if (advanceId === undefined || advanceId === null)
+            throw new globalThis.Error("The parameter 'advanceId' must be defined.");
+        url_ = url_.replace("{advanceId}", encodeURIComponent("" + advanceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processIssue(_response);
+        });
+    }
+
+    protected processIssue(response: Response): Promise<WorkerAdvanceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerAdvanceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerAdvanceDto>(null as any);
+    }
+}
+
 export class UsersClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -7170,6 +8022,277 @@ export interface IAddUnexpectedStockCountLineRequest {
     [key: string]: any;
 }
 
+export class AdvanceApprovalDto implements IAdvanceApprovalDto {
+    advanceVersion!: number;
+    approved!: boolean;
+    decidedAt!: Date;
+    reason!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAdvanceApprovalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.advanceVersion = _data["advanceVersion"];
+            this.approved = _data["approved"];
+            this.decidedAt = _data["decidedAt"] ? new Date(_data["decidedAt"].toString()) : undefined as any;
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): AdvanceApprovalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdvanceApprovalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["advanceVersion"] = this.advanceVersion;
+        data["approved"] = this.approved;
+        data["decidedAt"] = this.decidedAt ? this.decidedAt.toISOString() : undefined as any;
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface IAdvanceApprovalDto {
+    advanceVersion: number;
+    approved: boolean;
+    decidedAt: Date;
+    reason: string | undefined;
+
+    [key: string]: any;
+}
+
+export class AdvanceInstallmentDto implements IAdvanceInstallmentDto {
+    sequence!: number;
+    payrollPeriodId!: string;
+    amountUsd!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAdvanceInstallmentDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.sequence = _data["sequence"];
+            this.payrollPeriodId = _data["payrollPeriodId"];
+            this.amountUsd = _data["amountUsd"];
+        }
+    }
+
+    static fromJS(data: any): AdvanceInstallmentDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdvanceInstallmentDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["sequence"] = this.sequence;
+        data["payrollPeriodId"] = this.payrollPeriodId;
+        data["amountUsd"] = this.amountUsd;
+        return data;
+    }
+}
+
+export interface IAdvanceInstallmentDto {
+    sequence: number;
+    payrollPeriodId: string;
+    amountUsd: number;
+
+    [key: string]: any;
+}
+
+export class AdvanceIssueDto implements IAdvanceIssueDto {
+    paymentMethod!: string;
+    amountUsd!: number;
+    issuedAt!: Date;
+    payingPersonId!: string | undefined;
+    receivingWorkerId!: string | undefined;
+    workerAcknowledged!: boolean | undefined;
+    provider!: string | undefined;
+    maskedRecipientNumber!: string | undefined;
+    externalReference!: string | undefined;
+    transactionStatus!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAdvanceIssueDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.paymentMethod = _data["paymentMethod"];
+            this.amountUsd = _data["amountUsd"];
+            this.issuedAt = _data["issuedAt"] ? new Date(_data["issuedAt"].toString()) : undefined as any;
+            this.payingPersonId = _data["payingPersonId"];
+            this.receivingWorkerId = _data["receivingWorkerId"];
+            this.workerAcknowledged = _data["workerAcknowledged"];
+            this.provider = _data["provider"];
+            this.maskedRecipientNumber = _data["maskedRecipientNumber"];
+            this.externalReference = _data["externalReference"];
+            this.transactionStatus = _data["transactionStatus"];
+        }
+    }
+
+    static fromJS(data: any): AdvanceIssueDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdvanceIssueDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["paymentMethod"] = this.paymentMethod;
+        data["amountUsd"] = this.amountUsd;
+        data["issuedAt"] = this.issuedAt ? this.issuedAt.toISOString() : undefined as any;
+        data["payingPersonId"] = this.payingPersonId;
+        data["receivingWorkerId"] = this.receivingWorkerId;
+        data["workerAcknowledged"] = this.workerAcknowledged;
+        data["provider"] = this.provider;
+        data["maskedRecipientNumber"] = this.maskedRecipientNumber;
+        data["externalReference"] = this.externalReference;
+        data["transactionStatus"] = this.transactionStatus;
+        return data;
+    }
+}
+
+export interface IAdvanceIssueDto {
+    paymentMethod: string;
+    amountUsd: number;
+    issuedAt: Date;
+    payingPersonId: string | undefined;
+    receivingWorkerId: string | undefined;
+    workerAcknowledged: boolean | undefined;
+    provider: string | undefined;
+    maskedRecipientNumber: string | undefined;
+    externalReference: string | undefined;
+    transactionStatus: string | undefined;
+
+    [key: string]: any;
+}
+
+export class AdvanceSchedulePreviewDto implements IAdvanceSchedulePreviewDto {
+    amountUsd!: number;
+    installmentCount!: number;
+    installments!: AdvanceInstallmentDto[];
+    scheduleTotalUsd!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAdvanceSchedulePreviewDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.installments = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.amountUsd = _data["amountUsd"];
+            this.installmentCount = _data["installmentCount"];
+            if (Array.isArray(_data["installments"])) {
+                this.installments = [] as any;
+                for (let item of _data["installments"])
+                    this.installments!.push(AdvanceInstallmentDto.fromJS(item));
+            }
+            this.scheduleTotalUsd = _data["scheduleTotalUsd"];
+        }
+    }
+
+    static fromJS(data: any): AdvanceSchedulePreviewDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdvanceSchedulePreviewDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["amountUsd"] = this.amountUsd;
+        data["installmentCount"] = this.installmentCount;
+        if (Array.isArray(this.installments)) {
+            data["installments"] = [];
+            for (let item of this.installments)
+                data["installments"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["scheduleTotalUsd"] = this.scheduleTotalUsd;
+        return data;
+    }
+}
+
+export interface IAdvanceSchedulePreviewDto {
+    amountUsd: number;
+    installmentCount: number;
+    installments: AdvanceInstallmentDto[];
+    scheduleTotalUsd: number;
+
+    [key: string]: any;
+}
+
 export class ArchiveWorkerRequest implements IArchiveWorkerRequest {
     activeTo!: string;
     expectedVersion!: number;
@@ -7602,6 +8725,58 @@ export interface ICancelInputRequestRequest {
     [key: string]: any;
 }
 
+export class CancelPayrollPeriodRequest implements ICancelPayrollPeriodRequest {
+    expectedVersion!: number;
+    reason!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICancelPayrollPeriodRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): CancelPayrollPeriodRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CancelPayrollPeriodRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface ICancelPayrollPeriodRequest {
+    expectedVersion: number;
+    reason: string;
+
+    [key: string]: any;
+}
+
 export class CancelStockCountRequest implements ICancelStockCountRequest {
     expectedVersion!: number;
     reason!: string;
@@ -7648,6 +8823,58 @@ export class CancelStockCountRequest implements ICancelStockCountRequest {
 }
 
 export interface ICancelStockCountRequest {
+    expectedVersion: number;
+    reason: string;
+
+    [key: string]: any;
+}
+
+export class CancelWorkerAdvanceRequest implements ICancelWorkerAdvanceRequest {
+    expectedVersion!: number;
+    reason!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICancelWorkerAdvanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): CancelWorkerAdvanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CancelWorkerAdvanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface ICancelWorkerAdvanceRequest {
     expectedVersion: number;
     reason: string;
 
@@ -9090,6 +10317,58 @@ export interface ICreateManagerInvitationRequest {
     [key: string]: any;
 }
 
+export class CreatePayrollPeriodRequest implements ICreatePayrollPeriodRequest {
+    year!: number;
+    month!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreatePayrollPeriodRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.year = _data["year"];
+            this.month = _data["month"];
+        }
+    }
+
+    static fromJS(data: any): CreatePayrollPeriodRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreatePayrollPeriodRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["year"] = this.year;
+        data["month"] = this.month;
+        return data;
+    }
+}
+
+export interface ICreatePayrollPeriodRequest {
+    year: number;
+    month: number;
+
+    [key: string]: any;
+}
+
 export class CreatePersonRequest implements ICreatePersonRequest {
     displayName!: string;
     phone!: string | undefined;
@@ -9818,6 +11097,86 @@ export interface ICreateUnitOfMeasureRequest {
     name: string;
     dimension: string;
     decimalPlaces: number;
+
+    [key: string]: any;
+}
+
+export class CreateWorkerAdvanceRequest implements ICreateWorkerAdvanceRequest {
+    workerId!: string;
+    amountUsd!: number;
+    reason!: string;
+    requestedEventDate!: string;
+    recoveryStartPayrollPeriodId!: string;
+    installmentCount!: number | undefined;
+    installmentPeriodIds!: string[] | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateWorkerAdvanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.amountUsd = _data["amountUsd"];
+            this.reason = _data["reason"];
+            this.requestedEventDate = _data["requestedEventDate"];
+            this.recoveryStartPayrollPeriodId = _data["recoveryStartPayrollPeriodId"];
+            this.installmentCount = _data["installmentCount"];
+            if (Array.isArray(_data["installmentPeriodIds"])) {
+                this.installmentPeriodIds = [] as any;
+                for (let item of _data["installmentPeriodIds"])
+                    this.installmentPeriodIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateWorkerAdvanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateWorkerAdvanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["amountUsd"] = this.amountUsd;
+        data["reason"] = this.reason;
+        data["requestedEventDate"] = this.requestedEventDate;
+        data["recoveryStartPayrollPeriodId"] = this.recoveryStartPayrollPeriodId;
+        data["installmentCount"] = this.installmentCount;
+        if (Array.isArray(this.installmentPeriodIds)) {
+            data["installmentPeriodIds"] = [];
+            for (let item of this.installmentPeriodIds)
+                data["installmentPeriodIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface ICreateWorkerAdvanceRequest {
+    workerId: string;
+    amountUsd: number;
+    reason: string;
+    requestedEventDate: string;
+    recoveryStartPayrollPeriodId: string;
+    installmentCount: number | undefined;
+    installmentPeriodIds: string[] | undefined;
 
     [key: string]: any;
 }
@@ -10914,6 +12273,66 @@ export class DecideStockAdjustmentRequest implements IDecideStockAdjustmentReque
 export interface IDecideStockAdjustmentRequest {
     expectedVersion: number;
     outcome: number;
+    reason: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class DecideWorkerAdvanceRequest implements IDecideWorkerAdvanceRequest {
+    expectedVersion!: number;
+    approved!: boolean;
+    reason!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IDecideWorkerAdvanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.approved = _data["approved"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): DecideWorkerAdvanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecideWorkerAdvanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["approved"] = this.approved;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IDecideWorkerAdvanceRequest {
+    expectedVersion: number;
+    approved: boolean;
     reason: string | undefined;
     idempotencyKey: string;
 
@@ -12828,6 +14247,94 @@ export interface IInventoryWorkspaceDto {
     [key: string]: any;
 }
 
+export class IssueWorkerAdvanceRequest implements IIssueWorkerAdvanceRequest {
+    expectedVersion!: number;
+    paymentMethod!: number;
+    amountUsd!: number;
+    issuedAt!: Date;
+    payingPersonId!: string | undefined;
+    workerAcknowledged!: boolean | undefined;
+    provider!: string | undefined;
+    recipientNumber!: string | undefined;
+    externalReference!: string | undefined;
+    transactionStatus!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IIssueWorkerAdvanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.paymentMethod = _data["paymentMethod"];
+            this.amountUsd = _data["amountUsd"];
+            this.issuedAt = _data["issuedAt"] ? new Date(_data["issuedAt"].toString()) : undefined as any;
+            this.payingPersonId = _data["payingPersonId"];
+            this.workerAcknowledged = _data["workerAcknowledged"];
+            this.provider = _data["provider"];
+            this.recipientNumber = _data["recipientNumber"];
+            this.externalReference = _data["externalReference"];
+            this.transactionStatus = _data["transactionStatus"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): IssueWorkerAdvanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new IssueWorkerAdvanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["paymentMethod"] = this.paymentMethod;
+        data["amountUsd"] = this.amountUsd;
+        data["issuedAt"] = this.issuedAt ? this.issuedAt.toISOString() : undefined as any;
+        data["payingPersonId"] = this.payingPersonId;
+        data["workerAcknowledged"] = this.workerAcknowledged;
+        data["provider"] = this.provider;
+        data["recipientNumber"] = this.recipientNumber;
+        data["externalReference"] = this.externalReference;
+        data["transactionStatus"] = this.transactionStatus;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IIssueWorkerAdvanceRequest {
+    expectedVersion: number;
+    paymentMethod: number;
+    amountUsd: number;
+    issuedAt: Date;
+    payingPersonId: string | undefined;
+    workerAcknowledged: boolean | undefined;
+    provider: string | undefined;
+    recipientNumber: string | undefined;
+    externalReference: string | undefined;
+    transactionStatus: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class LabourActivityDto implements ILabourActivityDto {
     id!: string;
     activityTypeId!: string;
@@ -13516,6 +15023,387 @@ export interface IManagerInvitationDto {
     [key: string]: any;
 }
 
+export class PayrollPeriodDto implements IPayrollPeriodDto {
+    id!: string;
+    year!: number;
+    month!: number;
+    startDate!: Date;
+    endDate!: Date;
+    displayName!: string;
+    status!: string;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollPeriodDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.year = _data["year"];
+            this.month = _data["month"];
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.displayName = _data["displayName"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): PayrollPeriodDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollPeriodDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["year"] = this.year;
+        data["month"] = this.month;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["displayName"] = this.displayName;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IPayrollPeriodDto {
+    id: string;
+    year: number;
+    month: number;
+    startDate: Date;
+    endDate: Date;
+    displayName: string;
+    status: string;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class PayrollPersonOptionDto implements IPayrollPersonOptionDto {
+    id!: string;
+    displayName!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollPersonOptionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+        }
+    }
+
+    static fromJS(data: any): PayrollPersonOptionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollPersonOptionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        return data;
+    }
+}
+
+export interface IPayrollPersonOptionDto {
+    id: string;
+    displayName: string;
+
+    [key: string]: any;
+}
+
+export class PayrollPreflightDto implements IPayrollPreflightDto {
+    payrollPeriodId!: string;
+    monthlyProrationNotice!: string;
+    evidence!: PreflightEvidenceDto[];
+    eligibleCount!: number;
+    blockedCount!: number;
+    eligibleWorkerCount!: number;
+    blockedWorkerCount!: number;
+    totalCount!: number;
+    page!: number;
+    pageSize!: number;
+    workerTotals!: PreflightWorkerTotalDto[];
+    evidenceTypeTotals!: PreflightEvidenceTypeTotalDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollPreflightDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.evidence = [];
+            this.workerTotals = [];
+            this.evidenceTypeTotals = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.payrollPeriodId = _data["payrollPeriodId"];
+            this.monthlyProrationNotice = _data["monthlyProrationNotice"];
+            if (Array.isArray(_data["evidence"])) {
+                this.evidence = [] as any;
+                for (let item of _data["evidence"])
+                    this.evidence!.push(PreflightEvidenceDto.fromJS(item));
+            }
+            this.eligibleCount = _data["eligibleCount"];
+            this.blockedCount = _data["blockedCount"];
+            this.eligibleWorkerCount = _data["eligibleWorkerCount"];
+            this.blockedWorkerCount = _data["blockedWorkerCount"];
+            this.totalCount = _data["totalCount"];
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+            if (Array.isArray(_data["workerTotals"])) {
+                this.workerTotals = [] as any;
+                for (let item of _data["workerTotals"])
+                    this.workerTotals!.push(PreflightWorkerTotalDto.fromJS(item));
+            }
+            if (Array.isArray(_data["evidenceTypeTotals"])) {
+                this.evidenceTypeTotals = [] as any;
+                for (let item of _data["evidenceTypeTotals"])
+                    this.evidenceTypeTotals!.push(PreflightEvidenceTypeTotalDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PayrollPreflightDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollPreflightDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["payrollPeriodId"] = this.payrollPeriodId;
+        data["monthlyProrationNotice"] = this.monthlyProrationNotice;
+        if (Array.isArray(this.evidence)) {
+            data["evidence"] = [];
+            for (let item of this.evidence)
+                data["evidence"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["eligibleCount"] = this.eligibleCount;
+        data["blockedCount"] = this.blockedCount;
+        data["eligibleWorkerCount"] = this.eligibleWorkerCount;
+        data["blockedWorkerCount"] = this.blockedWorkerCount;
+        data["totalCount"] = this.totalCount;
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        if (Array.isArray(this.workerTotals)) {
+            data["workerTotals"] = [];
+            for (let item of this.workerTotals)
+                data["workerTotals"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.evidenceTypeTotals)) {
+            data["evidenceTypeTotals"] = [];
+            for (let item of this.evidenceTypeTotals)
+                data["evidenceTypeTotals"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPayrollPreflightDto {
+    payrollPeriodId: string;
+    monthlyProrationNotice: string;
+    evidence: PreflightEvidenceDto[];
+    eligibleCount: number;
+    blockedCount: number;
+    eligibleWorkerCount: number;
+    blockedWorkerCount: number;
+    totalCount: number;
+    page: number;
+    pageSize: number;
+    workerTotals: PreflightWorkerTotalDto[];
+    evidenceTypeTotals: PreflightEvidenceTypeTotalDto[];
+
+    [key: string]: any;
+}
+
+export class PayrollWorkerOptionDto implements IPayrollWorkerOptionDto {
+    id!: string;
+    displayName!: string;
+    status!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollWorkerOptionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+            this.status = _data["status"];
+        }
+    }
+
+    static fromJS(data: any): PayrollWorkerOptionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollWorkerOptionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        data["status"] = this.status;
+        return data;
+    }
+}
+
+export interface IPayrollWorkerOptionDto {
+    id: string;
+    displayName: string;
+    status: string;
+
+    [key: string]: any;
+}
+
+export class PayrollWorkspaceDto implements IPayrollWorkspaceDto {
+    role!: string;
+    workers!: PayrollWorkerOptionDto[];
+    payingPersons!: PayrollPersonOptionDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollWorkspaceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.workers = [];
+            this.payingPersons = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.role = _data["role"];
+            if (Array.isArray(_data["workers"])) {
+                this.workers = [] as any;
+                for (let item of _data["workers"])
+                    this.workers!.push(PayrollWorkerOptionDto.fromJS(item));
+            }
+            if (Array.isArray(_data["payingPersons"])) {
+                this.payingPersons = [] as any;
+                for (let item of _data["payingPersons"])
+                    this.payingPersons!.push(PayrollPersonOptionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PayrollWorkspaceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollWorkspaceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["role"] = this.role;
+        if (Array.isArray(this.workers)) {
+            data["workers"] = [];
+            for (let item of this.workers)
+                data["workers"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.payingPersons)) {
+            data["payingPersons"] = [];
+            for (let item of this.payingPersons)
+                data["payingPersons"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPayrollWorkspaceDto {
+    role: string;
+    workers: PayrollWorkerOptionDto[];
+    payingPersons: PayrollPersonOptionDto[];
+
+    [key: string]: any;
+}
+
 export class PersonDto implements IPersonDto {
     id!: string;
     displayName!: string;
@@ -13882,6 +15770,397 @@ export class PostStockReturnRequest implements IPostStockReturnRequest {
 export interface IPostStockReturnRequest {
     expectedVersion: number;
     idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class PreflightEvidenceDto implements IPreflightEvidenceDto {
+    workerId!: string;
+    workerName!: string;
+    evidenceId!: string;
+    evidenceType!: string;
+    eventDate!: Date;
+    fieldId!: string;
+    fieldName!: string;
+    cropCycleName!: string;
+    activityIds!: string[];
+    activityNames!: string[];
+    quantity!: number | undefined;
+    quantityOrAttendanceBasis!: string;
+    appliedRateUsd!: number;
+    payBasis!: string;
+    eligible!: boolean;
+    blockerCodes!: string[];
+    blockerExplanations!: string[];
+    sourceChain!: PreflightSourceLinkDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IPreflightEvidenceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.activityIds = [];
+            this.activityNames = [];
+            this.blockerCodes = [];
+            this.blockerExplanations = [];
+            this.sourceChain = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.workerName = _data["workerName"];
+            this.evidenceId = _data["evidenceId"];
+            this.evidenceType = _data["evidenceType"];
+            this.eventDate = _data["eventDate"] ? new Date(_data["eventDate"].toString()) : undefined as any;
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.cropCycleName = _data["cropCycleName"];
+            if (Array.isArray(_data["activityIds"])) {
+                this.activityIds = [] as any;
+                for (let item of _data["activityIds"])
+                    this.activityIds!.push(item);
+            }
+            if (Array.isArray(_data["activityNames"])) {
+                this.activityNames = [] as any;
+                for (let item of _data["activityNames"])
+                    this.activityNames!.push(item);
+            }
+            this.quantity = _data["quantity"];
+            this.quantityOrAttendanceBasis = _data["quantityOrAttendanceBasis"];
+            this.appliedRateUsd = _data["appliedRateUsd"];
+            this.payBasis = _data["payBasis"];
+            this.eligible = _data["eligible"];
+            if (Array.isArray(_data["blockerCodes"])) {
+                this.blockerCodes = [] as any;
+                for (let item of _data["blockerCodes"])
+                    this.blockerCodes!.push(item);
+            }
+            if (Array.isArray(_data["blockerExplanations"])) {
+                this.blockerExplanations = [] as any;
+                for (let item of _data["blockerExplanations"])
+                    this.blockerExplanations!.push(item);
+            }
+            if (Array.isArray(_data["sourceChain"])) {
+                this.sourceChain = [] as any;
+                for (let item of _data["sourceChain"])
+                    this.sourceChain!.push(PreflightSourceLinkDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PreflightEvidenceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreflightEvidenceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["workerName"] = this.workerName;
+        data["evidenceId"] = this.evidenceId;
+        data["evidenceType"] = this.evidenceType;
+        data["eventDate"] = this.eventDate ? formatDate(this.eventDate) : undefined as any;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["cropCycleName"] = this.cropCycleName;
+        if (Array.isArray(this.activityIds)) {
+            data["activityIds"] = [];
+            for (let item of this.activityIds)
+                data["activityIds"].push(item);
+        }
+        if (Array.isArray(this.activityNames)) {
+            data["activityNames"] = [];
+            for (let item of this.activityNames)
+                data["activityNames"].push(item);
+        }
+        data["quantity"] = this.quantity;
+        data["quantityOrAttendanceBasis"] = this.quantityOrAttendanceBasis;
+        data["appliedRateUsd"] = this.appliedRateUsd;
+        data["payBasis"] = this.payBasis;
+        data["eligible"] = this.eligible;
+        if (Array.isArray(this.blockerCodes)) {
+            data["blockerCodes"] = [];
+            for (let item of this.blockerCodes)
+                data["blockerCodes"].push(item);
+        }
+        if (Array.isArray(this.blockerExplanations)) {
+            data["blockerExplanations"] = [];
+            for (let item of this.blockerExplanations)
+                data["blockerExplanations"].push(item);
+        }
+        if (Array.isArray(this.sourceChain)) {
+            data["sourceChain"] = [];
+            for (let item of this.sourceChain)
+                data["sourceChain"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPreflightEvidenceDto {
+    workerId: string;
+    workerName: string;
+    evidenceId: string;
+    evidenceType: string;
+    eventDate: Date;
+    fieldId: string;
+    fieldName: string;
+    cropCycleName: string;
+    activityIds: string[];
+    activityNames: string[];
+    quantity: number | undefined;
+    quantityOrAttendanceBasis: string;
+    appliedRateUsd: number;
+    payBasis: string;
+    eligible: boolean;
+    blockerCodes: string[];
+    blockerExplanations: string[];
+    sourceChain: PreflightSourceLinkDto[];
+
+    [key: string]: any;
+}
+
+export class PreflightEvidenceTypeTotalDto implements IPreflightEvidenceTypeTotalDto {
+    evidenceType!: string;
+    eligibleCount!: number;
+    blockedCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPreflightEvidenceTypeTotalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.evidenceType = _data["evidenceType"];
+            this.eligibleCount = _data["eligibleCount"];
+            this.blockedCount = _data["blockedCount"];
+        }
+    }
+
+    static fromJS(data: any): PreflightEvidenceTypeTotalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreflightEvidenceTypeTotalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["evidenceType"] = this.evidenceType;
+        data["eligibleCount"] = this.eligibleCount;
+        data["blockedCount"] = this.blockedCount;
+        return data;
+    }
+}
+
+export interface IPreflightEvidenceTypeTotalDto {
+    evidenceType: string;
+    eligibleCount: number;
+    blockedCount: number;
+
+    [key: string]: any;
+}
+
+export class PreflightSourceLinkDto implements IPreflightSourceLinkDto {
+    sourceType!: string;
+    sourceId!: string;
+    label!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPreflightSourceLinkDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.sourceType = _data["sourceType"];
+            this.sourceId = _data["sourceId"];
+            this.label = _data["label"];
+        }
+    }
+
+    static fromJS(data: any): PreflightSourceLinkDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreflightSourceLinkDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["sourceType"] = this.sourceType;
+        data["sourceId"] = this.sourceId;
+        data["label"] = this.label;
+        return data;
+    }
+}
+
+export interface IPreflightSourceLinkDto {
+    sourceType: string;
+    sourceId: string;
+    label: string;
+
+    [key: string]: any;
+}
+
+export class PreflightWorkerTotalDto implements IPreflightWorkerTotalDto {
+    workerId!: string;
+    workerName!: string;
+    eligibleCount!: number;
+    blockedCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPreflightWorkerTotalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.workerName = _data["workerName"];
+            this.eligibleCount = _data["eligibleCount"];
+            this.blockedCount = _data["blockedCount"];
+        }
+    }
+
+    static fromJS(data: any): PreflightWorkerTotalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreflightWorkerTotalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["workerName"] = this.workerName;
+        data["eligibleCount"] = this.eligibleCount;
+        data["blockedCount"] = this.blockedCount;
+        return data;
+    }
+}
+
+export interface IPreflightWorkerTotalDto {
+    workerId: string;
+    workerName: string;
+    eligibleCount: number;
+    blockedCount: number;
+
+    [key: string]: any;
+}
+
+export class PreviewAdvanceScheduleRequest implements IPreviewAdvanceScheduleRequest {
+    amountUsd!: number;
+    recoveryStartPayrollPeriodId!: string;
+    installmentCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPreviewAdvanceScheduleRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.amountUsd = _data["amountUsd"];
+            this.recoveryStartPayrollPeriodId = _data["recoveryStartPayrollPeriodId"];
+            this.installmentCount = _data["installmentCount"];
+        }
+    }
+
+    static fromJS(data: any): PreviewAdvanceScheduleRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreviewAdvanceScheduleRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["amountUsd"] = this.amountUsd;
+        data["recoveryStartPayrollPeriodId"] = this.recoveryStartPayrollPeriodId;
+        data["installmentCount"] = this.installmentCount;
+        return data;
+    }
+}
+
+export interface IPreviewAdvanceScheduleRequest {
+    amountUsd: number;
+    recoveryStartPayrollPeriodId: string;
+    installmentCount: number;
 
     [key: string]: any;
 }
@@ -15906,6 +18185,74 @@ export interface IUpdatePersonRequest {
     [key: string]: any;
 }
 
+export class UpdateWorkerAdvanceRequest implements IUpdateWorkerAdvanceRequest {
+    amountUsd!: number;
+    reason!: string;
+    requestedEventDate!: string;
+    recoveryStartPayrollPeriodId!: string;
+    installmentCount!: number;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateWorkerAdvanceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.amountUsd = _data["amountUsd"];
+            this.reason = _data["reason"];
+            this.requestedEventDate = _data["requestedEventDate"];
+            this.recoveryStartPayrollPeriodId = _data["recoveryStartPayrollPeriodId"];
+            this.installmentCount = _data["installmentCount"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateWorkerAdvanceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateWorkerAdvanceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["amountUsd"] = this.amountUsd;
+        data["reason"] = this.reason;
+        data["requestedEventDate"] = this.requestedEventDate;
+        data["recoveryStartPayrollPeriodId"] = this.recoveryStartPayrollPeriodId;
+        data["installmentCount"] = this.installmentCount;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IUpdateWorkerAdvanceRequest {
+    amountUsd: number;
+    reason: string;
+    requestedEventDate: string;
+    recoveryStartPayrollPeriodId: string;
+    installmentCount: number;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class UserInfoResponse implements IUserInfoResponse {
     email!: string;
     isEmailConfirmed!: boolean;
@@ -16138,6 +18485,54 @@ export interface IVersionedInventoryRequest {
     [key: string]: any;
 }
 
+export class VersionedPayrollRequest implements IVersionedPayrollRequest {
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IVersionedPayrollRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): VersionedPayrollRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new VersionedPayrollRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IVersionedPayrollRequest {
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class VersionedRequest implements IVersionedRequest {
     expectedVersion!: number;
 
@@ -16182,6 +18577,134 @@ export class VersionedRequest implements IVersionedRequest {
 
 export interface IVersionedRequest {
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class WorkerAdvanceDto implements IWorkerAdvanceDto {
+    id!: string;
+    workerId!: string;
+    workerName!: string;
+    requestedAmountUsd!: number;
+    approvedAmountUsd!: number | undefined;
+    reason!: string;
+    requestedEventDate!: Date;
+    requestedAt!: Date;
+    recoveryStartPayrollPeriodId!: string;
+    installmentCount!: number;
+    status!: string;
+    version!: number;
+    outstandingAmountUsd!: number;
+    installments!: AdvanceInstallmentDto[];
+    approvalHistory!: AdvanceApprovalDto[];
+    issue!: AdvanceIssueDto | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerAdvanceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.installments = [];
+            this.approvalHistory = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.workerId = _data["workerId"];
+            this.workerName = _data["workerName"];
+            this.requestedAmountUsd = _data["requestedAmountUsd"];
+            this.approvedAmountUsd = _data["approvedAmountUsd"];
+            this.reason = _data["reason"];
+            this.requestedEventDate = _data["requestedEventDate"] ? new Date(_data["requestedEventDate"].toString()) : undefined as any;
+            this.requestedAt = _data["requestedAt"] ? new Date(_data["requestedAt"].toString()) : undefined as any;
+            this.recoveryStartPayrollPeriodId = _data["recoveryStartPayrollPeriodId"];
+            this.installmentCount = _data["installmentCount"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+            this.outstandingAmountUsd = _data["outstandingAmountUsd"];
+            if (Array.isArray(_data["installments"])) {
+                this.installments = [] as any;
+                for (let item of _data["installments"])
+                    this.installments!.push(AdvanceInstallmentDto.fromJS(item));
+            }
+            if (Array.isArray(_data["approvalHistory"])) {
+                this.approvalHistory = [] as any;
+                for (let item of _data["approvalHistory"])
+                    this.approvalHistory!.push(AdvanceApprovalDto.fromJS(item));
+            }
+            this.issue = _data["issue"] ? AdvanceIssueDto.fromJS(_data["issue"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): WorkerAdvanceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerAdvanceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["workerId"] = this.workerId;
+        data["workerName"] = this.workerName;
+        data["requestedAmountUsd"] = this.requestedAmountUsd;
+        data["approvedAmountUsd"] = this.approvedAmountUsd;
+        data["reason"] = this.reason;
+        data["requestedEventDate"] = this.requestedEventDate ? formatDate(this.requestedEventDate) : undefined as any;
+        data["requestedAt"] = this.requestedAt ? this.requestedAt.toISOString() : undefined as any;
+        data["recoveryStartPayrollPeriodId"] = this.recoveryStartPayrollPeriodId;
+        data["installmentCount"] = this.installmentCount;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        data["outstandingAmountUsd"] = this.outstandingAmountUsd;
+        if (Array.isArray(this.installments)) {
+            data["installments"] = [];
+            for (let item of this.installments)
+                data["installments"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.approvalHistory)) {
+            data["approvalHistory"] = [];
+            for (let item of this.approvalHistory)
+                data["approvalHistory"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["issue"] = this.issue ? this.issue.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IWorkerAdvanceDto {
+    id: string;
+    workerId: string;
+    workerName: string;
+    requestedAmountUsd: number;
+    approvedAmountUsd: number | undefined;
+    reason: string;
+    requestedEventDate: Date;
+    requestedAt: Date;
+    recoveryStartPayrollPeriodId: string;
+    installmentCount: number;
+    status: string;
+    version: number;
+    outstandingAmountUsd: number;
+    installments: AdvanceInstallmentDto[];
+    approvalHistory: AdvanceApprovalDto[];
+    issue: AdvanceIssueDto | undefined;
 
     [key: string]: any;
 }

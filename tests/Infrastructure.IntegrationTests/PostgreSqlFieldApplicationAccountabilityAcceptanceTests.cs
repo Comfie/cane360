@@ -40,8 +40,16 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
         var stockReturn = await CreateReturnAsync(scenario, 10m);
         using var start = new Barrier(2);
         var results = await Task.WhenAll(
-            AttemptAsync(async () => { start.SignalAndWait(); await ConfirmAsync(scenario, application, "confirm-concurrent"); }),
-            AttemptAsync(async () => { start.SignalAndWait(); await PostReturnAsync(scenario, stockReturn, "return-concurrent"); }));
+            Task.Run(() => AttemptAsync(async () =>
+            {
+                start.SignalAndWait();
+                await ConfirmAsync(scenario, application, "confirm-concurrent");
+            })),
+            Task.Run(() => AttemptAsync(async () =>
+            {
+                start.SignalAndWait();
+                await PostReturnAsync(scenario, stockReturn, "return-concurrent");
+            })));
 
         results.Count(value => value).ShouldBe(1);
         await using var verify = CreateContext();
@@ -60,8 +68,8 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
         var loss = await CreateSubmittedLossAsync(scenario, 10m);
         using var start = new Barrier(2);
         var results = await Task.WhenAll(
-            AttemptAsync(async () => { start.SignalAndWait(); await ConfirmAsync(scenario, application, "confirm-loss-race"); }),
-            AttemptAsync(async () => { start.SignalAndWait(); await DecideLossAsync(scenario, loss, ApprovalOutcome.Approved, "loss-race"); }));
+            Task.Run(() => AttemptAsync(async () => { start.SignalAndWait(); await ConfirmAsync(scenario, application, "confirm-loss-race"); })),
+            Task.Run(() => AttemptAsync(async () => { start.SignalAndWait(); await DecideLossAsync(scenario, loss, ApprovalOutcome.Approved, "loss-race"); })));
 
         results.Count(value => value).ShouldBe(1);
         await using var verify = CreateContext();
@@ -79,8 +87,8 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
         var scenario = await CreateScenarioAsync();
         using var start = new Barrier(2);
         var results = await Task.WhenAll(
-            AttemptAsync(async () => { start.SignalAndWait(); await AssertClosureBlockedAsync(scenario); }),
-            AttemptAsync(async () => { start.SignalAndWait(); await AssertClosureBlockedAsync(scenario); }));
+            Task.Run(() => AttemptAsync(async () => { start.SignalAndWait(); await AssertClosureBlockedAsync(scenario); })),
+            Task.Run(() => AttemptAsync(async () => { start.SignalAndWait(); await AssertClosureBlockedAsync(scenario); })));
         results.ShouldAllBe(value => !value);
         await using var verify = CreateContext();
         (await verify.ControlExceptions.AnyAsync(x => x.TenantId == scenario.TenantId && x.StockIssueLineId == scenario.IssueLineId && x.Status == ControlExceptionStatus.Open)).ShouldBeTrue();
@@ -278,7 +286,26 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     private async Task AssertClosureBlockedAsync(Scenario scenario)
     { await using var context = CreateContext(); (await new InventoryRepository(context).HasBlockingInventoryExceptionAsync(scenario.TenantId, scenario.FarmId, scenario.ActivityId, CancellationToken.None)).ShouldBeTrue(); throw new ConflictException("Activity closure is blocked by the persisted open accountability exception."); }
     private async Task AssertAppendOnlyAsync(string sql) { await using var connection = new NpgsqlConnection(_connectionString); await connection.OpenAsync(); await using var command = new NpgsqlCommand(sql, connection); (await Should.ThrowAsync<PostgresException>(() => command.ExecuteNonQueryAsync())).SqlState.ShouldBe(PostgresErrorCodes.RaiseException); }
-    private static async Task<bool> AttemptAsync(Func<Task> action) { try { await action(); return true; } catch (ConflictException) { return false; } catch (PostgresException) { return false; } }
+    private static async Task<bool> AttemptAsync(Func<Task> action)
+    {
+        try
+        {
+            await action();
+            return true;
+        }
+        catch (ConflictException)
+        {
+            return false;
+        }
+        catch (InventorySerializationFailureException)
+        {
+            return false;
+        }
+        catch (PostgresException)
+        {
+            return false;
+        }
+    }
     private static async Task<decimal> ConfirmedAppliedAsync(ApplicationDbContext context, Guid lineId)
     {
         var confirmedIds = context.InputApplications.Where(x => x.Status == InputApplicationStatus.ManagerConfirmed).Select(x => x.Id);
