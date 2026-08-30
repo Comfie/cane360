@@ -50,4 +50,24 @@ public sealed class PayrollController(ISender sender) : ControllerBase
     public async Task<ActionResult<WorkerAdvanceDto>> DecideAdvance(Guid advanceId, DecideWorkerAdvanceRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new DecideWorkerAdvanceCommand(advanceId, request.ExpectedVersion, request.Approved, request.Reason, request.IdempotencyKey), cancellationToken));
     [HttpPost("advances/{advanceId:guid}/issue")]
     public async Task<ActionResult<WorkerAdvanceDto>> IssueAdvance(Guid advanceId, IssueWorkerAdvanceRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new IssueWorkerAdvanceCommand(advanceId, request.ExpectedVersion, request.PaymentMethod, request.AmountUsd, request.IssuedAt, request.PayingPersonId, request.WorkerAcknowledged, request.Provider, request.RecipientNumber, request.ExternalReference, request.TransactionStatus, request.IdempotencyKey), cancellationToken));
+    [HttpGet("runs")]
+    public async Task<ActionResult<IReadOnlyList<PayrollRunDto>>> Runs(CancellationToken cancellationToken) => Ok(await sender.Send(new GetPayrollRunsQuery(), cancellationToken));
+    [HttpGet("runs/{runId:guid}")]
+    public async Task<ActionResult<PayrollRunDto>> Run(Guid runId, CancellationToken cancellationToken) => Ok(await sender.Send(new GetPayrollRunQuery(runId), cancellationToken));
+    [HttpPost("runs")]
+    public async Task<ActionResult<PayrollRunDto>> CreateRun(CreatePayrollRunRequest request, CancellationToken cancellationToken) { var result = await sender.Send(new CreatePayrollRunCommand(request.PayrollPeriodId), cancellationToken); return CreatedAtAction(nameof(Run), new { runId = result.Id }, result); }
+    [HttpPost("runs/{runId:guid}/calculate")]
+    public async Task<ActionResult<PayrollRunDto>> CalculateRun(Guid runId, VersionedPayrollRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new CalculatePayrollRunCommand(runId, request.ExpectedVersion), cancellationToken));
+    [HttpGet("runs/{runId:guid}/calculations/{calculationVersion:int}")]
+    public async Task<ActionResult<PayrollCalculationDto>> Calculation(Guid runId, int calculationVersion, CancellationToken cancellationToken) => Ok(await sender.Send(new GetPayrollCalculationQuery(runId, calculationVersion), cancellationToken));
+    [HttpGet("runs/{runId:guid}/calculations/{calculationVersion:int}/worker-lines/{workerId:guid}")]
+    public async Task<ActionResult<PayrollWorkerLineDto>> WorkerLine(Guid runId, int calculationVersion, Guid workerId, CancellationToken cancellationToken) { var result = await sender.Send(new GetPayrollCalculationQuery(runId, calculationVersion), cancellationToken); var line = result.Workers.SingleOrDefault(x => x.WorkerId == workerId); return line is null ? NotFound() : Ok(line); }
+    [HttpPost("runs/{runId:guid}/submit")]
+    public async Task<ActionResult<PayrollRunDto>> SubmitRun(Guid runId, SubmitPayrollRunRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new SubmitPayrollRunCommand(runId, request.ExpectedVersion, request.CalculationVersion), cancellationToken));
+    [HttpPost("runs/{runId:guid}/decision")]
+    public async Task<ActionResult<PayrollRunDto>> DecideRun(Guid runId, DecidePayrollRunRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new DecidePayrollRunCommand(runId, request.ExpectedVersion, request.CalculationVersion, request.Approved, request.Reason, request.IdempotencyKey), cancellationToken));
+    [HttpPost("runs/{runId:guid}/cancel")]
+    public async Task<ActionResult<PayrollRunDto>> CancelRun(Guid runId, CancelPayrollRunRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new CancelPayrollRunCommand(runId, request.ExpectedVersion, request.Reason), cancellationToken));
+    [HttpGet("runs/{runId:guid}/approved-source-chain")]
+    public async Task<ActionResult<PayrollRunDto>> ApprovedSourceChain(Guid runId, CancellationToken cancellationToken) { var result = await sender.Send(new GetPayrollRunQuery(runId), cancellationToken); return result.Status != "Approved" ? Conflict() : Ok(result); }
 }

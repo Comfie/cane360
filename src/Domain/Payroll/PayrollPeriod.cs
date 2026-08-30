@@ -37,6 +37,10 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public string? CancelledByUserId { get; private set; }
     public Guid? CancelledByPersonId { get; private set; }
     public string? CancellationReason { get; private set; }
+    public DateTimeOffset? ClosedAt { get; private set; }
+    public string? ClosedByUserId { get; private set; }
+    public Guid? ClosedByPersonId { get; private set; }
+    public Guid? ClosedByPayrollRunId { get; private set; }
     public long Version { get; private set; }
 
     public static PayrollPeriod Create(Guid tenantId, Guid farmId, int year, int month, DateTimeOffset createdAt, string createdByUserId, Guid? createdByPersonId)
@@ -68,6 +72,20 @@ public sealed class PayrollPeriod : BaseAuditableEntity
         CancelledByUserId = userId.Trim();
         CancelledByPersonId = personId;
         CancellationReason = reason.Trim();
+        Version++;
+    }
+
+    public void Close(DateTimeOffset at, string userId, Guid? personId, Guid payrollRunId, long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Status != PayrollPeriodStatus.Open) throw new InvalidOperationException("Only an open payroll period can be closed.");
+        if (payrollRunId == Guid.Empty) throw new ArgumentException("A payroll run is required to close the period.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        Status = PayrollPeriodStatus.Closed;
+        ClosedAt = at;
+        ClosedByUserId = userId.Trim();
+        ClosedByPersonId = personId;
+        ClosedByPayrollRunId = payrollRunId;
         Version++;
     }
 

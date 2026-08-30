@@ -12,6 +12,12 @@ export function canSubmitAdvance(role, status) { return role === 'FarmManager' &
 export function canDecideAdvance(role, status) { return role === 'Grower' && status === 'PendingGrowerApproval'; }
 export function canEditAdvance(status) { return status === 'Draft' || status === 'Rejected'; }
 export function canIssueAdvance(status) { return status === 'Approved'; }
+export function canCreatePayrollRun(role, period, runs) { return role === 'FarmManager' && period?.status === 'Open' && !runs.some((run) => run.payrollPeriodId === period.id && run.status !== 'Cancelled'); }
+export function canCalculatePayrollRun(role, status) { return role === 'FarmManager' && ['Draft', 'Calculated', 'Rejected'].includes(status); }
+export function canSubmitPayrollRun(role, run) { return role === 'FarmManager' && run?.status === 'Calculated' && run.calculation?.blockerCount === 0 && run.calculation?.evidenceCount > 0; }
+export function canDecidePayrollRun(role, status) { return role === 'Grower' && status === 'PendingGrowerApproval'; }
+export function canCancelPayrollRun(role, status) { return role === 'FarmManager' && ['Draft', 'Calculated', 'Rejected'].includes(status); }
+export function payrollDecisionPayload(run, approved, reason, idempotencyKey) { return { expectedVersion: run.version, calculationVersion: run.submittedCalculationVersion, approved, reason: approved ? undefined : reason.trim(), idempotencyKey }; }
 
 export function advancePayload(form, installmentPeriodIds = []) {
   return {

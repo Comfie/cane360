@@ -4,5 +4,6 @@ public enum PayrollPeriodStatus
 {
     Draft,
     Open,
+    Closed,
     Cancelled
 }

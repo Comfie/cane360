@@ -27,6 +27,15 @@ public sealed class PayrollAuthorizationTests
     }
 
     [Test]
+    public async Task FarmManagerPayrollApprovalReturnsForbiddenBeforeRepositoryMutation()
+    {
+        var tenant = TenantWithManager(out _); var farms = FarmRepository(tenant, "manager-user"); var payroll = new Mock<IPayrollRepository>(); var labour = new Mock<ILabourRepository>();
+        var handler = new DecidePayrollRunCommandHandler(farms.Object, labour.Object, payroll.Object, User("manager-user").Object, new FixedTimeProvider(Now));
+        await Should.ThrowAsync<ForbiddenAccessException>(() => handler.Handle(new DecidePayrollRunCommand(Guid.NewGuid(), 2, 1, true, null, "manager-payroll-key"), CancellationToken.None));
+        payroll.Verify(repository => repository.Add(It.IsAny<PayrollApproval>()), Times.Never); payroll.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
     public async Task GrowerApprovalBindsTheExactPendingVersion()
     {
         var tenant = TenantWithManager(out var farm); var advance = PendingAdvance(tenant, farm); var farms = FarmRepository(tenant, "grower-user"); var payroll = PayrollRepository(tenant, farm, advance, out var approvals, out _); var labour = new Mock<ILabourRepository>();

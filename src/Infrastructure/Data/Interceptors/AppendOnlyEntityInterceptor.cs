@@ -1,5 +1,6 @@
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Inventory;
+using Cane360.Domain.Labour;
 using Cane360.Domain.Payroll;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -28,10 +29,14 @@ public sealed class AppendOnlyEntityInterceptor : SaveChangesInterceptor
     {
         if (context is null) return;
         foreach (var entry in context.ChangeTracker.Entries().Where(entry =>
-            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink or PayrollAuditEventLink or AdvanceApproval or AdvanceIssue) &&
+            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink or PayrollAuditEventLink or AdvanceApproval or AdvanceIssue or PayrollCalculation or PayrollWorkerLine or PayrollEarningLine or PayrollAdvanceDeduction or PayrollApproval or PayrollEvidenceConsumption or AdvanceRecovery) &&
             entry.State is EntityState.Modified or EntityState.Deleted))
         {
             throw new InvalidOperationException($"{entry.Metadata.ClrType.Name} records are append-only.");
+        }
+        foreach (var entry in context.ChangeTracker.Entries<WorkRecord>().Where(entry => entry.State is EntityState.Modified or EntityState.Deleted))
+        {
+            if (context.Set<PayrollEvidenceConsumption>().Any(x => x.EvidenceId == entry.Entity.Id)) throw new InvalidOperationException("Labour evidence consumed by an approved payroll is locked.");
         }
     }
 }
