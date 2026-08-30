@@ -10,21 +10,28 @@ import {
 export const activitiesClient = new ActivitiesClient();
 export const activityTypesClient = new ActivityTypesClient();
 
-/** @param {string} date */
-export function localDate(date) {
+interface CreateActivityValues {
+  fieldId: string;
+  cropCycleId: string;
+  activityTypeId: string;
+  kind: string;
+  plannedDate?: string;
+  supervisorPersonId: string;
+}
+export type ActivityTransitionAction = 'Planned' | 'InProgress' | 'AwaitingVerification' | 'ManagerConfirmation' | 'Completed' | 'Closed' | 'Cancelled';
+
+export function localDate(date: string): Date {
   return new Date(`${date}T00:00:00`);
 }
 
-/** @param {{ fieldId: string, cropCycleId: string, activityTypeId: string, kind: string, plannedDate?: string, supervisorPersonId: string }} values */
-export function createActivity(values) {
+export function createActivity(values: CreateActivityValues) {
   return activitiesClient.activitiesPOST(new CreateActivityRequest({
     ...values,
     plannedDate: values.plannedDate ? localDate(values.plannedDate) : undefined,
   }));
 }
 
-/** @param {string} activityId @param {number} expectedVersion @param {string} actualAt @param {number | undefined} actualQuantity @param {string | undefined} lateEntryReason */
-export function recordActual(activityId, expectedVersion, actualAt, actualQuantity, lateEntryReason) {
+export function recordActual(activityId: string, expectedVersion: number, actualAt: string, actualQuantity: number | undefined, lateEntryReason: string | undefined) {
   return activitiesClient.actualWork(activityId, new RecordActualWorkRequest({
     expectedVersion,
     actualAt: new Date(actualAt).toISOString(),
@@ -33,8 +40,7 @@ export function recordActual(activityId, expectedVersion, actualAt, actualQuanti
   }));
 }
 
-/** @param {string} activityId @param {string} action @param {number} expectedVersion @param {string | undefined} reason */
-export function transitionActivity(activityId, action, expectedVersion, reason) {
+export function transitionActivity(activityId: string, action: string, expectedVersion: number, reason: string | undefined) {
   const request = new TransitionActivityRequest({ expectedVersion, reason });
   if (action === 'Planned') return activitiesClient.planned(activityId, request);
   if (action === 'InProgress') return activitiesClient.inProgress(activityId, request);
@@ -46,8 +52,7 @@ export function transitionActivity(activityId, action, expectedVersion, reason) 
   throw new Error(`Unknown activity transition: ${action}`);
 }
 
-/** @param {string} activityId @param {number} expectedVersion @param {string} reference @param {string} capturedDate */
-export function addSourceReference(activityId, expectedVersion, reference, capturedDate) {
+export function addSourceReference(activityId: string, expectedVersion: number, reference: string, capturedDate: string) {
   return activitiesClient.sourceReferences(activityId, new AddSourceReferenceRequest({
     expectedVersion,
     sourceSheetReference: reference,

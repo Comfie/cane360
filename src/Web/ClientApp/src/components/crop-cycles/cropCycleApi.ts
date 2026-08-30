@@ -7,27 +7,32 @@ import {
   HarvestCropCycleRequest,
   TransitionCropCycleRequest,
 } from '../../web-api-client';
+import type { ICreateCropCycleRequest } from '../../web-api-client';
 
 export const cropCyclesClient = new CropCyclesClient();
 export const cropVarietiesClient = new CropVarietiesClient();
 
-/** @param {FormDataEntryValue | null} value */
-export function localDate(value) {
+export type CropCycleTransitionAction = 'Activate' | 'Cancel' | 'ReadyForHarvest' | 'Harvest' | 'Close';
+
+interface CropCycleTransitionValues {
+  reason?: string;
+  harvestDate?: Date;
+  actualTonnes?: number;
+}
+
+export function localDate(value: string | File | null): Date {
   return new Date(`${String(value)}T00:00:00`);
 }
 
-/** @param {string} fieldId @param {{ cycleType: string, ratoonNumber: number | undefined, cropVarietyId: string, startDate: Date, expectedHarvestStart: Date, expectedHarvestEnd: Date, expectedYieldTonnes: number }} values */
-export function createCycle(fieldId, values) {
+export function createCycle(fieldId: string, values: ICreateCropCycleRequest) {
   return cropCyclesClient.cropCyclesPOST(fieldId, new CreateCropCycleRequest(values));
 }
 
-/** @param {string} code @param {string} name */
-export function createVariety(code, name) {
+export function createVariety(code: string, name: string) {
   return cropVarietiesClient.cropVarieties(new CreateCropVarietyRequest({ code, name }));
 }
 
-/** @param {string} fieldId @param {string} cycleId @param {string} action @param {number} version @param {{ reason?: string, harvestDate?: Date, actualTonnes?: number }} values */
-export function transitionCycle(fieldId, cycleId, action, version, values = {}) {
+export function transitionCycle(fieldId: string, cycleId: string, action: CropCycleTransitionAction, version: number, values: CropCycleTransitionValues = {}) {
   if (action === 'Activate') return cropCyclesClient.activate(fieldId, cycleId, new TransitionCropCycleRequest({ expectedVersion: version }));
   if (action === 'Cancel') return cropCyclesClient.cancel(fieldId, cycleId, new CancelCropCycleRequest({ expectedVersion: version, reason: values.reason ?? '' }));
   if (action === 'ReadyForHarvest') return cropCyclesClient.readyForHarvest(fieldId, cycleId, new TransitionCropCycleRequest({ expectedVersion: version }));

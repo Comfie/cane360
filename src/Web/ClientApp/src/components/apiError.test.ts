@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getApiError } from './apiError.js';
+import { getApiError } from './apiError.ts';
 
 test('extracts validation messages from generated client results', () => {
   assert.equal(getApiError({

@@ -1,19 +1,15 @@
-/**
- * @typedef {'dashboard' | 'farm' | 'fields' | 'activities' | 'labour' | 'inventory' | 'finance' | 'reports' | 'administration'} NavigationId
- */
+export type NavigationId = 'dashboard' | 'farm' | 'fields' | 'activities' | 'labour' | 'inventory' | 'finance' | 'reports' | 'administration';
 
-/**
- * @typedef {object} NavigationItem
- * @property {NavigationId} id
- * @property {string} path
- * @property {string} label
- * @property {string} shortLabel
- * @property {string} eyebrow
- * @property {string} description
- */
+export interface NavigationItem {
+  id: NavigationId;
+  path: string;
+  label: string;
+  shortLabel: string;
+  eyebrow: string;
+  description: string;
+}
 
-/** @type {readonly NavigationItem[]} */
-export const protectedNavigation = Object.freeze([
+export const protectedNavigation: readonly NavigationItem[] = Object.freeze([
   {
     id: 'dashboard',
     path: '/',

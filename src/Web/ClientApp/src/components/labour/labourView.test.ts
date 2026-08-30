@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activitySelectionError, dateOnly, evidenceAmount, label } from './labourView.js';
+import { activitySelectionError, dateOnly, evidenceAmount, label } from './labourView.ts';
 
 test('monthly evidence stays deferred instead of inventing proration', () => {
   assert.equal(evidenceAmount('Monthly', undefined, undefined), 'Deferred to payroll');

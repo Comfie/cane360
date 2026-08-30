@@ -12,6 +12,7 @@ import {
   WorkRecordsClient,
   WorkScopeRequest,
 } from '../../web-api-client';
+import type { IAttendanceEntryRequest, ICreateWorkerRateRequest, ICreateWorkerRequest, ICreateWorkRecordRequest, IWorkScopeRequest } from '../../web-api-client';
 import { dateOnly } from './labourView';
 
 export const workersClient = new WorkersClient();
@@ -19,8 +20,13 @@ export const ratesClient = new WorkerRatesClient();
 export const attendanceClient = new AttendanceClient();
 export const workRecordsClient = new WorkRecordsClient();
 
-/** @param {{displayName: string, phone?: string, employmentType: string, activeFrom: string, nationalId: string}} values */
-export function createWorker(values) {
+type CreateWorkerValues = Pick<ICreateWorkerRequest, 'displayName' | 'phone' | 'employmentType' | 'activeFrom' | 'nationalId'>;
+type CreateRateValues = Pick<ICreateWorkerRateRequest, 'basis' | 'activityTypeId' | 'rateUsd' | 'effectiveFrom' | 'effectiveTo'>;
+type AttendanceEntryValues = Pick<IAttendanceEntryRequest, 'workerId' | 'status' | 'fieldId' | 'expectedVersion'>;
+type WorkScopeValues = Pick<IWorkScopeRequest, 'type' | 'startLine' | 'endLine' | 'sectionName'>;
+type CreateWorkRecordValues = Omit<ICreateWorkRecordRequest, 'scope'> & { scope?: WorkScopeValues };
+
+export function createWorker(values: CreateWorkerValues) {
   return workersClient.workersPOST(new CreateWorkerRequest({
     personId: undefined,
     displayName: values.displayName,
@@ -31,8 +37,7 @@ export function createWorker(values) {
   }));
 }
 
-/** @param {string} workerId @param {{basis: string, activityTypeId?: string, rateUsd: number, effectiveFrom: string, effectiveTo?: string}} values */
-export function createRate(workerId, values) {
+export function createRate(workerId: string, values: CreateRateValues) {
   return ratesClient.rates(workerId, new CreateWorkerRateRequest({
     basis: values.basis,
     activityTypeId: values.activityTypeId,
@@ -42,11 +47,9 @@ export function createRate(workerId, values) {
   }));
 }
 
-/** @param {string} date */
-export function getAttendance(date) { return attendanceClient.attendanceGET(dateOnly(date)); }
+export function getAttendance(date: string) { return attendanceClient.attendanceGET(dateOnly(date)); }
 
-/** @param {string} date @param {string | undefined} lateReason @param {{workerId: string, status: string, fieldId?: string, expectedVersion?: number}[]} entries */
-export function saveAttendance(date, lateReason, entries) {
+export function saveAttendance(date: string, lateReason: string | undefined, entries: readonly AttendanceEntryValues[]) {
   return attendanceClient.attendancePUT(new RecordAttendanceRequest({
     workDate: dateOnly(date),
     lateEntryReason: lateReason,
@@ -59,8 +62,7 @@ export function saveAttendance(date, lateReason, entries) {
   }));
 }
 
-/** @param {{workerId: string, workDate: string, payBasis: string, activityIds: string[], quantity?: number, scope?: {type: string, startLine?: number, endLine?: number, sectionName?: string}, lateEntryReason?: string}} values */
-export function createWorkRecord(values) {
+export function createWorkRecord(values: CreateWorkRecordValues) {
   return workRecordsClient.workRecords(new CreateWorkRecordRequest({
     workerId: values.workerId,
     payBasis: values.payBasis,
@@ -77,12 +79,10 @@ export function createWorkRecord(values) {
   }));
 }
 
-/** @param {string} workRecordId @param {string} supervisorPersonId @param {number} expectedVersion */
-export function verifyWork(workRecordId, supervisorPersonId, expectedVersion) {
+export function verifyWork(workRecordId: string, supervisorPersonId: string, expectedVersion: number) {
   return workRecordsClient.supervisorVerification(workRecordId, new VerifyWorkRecordRequest({ supervisorPersonId, expectedVersion }));
 }
 
-/** @param {string} workRecordId @param {number} expectedVersion */
-export function confirmWork(workRecordId, expectedVersion) {
+export function confirmWork(workRecordId: string, expectedVersion: number) {
   return workRecordsClient.managerConfirmation2(workRecordId, new ConfirmWorkRecordRequest({ expectedVersion }));
 }

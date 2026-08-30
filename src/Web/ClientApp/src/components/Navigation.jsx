@@ -33,7 +33,7 @@ const icons = {
   administration: Settings,
 };
 
-/** @param {{ item: import('../navigation.js').NavigationItem, compact?: boolean, iconOnly?: boolean, onNavigate?: () => void }} props */
+/** @param {{ item: import('../navigation.ts').NavigationItem, compact?: boolean, iconOnly?: boolean, onNavigate?: () => void }} props */
 function NavigationLink({ item, compact = false, iconOnly = false, onNavigate }) {
   const Icon = icons[item.id];
 

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { duplicateReceiptReference, inventoryLabel, isoDate, quantity } from './inventoryView.js';
+import { duplicateReceiptReference, inventoryLabel, isoDate, quantity } from './inventoryView.ts';
 
 test('inventory labels split compact enum names', () => {
   assert.equal(inventoryLabel('SeedAndPlantingMaterial'), 'Seed And Planting Material');
@@ -16,9 +16,9 @@ test('dates preserve DateOnly wire shape', () => {
 });
 
 test('duplicate supplier references are detected without global assumptions', () => {
-  const duplicate = duplicateReceiptReference(/** @type {any} */ ([
+  const duplicate = duplicateReceiptReference([
     { id: 'r1', supplierId: 's1', sourceReference: ' GRN-42 ' },
-  ]), 's1', 'grn-42');
+  ], 's1', 'grn-42');
   assert.equal(duplicate?.id, 'r1');
   assert.equal(duplicateReceiptReference([], 's1', 'grn-42'), undefined);
 });

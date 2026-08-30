@@ -1,3 +1,5 @@
+import type { ActivityListItemDto } from '../../web-api-client';
+
 export const activityStatuses = Object.freeze([
   'Draft',
   'Planned',
@@ -7,10 +9,9 @@ export const activityStatuses = Object.freeze([
   'Completed',
   'Closed',
   'Cancelled',
-]);
+] as const);
 
-/** @param {string} status */
-export function formatActivityStatus(status) {
+export function formatActivityStatus(status: string): string {
   return ({
     InProgress: 'In progress',
     AwaitingVerification: 'Awaiting verification',
@@ -18,34 +19,32 @@ export function formatActivityStatus(status) {
   })[status] ?? status;
 }
 
-/** @param {string} basis */
-export function quantityLabel(basis) {
+export function quantityLabel(basis: string): string {
   if (basis === 'Hectares') return 'Actual coverage (ha)';
   if (basis === 'StandardLines') return 'Completed standard lines';
   return '';
 }
 
-/** @param {string[]} allowedTransitions */
-export function orderedActions(allowedTransitions) {
+export function orderedActions(allowedTransitions: readonly string[]): string[] {
   const order = ['Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled'];
   return order.filter((action) => allowedTransitions.includes(action));
 }
 
-/** @param {import('../../web-api-client').ActivityListItemDto[]} activities */
-export function groupActivitiesByDate(activities) {
-  return activities.reduce((groups, activity) => {
+type ActivityScheduleItem = Partial<Pick<ActivityListItemDto, 'actualAt' | 'plannedDate'>>;
+
+export function groupActivitiesByDate<T extends ActivityScheduleItem>(activities: readonly T[]): Record<string, T[]> {
+  return activities.reduce<Record<string, T[]>>((groups, activity) => {
     const key = activity.actualAt?.slice(0, 10) ?? activity.plannedDate ?? 'Unscheduled';
     groups[key] = [...(groups[key] ?? []), activity];
     return groups;
-  }, /** @type {Record<string, import('../../web-api-client').ActivityListItemDto[]>} */ ({}));
+  }, {});
 }
 
-/** @param {number} year @param {number} monthIndex */
-export function monthGridDates(year, monthIndex) {
+export function monthGridDates(year: number, monthIndex: number): Array<string | null> {
   const first = new Date(Date.UTC(year, monthIndex, 1));
   const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
   const mondayOffset = (first.getUTCDay() + 6) % 7;
-  const cells = [
+  const cells: Array<string | null> = [
     ...Array(mondayOffset).fill(null),
     ...Array.from({ length: daysInMonth }, (_, index) =>
       new Date(Date.UTC(year, monthIndex, index + 1)).toISOString().slice(0, 10)),

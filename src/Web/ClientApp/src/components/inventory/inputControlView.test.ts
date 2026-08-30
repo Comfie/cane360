@@ -9,7 +9,7 @@ import {
   remainingIssueQuantity,
   requiresLateConfirmationReason,
   returnStockWarning,
-} from './inputControlView.js';
+} from './inputControlView.ts';
 
 const workspaceSource = readFileSync(new URL('./InputControlsWorkspace.jsx', import.meta.url), 'utf8');
 

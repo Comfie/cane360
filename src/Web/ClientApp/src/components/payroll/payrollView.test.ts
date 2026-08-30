@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { advancePayload, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultPeriodId, issuePayload, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.js';
+import { advancePayload, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultPeriodId, issuePayload, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.ts';
 
 const pageSource = readFileSync(new URL('../pages/PayrollPage.jsx', import.meta.url), 'utf8');
 const routesSource = readFileSync(new URL('../../AppRoutes.jsx', import.meta.url), 'utf8');
-const navigationSource = readFileSync(new URL('../../navigation.js', import.meta.url), 'utf8');
+const navigationSource = readFileSync(new URL('../../navigation.ts', import.meta.url), 'utf8');
 const stylesSource = readFileSync(new URL('../../styles.scss', import.meta.url), 'utf8');
 
 test('protected payroll route and Labour and Payroll navigation target the real workspace', () => {

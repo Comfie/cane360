@@ -34,7 +34,7 @@ const nextSteps = {
   administration: 'Role and reference-data management will arrive with the workflows that require them.',
 };
 
-/** @param {{ item: import('../../navigation.js').NavigationItem }} props */
+/** @param {{ item: import('../../navigation.ts').NavigationItem }} props */
 export function ModulePage({ item }) {
   const Icon = item.id === 'dashboard' ? MapPin : icons[item.id];
 
