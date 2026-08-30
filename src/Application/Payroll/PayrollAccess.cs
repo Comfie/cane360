@@ -15,11 +15,13 @@ internal static class PayrollAccess
     public static Guid? OperationalPerson(Tenant tenant, string userId) => tenant.Memberships.Single(x => x.UserId == userId).PersonId;
     public static string Role(Tenant tenant, string userId) => tenant.Memberships.Single(x => x.UserId == userId).SecurityRole;
     public static void RequireGrower(Tenant tenant, string userId) { if (Role(tenant, userId) != TenantSecurityRoles.Grower) throw new ForbiddenAccessException(); }
+    public static void RequireFarmManager(Tenant tenant, string userId) { if (Role(tenant, userId) != TenantSecurityRoles.FarmManager) throw new ForbiddenAccessException(); }
     public static PayrollPeriod RequirePeriod(PayrollPeriod? period, Guid id) => period ?? throw new NotFoundException(id.ToString(), "Payroll period");
     public static WorkerAdvance RequireAdvance(WorkerAdvance? advance, Guid id) => advance ?? throw new NotFoundException(id.ToString(), "Worker advance");
+    public static PayrollRun RequireRun(PayrollRun? run, Guid id) => run ?? throw new NotFoundException(id.ToString(), "Payroll run");
     public static void Domain(Action action, string property)
     { try { action(); } catch (InvalidOperationException exception) when (exception.Message.Contains("changed after it was loaded", StringComparison.Ordinal)) { throw new ConflictException(exception.Message); } catch (InvalidOperationException exception) { throw new Cane360.Application.Common.Exceptions.ValidationException([new FluentValidation.Results.ValidationFailure(property, exception.Message)]); } catch (ArgumentException exception) { throw new Cane360.Application.Common.Exceptions.ValidationException([new FluentValidation.Results.ValidationFailure(property, exception.Message)]); } }
-    public static PayrollPeriodDto Period(PayrollPeriod period) => new(period.Id, period.Year, period.Month, period.StartDate, period.EndDate, period.DisplayName, period.Status.ToString(), period.Version);
+    public static PayrollPeriodDto Period(PayrollPeriod period) => new(period.Id, period.Year, period.Month, period.StartDate, period.EndDate, period.DisplayName, period.Status.ToString(), period.ClosedAt, period.ClosedByPayrollRunId, period.Version);
     public static async Task<WorkerAdvanceDto> AdvanceAsync(IPayrollRepository payroll, WorkerAdvance advance, IReadOnlyDictionary<Guid, string> names, CancellationToken cancellationToken)
     {
         var approvals = await payroll.GetApprovalsAsync(advance.TenantId, advance.FarmId, advance.Id, cancellationToken);

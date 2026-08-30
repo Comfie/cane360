@@ -54,5 +54,15 @@ public sealed class PayrollControllerTests
         result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
     }
 
+    [Test]
+    public async Task GrowerDecisionMapsExactRunAndCalculationVersions()
+    {
+        var sender = new Mock<ISender>(); var id = Guid.NewGuid(); var expected = Run(id);
+        sender.Setup(service => service.Send(It.Is<DecidePayrollRunCommand>(command => command.PayrollRunId == id && command.ExpectedVersion == 7 && command.CalculationVersion == 3 && command.Approved && command.IdempotencyKey == "payroll-retry"), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+        var result = await new PayrollController(sender.Object).DecideRun(id, new DecidePayrollRunRequest(7, 3, true, null, "payroll-retry"), CancellationToken.None);
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
     private static WorkerAdvanceDto Advance(Guid id) => new(id, Guid.NewGuid(), "Worker", 30m, null, "Reason", new DateOnly(2026, 8, 27), DateTimeOffset.UtcNow, Guid.NewGuid(), 3, "Draft", 1, 30m, [], [], null);
+    private static PayrollRunDto Run(Guid id) => new(id, Guid.NewGuid(), "August 2026", "Open", "Calculated", 7, 3, null, DateTimeOffset.UtcNow, null, null, null, null, null, null, null, null, "trace");
 }

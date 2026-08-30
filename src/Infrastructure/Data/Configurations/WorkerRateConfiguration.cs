@@ -26,6 +26,7 @@ internal sealed class WorkerRateConfiguration : IEntityTypeConfiguration<WorkerR
         builder.Property(rate => rate.EffectiveFrom).HasColumnType("date");
         builder.Property(rate => rate.EffectiveTo).HasColumnType("date");
         builder.Property(rate => rate.Version).IsConcurrencyToken();
+        builder.HasAlternateKey(rate => new { rate.Id, rate.TenantId, rate.FarmId });
         builder.HasOne<WorkerProfile>().WithMany()
             .HasForeignKey(rate => new { rate.WorkerProfileId, rate.TenantId, rate.FarmId })
             .HasPrincipalKey(worker => new { worker.Id, worker.TenantId, worker.FarmId })

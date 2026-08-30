@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { advancePayload, canDecideAdvance, canEditAdvance, canIssueAdvance, canSubmitAdvance, defaultPeriodId, issuePayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.js';
+import { advancePayload, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultPeriodId, issuePayload, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.js';
 
 const pageSource = readFileSync(new URL('../pages/PayrollPage.jsx', import.meta.url), 'utf8');
 const routesSource = readFileSync(new URL('../../AppRoutes.jsx', import.meta.url), 'utf8');
@@ -30,6 +30,11 @@ test('period refresh prefers an open or draft period over cancelled history', ()
 
 test('409 receives a refresh-and-retry message', () => assert.match(payrollErrorMessage({ status: 409 }), /latest version has been refreshed/i));
 test('403 receives a clear permission message', () => assert.match(payrollErrorMessage({ status: 403 }), /do not have permission/i));
+test('404 receives a tenant-safe unavailable-record message', () => assert.match(payrollErrorMessage({ status: 404 }), /unavailable in your farm/i));
+test('400 validation falls through to generated problem details', () => {
+  assert.equal(payrollErrorMessage({ status: 400 }), '');
+  assert.match(pageSource, /payrollErrorMessage\(requestError\) \|\| getApiError\(requestError\)/);
+});
 
 test('preflight sends filters and page to the generated client', () => assert.match(pageSource, /api\.preflight\(selectedPeriodId, preflightFilters\.workerId[\s\S]*preflightFilters\.page, preflightFilters\.pageSize\)/));
 test('preflight renders authoritative worker and evidence-type totals', () => {
@@ -44,7 +49,41 @@ test('blocked evidence presents stable codes, explanations, and source chain', (
   assert.match(pageSource, /evidence\.sourceChain\.map/);
 });
 
-test('monthly work clearly defers proration to Phase 6B', () => assert.match(pageSource, /Awaiting Phase 6B proration/));
+test('monthly work clearly blocks submission without an invented proration policy', () => { assert.match(pageSource, /Monthly proration not configured/); assert.match(pageSource, /Submission blocker/); });
+
+test('payroll run capabilities preserve manager and grower dual control', () => {
+  const period = { id: 'period', status: 'Open' };
+  assert.equal(canCreatePayrollRun('FarmManager', period, []), true);
+  assert.equal(canCreatePayrollRun('Grower', period, []), false);
+  assert.equal(canCreatePayrollRun('FarmManager', period, [{ payrollPeriodId: 'period', status: 'Calculated' }]), false);
+  assert.equal(canCalculatePayrollRun('FarmManager', 'Rejected'), true);
+  assert.equal(canCalculatePayrollRun('Grower', 'Calculated'), false);
+  assert.equal(canDecidePayrollRun('Grower', 'PendingGrowerApproval'), true);
+  assert.equal(canDecidePayrollRun('FarmManager', 'PendingGrowerApproval'), false);
+  assert.equal(canCancelPayrollRun('FarmManager', 'Calculated'), true);
+  assert.equal(canCancelPayrollRun('FarmManager', 'Approved'), false);
+});
+
+test('submission uses authoritative blocker and evidence counts', () => {
+  assert.equal(canSubmitPayrollRun('FarmManager', { status: 'Calculated', calculation: { blockerCount: 0, evidenceCount: 2 } }), true);
+  assert.equal(canSubmitPayrollRun('FarmManager', { status: 'Calculated', calculation: { blockerCount: 1, evidenceCount: 2 } }), false);
+  assert.equal(canSubmitPayrollRun('Grower', { status: 'Calculated', calculation: { blockerCount: 0, evidenceCount: 2 } }), false);
+});
+
+test('grower decision payload binds exact run and calculation versions with retry identity', () => {
+  const payload = payrollDecisionPayload({ version: 7, submittedCalculationVersion: 3 }, false, ' stale source ', 'payroll-key');
+  assert.deepEqual(payload, { expectedVersion: 7, calculationVersion: 3, approved: false, reason: 'stale source', idempotencyKey: 'payroll-key' });
+});
+
+test('payroll run mutations call generated client methods and refresh authoritative data', () => {
+  for (const method of ['runsAll', 'runsPOST', 'calculate', 'submit5', 'decision6', 'cancel6']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
+  assert.match(pageSource, /payroll-decision/); assert.match(pageSource, /if \(pending\) return false/); assert.match(pageSource, /await reloadCore\(\)/);
+});
+
+test('run review renders server totals, blockers, source chain, locking, and stale warning', () => {
+  for (const source of ['calculation.grossAmountUsd', 'calculation.deductionAmountUsd', 'calculation.netAmountUsd', 'calculation.blockerCodes.map', 'worker.earnings.map', 'worker.advanceDeductions.map']) assert.match(pageSource, new RegExp(source.replace(/\./g, '\\.')));
+  assert.match(pageSource, /Approval revalidates every source/); assert.match(pageSource, /Approved and locked/); assert.doesNotMatch(pageSource, /reduce\([^)]*grossAmountUsd/);
+});
 
 test('advance payload defaults and serializes the authoritative schedule', () => {
   const payload = advancePayload({ workerId: 'worker', amountUsd: '100', reason: ' Transport ', requestedEventDate: '2028-02-01', recoveryStartPayrollPeriodId: 'period', installmentCount: '3' }, ['a', 'b', 'c']);

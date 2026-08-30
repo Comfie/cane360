@@ -1,12 +1,12 @@
 // @ts-nocheck
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { BadgeCheck, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, HandCoins, Link2, LockKeyhole, RefreshCw, ShieldAlert, WalletCards } from 'lucide-react';
+import { BadgeCheck, Calculator, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, HandCoins, Link2, LockKeyhole, RefreshCw, ShieldAlert, WalletCards } from 'lucide-react';
 import { PayrollClient } from '../../web-api-client';
 import { PageHeader } from '../PageHeader';
 import { LoadingState } from '../LoadingState';
 import { ValidationError } from '../ValidationError';
 import { getApiError } from '../apiError';
-import { advancePayload, apiStatus, canDecideAdvance, canEditAdvance, canIssueAdvance, canSubmitAdvance, defaultAdvanceForm, defaultPeriodId, issuePayload, newIdempotencyKey, payrollErrorMessage, periodPayload, schedulePayload } from '../payroll/payrollView';
+import { advancePayload, apiStatus, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultAdvanceForm, defaultPeriodId, issuePayload, newIdempotencyKey, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from '../payroll/payrollView';
 
 const api = new PayrollClient();
 const today = new Date().toISOString().slice(0, 10);
@@ -15,8 +15,10 @@ export function PayrollPage() {
   const [workspace, setWorkspace] = useState(null);
   const [periods, setPeriods] = useState([]);
   const [advances, setAdvances] = useState([]);
+  const [runs, setRuns] = useState([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [selectedAdvanceId, setSelectedAdvanceId] = useState('');
+  const [selectedRunId, setSelectedRunId] = useState('');
   const [preflight, setPreflight] = useState(null);
   const [preflightFilters, setPreflightFilters] = useState({ workerId: '', eligibility: '', evidenceType: '', page: 1, pageSize: 10 });
   const [loading, setLoading] = useState(true);
@@ -30,17 +32,21 @@ export function PayrollPage() {
   const [advanceFilter, setAdvanceFilter] = useState({ status: '', workerId: '' });
   const [decisionReason, setDecisionReason] = useState('');
   const [advanceCancelReason, setAdvanceCancelReason] = useState('');
+  const [runDecisionReason, setRunDecisionReason] = useState('');
+  const [runCancelReason, setRunCancelReason] = useState('');
   const [issueAdvance, setIssueAdvance] = useState(null);
   const decisionKeys = useRef(new Map());
 
   const selectedPeriod = periods.find((period) => period.id === selectedPeriodId);
   const selectedAdvance = advances.find((advance) => advance.id === selectedAdvanceId);
+  const selectedRun = runs.find((run) => run.id === selectedRunId);
 
   const reloadCore = useCallback(async () => {
-    const [nextWorkspace, nextPeriods, nextAdvances] = await Promise.all([api.workspace(), api.periodsAll(), api.advancesAll()]);
-    setWorkspace(nextWorkspace); setPeriods(nextPeriods); setAdvances(nextAdvances);
+    const [nextWorkspace, nextPeriods, nextAdvances, nextRuns] = await Promise.all([api.workspace(), api.periodsAll(), api.advancesAll(), api.runsAll()]);
+    setWorkspace(nextWorkspace); setPeriods(nextPeriods); setAdvances(nextAdvances); setRuns(nextRuns);
     setSelectedPeriodId((current) => defaultPeriodId(nextPeriods, current));
     setSelectedAdvanceId((current) => nextAdvances.some((advance) => advance.id === current) ? current : nextAdvances[0]?.id ?? '');
+    setSelectedRunId((current) => nextRuns.some((run) => run.id === current) ? current : nextRuns[0]?.id ?? '');
   }, []);
 
   const handleError = useCallback(async (requestError, refresh = false) => {
@@ -116,6 +122,19 @@ export function PayrollPage() {
     if (await runMutation(`advance-issue-${issueAdvance.advance.id}`, () => api.issue(issueAdvance.advance.id, issuePayload(issueAdvance.advance, values, issueAdvance.idempotencyKey)), 'Advance issue evidence recorded. No external payment was executed.')) { form.reset(); setIssueAdvance(null); }
   };
 
+  const createRun = async () => {
+    const created = await runMutation('run-create', async () => { const result = await api.runsPOST({ payrollPeriodId: selectedPeriodId }); setSelectedRunId(result.id); }, 'Payroll run created. Calculate it from authoritative labour evidence.');
+    return created;
+  };
+
+  const decideRun = async (approved) => {
+    if (!selectedRun) return; const keyName = `${selectedRun.id}:${selectedRun.submittedCalculationVersion}:${approved}`;
+    if (!decisionKeys.current.has(keyName)) decisionKeys.current.set(keyName, newIdempotencyKey('payroll-decision'));
+    const payload = payrollDecisionPayload(selectedRun, approved, runDecisionReason, decisionKeys.current.get(keyName));
+    await runMutation(`run-decision-${selectedRun.id}`, () => api.decision6(selectedRun.id, payload), approved ? 'Payroll approved and period closed. No money was paid.' : 'Payroll rejected without consuming evidence or recovering advances.');
+    setRunDecisionReason('');
+  };
+
   if (loading) return <LoadingState label="Loading payroll foundations" />;
   if (!workspace) return <div className="page-stack"><PageHeader title="Payroll foundations" /><ValidationError message={error || 'Payroll workspace is unavailable.'} /><button type="button" onClick={() => globalThis.location.reload()}>Retry</button></div>;
 
@@ -123,8 +142,8 @@ export function PayrollPage() {
   const pageCount = preflight ? Math.max(1, Math.ceil(preflight.totalCount / preflight.pageSize)) : 1;
 
   return <div className="page-stack payroll-page">
-    <PageHeader eyebrow="Phase 6A · readiness and advances" title="Payroll foundations" description="Manage calendar periods, inspect verified labour readiness, and record advance evidence. Gross pay, deductions, payroll runs, and salary payments are not available in this phase." />
-    <div className="payroll-boundary"><LockKeyhole size={16} aria-hidden="true" /><span><strong>Readiness boundary:</strong> labour evidence remains read-only and unconsumed. Advance installments are planned, not deducted.</span><em>{workspace.role}</em></div>
+    <PageHeader eyebrow="Phase 6B · calculation and dual control" title="Payroll runs" description="Calculate exact monthly earnings and advance recoveries, then send the immutable result to the Grower for approval. Approval closes the period; no money is paid here." />
+    <div className="payroll-boundary"><LockKeyhole size={16} aria-hidden="true" /><span><strong>Approval boundary:</strong> previews never consume evidence or record recovery. Only Grower approval locks facts and closes the period.</span><em>{workspace.role}</em></div>
     <div aria-live="polite">{success && <p className="success-banner"><BadgeCheck size={16} /> {success}</p>}<ValidationError message={error} /></div>
 
     <section className="record-panel payroll-period-panel">
@@ -156,18 +175,20 @@ export function PayrollPage() {
       </form>
       {!selectedPeriodId ? <EmptyState title="Select a period" copy="Readiness is assessed for one exact calendar month at a time." /> : preflightLoading ? <LoadingState label="Assessing labour evidence" /> : preflight ? <>
         <div className="preflight-summary"><span><small>Eligible evidence</small><strong>{preflight.eligibleCount}</strong></span><span><small>Blocked evidence</small><strong>{preflight.blockedCount}</strong></span><span><small>Eligible workers</small><strong>{preflight.eligibleWorkerCount}</strong></span><span><small>Blocked workers</small><strong>{preflight.blockedWorkerCount}</strong></span></div>
-        <div className="monthly-proration-warning"><CircleAlert size={17} /><span><strong>Monthly-rate decision deferred</strong>{preflight.monthlyProrationNotice}</span></div>
+        <div className="monthly-proration-warning"><CircleAlert size={17} /><span><strong>Monthly proration not configured</strong>{preflight.monthlyProrationNotice}</span></div>
         <div className="preflight-group-totals"><div><strong>Worker totals</strong>{preflight.workerTotals.map((total) => <span key={total.workerId}>{total.workerName}<small>{total.eligibleCount} eligible · {total.blockedCount} blocked</small></span>)}</div><div><strong>Evidence-type totals</strong>{preflight.evidenceTypeTotals.map((total) => <span key={total.evidenceType}>{total.evidenceType}<small>{total.eligibleCount} eligible · {total.blockedCount} blocked</small></span>)}</div></div>
         {preflight.evidence.length === 0 ? <EmptyState title="No evidence matches" copy="Change the filters or review another payroll period." /> : <div className="payroll-table preflight-table" role="table" aria-label="Payroll eligibility evidence">
           <div className="payroll-table-heading" role="row"><span>Worker / evidence</span><span>Work context</span><span>Basis / rate</span><span>Readiness</span></div>
-          {preflight.evidence.map((evidence) => <article key={evidence.evidenceId} role="row"><span><strong>{evidence.workerName}</strong><small>{evidence.evidenceType} · {formatDate(evidence.eventDate)}</small></span><span><b>{evidence.fieldName}</b><small>{evidence.cropCycleName}</small><small>{evidence.activityNames.join(', ') || 'No valid activity'}</small></span><span><b>{evidence.quantityOrAttendanceBasis}</b><small>Snapshot USD {money(evidence.appliedRateUsd)} · {evidence.payBasis}</small>{evidence.payBasis === 'Monthly' && <em className="monthly-mark">Awaiting Phase 6B proration</em>}</span><span><StatusBadge status={evidence.eligible ? 'Eligible' : 'Blocked'} />{!evidence.eligible && <ul className="blocker-list">{evidence.blockerCodes.map((code, index) => <li key={code}><code>{code}</code><span>{evidence.blockerExplanations[index]}</span></li>)}</ul>}<details><summary><Link2 size={14} /> Source chain</summary><ol>{evidence.sourceChain.map((link) => <li key={`${link.sourceType}-${link.sourceId}`}><b>{link.sourceType}</b><span>{link.label}</span><code>{shortId(link.sourceId)}</code></li>)}</ol></details></span></article>)}
+          {preflight.evidence.map((evidence) => <article key={evidence.evidenceId} role="row"><span><strong>{evidence.workerName}</strong><small>{evidence.evidenceType} · {formatDate(evidence.eventDate)}</small></span><span><b>{evidence.fieldName}</b><small>{evidence.cropCycleName}</small><small>{evidence.activityNames.join(', ') || 'No valid activity'}</small></span><span><b>{evidence.quantityOrAttendanceBasis}</b><small>Snapshot USD {money(evidence.appliedRateUsd)} · {evidence.payBasis}</small>{evidence.payBasis === 'Monthly' && <em className="monthly-mark">Submission blocker</em>}</span><span><StatusBadge status={evidence.eligible ? 'Eligible' : 'Blocked'} />{!evidence.eligible && <ul className="blocker-list">{evidence.blockerCodes.map((code, index) => <li key={code}><code>{code}</code><span>{evidence.blockerExplanations[index]}</span></li>)}</ul>}<details><summary><Link2 size={14} /> Source chain</summary><ol>{evidence.sourceChain.map((link) => <li key={`${link.sourceType}-${link.sourceId}`}><b>{link.sourceType}</b><span>{link.label}</span><code>{shortId(link.sourceId)}</code></li>)}</ol></details></span></article>)}
         </div>}
         <nav className="payroll-pagination" aria-label="Evidence pages"><button type="button" disabled={preflight.page <= 1} onClick={() => setPreflightFilters({ ...preflightFilters, page: preflight.page - 1 })}><ChevronLeft size={16} /> Previous</button><span>Page {preflight.page} of {pageCount} · {preflight.totalCount} complete results</span><button type="button" disabled={preflight.page >= pageCount} onClick={() => setPreflightFilters({ ...preflightFilters, page: preflight.page + 1 })}>Next <ChevronRight size={16} /></button></nav>
       </> : <EmptyState title="Readiness unavailable" copy="Refresh the selected period to try again." />}
     </section>
 
+    <PayrollRunWorkspace role={workspace.role} periods={periods} selectedPeriod={selectedPeriod} runs={runs} selectedRun={selectedRun} setSelectedRunId={setSelectedRunId} pending={pending} decisionReason={runDecisionReason} setDecisionReason={setRunDecisionReason} cancelReason={runCancelReason} setCancelReason={setRunCancelReason} onCreate={createRun} onCalculate={() => runMutation(`run-calculate-${selectedRun.id}`, () => api.calculate(selectedRun.id, { expectedVersion: selectedRun.version }), 'New immutable calculation version created.')} onSubmit={() => runMutation(`run-submit-${selectedRun.id}`, () => api.submit5(selectedRun.id, { expectedVersion: selectedRun.version, calculationVersion: selectedRun.latestCalculationVersion }), 'Exact calculation version sent to the Grower.')} onDecide={decideRun} onCancel={async () => { if (await runMutation(`run-cancel-${selectedRun.id}`, () => api.cancel6(selectedRun.id, { expectedVersion: selectedRun.version, reason: runCancelReason.trim() }), 'Payroll run cancelled without consuming evidence.')) setRunCancelReason(''); }} />
+
     <section className="record-panel payroll-advance-panel">
-      <header className="section-heading"><div><span className="eyebrow">Planned recovery · no deductions</span><h2><HandCoins size={18} /> Worker advances</h2></div><button className="primary-action" type="button" onClick={() => openAdvanceEditor(null)}>New advance</button></header>
+      <header className="section-heading"><div><span className="eyebrow">Issued advance recovery source</span><h2><HandCoins size={18} /> Worker advances</h2></div><button className="primary-action" type="button" onClick={() => openAdvanceEditor(null)}>New advance</button></header>
       <div className="advance-filters"><label>Status<select value={advanceFilter.status} onChange={(event) => setAdvanceFilter({ ...advanceFilter, status: event.target.value })}><option value="">All statuses</option>{['Draft', 'PendingGrowerApproval', 'Approved', 'Rejected', 'Issued', 'Cancelled'].map((status) => <option key={status}>{status}</option>)}</select></label><label>Worker<select value={advanceFilter.workerId} onChange={(event) => setAdvanceFilter({ ...advanceFilter, workerId: event.target.value })}><option value="">All workers</option>{workspace.workers.map((worker) => <option key={worker.id} value={worker.id}>{worker.displayName}</option>)}</select></label></div>
       {advanceForm && <AdvanceEditor form={advanceForm} setForm={(next) => { setAdvanceForm(next); setSchedulePreview(null); }} workers={workspace.workers} periods={periods} preview={schedulePreview} pending={pending} onPreview={previewSchedule} onSubmit={saveAdvance} onClose={() => { setAdvanceForm(null); setSchedulePreview(null); }} />}
       {filteredAdvances.length === 0 ? <EmptyState title="No worker advances" copy="Create a draft to preview a precise monthly recovery plan." /> : <div className="advance-workspace">
@@ -177,6 +198,31 @@ export function PayrollPage() {
       {issueAdvance && <IssueForm record={issueAdvance} people={workspace.payingPersons} pending={pending} onSubmit={submitIssue} onClose={() => setIssueAdvance(null)} />}
     </section>
   </div>;
+}
+
+function PayrollRunWorkspace({ role, periods, selectedPeriod, runs, selectedRun, setSelectedRunId, pending, decisionReason, setDecisionReason, cancelReason, setCancelReason, onCreate, onCalculate, onSubmit, onDecide, onCancel }) {
+  const calculation = selectedRun?.calculation;
+  return <section className="record-panel payroll-run-panel">
+    <header className="section-heading"><div><span className="eyebrow">Monthly control ledger</span><h2><Calculator size={18} /> Payroll-run register</h2><p>Every calculation is an immutable version. Amounts below come from the API and are never recomputed in the browser.</p></div>{canCreatePayrollRun(role, selectedPeriod, runs) && <button type="button" className="primary-action" disabled={Boolean(pending)} onClick={onCreate}>{pending === 'run-create' ? 'Creating…' : `Create ${selectedPeriod.displayName} run`}</button>}</header>
+    {runs.length === 0 ? <EmptyState title="No payroll runs" copy={selectedPeriod?.status === 'Open' ? 'Create the single payroll run for this open period.' : 'Open a payroll period, then create its run.'} /> : <div className="payroll-run-workspace">
+      <nav className="payroll-run-register" aria-label="Payroll runs">{runs.map((run) => <button type="button" key={run.id} className={selectedRun?.id === run.id ? 'is-selected' : ''} onClick={() => setSelectedRunId(run.id)}><span><strong>{run.periodName}</strong><small>calculation v{run.latestCalculationVersion || '—'} · run v{run.version}</small></span><span><StatusBadge status={run.status} /><b>USD {money(run.calculation?.netAmountUsd)}</b></span></button>)}</nav>
+      {selectedRun && <article className="payroll-run-detail">
+        <header className="payroll-run-title"><div><span className="eyebrow">{selectedRun.periodName} · exact run version {selectedRun.version}</span><h3>{selectedRun.status === 'Approved' ? 'Approved payroll facts' : 'Calculation review'}</h3></div><StatusBadge status={selectedRun.status} /></header>
+        {selectedRun.status === 'Approved' && <div className="payroll-lock-notice"><LockKeyhole size={17} /><span><strong>Approved and locked</strong>This period is {selectedRun.periodStatus.toLowerCase()}. Evidence consumption and advance recovery are immutable; no payment was executed.</span></div>}
+        {selectedRun.status === 'Rejected' && <div className="monthly-proration-warning"><CircleAlert size={17} /><span><strong>Grower rejected calculation v{selectedRun.submittedCalculationVersion}</strong>{selectedRun.rejectionReason}</span></div>}
+        {calculation ? <>
+          <div className="payroll-proof-strip" aria-label="Authoritative payroll totals"><span><small>Workers</small><strong>{calculation.workerCount}</strong></span><span><small>Evidence</small><strong>{calculation.evidenceCount}</strong></span><span><small>Gross USD</small><strong>{money(calculation.grossAmountUsd)}</strong></span><span><small>Advance recovery</small><strong>{money(calculation.deductionAmountUsd)}</strong></span><span className="is-net"><small>Net USD</small><strong>{money(calculation.netAmountUsd)}</strong></span></div>
+          <div className="payroll-calculation-proof"><span><b>Calculation v{calculation.calculationVersion}</b><small>{formatDateTime(calculation.calculatedAt)}</small></span><span><b>{calculation.blockerCount ? `${calculation.blockerCount} blocker${calculation.blockerCount === 1 ? '' : 's'}` : 'Complete and ready'}</b><small>source fingerprint {shortId(calculation.sourceFingerprint)}</small></span></div>
+          {calculation.blockerCount > 0 && <div className="payroll-blockers"><strong>Submission blocked</strong><p>Resolve every authoritative source issue, then calculate a new version.</p><div>{calculation.blockerCodes.map((code) => <code key={code}>{code}</code>)}</div></div>}
+          {selectedRun.status === 'PendingGrowerApproval' && <div className="stale-calculation-warning"><RefreshCw size={16} /><span><strong>Approval revalidates every source.</strong>If labour evidence, verification, snapshots, worker state, advances, balances, or the period changed, approval returns a conflict and creates no facts.</span></div>}
+          <div className="payroll-worker-table" role="table" aria-label="Worker payroll calculation"><div className="payroll-worker-heading" role="row"><span>Worker / source</span><span>Gross</span><span>Advance</span><span>Net</span></div>{calculation.workers.map((worker) => <details key={worker.id} className="payroll-worker-row"><summary><span><strong>{worker.workerName}</strong><small>{worker.earnings.length} earning line{worker.earnings.length === 1 ? '' : 's'}</small></span><b>USD {money(worker.grossAmountUsd)}</b><b>USD {money(worker.deductionAmountUsd)}</b><strong>USD {money(worker.netAmountUsd)}</strong></summary><div className="payroll-source-chain"><section><h4>Earning evidence</h4>{worker.earnings.map((line) => <article key={line.id}><span><b>{line.rateType} · {formatDate(line.workDate)}</b><small>{line.quantity} {line.unit} × USD {line.rateAmountUsd}</small></span><strong>USD {money(line.earningAmountUsd)}</strong><small>Evidence {shortId(line.evidenceId)} · attendance {shortId(line.attendanceId)} · field {shortId(line.fieldId)} · rate v{line.rateVersion}</small></article>)}</section><section><h4>Advance allocation</h4>{worker.advanceDeductions.length ? worker.advanceDeductions.map((deduction) => <article key={deduction.id}><span><b>Installment {deduction.installmentSequence}</b><small>Outstanding before USD {money(deduction.outstandingBeforeUsd)}</small></span><strong>USD {money(deduction.amountUsd)}</strong><small>Advance {shortId(deduction.workerAdvanceId)} · due period {periods.find((period) => period.id === deduction.recoveryPayrollPeriodId)?.displayName ?? shortId(deduction.recoveryPayrollPeriodId)}</small></article>) : <p>No due issued advance recovery.</p>}</section></div></details>)}</div>
+        </> : <EmptyState title="Not calculated" copy="Calculate to include every authoritative eligible labour record automatically." />}
+        {canDecidePayrollRun(role, selectedRun.status) && <label className="rejection-reason">Rejection reason<input value={decisionReason} onChange={(event) => setDecisionReason(event.target.value)} maxLength={500} placeholder="Required only when rejecting" /></label>}
+        {canCancelPayrollRun(role, selectedRun.status) && <label className="rejection-reason">Cancellation reason<input value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} maxLength={500} placeholder="Required to cancel this run" /></label>}
+        <footer className="payroll-run-actions">{canCalculatePayrollRun(role, selectedRun.status) && <button type="button" disabled={Boolean(pending)} onClick={onCalculate}>{calculation ? 'Calculate new version' : 'Calculate all evidence'}</button>}{canSubmitPayrollRun(role, selectedRun) && <button type="button" disabled={Boolean(pending)} onClick={onSubmit}>Send calculation v{selectedRun.latestCalculationVersion} to Grower</button>}{canDecidePayrollRun(role, selectedRun.status) && <><button type="button" disabled={Boolean(pending)} onClick={() => onDecide(true)}>Approve exact version and close period</button><button type="button" className="secondary" disabled={Boolean(pending) || !decisionReason.trim()} onClick={() => onDecide(false)}>Reject with reason</button></>}{canCancelPayrollRun(role, selectedRun.status) && <button type="button" className="text-action" disabled={Boolean(pending) || !cancelReason.trim()} onClick={onCancel}>Cancel run</button>}{role === 'FarmManager' && selectedRun.status === 'PendingGrowerApproval' && <small>Grower decision required. Manager approval attempts are rejected by the API.</small>}</footer>
+      </article>}
+    </div>}
+  </section>;
 }
 
 function AdvanceEditor({ form, setForm, workers, periods, preview, pending, onPreview, onSubmit, onClose }) {
@@ -198,7 +244,7 @@ function SchedulePreview({ preview, periods }) {
 function AdvanceDetails({ advance, periods, role, pending, decisionReason, setDecisionReason, cancelReason, setCancelReason, onEdit, onSubmit, onDecide, onCancel, onIssue }) {
   const scheduleTotal = advance.installments.reduce((total, installment) => total + installment.amountUsd, 0);
   return <article className="advance-details"><header><div><span className="eyebrow">Authoritative advance record</span><h3>{advance.workerName}</h3><small>Requested {formatDate(advance.requestedEventDate)} · version {advance.version}</small></div><StatusBadge status={advance.status} /></header><div className="advance-metrics"><span><small>Requested</small><strong>USD {money(advance.requestedAmountUsd)}</strong></span><span><small>Approved</small><strong>{advance.approvedAmountUsd == null ? '—' : `USD ${money(advance.approvedAmountUsd)}`}</strong></span><span><small>Outstanding</small><strong>USD {money(advance.outstandingAmountUsd)}</strong></span><span><small>Installments</small><strong>{advance.installmentCount}</strong></span></div><p>{advance.reason}</p>
-    <div className="planned-installments"><header><strong>Planned future deductions</strong><span>Total USD {money(scheduleTotal)}</span></header>{advance.installments.map((installment) => <span key={installment.sequence}><b>{installment.sequence}</b><small>{periods.find((period) => period.id === installment.payrollPeriodId)?.displayName ?? shortId(installment.payrollPeriodId)}</small><strong>USD {money(installment.amountUsd)}</strong></span>)}<p>No installment is deducted in Phase 6A.</p></div>
+    <div className="planned-installments"><header><strong>Recovery schedule</strong><span>Total USD {money(scheduleTotal)}</span></header>{advance.installments.map((installment) => <span key={installment.sequence}><b>{installment.sequence}</b><small>{periods.find((period) => period.id === installment.payrollPeriodId)?.displayName ?? shortId(installment.payrollPeriodId)}</small><strong>USD {money(installment.amountUsd)}</strong></span>)}<p>Due issued installments become immutable recovery facts only on Grower approval.</p></div>
     <section className="approval-history"><h4>Approval history</h4>{advance.approvalHistory.length ? advance.approvalHistory.map((approval) => <span key={`${approval.advanceVersion}-${approval.decidedAt.toISOString()}`}><StatusBadge status={approval.approved ? 'Approved' : 'Rejected'} /><b>version {approval.advanceVersion}</b><small>{formatDateTime(approval.decidedAt)}{approval.reason ? ` · ${approval.reason}` : ''}</small></span>) : <p>No Grower decision recorded.</p>}</section>
     <section className="issue-history"><h4>Issue evidence</h4>{advance.issue ? <div><StatusBadge status="Issued" /><strong>{advance.issue.paymentMethod} · USD {money(advance.issue.amountUsd)}</strong><small>{formatDateTime(advance.issue.issuedAt)}</small>{advance.issue.paymentMethod === 'Cash' ? <small>Paying person recorded · receiving worker acknowledged</small> : <small>{advance.issue.provider} · {advance.issue.maskedRecipientNumber} · {advance.issue.externalReference} · {advance.issue.transactionStatus}</small>}</div> : <p>Not issued. Approval never issues money automatically.</p>}</section>
     {canDecideAdvance(role, advance.status) && <label className="rejection-reason">Rejection reason<input value={decisionReason} onChange={(event) => setDecisionReason(event.target.value)} maxLength={500} placeholder="Required only when rejecting" /></label>}
