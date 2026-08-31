@@ -101,7 +101,7 @@ test('evidence verification uses numbered step markers', async () => {
 
 test('shared errors use a dismissible responsive toast instead of an inline card', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const component = await readFile(new URL('./components/ValidationError.jsx', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/ValidationError.tsx', import.meta.url), 'utf8');
 
   assert.match(styles, /\.toast-region \{[^}]*position: fixed;/);
   assert.match(styles, /\.app-toast-dismiss \{[^}]*min-width: 2\.5rem;/);

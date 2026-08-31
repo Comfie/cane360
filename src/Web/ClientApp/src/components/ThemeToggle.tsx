@@ -1,22 +1,24 @@
 import { Laptop, Moon, Sun } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useTheme } from './ThemeContext';
+import type { Theme } from './ThemeContext';
 
-const icons = {
+const icons: Record<Theme, LucideIcon> = {
   auto: Laptop,
   light: Sun,
   dark: Moon,
 };
 
-const labels = {
+const labels: Record<Theme, string> = {
   auto: 'Use system colour theme',
   light: 'Use light colour theme',
   dark: 'Use dark colour theme',
 };
 
-const nextTheme = {
-  auto: /** @type {const} */ ('light'),
-  light: /** @type {const} */ ('dark'),
-  dark: /** @type {const} */ ('auto'),
+const nextTheme: Record<Theme, Theme> = {
+  auto: 'light',
+  light: 'dark',
+  dark: 'auto',
 };
 
 export function ThemeToggle() {

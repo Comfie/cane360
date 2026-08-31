@@ -1,9 +1,19 @@
 import { AlertTriangle } from 'lucide-react';
+import type { MouseEvent, ReactNode } from 'react';
 
-/** @param {{ title: string, description: string, confirmLabel: string, isBusy?: boolean, children?: import('react').ReactNode, onConfirm: () => void, onCancel: () => void }} props */
-export function ConfirmationDialog({ title, description, confirmLabel, isBusy = false, children, onConfirm, onCancel }) {
+interface ConfirmationDialogProps {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  isBusy?: boolean;
+  children?: ReactNode;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+export function ConfirmationDialog({ title, description, confirmLabel, isBusy = false, children, onConfirm, onCancel }: ConfirmationDialogProps) {
   return (
-    <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => {
+    <div className="dialog-backdrop" role="presentation" onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget && !isBusy) onCancel();
     }}>
       <section className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description">

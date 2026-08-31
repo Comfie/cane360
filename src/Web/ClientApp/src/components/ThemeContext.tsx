@@ -1,13 +1,18 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 
 const STORAGE_KEY = 'cane360ColorScheme';
 
-/** @typedef {'auto' | 'light' | 'dark'} Theme */
-/** @typedef {{ theme: Theme, setTheme: import('react').Dispatch<import('react').SetStateAction<Theme>> }} ThemeContextValue */
+export type Theme = 'auto' | 'light' | 'dark';
 
-const ThemeContext = createContext(/** @type {ThemeContextValue | null} */ (null));
+interface ThemeContextValue {
+  theme: Theme;
+  setTheme: Dispatch<SetStateAction<Theme>>;
+}
 
-export function useTheme() {
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
 
   if (!context) {
@@ -17,10 +22,8 @@ export function useTheme() {
   return context;
 }
 
-/** @param {{ children: import('react').ReactNode }} props */
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(
-    /** @returns {Theme} */
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(
     () => {
       const storedTheme = localStorage.getItem(STORAGE_KEY);
       return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'auto';

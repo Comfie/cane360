@@ -1,9 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { LoadingState } from '../LoadingState';
 import { useAuth } from './AuthContext';
+import type { ReactNode } from 'react';
 
-/** @param {{ children: import('react').ReactNode }} props */
-export function ProtectedRoute({ children }) {
+export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 

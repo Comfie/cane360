@@ -1,5 +1,13 @@
-/** @param {{ eyebrow: string, title: string, description: string, children?: import('react').ReactNode }} props */
-export function PageHeader({ eyebrow, title, description, children }) {
+import type { ReactNode } from 'react';
+
+interface PageHeaderProps {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}
+
+export function PageHeader({ eyebrow, title, description, children }: PageHeaderProps) {
   return (
     <header className="page-header">
       <div>

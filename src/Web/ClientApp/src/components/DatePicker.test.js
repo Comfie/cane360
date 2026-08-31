@@ -18,20 +18,20 @@ test('existing forms use the shared picker instead of native date controls', asy
 });
 
 test('the shared picker does not expose a native date input', async () => {
-  const source = await readFile(new URL('./DatePicker.jsx', import.meta.url), 'utf8');
+  const source = await readFile(new URL('./DatePicker.tsx', import.meta.url), 'utf8');
 
   assert.doesNotMatch(source, /<input\b[^>]*\btype="(?:date|datetime-local)"/);
 });
 
 test('the shared picker provides direct month and year controls', async () => {
-  const source = await readFile(new URL('./DatePicker.jsx', import.meta.url), 'utf8');
+  const source = await readFile(new URL('./DatePicker.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /aria-label="Month"/);
   assert.match(source, /aria-label="Year"/);
 });
 
 test('the shared picker renders its popover outside scrollable form containers', async () => {
-  const source = await readFile(new URL('./DatePicker.jsx', import.meta.url), 'utf8');
+  const source = await readFile(new URL('./DatePicker.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /createPortal\(/);
   assert.match(source, /document\.body/);

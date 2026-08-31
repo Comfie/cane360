@@ -2,24 +2,36 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom';
 import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 
+type DatePickerType = 'date' | 'datetime-local';
+
+interface DatePickerProps {
+  name?: string;
+  type?: DatePickerType;
+  value?: string;
+  defaultValue?: string;
+  min?: string;
+  max?: string;
+  required?: boolean;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  onChange?: (value: string) => void;
+}
+
+interface PopoverPosition {
+  left: number;
+  top: number;
+}
+
+interface CalendarDay {
+  date: Date;
+  iso: string;
+  inMonth: boolean;
+}
+
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const calendarYears = Array.from({ length: 201 }, (_, index) => 1900 + index);
 
-/**
- * @param {{
- *   name?: string,
- *   type?: 'date' | 'datetime-local',
- *   value?: string,
- *   defaultValue?: string,
- *   min?: string,
- *   max?: string,
- *   required?: boolean,
- *   disabled?: boolean,
- *   autoFocus?: boolean,
- *   onChange?: (value: string) => void,
- * }} props
- */
 export function DatePicker({
   name,
   type = 'date',
@@ -31,14 +43,14 @@ export function DatePicker({
   disabled = false,
   autoFocus = false,
   onChange,
-}) {
+}: DatePickerProps) {
   const dialogId = useId();
-  const rootRef = useRef(/** @type {HTMLDivElement | null} */ (null));
-  const triggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null));
-  const popoverRef = useRef(/** @type {HTMLDivElement | null} */ (null));
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const popoverRef = useRef<HTMLDivElement | null>(null);
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
-  const [popoverPosition, setPopoverPosition] = useState(/** @type {{ left: number, top: number } | null} */ (null));
+  const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
   const selectedValue = value ?? internalValue;
   const selectedDate = selectedValue.slice(0, 10);
   const [viewDate, setViewDate] = useState(() => parseIsoDate(selectedDate) ?? new Date());
@@ -51,11 +63,11 @@ export function DatePicker({
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const closeFromOutside = (/** @type {PointerEvent} */ event) => {
-      const target = /** @type {Node} */ (event.target);
-      if (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target)) setIsOpen(false);
+    const closeFromOutside = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || (!rootRef.current?.contains(target) && !popoverRef.current?.contains(target))) setIsOpen(false);
     };
-    const closeFromKeyboard = (/** @type {KeyboardEvent} */ event) => {
+    const closeFromKeyboard = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
         triggerRef.current?.focus();
@@ -102,12 +114,12 @@ export function DatePicker({
 
   const days = useMemo(() => calendarDays(viewDate), [viewDate]);
 
-  const commit = (/** @type {string} */ nextValue) => {
+  const commit = (nextValue: string) => {
     if (value === undefined) setInternalValue(nextValue);
     onChange?.(nextValue);
   };
 
-  const selectDate = (/** @type {string} */ date) => {
+  const selectDate = (date: string) => {
     if (isDateDisabled(date, min, max)) return;
     if (isDateTime) {
       commit(`${date}T${selectedValue.slice(11, 16) || '12:00'}`);
@@ -119,7 +131,7 @@ export function DatePicker({
     triggerRef.current?.focus();
   };
 
-  const selectTime = (/** @type {string} */ time) => {
+  const selectTime = (time: string) => {
     commit(`${selectedDate || todayIso()}T${time}`);
   };
 
@@ -195,8 +207,7 @@ export function DatePicker({
   </div>;
 }
 
-/** @param {string} value @param {boolean} isDateTime */
-function formatPickerValue(value, isDateTime) {
+function formatPickerValue(value: string, isDateTime: boolean): string {
   if (!value) return isDateTime ? 'Select date and time' : 'Select date';
   const date = parseIsoDate(value.slice(0, 10));
   if (!date) return value;
@@ -204,8 +215,7 @@ function formatPickerValue(value, isDateTime) {
   return isDateTime && value.length >= 16 ? `${formatted} · ${value.slice(11, 16)}` : formatted;
 }
 
-/** @param {Date} viewDate */
-function calendarDays(viewDate) {
+function calendarDays(viewDate: Date): CalendarDay[] {
   const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
   const mondayOffset = (first.getDay() + 6) % 7;
   const start = new Date(first.getFullYear(), first.getMonth(), 1 - mondayOffset);
@@ -215,29 +225,25 @@ function calendarDays(viewDate) {
   });
 }
 
-/** @param {Date} value @param {number} amount */
-function shiftMonth(value, amount) {
+function shiftMonth(value: Date, amount: number): Date {
   return new Date(value.getFullYear(), value.getMonth() + amount, 1);
 }
 
-/** @param {string} value */
-function parseIsoDate(value) {
+function parseIsoDate(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const [year, month, day] = value.split('-').map(Number);
   const parsed = new Date(year, month - 1, day);
   return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day ? parsed : null;
 }
 
-/** @param {Date} value */
-function toIsoDate(value) {
+function toIsoDate(value: Date): string {
   return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
 }
 
-function todayIso() {
+function todayIso(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
 
-/** @param {string} value @param {string | undefined} min @param {string | undefined} max */
-function isDateDisabled(value, min, max) {
+function isDateDisabled(value: string, min: string | undefined, max: string | undefined): boolean {
   return Boolean((min && value < min.slice(0, 10)) || (max && value > max.slice(0, 10)));
 }

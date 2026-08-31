@@ -2,8 +2,19 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CircleAlert, X } from 'lucide-react';
 
-/** @param {{ title?: string, message: string, persistent?: boolean }} props */
-export function ValidationError({ title = 'Unable to complete that action', message, persistent = false }) {
+interface ValidationErrorProps {
+  title?: string;
+  message: string;
+  persistent?: boolean;
+}
+
+interface ToastProps {
+  title: string;
+  message: string;
+  persistent: boolean;
+}
+
+export function ValidationError({ title = 'Unable to complete that action', message, persistent = false }: ValidationErrorProps) {
   if (!message) return null;
 
   return createPortal(
@@ -12,8 +23,7 @@ export function ValidationError({ title = 'Unable to complete that action', mess
   );
 }
 
-/** @param {{ title: string, message: string, persistent: boolean }} props */
-function Toast({ title, message, persistent }) {
+function Toast({ title, message, persistent }: ToastProps) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {

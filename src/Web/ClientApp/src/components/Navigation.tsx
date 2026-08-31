@@ -16,12 +16,15 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import type { MouseEvent } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { protectedNavigation } from '../navigation';
+import { protectedNavigation } from '../navigation.ts';
+import type { NavigationId, NavigationItem } from '../navigation.ts';
 import { useAuth } from './api-authorization/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 
-const icons = {
+const icons: Record<NavigationId, LucideIcon> = {
   dashboard: LayoutDashboard,
   farm: MapPin,
   fields: PanelsTopLeft,
@@ -33,8 +36,14 @@ const icons = {
   administration: Settings,
 };
 
-/** @param {{ item: import('../navigation.ts').NavigationItem, compact?: boolean, iconOnly?: boolean, onNavigate?: () => void }} props */
-function NavigationLink({ item, compact = false, iconOnly = false, onNavigate }) {
+interface NavigationLinkProps {
+  item: NavigationItem;
+  compact?: boolean;
+  iconOnly?: boolean;
+  onNavigate?: () => void;
+}
+
+function NavigationLink({ item, compact = false, iconOnly = false, onNavigate }: NavigationLinkProps) {
   const Icon = icons[item.id];
 
   return (
@@ -64,8 +73,12 @@ function Brand() {
   );
 }
 
-/** @param {{ collapsed: boolean, onToggle: () => void }} props */
-export function DesktopNavigation({ collapsed, onToggle }) {
+interface DesktopNavigationProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export function DesktopNavigation({ collapsed, onToggle }: DesktopNavigationProps) {
   const { accountEmail, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -158,7 +171,7 @@ export function MobileNavigation() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-menu-title"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event: MouseEvent<HTMLElement>) => event.stopPropagation()}
           >
             <header>
               <div>

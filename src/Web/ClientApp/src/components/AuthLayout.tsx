@@ -1,7 +1,13 @@
 import { Check, Leaf } from 'lucide-react';
+import type { ReactNode } from 'react';
 
-/** @param {{ children: import('react').ReactNode, title: string, description: string }} props */
-export function AuthLayout({ children, title, description }) {
+interface AuthLayoutProps {
+  children: ReactNode;
+  title: string;
+  description: string;
+}
+
+export function AuthLayout({ children, title, description }: AuthLayoutProps) {
   return (
     <main className="auth-layout">
       <section className="auth-story" aria-label="About Cane360">

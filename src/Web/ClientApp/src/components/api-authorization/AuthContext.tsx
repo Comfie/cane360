@@ -1,25 +1,24 @@
-import { createContext, useContext, useEffect, useState } from 'react';
 import { LoginRequest, RegisterRequest, UsersClient } from '../../web-api-client';
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 
 const client = new UsersClient();
 
-/**
- * @typedef {object} AuthContextValue
- * @property {boolean} isAuthenticated
- * @property {boolean} isLoading
- * @property {string | null} accountEmail
- * @property {(email: string, password: string) => Promise<void>} login
- * @property {(email: string, password: string) => Promise<void>} register
- * @property {() => Promise<void>} logout
- */
+interface AuthContextValue {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  accountEmail: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
 
-const AuthContext = createContext(/** @type {AuthContextValue | null} */ (null));
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** @param {{ children: import('react').ReactNode }} props */
-export function AuthProvider({ children }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [accountEmail, setAccountEmail] = useState(/** @type {string | null} */ (null));
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
 
   useEffect(() => {
     client.info()
@@ -34,15 +33,13 @@ export function AuthProvider({ children }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  /** @param {string} email @param {string} password */
-  const login = async (email, password) => {
+  const login = async (email: string, password: string): Promise<void> => {
     await client.login(true, undefined, new LoginRequest({ email, password }));
     setIsAuthenticated(true);
     setAccountEmail(email);
   };
 
-  /** @param {string} email @param {string} password */
-  const register = (email, password) => client.register(new RegisterRequest({ email, password }));
+  const register = (email: string, password: string): Promise<void> => client.register(new RegisterRequest({ email, password }));
 
   const logout = async () => {
     await client.logout();
@@ -57,7 +54,7 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
 
   if (!context) {

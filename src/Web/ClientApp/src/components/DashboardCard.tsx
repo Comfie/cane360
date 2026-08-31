@@ -1,7 +1,15 @@
 import { createElement } from 'react';
+import type { LucideIcon } from 'lucide-react';
 
-/** @param {{ label: string, title: string, description: string, icon: import('lucide-react').LucideIcon, footer?: string }} props */
-export function DashboardCard({ label, title, description, icon, footer = 'Live farm record' }) {
+interface DashboardCardProps {
+  label: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  footer?: string;
+}
+
+export function DashboardCard({ label, title, description, icon, footer = 'Live farm record' }: DashboardCardProps) {
   return (
     <article className="dashboard-card">
       <header>

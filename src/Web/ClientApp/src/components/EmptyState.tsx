@@ -1,8 +1,17 @@
 import { createElement } from 'react';
 import { ArrowRight, Sprout } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
-/** @param {{ title: string, description: string, nextStep?: string, icon?: import('lucide-react').LucideIcon, action?: import('react').ReactNode }} props */
-export function EmptyState({ title, description, nextStep, icon = Sprout, action }) {
+interface EmptyStateProps {
+  title: string;
+  description: string;
+  nextStep?: string;
+  icon?: LucideIcon;
+  action?: ReactNode;
+}
+
+export function EmptyState({ title, description, nextStep, icon = Sprout, action }: EmptyStateProps) {
   const titleId = `empty-${title.replace(/\s+/g, '-').toLowerCase()}`;
 
   return (
