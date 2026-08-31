@@ -35,8 +35,8 @@ Runs the container-independent navigation contract tests.
 ## Project Structure
 
 - `src/` - React source code
-- `src/main.jsx` - Application entry point
-- `src/App.jsx` - Root component
+- `src/main.tsx` - Application entry point
+- `src/App.tsx` - Root component
 - `src/components/` - React components
 - `public/` - Static assets (favicon, manifest)
 - `vite.config.ts` - Vite configuration with proxy settings
