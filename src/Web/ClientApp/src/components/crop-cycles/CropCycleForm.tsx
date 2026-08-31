@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Sprout } from 'lucide-react';
+import type { CropCycleDetailsDto, CropVarietyDto, FieldDto } from '../../web-api-client';
 import { createCycle, createVariety, cropVarietiesClient, localDate } from './cropCycleApi';
 import { DatePicker } from '../DatePicker';
 import { getApiError } from '../farm-setup/farmSetupApi';
 import { ValidationError } from '../ValidationError';
 
-/** @param {{ field: import('../../web-api-client').FieldDto, onSaved: (details: import('../../web-api-client').CropCycleDetailsDto) => void, onCancel: () => void }} props */
-export function CropCycleForm({ field, onSaved, onCancel }) {
+interface CropCycleFormProps {
+  field: FieldDto;
+  onSaved: (details: CropCycleDetailsDto) => void;
+  onCancel: () => void;
+}
+
+export function CropCycleForm({ field, onSaved, onCancel }: CropCycleFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [cycleType, setCycleType] = useState('PlantCane');
-  const [varieties, setVarieties] = useState(/** @type {import('../../web-api-client').CropVarietyDto[]} */ ([]));
+  const [varieties, setVarieties] = useState<CropVarietyDto[]>([]);
   const [isAddingVariety, setIsAddingVariety] = useState(false);
   const [error, setError] = useState('');
 
@@ -19,8 +26,7 @@ export function CropCycleForm({ field, onSaved, onCancel }) {
       .catch((requestError) => setError(getApiError(requestError)));
   }, []);
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveCycle = async (event) => {
+  const saveCycle = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     setError('');

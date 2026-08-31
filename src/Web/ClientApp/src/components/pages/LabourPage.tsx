@@ -1,10 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { BadgeCheck, CalendarCheck, ClipboardList, Plus, ShieldCheck, UserRound, UsersRound, X } from 'lucide-react';
 import { getApiError } from '../apiError';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
-import { ActivityTypesClient } from '../../web-api-client';
+import {
+  ActivityTypesClient,
+  type ActivityTypeDto,
+  type AttendanceRegisterDto,
+  type LabourReferenceDataDto,
+  type WorkerDetailsDto,
+  type WorkerListItemDto,
+  type WorkRecordDto,
+} from '../../web-api-client';
 import { DatePicker } from '../DatePicker';
 import {
   confirmWork,
@@ -21,21 +29,20 @@ import { activitySelectionError, dateOnly, employmentTypes, evidenceAmount, hara
 
 export function LabourPage() {
   const activityTypesClient = useMemo(() => new ActivityTypesClient(), []);
-  const [tab, setTab] = useState('workers');
+  const [tab, setTab] = useState<'workers' | 'attendance' | 'evidence'>('workers');
   const [date, setDate] = useState(harareToday());
-  const [workers, setWorkers] = useState(/** @type {import('../../web-api-client').WorkerListItemDto[]} */ ([]));
-  const [attendance, setAttendance] = useState(/** @type {import('../../web-api-client').AttendanceRegisterDto | null} */ (null));
-  const [records, setRecords] = useState(/** @type {import('../../web-api-client').WorkRecordDto[]} */ ([]));
-  const [references, setReferences] = useState(/** @type {import('../../web-api-client').LabourReferenceDataDto | null} */ (null));
-  const [activityTypes, setActivityTypes] = useState(/** @type {import('../../web-api-client').ActivityTypeDto[]} */ ([]));
-  const [selectedWorker, setSelectedWorker] = useState(/** @type {import('../../web-api-client').WorkerDetailsDto | null} */ (null));
+  const [workers, setWorkers] = useState<WorkerListItemDto[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRegisterDto | null>(null);
+  const [records, setRecords] = useState<WorkRecordDto[]>([]);
+  const [references, setReferences] = useState<LabourReferenceDataDto | null>(null);
+  const [activityTypes, setActivityTypes] = useState<ActivityTypeDto[]>([]);
+  const [selectedWorker, setSelectedWorker] = useState<WorkerDetailsDto | null>(null);
   const [showWorker, setShowWorker] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const reloadWorkers = async () => setWorkers(await workersClient.workersAll());
-  /** @param {string} [nextDate] */
-  const reloadDate = async (nextDate = date) => {
+  const reloadDate = async (nextDate: string = date): Promise<void> => {
     const [register, work, referenceData] = await Promise.all([
       getAttendance(nextDate),
       workRecordsClient.workRecordsAll(dateOnly(nextDate), undefined, undefined),
@@ -57,14 +64,12 @@ export function LabourPage() {
     return () => { current = false; };
   }, [activityTypesClient]); // Date changes are explicit so unsaved register choices are not discarded.
 
-  /** @param {string} nextDate */
-  const changeDate = async (nextDate) => {
+  const changeDate = async (nextDate: string) => {
     setDate(nextDate); setError('');
     try { await reloadDate(nextDate); } catch (requestError) { setError(getApiError(requestError)); }
   };
 
-  /** @param {string} workerId */
-  const openWorker = async (workerId) => {
+  const openWorker = async (workerId: string) => {
     try { setSelectedWorker(await workersClient.workersGET(workerId)); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
@@ -94,8 +99,7 @@ export function LabourPage() {
   </div>;
 }
 
-/** @param {{workers: import('../../web-api-client').WorkerListItemDto[], onOpen: (workerId: string) => void}} props */
-function WorkerRegister({ workers, onOpen }) {
+function WorkerRegister({ workers, onOpen }: { workers: WorkerListItemDto[]; onOpen: (workerId: string) => void }) {
   if (!workers.length) return <section className="record-panel labour-empty"><UsersRound size={30} /><h2>No workers registered</h2><p>Add the first worker. National IDs stay encrypted and masked in this register.</p></section>;
   return <section className="worker-register record-panel" aria-label="Worker register">
     <div className="ledger-heading"><span>Worker</span><span>Employment</span><span>National ID</span><span>Status</span></div>
@@ -108,11 +112,9 @@ function WorkerRegister({ workers, onOpen }) {
   </section>;
 }
 
-/** @param {{onSaved: (details: import('../../web-api-client').WorkerDetailsDto) => void, onError: (message: string) => void}} props */
-function WorkerForm({ onSaved, onError }) {
+function WorkerForm({ onSaved, onError }: { onSaved: (details: WorkerDetailsDto) => void | Promise<void>; onError: (message: string) => void }) {
   const [saving, setSaving] = useState(false);
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
     try { onSaved(await createWorker({ displayName: String(data.get('displayName')), phone: String(data.get('phone')) || undefined, employmentType: String(data.get('employmentType')), activeFrom: String(data.get('activeFrom')), nationalId: String(data.get('nationalId')) })); }
     catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
@@ -126,11 +128,9 @@ function WorkerForm({ onSaved, onError }) {
   </div><footer className="form-actions"><span className="security-note"><ShieldCheck size={15} /> Encrypted · farm-scoped duplicate check</span><button disabled={saving}>{saving ? 'Protecting…' : 'Register worker'}</button></footer></form>;
 }
 
-/** @param {{details: import('../../web-api-client').WorkerDetailsDto, activityTypes: import('../../web-api-client').ActivityTypeDto[], onChanged: (details: import('../../web-api-client').WorkerDetailsDto) => void, onError: (message: string) => void}} props */
-function WorkerDetails({ details, activityTypes, onChanged, onError }) {
-  const worker = details.worker; const [saving, setSaving] = useState(false); const [rateBasis, setRateBasis] = useState('Daily');
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveRate = async (event) => {
+function WorkerDetails({ details, activityTypes, onChanged, onError }: { details: WorkerDetailsDto; activityTypes: ActivityTypeDto[]; onChanged: (details: WorkerDetailsDto) => void; onError: (message: string) => void }) {
+  const worker = details.worker; const [saving, setSaving] = useState(false); const [rateBasis, setRateBasis] = useState<'Daily' | 'Monthly' | 'Hectare' | 'StandardLine'>('Daily');
+  const saveRate = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const basis = String(data.get('basis')); setSaving(true); onError('');
     try { onChanged(await createRate(worker.id, { basis, activityTypeId: ['Hectare', 'StandardLine'].includes(basis) ? String(data.get('activityTypeId')) : undefined, rateUsd: Number(data.get('rateUsd')), effectiveFrom: String(data.get('effectiveFrom')), effectiveTo: String(data.get('effectiveTo')) || undefined })); form.reset(); }
     catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
@@ -140,19 +140,18 @@ function WorkerDetails({ details, activityTypes, onChanged, onError }) {
     <section><div className="section-heading"><div><span className="eyebrow">Effective dated</span><h3>Pay rates</h3></div></div>
       <div className="rate-list">{details.rates.length ? details.rates.map((rate) => <article key={rate.id}><strong>${rate.rateUsd.toFixed(4)} / {label(rate.basis)}</strong><span>{rate.activityTypeName || 'Worker-wide'} · {formatDate(rate.effectiveFrom)} → {rate.effectiveTo ? formatDate(rate.effectiveTo) : 'Open'}</span></article>) : <p>No rates configured.</p>}</div>
     </section>
-    {worker.status === 'Active' && <form className="subrecord-form" onSubmit={saveRate}><h3>Add rate period</h3><div className="form-grid"><label>Pay basis<select name="basis" value={rateBasis} onChange={(event) => setRateBasis(event.target.value)}>{payBases.map((basis) => <option key={basis}>{label(basis)}</option>)}</select></label><label>Activity type <small>Piece rates only</small><select name="activityTypeId" required={['Hectare', 'StandardLine'].includes(rateBasis)} disabled={!['Hectare', 'StandardLine'].includes(rateBasis)} defaultValue=""><option value="">{['Hectare', 'StandardLine'].includes(rateBasis) ? 'Select activity type' : 'Worker-wide'}</option>{activityTypes.filter((type) => type.status === 'Active' && (rateBasis !== 'Hectare' || type.quantityBasis === 'Hectares') && (rateBasis !== 'StandardLine' || type.quantityBasis === 'StandardLines')).map((type) => <option key={type.id} value={type.id}>{type.name} · {label(type.quantityBasis)}</option>)}</select></label><label>USD rate<input name="rateUsd" type="number" min="0.0001" step="0.0001" required /></label><label>Effective from<DatePicker name="effectiveFrom" defaultValue={harareToday()} required /></label><label>Effective to <small>Optional</small><DatePicker name="effectiveTo" /></label></div><button disabled={saving}>{saving ? 'Adding…' : 'Add rate'}</button></form>}
+    {worker.status === 'Active' && <form className="subrecord-form" onSubmit={saveRate}><h3>Add rate period</h3><div className="form-grid"><label>Pay basis<select name="basis" value={rateBasis} onChange={(event) => setRateBasis(isPayBasis(event.target.value) ? event.target.value : 'Daily')}>{payBases.map((basis) => <option key={basis}>{label(basis)}</option>)}</select></label><label>Activity type <small>Piece rates only</small><select name="activityTypeId" required={['Hectare', 'StandardLine'].includes(rateBasis)} disabled={!['Hectare', 'StandardLine'].includes(rateBasis)} defaultValue=""><option value="">{['Hectare', 'StandardLine'].includes(rateBasis) ? 'Select activity type' : 'Worker-wide'}</option>{activityTypes.filter((type) => type.status === 'Active' && (rateBasis !== 'Hectare' || type.quantityBasis === 'Hectares') && (rateBasis !== 'StandardLine' || type.quantityBasis === 'StandardLines')).map((type) => <option key={type.id} value={type.id}>{type.name} · {label(type.quantityBasis)}</option>)}</select></label><label>USD rate<input name="rateUsd" type="number" min="0.0001" step="0.0001" required /></label><label>Effective from<DatePicker name="effectiveFrom" defaultValue={harareToday()} required /></label><label>Effective to <small>Optional</small><DatePicker name="effectiveTo" /></label></div><button disabled={saving}>{saving ? 'Adding…' : 'Add rate'}</button></form>}
   </div>;
 }
 
-/** @param {{register: import('../../web-api-client').AttendanceRegisterDto, onSaved: (result: import('../../web-api-client').AttendanceRegisterDto) => void, onError: (message: string) => void}} props */
-function AttendanceLedger({ register, onSaved, onError }) {
-  const [entries, setEntries] = useState(() => /** @type {Record<string, {status: string, fieldId: string, expectedVersion?: number}>} */ (Object.fromEntries(register.rows.map((row) => [row.workerId, { status: row.status || '', fieldId: row.fieldId || '', expectedVersion: row.version }]))));
+interface AttendanceEntryState { status: string; fieldId: string; expectedVersion?: number; }
+
+function AttendanceLedger({ register, onSaved, onError }: { register: AttendanceRegisterDto; onSaved: (result: AttendanceRegisterDto) => void; onError: (message: string) => void }) {
+  const [entries, setEntries] = useState<Record<string, AttendanceEntryState>>(() => Object.fromEntries(register.rows.map((row) => [row.workerId, { status: row.status || '', fieldId: row.fieldId || '', expectedVersion: row.version }])));
   const [saving, setSaving] = useState(false);
   useEffect(() => setEntries(Object.fromEntries(register.rows.map((row) => [row.workerId, { status: row.status || '', fieldId: row.fieldId || '', expectedVersion: row.version }]))), [register]);
-  /** @param {string} workerId @param {Partial<{status: string, fieldId: string, expectedVersion?: number}>} patch */
-  const setEntry = (workerId, patch) => setEntries((current) => ({ ...current, [workerId]: { ...current[workerId], ...patch } }));
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const submit = async (event) => {
+  const setEntry = (workerId: string, patch: Partial<AttendanceEntryState>) => setEntries((current) => ({ ...current, [workerId]: { ...current[workerId], ...patch } }));
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); const selected = Object.entries(entries).filter(([, value]) => value.status).map(([workerId, value]) => ({ workerId, status: value.status, fieldId: value.status === 'Present' ? value.fieldId : undefined, expectedVersion: value.expectedVersion }));
     setSaving(true); onError(''); try { onSaved(await saveAttendance(formatIsoDate(register.workDate), String(data.get('lateReason')) || undefined, selected)); } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
   };
@@ -163,13 +162,11 @@ function AttendanceLedger({ register, onSaved, onError }) {
   </form>;
 }
 
-/** @param {{date: string, register: import('../../web-api-client').AttendanceRegisterDto, references: import('../../web-api-client').LabourReferenceDataDto, records: import('../../web-api-client').WorkRecordDto[], onChanged: () => Promise<void>, onError: (message: string) => void}} props */
-function EvidenceLedger({ date, register, references, records, onChanged, onError }) {
+function EvidenceLedger({ date, register, references, records, onChanged, onError }: { date: string; register: AttendanceRegisterDto; references: LabourReferenceDataDto; records: WorkRecordDto[]; onChanged: () => Promise<void>; onError: (message: string) => void }) {
   const present = register.rows.filter((row) => row.status === 'Present'); const [saving, setSaving] = useState(false);
-  const [basis, setBasis] = useState('Daily'); const [workerId, setWorkerId] = useState(''); const worker = present.find((row) => row.workerId === workerId);
+  const [basis, setBasis] = useState<'Daily' | 'Monthly' | 'Hectare' | 'StandardLine'>('Daily'); const [workerId, setWorkerId] = useState(''); const worker = present.find((row) => row.workerId === workerId);
   const activities = references.activities.filter((activity) => !worker?.fieldId || activity.fieldId === worker.fieldId);
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const submit = async (event) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); const activityIds = data.getAll('activityIds').map(String); const scopeType = String(data.get('scopeType') || ''); onError('');
     const selectionError = activitySelectionError(activityIds);
     if (selectionError) { onError(selectionError); return; }
@@ -178,17 +175,17 @@ function EvidenceLedger({ date, register, references, records, onChanged, onErro
     try { await createWorkRecord({ workerId, workDate: date, payBasis: basis, activityIds, quantity: basis === 'Hectare' || (basis === 'StandardLine' && scopeType === 'NamedSection') ? Number(data.get('quantity')) : undefined, scope, lateEntryReason: String(data.get('lateReason')) || undefined }); await onChanged(); event.currentTarget.reset(); }
     catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
   };
-  /** @param {import('../../web-api-client').WorkRecordDto} record @param {'verify' | 'confirm'} kind @param {string} [supervisorId] */
-  const action = async (record, kind, supervisorId) => { setSaving(true); onError(''); try { if (kind === 'verify') await verifyWork(record.id, supervisorId || '', record.version); else await confirmWork(record.id, record.version); await onChanged(); } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); } };
+  const action = async (record: WorkRecordDto, kind: 'verify' | 'confirm', supervisorId?: string) => { setSaving(true); onError(''); try { if (kind === 'verify') await verifyWork(record.id, supervisorId || '', record.version); else await confirmWork(record.id, record.version); await onChanged(); } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); } };
   return <div className="evidence-layout">
-    <form className="evidence-entry record-panel" onSubmit={submit}><header><div><span className="eyebrow">Event-date rate</span><h2>Record work</h2></div><BadgeCheck size={21} /></header><div className="form-grid"><label>Present worker<select required value={workerId} onChange={(event) => setWorkerId(event.target.value)}><option value="">Select worker</option>{present.map((row) => <option key={row.workerId} value={row.workerId}>{row.workerName} · {row.fieldName}</option>)}</select></label><label>Pay basis<select value={basis} onChange={(event) => setBasis(event.target.value)}>{payBases.map((item) => <option key={item}>{label(item)}</option>)}</select></label><fieldset className="is-wide activity-checks"><legend>Activities on allocated field</legend>{activities.length ? activities.map((activity) => <label className="activity-choice" key={activity.id}><input type="checkbox" name="activityIds" value={activity.id} required={false} /><span className="activity-choice-box" aria-hidden="true" /><span>{activity.name}</span><small>{label(activity.quantityBasis)}</small></label>) : <small>Select a present worker with actual activities on this date.</small>}</fieldset>{['Hectare', 'StandardLine'].includes(basis) && <><label>Scope type<select name="scopeType" defaultValue={basis === 'StandardLine' ? 'LineRange' : 'NamedSection'}><option value="NamedSection">Named section</option>{basis === 'StandardLine' && <option value="LineRange">Line range</option>}</select></label><label>Quantity <small>For hectares or named lines</small><input name="quantity" type="number" min="0.0001" step={basis === 'StandardLine' ? '1' : '0.0001'} /></label><label>Start line<input name="startLine" type="number" min="1" step="1" /></label><label>End line<input name="endLine" type="number" min="1" step="1" /></label><label className="is-wide">Section name<input name="sectionName" maxLength={120} /></label></>}<label className="is-wide">Late-entry reason<input name="lateReason" maxLength={500} /></label></div><button disabled={saving || !workerId || !activities.length}>{saving ? 'Recording…' : 'Record evidence'}</button></form>
-    <section className="evidence-register record-panel"><header><div><span className="eyebrow">Verification chain</span><h2>Evidence for {formatDate(date)}</h2></div><span>{records.filter((record) => record.status === 'Confirmed').length} confirmed</span></header>{records.length ? records.map((record) => <article key={record.id}><div className="evidence-main"><strong>{record.workerName}</strong><span>{record.activityNames.join(', ')} · {label(record.payBasis)}</span><small>{record.fieldName} · {evidenceAmount(record.payBasis, record.calculatedAmountUsd, record.quantity)}</small></div><div className="proof-strip"><span className="is-done"><b>1</b><small>Entered</small></span><span className={record.verification ? 'is-done' : ''}><b>2</b><small>Supervisor</small></span><span className={record.status === 'Confirmed' ? 'is-done' : ''}><b>3</b><small>Manager</small></span></div>{record.status === 'Draft' && <div className="evidence-action"><select aria-label="Named supervisor" defaultValue=""><option value="">Supervisor…</option>{references.supervisors.map((supervisor) => <option key={supervisor.id} value={supervisor.id}>{supervisor.displayName}</option>)}</select><button type="button" disabled={saving} onClick={(event) => { const select = /** @type {HTMLSelectElement | null} */ (event.currentTarget.previousElementSibling); if (select?.value) action(record, 'verify', select.value); }}>Record attestation</button></div>}{record.status === 'SupervisorVerified' && <button type="button" className="primary-action" disabled={saving} onClick={() => action(record, 'confirm')}>Manager confirm</button>}{record.status === 'Confirmed' && <span className="confirmed-mark"><ShieldCheck size={16} /> Payroll-eligible evidence</span>}</article>) : <p className="empty-copy">No work evidence recorded for this date.</p>}</section>
+    <form className="evidence-entry record-panel" onSubmit={submit}><header><div><span className="eyebrow">Event-date rate</span><h2>Record work</h2></div><BadgeCheck size={21} /></header><div className="form-grid"><label>Present worker<select required value={workerId} onChange={(event) => setWorkerId(event.target.value)}><option value="">Select worker</option>{present.map((row) => <option key={row.workerId} value={row.workerId}>{row.workerName} · {row.fieldName}</option>)}</select></label><label>Pay basis<select value={basis} onChange={(event) => setBasis(isPayBasis(event.target.value) ? event.target.value : 'Daily')}>{payBases.map((item) => <option key={item}>{label(item)}</option>)}</select></label><fieldset className="is-wide activity-checks"><legend>Activities on allocated field</legend>{activities.length ? activities.map((activity) => <label className="activity-choice" key={activity.id}><input type="checkbox" name="activityIds" value={activity.id} required={false} /><span className="activity-choice-box" aria-hidden="true" /><span>{activity.name}</span><small>{label(activity.quantityBasis)}</small></label>) : <small>Select a present worker with actual activities on this date.</small>}</fieldset>{['Hectare', 'StandardLine'].includes(basis) && <><label>Scope type<select name="scopeType" defaultValue={basis === 'StandardLine' ? 'LineRange' : 'NamedSection'}><option value="NamedSection">Named section</option>{basis === 'StandardLine' && <option value="LineRange">Line range</option>}</select></label><label>Quantity <small>For hectares or named lines</small><input name="quantity" type="number" min="0.0001" step={basis === 'StandardLine' ? '1' : '0.0001'} /></label><label>Start line<input name="startLine" type="number" min="1" step="1" /></label><label>End line<input name="endLine" type="number" min="1" step="1" /></label><label className="is-wide">Section name<input name="sectionName" maxLength={120} /></label></>}<label className="is-wide">Late-entry reason<input name="lateReason" maxLength={500} /></label></div><button disabled={saving || !workerId || !activities.length}>{saving ? 'Recording…' : 'Record evidence'}</button></form>
+    <section className="evidence-register record-panel"><header><div><span className="eyebrow">Verification chain</span><h2>Evidence for {formatDate(date)}</h2></div><span>{records.filter((record) => record.status === 'Confirmed').length} confirmed</span></header>{records.length ? records.map((record) => <article key={record.id}><div className="evidence-main"><strong>{record.workerName}</strong><span>{record.activityNames.join(', ')} · {label(record.payBasis)}</span><small>{record.fieldName} · {evidenceAmount(record.payBasis, record.calculatedAmountUsd, record.quantity)}</small></div><div className="proof-strip"><span className="is-done"><b>1</b><small>Entered</small></span><span className={record.verification ? 'is-done' : ''}><b>2</b><small>Supervisor</small></span><span className={record.status === 'Confirmed' ? 'is-done' : ''}><b>3</b><small>Manager</small></span></div>{record.status === 'Draft' && <div className="evidence-action"><select aria-label="Named supervisor" defaultValue=""><option value="">Supervisor…</option>{references.supervisors.map((supervisor) => <option key={supervisor.id} value={supervisor.id}>{supervisor.displayName}</option>)}</select><button type="button" disabled={saving} onClick={(event) => { const select = event.currentTarget.previousElementSibling; if (select instanceof HTMLSelectElement && select.value) action(record, 'verify', select.value); }}>Record attestation</button></div>}{record.status === 'SupervisorVerified' && <button type="button" className="primary-action" disabled={saving} onClick={() => action(record, 'confirm')}>Manager confirm</button>}{record.status === 'Confirmed' && <span className="confirmed-mark"><ShieldCheck size={16} /> Payroll-eligible evidence</span>}</article>) : <p className="empty-copy">No work evidence recorded for this date.</p>}</section>
   </div>;
 }
 
-/** @param {{title: string, onClose: () => void, children: import('react').ReactNode}} props */
-function LabourDialog({ title, onClose, children }) { return <dialog open className="activity-dialog labour-dialog"><article><header><div><span className="eyebrow">Labour ledger</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
-/** @param {Date | string} value */
-function formatIsoDate(value) { return value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10); }
-/** @param {Date | string} value */
-function formatDate(value) { const iso = formatIsoDate(value); return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T00:00:00`)); }
+function LabourDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <dialog open className="activity-dialog labour-dialog"><article><header><div><span className="eyebrow">Labour ledger</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
+function formatIsoDate(value: Date | string): string { return value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10); }
+function formatDate(value: Date | string): string { const iso = formatIsoDate(value); return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T00:00:00`)); }
+
+function isPayBasis(value: string): value is 'Daily' | 'Monthly' | 'Hectare' | 'StandardLine' {
+  return value === 'Daily' || value === 'Monthly' || value === 'Hectare' || value === 'StandardLine';
+}

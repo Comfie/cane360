@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { PackagePlus, ShieldAlert } from 'lucide-react';
 import { getApiError } from '../apiError';
 import { createInputRequest, loadInputControls, submitInputRequest } from './inputControlApi';
 import { quantity, usd } from './inventoryView';
+import type { InputControlWorkspaceDto } from '../../web-api-client';
 
-/** @param {{activityId: string, activityStatus: string, onError: (message: string) => void}} props */
-export function ActivityInputsPanel({ activityId, activityStatus, onError }) {
-  const [workspace, setWorkspace] = useState(/** @type {import('../../web-api-client').InputControlWorkspaceDto | null} */ (null));
+interface ActivityInputsPanelProps {
+  activityId: string;
+  activityStatus: string;
+  onError: (message: string) => void;
+}
+
+export function ActivityInputsPanel({ activityId, activityStatus, onError }: ActivityInputsPanelProps) {
+  const [workspace, setWorkspace] = useState<InputControlWorkspaceDto | null>(null);
   const [showRequest, setShowRequest] = useState(false);
   const [saving, setSaving] = useState(false);
   const reload = () => loadInputControls(activityId).then(setWorkspace);
@@ -14,8 +21,7 @@ export function ActivityInputsPanel({ activityId, activityStatus, onError }) {
   if (!workspace) return <section className="activity-inputs-panel"><span>Loading input controls…</span></section>;
   const terminal = ['Completed', 'Closed', 'Cancelled'].includes(activityStatus);
   const requests = workspace.requests;
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
     try {
       const requestId = await createInputRequest(activityId, [{ inventoryItemId: String(data.get('inventoryItemId')), requestedQuantity: Number(data.get('requestedQuantity')) }]);

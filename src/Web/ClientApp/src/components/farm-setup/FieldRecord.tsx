@@ -1,8 +1,9 @@
 import { CalendarDays, Droplets, Sprout } from 'lucide-react';
 import { formatCycleStatus } from '../crop-cycles/cropCycleView';
+import type { ReactNode } from 'react';
+import type { FieldDto } from '../../web-api-client';
 
-/** @param {{ field: import('../../web-api-client').FieldDto, children?: import('react').ReactNode }} props */
-export function FieldRecord({ field, children }) {
+export function FieldRecord({ field, children }: { field: FieldDto; children?: ReactNode }) {
   const cycle = field.currentCropCycle;
 
   return (
@@ -36,8 +37,7 @@ export function FieldRecord({ field, children }) {
   );
 }
 
-/** @param {string} value */
-function formatDate(value) {
+function formatDate(value: string): string {
   return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' })
     .format(new Date(`${value}T00:00:00`));
 }

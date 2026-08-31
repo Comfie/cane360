@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../AuthLayout';
 import { ValidationError } from '../ValidationError';
@@ -6,8 +7,7 @@ import { useAuth } from './AuthContext';
 
 const MIN_PASSWORD_LENGTH = 6;
 
-/** @param {string} value */
-function validateEmail(value) {
+function validateEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
@@ -26,8 +26,7 @@ export function RegisterPage() {
   const emailInvalid = emailTouched && !emailValid;
   const passwordInvalid = passwordTouched && !passwordValid;
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     setEmailTouched(true);

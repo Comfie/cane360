@@ -2,6 +2,7 @@ import { CalendarDays, ChevronRight, History, Sprout, Wheat } from 'lucide-react
 import { Link } from 'react-router-dom';
 import { EmptyState } from '../EmptyState';
 import { cycleGroup, filterCycles, flattenCycleCollections, formatCycleStatus } from './cropCycleView';
+import type { CropCycleCollectionDto } from '../../web-api-client';
 
 const filters = [
   ['all', 'All'],
@@ -11,8 +12,13 @@ const filters = [
   ['history', 'History'],
 ];
 
-/** @param {{ collections: import('../../web-api-client').CropCycleCollectionDto[], filter: string, onFilterChange: (filter: string) => void }} props */
-export function CropCycleRegister({ collections, filter, onFilterChange }) {
+interface CropCycleRegisterProps {
+  collections: CropCycleCollectionDto[];
+  filter: string;
+  onFilterChange: (filter: string) => void;
+}
+
+export function CropCycleRegister({ collections, filter, onFilterChange }: CropCycleRegisterProps) {
   const allCycles = flattenCycleCollections(collections);
   const visibleCycles = filterCycles(allCycles.map((entry) => entry.cropCycle), filter);
   const visibleIds = new Set(visibleCycles.map((cycle) => cycle.id));
@@ -47,8 +53,7 @@ export function CropCycleRegister({ collections, filter, onFilterChange }) {
   );
 }
 
-/** @param {string} value */
-function formatDate(value) {
+function formatDate(value: string): string {
   return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' })
     .format(new Date(`${value}T00:00:00`));
 }

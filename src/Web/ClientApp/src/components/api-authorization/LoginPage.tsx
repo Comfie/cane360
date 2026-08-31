@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../AuthLayout';
 import { ValidationError } from '../ValidationError';
@@ -13,15 +14,16 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     setIsSubmitting(true);
 
     try {
       await login(email, password);
-      const requestedUrl = /** @type {{ returnUrl?: unknown } | null} */ (location.state)?.returnUrl;
+      const requestedUrl = location.state && typeof location.state === 'object' && 'returnUrl' in location.state
+        ? location.state.returnUrl
+        : undefined;
       const returnUrl = typeof requestedUrl === 'string'
         && requestedUrl.startsWith('/')
         && !requestedUrl.startsWith('//')

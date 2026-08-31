@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { BadgeCheck, Pencil, UserPlus, Users, X } from 'lucide-react';
-import { CreatePersonRequest, FarmPersonnelClient, UpdatePersonRequest } from '../../web-api-client';
+import { CreatePersonRequest, FarmPersonnelClient, UpdatePersonRequest, type PersonDto, type PersonnelRegisterDto } from '../../web-api-client';
 import { DatePicker } from '../DatePicker';
 import { getApiError } from './farmSetupApi';
 
 const personnelClient = new FarmPersonnelClient();
 
 export function PersonnelRegister() {
-  const [register, setRegister] = useState(/** @type {import('../../web-api-client').PersonnelRegisterDto | null} */ (null));
+  const [register, setRegister] = useState<PersonnelRegisterDto | null>(null);
   const [error, setError] = useState('');
   const [adding, setAdding] = useState(false);
-  const [editingPerson, setEditingPerson] = useState(/** @type {import('../../web-api-client').PersonDto | null} */ (null));
+  const [editingPerson, setEditingPerson] = useState<PersonDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [role, setRole] = useState('Supervisor');
   const [isPrimaryManager, setIsPrimaryManager] = useState(false);
@@ -40,8 +40,7 @@ export function PersonnelRegister() {
     setEditingPerson(null);
     setAdding(true);
   };
-  /** @param {import('../../web-api-client').PersonDto} person */
-  const openEditPerson = (person) => {
+  const openEditPerson = (person: PersonDto) => {
     const currentRoles = person.roles.filter((assignment) => !assignment.effectiveTo);
     const currentRole = currentRoles[0];
     const latestRoleStart = currentRoles.reduce((latest, assignment) => latest > assignment.effectiveFrom ? latest : assignment.effectiveFrom, person.activeFrom);
@@ -63,8 +62,7 @@ export function PersonnelRegister() {
     setRoleEffectiveFromMinimum('');
     setError('');
   };
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); setError('');
     try {
       const request = {
@@ -124,8 +122,7 @@ export function PersonnelRegister() {
   </section>;
 }
 
-/** @param {string} date */
-function nextIsoDate(date) {
+function nextIsoDate(date: string): string {
   const [year, month, day] = date.split('-').map(Number);
   return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 }

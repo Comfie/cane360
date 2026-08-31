@@ -1,6 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardCheck, List, Plus, Sheet, TriangleAlert, X } from 'lucide-react';
-import { CreateActivityTypeRequest, FarmPersonnelClient } from '../../web-api-client';
+import {
+  CreateActivityTypeRequest,
+  FarmPersonnelClient,
+  type ActivityDetailsDto,
+  type ActivityListItemDto,
+  type ActivityTypeDto,
+  type FieldDto,
+  type PersonDto,
+  type PersonnelRegisterDto,
+} from '../../web-api-client';
 import { DatePicker } from '../DatePicker';
 import { getApiError, useFarmSetup } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
@@ -21,14 +30,14 @@ const personnelClient = new FarmPersonnelClient();
 
 export function ActivitiesPage() {
   const { setup, error: setupError, isLoading: setupLoading } = useFarmSetup();
-  const [activities, setActivities] = useState(/** @type {import('../../web-api-client').ActivityListItemDto[]} */ ([]));
-  const [types, setTypes] = useState(/** @type {import('../../web-api-client').ActivityTypeDto[]} */ ([]));
-  const [personnel, setPersonnel] = useState(/** @type {import('../../web-api-client').PersonnelRegisterDto | null} */ (null));
-  const [selected, setSelected] = useState(/** @type {import('../../web-api-client').ActivityDetailsDto | null} */ (null));
-  const [view, setView] = useState('list');
+  const [activities, setActivities] = useState<ActivityListItemDto[]>([]);
+  const [types, setTypes] = useState<ActivityTypeDto[]>([]);
+  const [personnel, setPersonnel] = useState<PersonnelRegisterDto | null>(null);
+  const [selected, setSelected] = useState<ActivityDetailsDto | null>(null);
+  const [view, setView] = useState<'list' | 'calendar'>('list');
   const [showCreate, setShowCreate] = useState(false);
   const [showTypeForm, setShowTypeForm] = useState(false);
-  const [filters, setFilters] = useState({ field: '', type: '', status: '' });
+  const [filters, setFilters] = useState<ActivityFilters>({ field: '', type: '', status: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -65,8 +74,7 @@ export function ActivitiesPage() {
   if (setupLoading || loading) return <LoadingState label="Loading the field diary" />;
   if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent />;
 
-  /** @param {string} id */
-  const openDetails = async (id) => {
+  const openDetails = async (id: string) => {
     try { setSelected(await activitiesClient.activitiesGET2(id)); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
@@ -106,8 +114,18 @@ export function ActivitiesPage() {
   );
 }
 
-/** @param {{ activity: import('../../web-api-client').ActivityListItemDto, onOpen: (id: string) => void }} props */
-function ActivityRow({ activity, onOpen }) {
+interface ActivityFilters {
+  field: string;
+  type: string;
+  status: string;
+}
+
+interface ActivityRowProps {
+  activity: ActivityListItemDto;
+  onOpen: (id: string) => void;
+}
+
+function ActivityRow({ activity, onOpen }: ActivityRowProps) {
   return <button type="button" className="activity-row" onClick={() => onOpen(activity.id)}>
     <span className="activity-date"><small>{activity.actualAt ? 'Worked' : 'Planned'}</small><strong>{formatDate(activity.actualAt?.slice(0, 10) ?? activity.plannedDate)}</strong></span>
     <span className="activity-main"><span><strong>{activity.activityTypeName}</strong><em className={`status-pill status-${activity.status.toLowerCase()}`}>{formatActivityStatus(activity.status)}</em>{activity.isRetrospective && <em className="late-flag"><TriangleAlert size={13} /> {activity.entryDelayDays}d late</em>}</span><small>{activity.fieldCode} · {activity.supervisorName} · {activity.kind}</small></span>
@@ -115,14 +133,17 @@ function ActivityRow({ activity, onOpen }) {
   </button>;
 }
 
-/** @param {{ groups: Record<string, import('../../web-api-client').ActivityListItemDto[]>, onOpen: (id: string) => void }} props */
-function ActivityCalendar({ groups, onOpen }) {
+interface ActivityCalendarProps {
+  groups: Record<string, ActivityListItemDto[]>;
+  onOpen: (id: string) => void;
+}
+
+function ActivityCalendar({ groups, onOpen }: ActivityCalendarProps) {
   const datedKeys = Object.keys(groups).filter((date) => date !== 'Unscheduled').sort();
   const [cursor, setCursor] = useState(() => new Date(`${datedKeys[datedKeys.length - 1] ?? harareToday()}T00:00:00`));
   const dates = monthGridDates(cursor.getFullYear(), cursor.getMonth());
   const monthLabel = new Intl.DateTimeFormat('en-ZW', { month: 'long', year: 'numeric' }).format(cursor);
-  /** @param {number} offset */
-  const moveMonth = (offset) => setCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+  const moveMonth = (offset: number) => setCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
   return <>
     <section className="desktop-month" aria-label={`Activity calendar for ${monthLabel}`}>
       <header className="activity-calendar-header"><h2>{monthLabel}</h2><div><button type="button" onClick={() => moveMonth(-1)} aria-label="Previous month"><ChevronLeft size={17} /></button><button type="button" onClick={() => moveMonth(1)} aria-label="Next month"><ChevronRight size={17} /></button></div></header>
@@ -134,26 +155,37 @@ function ActivityCalendar({ groups, onOpen }) {
   </>;
 }
 
-/** @param {{ title: string, onClose: () => void, children: import('react').ReactNode }} props */
-function ActivityDialog({ title, onClose, children }) {
+interface ActivityDialogProps {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+}
+
+function ActivityDialog({ title, onClose, children }: ActivityDialogProps) {
   return <dialog open className="activity-dialog"><article><header><div><span className="eyebrow">Field diary</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>;
 }
 
-/** @param {{ fields: import('../../web-api-client').FieldDto[], types: import('../../web-api-client').ActivityTypeDto[], supervisors: import('../../web-api-client').PersonDto[], onSaved: (details: import('../../web-api-client').ActivityDetailsDto) => void, onError: (message: string) => void }} props */
-function CreateActivityForm({ fields, types, supervisors, onSaved, onError }) {
+interface CreateActivityFormProps {
+  fields: FieldDto[];
+  types: ActivityTypeDto[];
+  supervisors: PersonDto[];
+  onSaved: (details: ActivityDetailsDto) => void | Promise<void>;
+  onError: (message: string) => void;
+}
+
+function CreateActivityForm({ fields, types, supervisors, onSaved, onError }: CreateActivityFormProps) {
   const [fieldId, setFieldId] = useState('');
-  const [kind, setKind] = useState('Planned');
+  const [kind, setKind] = useState<'Planned' | 'Unplanned'>('Planned');
   const [saving, setSaving] = useState(false);
   const field = fields.find((item) => item.id === fieldId);
   const validTypes = types.filter((type) => kind === 'Planned' ? type.supportsPlanned : type.supportsUnplanned);
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); onError('');
     try { onSaved(await createActivity({ fieldId, cropCycleId: field?.currentCropCycle?.id ?? '', activityTypeId: String(data.get('activityTypeId')), kind, plannedDate: kind === 'Planned' ? String(data.get('plannedDate')) : undefined, supervisorPersonId: String(data.get('supervisorPersonId')) })); }
     catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
   };
   return <form className="activity-form" onSubmit={save}><fieldset className="form-grid">
-    <label>Work kind<select value={kind} onChange={(event) => setKind(event.target.value)}><option>Planned</option><option>Unplanned</option></select></label>
+    <label>Work kind<select value={kind} onChange={(event) => setKind(event.target.value === 'Unplanned' ? 'Unplanned' : 'Planned')}><option>Planned</option><option>Unplanned</option></select></label>
     <label>Field<select required value={fieldId} onChange={(event) => setFieldId(event.target.value)}><option value="">Select field</option>{fields.filter((item) => ['Active', 'ReadyForHarvest'].includes(item.currentCropCycle?.status ?? '')).map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label>
     <label>Activity type<select name="activityTypeId" required defaultValue=""><option value="">Select type</option>{validTypes.map((type) => <option key={type.id} value={type.id}>{type.name} · {type.quantityBasis}</option>)}</select></label>
     <label>Responsible supervisor<select name="supervisorPersonId" required defaultValue=""><option value="">Select supervisor</option>{supervisors.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label>
@@ -161,11 +193,15 @@ function CreateActivityForm({ fields, types, supervisors, onSaved, onError }) {
   </fieldset><p className="context-note">Unplanned work needs actual work details before it can move from Draft to Planned.</p><footer className="form-actions"><span /><button disabled={saving || !field?.currentCropCycle}>{saving ? 'Recording…' : 'Record activity'}</button></footer></form>;
 }
 
-/** @param {{ types: import('../../web-api-client').ActivityTypeDto[], onSaved: (type: import('../../web-api-client').ActivityTypeDto) => void, onError: (message: string) => void }} props */
-function ActivityTypeForm({ types, onSaved, onError }) {
+interface ActivityTypeFormProps {
+  types: ActivityTypeDto[];
+  onSaved: (type: ActivityTypeDto) => void;
+  onError: (message: string) => void;
+}
+
+function ActivityTypeForm({ types, onSaved, onError }: ActivityTypeFormProps) {
   const [saving, setSaving] = useState(false);
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
     const supportsPlanned = data.get('supportsPlanned') === 'on';
     const supportsUnplanned = data.get('supportsUnplanned') === 'on';
@@ -186,17 +222,19 @@ function ActivityTypeForm({ types, onSaved, onError }) {
   return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label className="toggle-control"><input type="checkbox" name="supportsPlanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Planned</span></label><label className="toggle-control"><input type="checkbox" name="supportsUnplanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Unplanned</span></label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
 }
 
-/** @param {{ details: import('../../web-api-client').ActivityDetailsDto, onChanged: (details: import('../../web-api-client').ActivityDetailsDto) => void, onError: (message: string) => void }} props */
-function ActivityOverview({ details, onChanged, onError }) {
+interface ActivityOverviewProps {
+  details: ActivityDetailsDto;
+  onChanged: (details: ActivityDetailsDto) => void | Promise<void>;
+  onError: (message: string) => void;
+}
+
+function ActivityOverview({ details, onChanged, onError }: ActivityOverviewProps) {
   const activity = details.activity;
   const [saving, setSaving] = useState(false);
   const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
-  /** @param {string} action @param {string | undefined} reason */
-  const run = async (action, reason) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveActual = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); try { onChanged(await recordActual(activity.id, activity.version, String(data.get('actualAt')), activity.quantityBasis === 'None' ? undefined : Number(data.get('actualQuantity')), String(data.get('lateEntryReason')).trim() || undefined)); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveReference = async (event) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); try { onChanged(await addSourceReference(activity.id, activity.version, String(data.get('reference')).trim(), String(data.get('capturedDate')))); form.reset(); } catch (error) { onError(getApiError(error)); } finally { setSaving(false); } };
+  const run = async (action: string, reason?: string) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
+  const saveActual = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); try { onChanged(await recordActual(activity.id, activity.version, String(data.get('actualAt')), activity.quantityBasis === 'None' ? undefined : Number(data.get('actualQuantity')), String(data.get('lateEntryReason')).trim() || undefined)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
+  const saveReference = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); try { onChanged(await addSourceReference(activity.id, activity.version, String(data.get('reference')).trim(), String(data.get('capturedDate')))); form.reset(); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
   return <div className="activity-overview">
     <div className="overview-facts"><span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span></div>
     {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18} /><div><strong>Retrospective entry · {activity.entryDelayDays} calendar days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span></div></div>}
@@ -208,18 +246,15 @@ function ActivityOverview({ details, onChanged, onError }) {
   </div>;
 }
 
-/** @param {import('../../web-api-client').ActivityListItemDto} activity */
-function coverage(activity) { if (activity.quantityBasis === 'None') return 'No quantity'; if (activity.actualQuantity == null) return activity.quantityBasis === 'Hectares' ? 'ha pending' : 'lines pending'; return activity.quantityBasis === 'Hectares' ? `${activity.actualQuantity.toLocaleString()} ha` : `${activity.actualQuantity.toLocaleString()} lines${activity.lineContextUnavailable ? ' · context unavailable' : ''}`; }
-/** @param {string | undefined} value */
-function formatDate(value) { if (!value || value === 'Unscheduled') return 'Unscheduled'; return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`)); }
-/** @param {string} value */
-function formatDateTime(value) { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
-function harareToday() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function coverage(activity: ActivityListItemDto): string { if (activity.quantityBasis === 'None') return 'No quantity'; if (activity.actualQuantity == null) return activity.quantityBasis === 'Hectares' ? 'ha pending' : 'lines pending'; return activity.quantityBasis === 'Hectares' ? `${activity.actualQuantity.toLocaleString()} ha` : `${activity.actualQuantity.toLocaleString()} lines${activity.lineContextUnavailable ? ' · context unavailable' : ''}`; }
+function formatDate(value: string | undefined): string { if (!value || value === 'Unscheduled') return 'Unscheduled'; return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`)); }
+function formatDateTime(value: string): string { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
+function harareToday(): string { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 function harareNow() {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
   }).formatToParts(new Date());
-  const part = (/** @type {string} */ type) => parts.find((item) => item.type === type)?.value;
+  const part = (type: string): string | undefined => parts.find((item) => item.type === type)?.value;
   return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
 }

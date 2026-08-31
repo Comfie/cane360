@@ -1,19 +1,25 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { UpdateFarmInformationRequest } from '../../web-api-client';
 import { farmSetupClient, getApiError } from './farmSetupApi';
+import type { FarmSetupDto } from '../../web-api-client';
 
 const tenureOptions = ['Owned', 'Leasehold', 'Outgrower agreement', 'Communal land', 'Other'];
 
-/** @param {{ setup: import('../../web-api-client').FarmSetupDto, onClose: () => void, onSaved: (setup: import('../../web-api-client').FarmSetupDto) => void }} props */
-export function FarmProfileEditor({ setup, onClose, onSaved }) {
+interface FarmProfileEditorProps {
+  setup: FarmSetupDto;
+  onClose: () => void;
+  onSaved: (setup: FarmSetupDto) => void;
+}
+
+export function FarmProfileEditor({ setup, onClose, onSaved }: FarmProfileEditorProps) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const farm = setup.farm;
 
   if (!farm) return null;
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     setError('');
@@ -65,8 +71,7 @@ export function FarmProfileEditor({ setup, onClose, onSaved }) {
   </dialog>;
 }
 
-/** @param {FormDataEntryValue | null} value */
-function optionalValue(value) {
+function optionalValue(value: string | File | null): string | undefined {
   const text = String(value ?? '').trim();
   return text || undefined;
 }

@@ -11,7 +11,7 @@ import {
   returnStockWarning,
 } from './inputControlView.ts';
 
-const workspaceSource = readFileSync(new URL('./InputControlsWorkspace.jsx', import.meta.url), 'utf8');
+const workspaceSource = readFileSync(new URL('./InputControlsWorkspace.tsx', import.meta.url), 'utf8');
 
 test('keeps Grower-required approvals unavailable to FarmManagers', () => {
   assert.deepEqual(approvalLane({ requiresGrower: true }, 'FarmManager'), {

@@ -1,7 +1,13 @@
 import { Droplets, LandPlot, MapPin, Pencil, UserRound } from 'lucide-react';
+import type { FarmSetupDto } from '../../web-api-client';
 
-/** @param {{ setup: import('../../web-api-client').FarmSetupDto, compact?: boolean, onEdit?: () => void }} props */
-export function FarmSummary({ setup, compact = false, onEdit }) {
+interface FarmSummaryProps {
+  setup: FarmSetupDto;
+  compact?: boolean;
+  onEdit?: () => void;
+}
+
+export function FarmSummary({ setup, compact = false, onEdit }: FarmSummaryProps) {
   const farm = setup.farm;
   if (!farm) return null;
 

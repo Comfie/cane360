@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { advancePayload, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultPeriodId, issuePayload, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.ts';
 
-const pageSource = readFileSync(new URL('../pages/PayrollPage.jsx', import.meta.url), 'utf8');
+const pageSource = readFileSync(new URL('../pages/PayrollPage.tsx', import.meta.url), 'utf8');
 const routesSource = readFileSync(new URL('../../AppRoutes.jsx', import.meta.url), 'utf8');
 const navigationSource = readFileSync(new URL('../../navigation.ts', import.meta.url), 'utf8');
 const stylesSource = readFileSync(new URL('../../styles.scss', import.meta.url), 'utf8');
@@ -16,8 +16,8 @@ test('protected payroll route and Labour and Payroll navigation target the real 
 test('period form emits numeric calendar payload', () => assert.deepEqual(periodPayload('2028', '2'), { year: 2028, month: 2 }));
 
 test('period mutations submit exact versions and refetch', () => {
-  assert.match(pageSource, /api\.open\(period\.id, \{ expectedVersion: period\.version \}\)/);
-  assert.match(pageSource, /api\.cancel4\(period\.id, \{ expectedVersion: period\.version, reason \}\)/);
+  assert.match(pageSource, /api\.open\(period\.id, new VersionedPayrollRequest\(\{ expectedVersion: period\.version \}\)\)/);
+  assert.match(pageSource, /api\.cancel4\(period\.id, new CancelPayrollPeriodRequest\(\{ expectedVersion: period\.version, reason \}\)\)/);
   assert.match(pageSource, /await reloadCore\(\)/);
 });
 

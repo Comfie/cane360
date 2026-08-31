@@ -10,12 +10,12 @@ test('date controls leave the browser calendar indicator unmodified', async () =
 
 test('forms use the shared date picker instead of native date controls', async () => {
   const componentPaths = [
-    './components/crop-cycles/CropCycleForm.jsx',
-    './components/farm-setup/LineProfileForm.jsx',
-    './components/farm-setup/PersonnelRegister.jsx',
-    './components/pages/ActivitiesPage.jsx',
-    './components/pages/CropCycleOverviewPage.jsx',
-    './components/pages/LabourPage.jsx',
+    './components/crop-cycles/CropCycleForm.tsx',
+    './components/farm-setup/LineProfileForm.tsx',
+    './components/farm-setup/PersonnelRegister.tsx',
+    './components/pages/ActivitiesPage.tsx',
+    './components/pages/CropCycleOverviewPage.tsx',
+    './components/pages/LabourPage.tsx',
   ];
 
   for (const componentPath of componentPaths) {
@@ -33,7 +33,7 @@ test('labour dialog content keeps its fields and guidance inside the modal paddi
 
 test('activity-type checkboxes keep their native control sizing and save-action spacing', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const component = await readFile(new URL('./components/pages/ActivitiesPage.jsx', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/ActivitiesPage.tsx', import.meta.url), 'utf8');
 
   assert.match(styles, /\.form-grid :is\(input:not\(\[type="checkbox"\]/);
   assert.match(styles, /\.activity-form > form > button \{[^}]*margin: var\(--space-4\) 0 0;/);
@@ -45,7 +45,7 @@ test('activity-type checkboxes keep their native control sizing and save-action 
 
 test('personnel creation and editing use a modal, with the primary-manager switch only for Farm managers', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const component = await readFile(new URL('./components/farm-setup/PersonnelRegister.jsx', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/farm-setup/PersonnelRegister.tsx', import.meta.url), 'utf8');
 
   assert.match(component, /<dialog open className="activity-dialog personnel-dialog"/);
   assert.match(component, /role === 'FarmManager' && <label className="toggle-control personnel-primary-toggle">/);
@@ -60,8 +60,8 @@ test('personnel creation and editing use a modal, with the primary-manager switc
 
 test('farm information is edited in a modal with a compact summary action', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const summary = await readFile(new URL('./components/farm-setup/FarmSummary.jsx', import.meta.url), 'utf8');
-  const editor = await readFile(new URL('./components/farm-setup/FarmProfileEditor.jsx', import.meta.url), 'utf8');
+  const summary = await readFile(new URL('./components/farm-setup/FarmSummary.tsx', import.meta.url), 'utf8');
+  const editor = await readFile(new URL('./components/farm-setup/FarmProfileEditor.tsx', import.meta.url), 'utf8');
 
   assert.match(summary, /aria-label="Edit farm information"/);
   assert.match(editor, /<dialog open className="activity-dialog farm-profile-dialog"/);
@@ -78,7 +78,7 @@ test('record-evidence actions are separated from the final form field', async ()
 
 test('record-work activity selections use accessible checkbox controls', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const component = await readFile(new URL('./components/pages/LabourPage.jsx', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/LabourPage.tsx', import.meta.url), 'utf8');
 
   assert.match(styles, /\.activity-choice input:checked \+ \.activity-choice-box/);
   assert.match(component, /className="activity-choice"/);
@@ -93,7 +93,7 @@ test('evidence attestation controls use a dedicated action row', async () => {
 
 test('evidence verification uses numbered step markers', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
-  const component = await readFile(new URL('./components/pages/LabourPage.jsx', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/LabourPage.tsx', import.meta.url), 'utf8');
 
   assert.match(styles, /\.proof-strip span b \{[^}]*border-radius: 50%;/);
   assert.match(component, /<b>1<\/b><small>Entered<\/small>/);

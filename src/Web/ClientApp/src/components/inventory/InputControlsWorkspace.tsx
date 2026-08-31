@@ -1,6 +1,12 @@
-// @ts-nocheck
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { BadgeCheck, CircleDollarSign, PackageMinus, ShieldAlert } from 'lucide-react';
+import type {
+  InputAccountabilityDto,
+  InputControlWorkspaceDto,
+  InputRequestDto,
+  InventoryLossDto,
+  StockIssueDto,
+} from '../../web-api-client';
 import { getApiError } from '../apiError';
 import { DatePicker } from '../DatePicker';
 import {
@@ -25,14 +31,18 @@ import {
 import { harareToday, quantity } from './inventoryView';
 import { approvalLane, estimatedCostLabel } from './inputControlView';
 
-/** @param {{onError: (message: string) => void}} props */
-export function InputControlsWorkspace({ onError }) {
-  const [workspace, setWorkspace] = useState(/** @type {import('../../web-api-client').InputControlWorkspaceDto | null} */ (null));
-  const [mode, setMode] = useState('queue');
+interface InputControlsWorkspaceProps { onError: (message: string) => void; }
+type WorkflowKind = 'receive' | 'apply' | 'return' | 'loss';
+interface InputWorkflow { kind: WorkflowKind; issue: StockIssueDto; request: InputRequestDto; }
+interface PendingApplication { id: string; version: number; }
+
+export function InputControlsWorkspace({ onError }: InputControlsWorkspaceProps) {
+  const [workspace, setWorkspace] = useState<InputControlWorkspaceDto | null>(null);
+  const [mode, setMode] = useState<'queue' | 'issues' | 'rules' | 'access'>('queue');
   const [working, setWorking] = useState('');
-  const [issuedRequest, setIssuedRequest] = useState(/** @type {import('../../web-api-client').InputRequestDto | null} */ (null));
-  const [workflow, setWorkflow] = useState(/** @type {{kind: string, issue: import('../../web-api-client').StockIssueDto, request: import('../../web-api-client').InputRequestDto} | null} */ (null));
-  const [pendingApplication, setPendingApplication] = useState(/** @type {{id: string, version: number} | null} */ (null));
+  const [issuedRequest, setIssuedRequest] = useState<InputRequestDto | null>(null);
+  const [workflow, setWorkflow] = useState<InputWorkflow | null>(null);
+  const [pendingApplication, setPendingApplication] = useState<PendingApplication | null>(null);
   const [shownToken, setShownToken] = useState('');
   const reload = async () => setWorkspace(await loadInputControls(undefined));
   useEffect(() => { let current = true; loadInputControls(undefined).then((value) => { if (current) setWorkspace(value); }).catch((error) => onError(getApiError(error))); return () => { current = false; }; }, [onError]);
@@ -41,16 +51,14 @@ export function InputControlsWorkspace({ onError }) {
   const approved = workspace.requests.filter((request) => ['Approved', 'PartiallyIssued'].includes(request.status));
   const accountability = workspace.accountability || [];
   const submittedLosses = (workspace.losses || []).filter((loss) => loss.status === 'Submitted');
-  /** @param {import('../../web-api-client').InputRequestDto} request @param {'Approved' | 'Rejected'} outcome */
-  const decide = async (request, outcome) => {
+  const decide = async (request: InputRequestDto, outcome: 'Approved' | 'Rejected') => {
     const reason = outcome === 'Rejected' ? globalThis.prompt('Rejection reason:')?.trim() : undefined;
     if (outcome === 'Rejected' && !reason) return;
     setWorking(request.id); onError('');
     try { await decideInputRequest(request.id, request.version, outcome, reason); await reload(); }
     catch (error) { onError(getApiError(error)); } finally { setWorking(''); }
   };
-  /** @param {import('../../web-api-client').StockIssueDto} issue @param {'post' | 'correct' | 'reverse'} action */
-  const issueAction = async (issue, action) => {
+  const issueAction = async (issue: StockIssueDto, action: 'post' | 'correct' | 'reverse') => {
     setWorking(issue.id); onError('');
     try {
       if (action === 'post') await postStockIssue(issue.id, issue.version);
@@ -59,10 +67,10 @@ export function InputControlsWorkspace({ onError }) {
       await reload();
     } catch (error) { onError(getApiError(error)); } finally { setWorking(''); }
   };
-  const decideLoss = async (loss, outcome) => {
+  const decideLoss = async (loss: InventoryLossDto, outcome: 'Approved' | 'Rejected') => {
     const reason = outcome === 'Rejected' ? globalThis.prompt('Rejection reason:')?.trim() : undefined;
     if (outcome === 'Rejected' && !reason) return;
-    try { await decideInventoryLoss(loss.id, loss.version, outcome, reason); await reload(); }
+    try { await decideInventoryLoss(loss.id, loss.version, decisionOutcome(outcome), reason); await reload(); }
     catch (error) { onError(getApiError(error)); }
   };
   return <div className="input-controls-workspace">
@@ -74,65 +82,76 @@ export function InputControlsWorkspace({ onError }) {
   </div>;
 }
 
-/** @param {{rows: import('../../web-api-client').InputAccountabilityDto[]}} props */
-function AccountabilityChain({ rows }) {
+function AccountabilityChain({ rows }: { rows: InputAccountabilityDto[] }) {
   return <section className="record-panel input-accountability"><header className="ledger-title"><div><span className="eyebrow">Fixed accountability chain</span><h2>Requested → Approved → Issued → Field received → Applied / Returned / Lost</h2></div><small>Only zero unaccounted quantity permits activity closure.</small></header>{rows.length === 0 ? <p className="context-note">No posted controlled input requires reconciliation.</p> : <div className="accountability-list">{rows.map((row) => <article key={row.stockIssueLineId} className={row.isBlocking ? 'blocking' : ''}><strong>{row.itemCode}{row.lotCode ? ` · lot ${row.lotCode}` : ''}</strong><div className="reconciliation-strip"><span>Issued<b>{quantity(row.issuedQuantity, row.unitCode)}</b></span><span>Received<b>{quantity(row.fieldReceivedQuantity, row.unitCode)}</b></span><span>Applied<b>{quantity(row.confirmedAppliedQuantity, row.unitCode)}</b></span><span>Returned<b>{quantity(row.postedReturnedQuantity, row.unitCode)}</b></span><span>Loss<b>{quantity(row.approvedLossQuantity, row.unitCode)}</b></span><span className={row.isBlocking ? 'danger' : 'resolved'}>Unaccounted<b>{quantity(row.unaccountedQuantity, row.unitCode)}</b></span></div>{row.isBlocking && <small className="blocking-note">Blocking condition: record a confirmed application, Store-received return, or Grower-approved loss.</small>}</article>)}</div>}</section>;
 }
 
-function WorkflowDialog({ title, eyebrow, children, onClose }) {
+function WorkflowDialog({ title, eyebrow, children, onClose }: { title: string; eyebrow: string; children: ReactNode; onClose: () => void }) {
   return <dialog open className="activity-dialog inventory-dialog"><article><header><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div><button className="dialog-close" onClick={onClose} aria-label="Close">×</button></header>{children}</article></dialog>;
 }
 
-function FieldReceiptForm({ workspace, issue, request, onClose, onSaved, onError }) {
+interface InputWorkflowFormProps {
+  workspace: InputControlWorkspaceDto;
+  issue: StockIssueDto;
+  request: InputRequestDto;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+  onError: (message: string) => void;
+}
+
+function FieldReceiptForm({ workspace, issue, request, onClose, onSaved, onError }: InputWorkflowFormProps) {
   const people = workspace.people.filter((person) => person.status === 'Active');
-  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { await createFieldReceipt({ stockIssueId: issue.id, fieldId: request.fieldId, cropCycleId: request.cropCycleId, activityId: request.activityId, recipientPersonId: String(data.get('recipient')), receivedAt: new Date(String(data.get('receivedAt'))), lateEntryReason: String(data.get('lateReason')) || undefined, lines: issue.lines.filter((line) => Number(data.get(`quantity-${line.id}`)) > 0).map((line) => ({ stockIssueLineId: line.id, quantity: Number(data.get(`quantity-${line.id}`)) })) }); await onSaved(); } catch (error) { onError(getApiError(error)); } };
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { await createFieldReceipt({ stockIssueId: issue.id, fieldId: request.fieldId, cropCycleId: request.cropCycleId, activityId: request.activityId, recipientPersonId: String(data.get('recipient')), receivedAt: new Date(String(data.get('receivedAt'))), lateEntryReason: String(data.get('lateReason')) || undefined, lines: issue.lines.filter((line) => Number(data.get(`quantity-${line.id}`)) > 0).map((line) => ({ stockIssueLineId: line.id, quantity: Number(data.get(`quantity-${line.id}`)) })) }); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } };
   return <WorkflowDialog title="Record field receipt" eyebrow="Issued → field received" onClose={onClose}><form className="inventory-form" onSubmit={save}><div className="form-grid"><label>Received at<input name="receivedAt" type="datetime-local" required /></label><label>Named field recipient<select name="recipient" required defaultValue=""><option value="">Select recipient</option>{people.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Late-entry reason<input name="lateReason" maxLength={500} /></label></div><fieldset className="receipt-lines"><legend>Partial quantities received in the field</legend>{issue.lines.map((line) => <label className="receipt-line" key={line.id}><span><strong>{line.itemCode}</strong><small>{quantity(line.quantity, line.unitCode)} issued</small></span><input name={`quantity-${line.id}`} type="number" min="0" max={line.quantity} step="0.000001" defaultValue="0" /></label>)}</fieldset><footer className="form-actions"><small>Recording a field receipt does not move store stock.</small><button>Record receipt</button></footer></form></WorkflowDialog>;
 }
 
-function ApplicationForm({ workspace, issue, request, onClose, onApplication, onError }) {
+function ApplicationForm({ workspace, issue, request, onClose, onApplication, onError }: Omit<InputWorkflowFormProps, 'onSaved'> & { onApplication: (application: PendingApplication) => void }) {
   const receipts = (workspace.fieldReceipts || []).filter((receipt) => receipt.stockIssueId === issue.id && receipt.status === 'Recorded');
-  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const receiptLineId = String(data.get('receiptLine')); const receipt = receipts.find((entry) => entry.lines.some((line) => line.id === receiptLineId)); const receiptLine = receipt?.lines.find((line) => line.id === receiptLineId); if (!receiptLine) return; try { const id = await createInputApplication({ activityId: request.activityId, appliedAt: new Date(String(data.get('appliedAt'))), coverageBasis: String(data.get('coverageBasis')), verifiedCoverage: Number(data.get('coverage')), lines: [{ fieldReceiptLineId: receiptLine.id, stockIssueLineId: receiptLine.stockIssueLineId, appliedQuantity: Number(data.get('quantity')) }] }); onClose(); onApplication({ id, version: 2 }); } catch (error) { onError(getApiError(error)); } };
-  return <WorkflowDialog title="Capture application" eyebrow="Field received → application" onClose={onClose}>{receipts.length === 0 ? <p className="context-note">Record a field receipt first. Applications can only use its traced receipt lines.</p> : <form className="inventory-form" onSubmit={save}><div className="form-grid"><label>Receipt line<select name="receiptLine" required defaultValue=""><option value="">Select received input</option>{receipts.flatMap((receipt) => receipt.lines.map((line) => <option key={line.id} value={line.id}>{line.itemCode} · {quantity(line.quantity, line.unitCode)}</option>))}</select></label><label>Applied at<input name="appliedAt" type="datetime-local" required /></label><label>Coverage basis<select name="coverageBasis"><option value="FieldReportingHectares">Field hectares</option><option value="ActivityActualQuantity">Activity quantity</option></select></label><label>Verified coverage<input name="coverage" type="number" min="0.000001" step="0.000001" required /></label><label>Applied quantity<input name="quantity" type="number" min="0.000001" step="0.000001" required /></label></div><footer className="form-actions"><small>Draft application has no cost until manager confirmation.</small><button>Capture application</button></footer></form>}</WorkflowDialog>;
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); const receiptLineId = String(data.get('receiptLine')); const receipt = receipts.find((entry) => entry.lines.some((line) => line.id === receiptLineId)); const receiptLine = receipt?.lines.find((line) => line.id === receiptLineId); if (!receiptLine) return; try { const id = await createInputApplication({ activityId: request.activityId, appliedAt: new Date(String(data.get('appliedAt'))), coverageBasis: coverageBasisValue(String(data.get('coverageBasis'))), verifiedCoverage: Number(data.get('coverage')), lines: [{ fieldReceiptLineId: receiptLine.id, stockIssueLineId: receiptLine.stockIssueLineId, appliedQuantity: Number(data.get('quantity')) }] }); onClose(); onApplication({ id, version: 2 }); } catch (requestError) { onError(getApiError(requestError)); } };
+  return <WorkflowDialog title="Capture application" eyebrow="Field received → application" onClose={onClose}>{receipts.length === 0 ? <p className="context-note">Record a field receipt first. Applications can only use its traced receipt lines.</p> : <form className="inventory-form" onSubmit={save}><div className="form-grid"><label>Receipt line<select name="receiptLine" required defaultValue=""><option value="">Select received input</option>{receipts.flatMap((receipt) => receipt.lines.map((line) => <option key={line.id} value={line.id}>{line.itemCode} · {quantity(line.quantity, line.unitCode)}</option>))}</select></label><label>Applied at<input name="appliedAt" type="datetime-local" required /></label><label>Coverage basis<select name="coverageBasis"><option value="0">Field hectares</option><option value="1">Activity quantity</option></select></label><label>Verified coverage<input name="coverage" type="number" min="0.000001" step="0.000001" required /></label><label>Applied quantity<input name="quantity" type="number" min="0.000001" step="0.000001" required /></label></div><footer className="form-actions"><small>Draft application has no cost until manager confirmation.</small><button>Capture application</button></footer></form>}</WorkflowDialog>;
 }
 
-function ApplicationVerificationForm({ workspace, application, onClose, onSaved, onError }) {
+function ApplicationVerificationForm({ workspace, application, onClose, onSaved, onError }: { workspace: InputControlWorkspaceDto; application: PendingApplication; onClose: () => void; onSaved: () => Promise<void>; onError: (message: string) => void }) {
   const supervisors = workspace.people.filter((person) => person.status === 'Active' && person.roles.some((role) => role.role === 'Supervisor' && !role.effectiveTo));
   const [version, setVersion] = useState(application.version);
-  const attest = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { await attestInputApplication(application.id, String(data.get('supervisor')), String(data.get('note')) || undefined, version); setVersion(version + 1); } catch (error) { onError(getApiError(error)); } };
+  const attest = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { await attestInputApplication(application.id, String(data.get('supervisor')), String(data.get('note')) || undefined, version); setVersion(version + 1); } catch (requestError) { onError(getApiError(requestError)); } };
   const confirm = async () => { const reason = globalThis.prompt('Late-confirmation reason (only required when more than 48 hours late):') || undefined; try { await confirmInputApplication(application.id, version, reason); await onSaved(); } catch (error) { onError(getApiError(error)); } };
   return <WorkflowDialog title="Verify and confirm application" eyebrow="Two distinct facts" onClose={onClose}><div className="verification-lanes"><form className="inventory-form" onSubmit={attest}><h3>1. Supervisor attestation</h3><p>Named-person attestation, entered by the authenticated user. It creates no cost.</p><label>Supervisor<select name="supervisor" required defaultValue=""><option value="">Select supervisor</option>{supervisors.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Attestation note<input name="note" maxLength={500} /></label><button>Record attestation</button></form><section className="verification-confirm"><h3>2. Manager confirmation</h3><p>FarmManager confirmation creates applied-input cost and may require a late-confirmation reason.</p><button onClick={confirm}>Confirm application</button></section></div></WorkflowDialog>;
 }
 
-function ReturnForm({ workspace, issue, request, onClose, onSaved, onError }) {
+function ReturnForm({ workspace, issue, request, onClose, onSaved, onError }: InputWorkflowFormProps) {
   const people = workspace.people.filter((person) => person.status === 'Active'); const storekeepers = people.filter((person) => person.roles.some((role) => role.role === 'Storekeeper' && !role.effectiveTo));
-  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); const line = issue.lines.find((entry) => entry.id === String(data.get('line'))); if (!line) return; try { const id = await createStockReturn({ activityId: request.activityId, returnDate: new Date(`${String(data.get('returnDate'))}T00:00:00`), senderPersonId: String(data.get('sender')), receiverPersonId: String(data.get('receiver')), lines: [{ stockIssueLineId: line.id, quantity: Number(data.get('quantity')) }] }); await postStockReturn(id, 2); await onSaved(); } catch (error) { onError(getApiError(error)); } };
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); const line = issue.lines.find((entry) => entry.id === String(data.get('line'))); if (!line) return; try { const id = await createStockReturn({ activityId: request.activityId, returnDate: new Date(`${String(data.get('returnDate'))}T00:00:00`), senderPersonId: String(data.get('sender')), receiverPersonId: String(data.get('receiver')), lines: [{ stockIssueLineId: line.id, quantity: Number(data.get('quantity')) }] }); await postStockReturn(id, 2); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } };
   return <WorkflowDialog title="Receive return at store" eyebrow="Unapplied input → store" onClose={onClose}><form className="inventory-form" onSubmit={save}><p className="context-note">A return restores stock only when this Store-received posting succeeds.</p><div className="form-grid"><label>Issue line<select name="line" required defaultValue=""><option value="">Select input</option>{issue.lines.map((line) => <option key={line.id} value={line.id}>{line.itemCode} · {quantity(line.quantity, line.unitCode)}</option>)}</select></label><label>Return date<DatePicker name="returnDate" defaultValue={harareToday()} required /></label><label>Named sender<select name="sender" required defaultValue=""><option value="">Select sender</option>{people.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Storekeeper receiver<select name="receiver" required defaultValue=""><option value="">Select Storekeeper</option>{storekeepers.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Quantity<input name="quantity" type="number" min="0.000001" step="0.000001" required /></label></div><button>Post Store receipt</button></form></WorkflowDialog>;
 }
 
-function LossForm({ workspace, issue, request, onClose, onSaved, onError }) {
-  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { const id = await createInventoryLoss({ activityId: request.activityId, stockIssueLineId: String(data.get('line')), quantity: Number(data.get('quantity')), lossType: String(data.get('type')), reason: String(data.get('reason')) }); await submitInventoryLoss(id, 1); if (workspace.session.role === 'Grower' && globalThis.confirm('Approve this submitted field loss now?')) await decideInventoryLoss(id, 2, 'Approved', undefined); await onSaved(); } catch (error) { onError(getApiError(error)); } };
-  return <WorkflowDialog title="Submit field loss" eyebrow="Issued input → Grower decision" onClose={onClose}><form className="inventory-form" onSubmit={save}><p className="context-note">A submitted loss remains unaccounted until authenticated Grower approval.</p><div className="form-grid"><label>Issue line<select name="line" required defaultValue=""><option value="">Select input</option>{issue.lines.map((line) => <option key={line.id} value={line.id}>{line.itemCode}</option>)}</select></label><label>Loss type<select name="type"><option value="Lost">Lost</option><option value="Damaged">Damaged</option><option value="Spilled">Spilled</option><option value="Expired">Expired</option></select></label><label>Quantity<input name="quantity" type="number" min="0.000001" step="0.000001" required /></label><label>Reason<input name="reason" maxLength={500} required /></label></div><button>Submit for Grower approval</button></form></WorkflowDialog>;
+function LossForm({ workspace, issue, request, onClose, onSaved, onError }: InputWorkflowFormProps) {
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); try { const id = await createInventoryLoss({ activityId: request.activityId, stockIssueLineId: String(data.get('line')), quantity: Number(data.get('quantity')), lossType: Number(data.get('type')), reason: String(data.get('reason')) }); await submitInventoryLoss(id, 1); if (workspace.session.role === 'Grower' && globalThis.confirm('Approve this submitted field loss now?')) await decideInventoryLoss(id, 2, decisionOutcome('Approved'), undefined); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } };
+  return <WorkflowDialog title="Submit field loss" eyebrow="Issued input → Grower decision" onClose={onClose}><form className="inventory-form" onSubmit={save}><p className="context-note">A submitted loss remains unaccounted until authenticated Grower approval.</p><div className="form-grid"><label>Issue line<select name="line" required defaultValue=""><option value="">Select input</option>{issue.lines.map((line) => <option key={line.id} value={line.id}>{line.itemCode}</option>)}</select></label><label>Loss type<select name="type"><option value="0">Lost</option><option value="1">Damaged</option><option value="2">Spilled</option><option value="3">Expired</option></select></label><label>Quantity<input name="quantity" type="number" min="0.000001" step="0.000001" required /></label><label>Reason<input name="reason" maxLength={500} required /></label></div><button>Submit for Grower approval</button></form></WorkflowDialog>;
 }
 
-/** @param {{workspace: import('../../web-api-client').InputControlWorkspaceDto, onSaved: () => Promise<void>, onError: (message: string) => void}} props */
-function RuleRegister({ workspace, onSaved, onError }) {
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const effectiveTo = String(data.get('effectiveTo')); onError(''); try { await createApplicationRule({ inventoryItemId: String(data.get('inventoryItemId')), activityTypeId: String(data.get('activityTypeId')), effectiveFrom: new Date(`${String(data.get('effectiveFrom'))}T00:00:00`), effectiveTo: effectiveTo ? new Date(`${effectiveTo}T00:00:00`) : undefined, coverageBasis: String(data.get('coverageBasis')), ratePerCoverageUnit: Number(data.get('rate')), lowerTolerancePercent: Number(data.get('lowerTolerance')), upperTolerancePercent: Number(data.get('upperTolerance')) }); form.reset(); await onSaved(); } catch (error) { onError(getApiError(error)); } };
+function RuleRegister({ workspace, onSaved, onError }: { workspace: InputControlWorkspaceDto; onSaved: () => Promise<void>; onError: (message: string) => void }) {
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); const effectiveTo = String(data.get('effectiveTo')); onError(''); try { await createApplicationRule({ inventoryItemId: String(data.get('inventoryItemId')), activityTypeId: String(data.get('activityTypeId')), effectiveFrom: new Date(`${String(data.get('effectiveFrom'))}T00:00:00`), effectiveTo: effectiveTo ? new Date(`${effectiveTo}T00:00:00`) : undefined, coverageBasis: String(data.get('coverageBasis')), ratePerCoverageUnit: Number(data.get('rate')), lowerTolerancePercent: Number(data.get('lowerTolerance')), upperTolerancePercent: Number(data.get('upperTolerance')) }); form.reset(); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } };
   return <section className="record-panel rule-register"><header className="ledger-title"><div><span className="eyebrow">Effective dated</span><h2>Application-rate rules</h2></div><small>Item stock unit only · no conversions</small></header><form className="input-rule-form" onSubmit={save}><label>Item<select name="inventoryItemId" required defaultValue=""><option value="">Select</option>{workspace.items.filter((item) => item.status === 'Active').map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label><label>Activity type<select name="activityTypeId" required defaultValue=""><option value="">Select</option>{workspace.activityTypes.filter((type) => type.status === 'Active').map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label><label>Coverage<select name="coverageBasis"><option value="FieldReportingHectares">Field hectares</option><option value="ActivityActualQuantity">Actual activity quantity</option></select></label><label>Effective from<DatePicker name="effectiveFrom" defaultValue={harareToday()} required /></label><label>Effective to<DatePicker name="effectiveTo" /></label><label>Rate<input name="rate" type="number" min="0.000001" step="0.000001" required /></label><label>Lower tolerance %<input name="lowerTolerance" type="number" min="0" step="0.000001" defaultValue="0" required /></label><label>Upper tolerance %<input name="upperTolerance" type="number" min="0" step="0.000001" defaultValue="0" required /></label><button>Add rule</button></form><div className="catalogue-list">{workspace.rules.map((rule) => { const item = workspace.items.find((candidate) => candidate.id === rule.inventoryItemId); const activity = workspace.activityTypes.find((candidate) => candidate.id === rule.activityTypeId); return <article key={rule.id}><span><strong>{item?.code} · {activity?.name}</strong><small>{rule.ratePerCoverageUnit} {rule.unitCode} · −{rule.lowerTolerancePercent}% / +{rule.upperTolerancePercent}%</small></span><em>{rule.effectiveFrom.toISOString().slice(0, 10)} → {rule.effectiveTo?.toISOString().slice(0, 10) || 'open'}</em></article>; })}</div></section>;
 }
 
-/** @param {{workspace: import('../../web-api-client').InputControlWorkspaceDto, request: import('../../web-api-client').InputRequestDto, onClose: () => void, onSaved: () => Promise<void>, onError: (message: string) => void}} props */
-function IssueForm({ workspace, request, onClose, onSaved, onError }) {
+function IssueForm({ workspace, request, onClose, onSaved, onError }: { workspace: InputControlWorkspaceDto; request: InputRequestDto; onClose: () => void; onSaved: () => Promise<void>; onError: (message: string) => void }) {
   const storekeepers = workspace.people.filter((person) => person.status === 'Active' && person.roles.some((role) => role.role === 'Storekeeper' && !role.effectiveTo));
   const people = workspace.people.filter((person) => person.status === 'Active');
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => { event.preventDefault(); const data = new FormData(event.currentTarget); onError(''); try { await createStockIssue({ inputRequestId: request.id, issueDate: new Date(`${String(data.get('issueDate'))}T00:00:00`), issuerPersonId: String(data.get('issuerPersonId')), recipientPersonId: String(data.get('recipientPersonId')), lateEntryReason: String(data.get('lateEntryReason')) || undefined, lines: request.lines.filter((line) => Number(data.get(`quantity-${line.id}`)) > 0).map((line) => ({ inputRequestLineId: line.id, inventoryLotId: String(data.get(`lot-${line.id}`)) || undefined, quantity: Number(data.get(`quantity-${line.id}`)) })) }); await onSaved(); } catch (error) { onError(getApiError(error)); } };
+  const save = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); onError(''); try { await createStockIssue({ inputRequestId: request.id, issueDate: new Date(`${String(data.get('issueDate'))}T00:00:00`), issuerPersonId: String(data.get('issuerPersonId')), recipientPersonId: String(data.get('recipientPersonId')), lateEntryReason: String(data.get('lateEntryReason')) || undefined, lines: request.lines.filter((line) => Number(data.get(`quantity-${line.id}`)) > 0).map((line) => ({ inputRequestLineId: line.id, inventoryLotId: String(data.get(`lot-${line.id}`)) || undefined, quantity: Number(data.get(`quantity-${line.id}`)) })) }); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } };
   return <dialog open className="activity-dialog inventory-dialog"><article><header><div><span className="eyebrow">Approved request</span><h2>Record partial issue</h2></div><button className="dialog-close" onClick={onClose}>×</button></header><form className="inventory-form" onSubmit={save}><div className="form-grid"><label>Issue date<DatePicker name="issueDate" defaultValue={harareToday()} required /></label><label>Named Storekeeper<select name="issuerPersonId" required defaultValue=""><option value="">Select issuer</option>{storekeepers.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Field recipient<select name="recipientPersonId" required defaultValue=""><option value="">Select recipient</option>{people.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label><label>Late-entry reason<input name="lateEntryReason" maxLength={500} /></label></div><fieldset className="receipt-lines"><legend>Approved / issued / remaining</legend>{request.lines.map((line) => <div className="receipt-line" key={line.id}><span><strong>{line.itemCode}</strong><small>{line.requestedQuantity} / {line.alreadyIssuedQuantity} / {line.remainingQuantity} {line.unitCode}</small></span><label>Lot<select name={`lot-${line.id}`} defaultValue=""><option value="">Unbatched</option>{workspace.lots.filter((lot) => lot.inventoryItemId === line.inventoryItemId).map((lot) => <option key={lot.id} value={lot.id}>{lot.code}</option>)}</select></label><label>Issue quantity<input name={`quantity-${line.id}`} type="number" min={0} max={line.remainingQuantity} step="0.000001" defaultValue="0" /></label></div>)}</fieldset><footer className="form-actions"><span>No crop-cycle cost is posted at issue.</span><button>Create draft issue</button></footer></form></article></dialog>;
 }
 
-/** @param {{workspace: import('../../web-api-client').InputControlWorkspaceDto, token: string, onToken: (token: string) => void, onSaved: () => Promise<void>, onError: (message: string) => void}} props */
-function ManagerAccess({ workspace, token, onToken, onSaved, onError }) {
+function ManagerAccess({ workspace, token, onToken, onSaved, onError }: { workspace: InputControlWorkspaceDto; token: string; onToken: (token: string) => void; onSaved: () => Promise<void>; onError: (message: string) => void }) {
   const managers = workspace.people.filter((person) => person.status === 'Active' && person.roles.some((role) => role.role === 'FarmManager' && role.isPrimary && !role.effectiveTo));
   const invite = async () => { if (!managers[0]) return; try { const result = await createManagerInvitation(managers[0].id, 48); onToken(result.token); await onSaved(); } catch (error) { onError(getApiError(error)); } };
   return <section className="record-panel manager-access"><header className="ledger-title"><div><span className="eyebrow">Cookie-authenticated membership</span><h2>FarmManager access</h2></div>{workspace.session.role === 'Grower' && <button disabled={!managers.length} onClick={invite}>Create invitation</button>}</header>{token && <div className="invitation-token"><ShieldAlert size={18} /><span><strong>Copy this token now</strong><code>{token}</code><small>It is displayed once; only a secure hash is stored.</small></span></div>}<div className="catalogue-list">{workspace.invitations.map((item) => <article key={item.id}><span><strong>{item.redeemedAt ? 'Redeemed' : item.revokedAt ? 'Revoked' : 'Open invitation'}</strong><small>Expires {item.expiresAt.toLocaleString('en-ZW')}</small></span></article>)}</div><p className="context-note"><CircleDollarSign size={14} /> No email infrastructure is added; the intended manager signs in normally and redeems the single-use token.</p></section>;
+}
+
+function decisionOutcome(outcome: 'Approved' | 'Rejected'): number {
+  return outcome === 'Approved' ? 0 : 1;
+}
+
+function coverageBasisValue(value: string): number {
+  return value === '1' ? 1 : 0;
 }

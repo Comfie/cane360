@@ -68,7 +68,6 @@ export function Dashboard() {
   );
 }
 
-/** @param {string | undefined} displayName */
-function firstName(displayName) {
+function firstName(displayName: string | undefined): string {
   return displayName?.trim().split(/\s+/)[0] || 'grower';
 }

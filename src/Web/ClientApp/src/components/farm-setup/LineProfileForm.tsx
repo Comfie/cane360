@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Ruler, X } from 'lucide-react';
 import { FieldLineProfilesClient, ReplaceFieldLineProfileRequest } from '../../web-api-client';
 import { DatePicker } from '../DatePicker';
 import { getApiError } from './farmSetupApi';
+import type { FieldLineProfileDto } from '../../web-api-client';
 
 const lineProfilesClient = new FieldLineProfilesClient();
 
-/** @param {{ fieldId: string }} props */
-export function LineProfileForm({ fieldId }) {
-  const [profile, setProfile] = useState(/** @type {import('../../web-api-client').FieldLineProfileDto | null} */ (null));
+export function LineProfileForm({ fieldId }: { fieldId: string }) {
+  const [profile, setProfile] = useState<FieldLineProfileDto | null>(null);
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -16,8 +17,7 @@ export function LineProfileForm({ fieldId }) {
     lineProfilesClient.lineProfileGET(fieldId).then((result) => { if (current) setProfile(result); }).catch(() => {});
     return () => { current = false; };
   }, [fieldId]);
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const save = async (event) => {
+  const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); setError('');
     try { setProfile(await lineProfilesClient.lineProfilePUT(fieldId, new ReplaceFieldLineProfileRequest({ standardLineLengthMetres: Number(data.get('length')), estimatedLineCount: Number(data.get('count')), numberingScheme: String(data.get('scheme')).trim(), effectiveFrom: new Date(`${String(data.get('effectiveFrom'))}T00:00:00`), expectedVersion: profile?.version }))); setEditing(false); }
     catch (requestError) { setError(getApiError(requestError)); }

@@ -8,10 +8,12 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import type { NavigationId, NavigationItem } from '../../navigation';
 import { EmptyState } from '../EmptyState';
 import { PageHeader } from '../PageHeader';
 
-const icons = {
+const icons: Record<Exclude<NavigationId, 'dashboard'>, LucideIcon> = {
   farm: MapPin,
   fields: PanelsTopLeft,
   activities: ClipboardList,
@@ -22,7 +24,7 @@ const icons = {
   administration: Settings,
 };
 
-const nextSteps = {
+const nextSteps: Record<NavigationId, string> = {
   dashboard: 'Use the navigation to continue setting up Cane360.',
   farm: 'Grower and farm setup is planned for Phase 1.',
   fields: 'Fields and the current crop-cycle workflow are planned for Phase 1.',
@@ -34,8 +36,11 @@ const nextSteps = {
   administration: 'Role and reference-data management will arrive with the workflows that require them.',
 };
 
-/** @param {{ item: import('../../navigation.ts').NavigationItem }} props */
-export function ModulePage({ item }) {
+interface ModulePageProps {
+  item: NavigationItem;
+}
+
+export function ModulePage({ item }: ModulePageProps) {
   const Icon = item.id === 'dashboard' ? MapPin : icons[item.id];
 
   return (

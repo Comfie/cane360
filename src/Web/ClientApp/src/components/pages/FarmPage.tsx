@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ArrowRight, Tractor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CreateGrowerFarmRequest } from '../../web-api-client';
@@ -19,8 +19,7 @@ export function FarmPage() {
   if (isLoading) return <LoadingState label="Loading your farm record" />;
   if (!setup) return <ValidationError title="Farm record unavailable" message={error} persistent />;
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const createFarm = async (event) => {
+  const createFarm = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -91,8 +90,7 @@ export function FarmPage() {
   );
 }
 
-/** @param {FormDataEntryValue | null} value */
-function optionalValue(value) {
+function optionalValue(value: string | File | null): string | undefined {
   const text = String(value ?? '').trim();
   return text || undefined;
 }

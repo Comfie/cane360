@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Eye, LandPlot, Plus, Sprout } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CreateFieldRequest } from '../../web-api-client';
+import { CreateFieldRequest, type CropCycleCollectionDto, type FarmSetupDto } from '../../web-api-client';
 import { CropCycleForm } from '../crop-cycles/CropCycleForm';
 import { cropCyclesClient } from '../crop-cycles/cropCycleApi';
 import { CropCycleRegister } from '../crop-cycles/CropCycleRegister';
@@ -17,8 +17,8 @@ import { LineProfileForm } from '../farm-setup/LineProfileForm';
 export function FieldsPage() {
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
   const [isAddingField, setIsAddingField] = useState(false);
-  const [activeCycleField, setActiveCycleField] = useState(/** @type {string | null} */ (null));
-  const [cycleCollections, setCycleCollections] = useState(/** @type {import('../../web-api-client').CropCycleCollectionDto[]} */ ([]));
+  const [activeCycleField, setActiveCycleField] = useState<string | null>(null);
+  const [cycleCollections, setCycleCollections] = useState<CropCycleCollectionDto[]>([]);
   const [cycleFilter, setCycleFilter] = useState('all');
   const [loadedFieldKey, setLoadedFieldKey] = useState('');
   const fieldIds = (setup?.farm?.fields ?? []).map((field) => field.id);
@@ -55,8 +55,7 @@ export function FieldsPage() {
   const fields = setup.farm?.fields ?? [];
   const showFieldForm = fields.length === 0 || isAddingField;
 
-  /** @param {string} fieldId */
-  const reloadFieldCycles = async (fieldId) => {
+  const reloadFieldCycles = async (fieldId: string) => {
     try {
       const collection = await cropCyclesClient.cropCyclesGET(fieldId);
       setCycleCollections((current) => [...current.filter((item) => item.field.id !== fieldId), collection]);
@@ -120,13 +119,17 @@ export function FieldsPage() {
   );
 }
 
-/** @param {{ onSaved: (setup: import('../../web-api-client').FarmSetupDto, fieldId: string) => void, onCancel?: () => void, onError: (message: string) => void }} props */
-function FieldForm({ onSaved, onCancel, onError }) {
+interface FieldFormProps {
+  onSaved: (setup: FarmSetupDto, fieldId: string) => void;
+  onCancel?: () => void;
+  onError: (message: string) => void;
+}
+
+function FieldForm({ onSaved, onCancel, onError }: FieldFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [reportingSource, setReportingSource] = useState('Declared');
 
-  /** @param {import('react').FormEvent<HTMLFormElement>} event */
-  const saveField = async (event) => {
+  const saveField = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const fieldCode = String(data.get('code')).trim();
@@ -173,14 +176,12 @@ function FieldForm({ onSaved, onCancel, onError }) {
   );
 }
 
-/** @param {FormDataEntryValue | null} value */
-function optionalValue(value) {
+function optionalValue(value: string | File | null): string | undefined {
   const text = String(value ?? '').trim();
   return text || undefined;
 }
 
-/** @param {FormDataEntryValue | null} value */
-function optionalNumber(value) {
+function optionalNumber(value: string | File | null): number | undefined {
   const text = String(value ?? '').trim();
   return text ? Number(text) : undefined;
 }

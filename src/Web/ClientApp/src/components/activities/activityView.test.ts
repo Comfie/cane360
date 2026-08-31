@@ -24,7 +24,7 @@ test('groups actual work ahead of planned dates for diary placement', () => {
 });
 
 test('actual-work entry defaults to the current Harare minute, not noon', async () => {
-  const source = await readFile(new URL('../pages/ActivitiesPage.jsx', import.meta.url), 'utf8');
+  const source = await readFile(new URL('../pages/ActivitiesPage.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /\|\| harareNow\(\)/);
   assert.doesNotMatch(source, /\$\{harareToday\(\)\}T12:00/);

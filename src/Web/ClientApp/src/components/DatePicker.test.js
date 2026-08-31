@@ -4,11 +4,11 @@ import test from 'node:test';
 
 test('existing forms use the shared picker instead of native date controls', async () => {
   const componentPaths = [
-    './crop-cycles/CropCycleForm.jsx',
-    './farm-setup/LineProfileForm.jsx',
-    './farm-setup/PersonnelRegister.jsx',
-    './pages/ActivitiesPage.jsx',
-    './pages/CropCycleOverviewPage.jsx',
+    './crop-cycles/CropCycleForm.tsx',
+    './farm-setup/LineProfileForm.tsx',
+    './farm-setup/PersonnelRegister.tsx',
+    './pages/ActivitiesPage.tsx',
+    './pages/CropCycleOverviewPage.tsx',
   ];
 
   for (const componentPath of componentPaths) {

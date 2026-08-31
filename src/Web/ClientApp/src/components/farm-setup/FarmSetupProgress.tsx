@@ -1,7 +1,7 @@
 import { Check, Circle } from 'lucide-react';
+import type { FarmSetupDto } from '../../web-api-client';
 
-/** @param {{ setup: import('../../web-api-client').FarmSetupDto }} props */
-export function FarmSetupProgress({ setup }) {
+export function FarmSetupProgress({ setup }: { setup: FarmSetupDto }) {
   const fields = setup.farm?.fields ?? [];
   const steps = [
     { label: 'Farm', complete: setup.isConfigured },

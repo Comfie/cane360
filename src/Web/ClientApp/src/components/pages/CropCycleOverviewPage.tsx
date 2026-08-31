@@ -1,16 +1,19 @@
-import { createElement, useEffect, useState } from 'react';
+import { createElement, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, CalendarDays, CircleDot, Coins, History, Sprout, Users, Warehouse } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { ConfirmationDialog } from '../ConfirmationDialog';
 import { cropCyclesClient, localDate, transitionCycle } from '../crop-cycles/cropCycleApi';
+import type { CropCycleTransitionAction } from '../crop-cycles/cropCycleApi';
 import { cycleGroup, formatCycleStatus } from '../crop-cycles/cropCycleView';
 import { DatePicker } from '../DatePicker';
 import { getApiError } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import type { LucideIcon } from 'lucide-react';
+import type { CropCycleDetailsDto } from '../../web-api-client';
 
-const transitionCopy = {
+const transitionCopy: Record<CropCycleTransitionAction, readonly [string, string, string]> = {
   Activate: ['Activate crop cycle?', 'This makes the draft the field’s current crop and allows future operational entries.', 'Activate cycle'],
   Cancel: ['Cancel crop-cycle draft?', 'The draft will become read-only. This cannot be reversed in Phase 2.', 'Cancel draft'],
   ReadyForHarvest: ['Mark ready for harvest?', 'The field remains current, but the next valid action will be recording its harvest result.', 'Mark ready'],
@@ -20,10 +23,10 @@ const transitionCopy = {
 
 export function CropCycleOverviewPage() {
   const { fieldId = '', cropCycleId = '' } = useParams();
-  const [details, setDetails] = useState(/** @type {import('../../web-api-client').CropCycleDetailsDto | null} */ (null));
+  const [details, setDetails] = useState<CropCycleDetailsDto | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [pendingAction, setPendingAction] = useState(/** @type {keyof typeof transitionCopy | null} */ (null));
+  const [pendingAction, setPendingAction] = useState<CropCycleTransitionAction | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -38,8 +41,7 @@ export function CropCycleOverviewPage() {
 
   const cycle = details.cropCycle;
 
-  /** @param {FormData | undefined} data */
-  const confirmTransition = async (data) => {
+  const confirmTransition = async (data?: FormData) => {
     if (!pendingAction) return;
     setError('');
     setIsSaving(true);
@@ -84,7 +86,7 @@ export function CropCycleOverviewPage() {
 
         <article className="record-panel transition-panel">
           <header><div><span className="eyebrow">Next lifecycle step</span><h2>{nextStepTitle(cycle.status)}</h2></div><CircleDot size={21} aria-hidden="true" /></header>
-          {details.allowedTransitions.length > 0 ? <><p>{nextStepDescription(cycle.status)}</p><div className="transition-actions">{details.allowedTransitions.map((action) => <button key={action} type="button" className={action === 'Cancel' ? 'secondary outline' : ''} onClick={() => setPendingAction(/** @type {keyof typeof transitionCopy} */ (action))}>{actionLabel(action)}</button>)}</div></> : <p>This record is terminal and remains available as read-only field history.</p>}
+          {details.allowedTransitions.length > 0 ? <><p>{nextStepDescription(cycle.status)}</p><div className="transition-actions">{details.allowedTransitions.filter(isTransitionAction).map((action) => <button key={action} type="button" className={action === 'Cancel' ? 'secondary outline' : ''} onClick={() => setPendingAction(action)}>{actionLabel(action)}</button>)}</div></> : <p>This record is terminal and remains available as read-only field history.</p>}
           {Object.entries(details.blockedTransitions).map(([action, reason]) => <p className="blocked-reason" key={action}><strong>{actionLabel(action)} unavailable:</strong> {reason}</p>)}
         </article>
       </section>
@@ -111,15 +113,21 @@ export function CropCycleOverviewPage() {
   );
 }
 
-/** @param {{ action: keyof typeof transitionCopy, isBusy: boolean, onCancel: () => void, onConfirm: (data?: FormData) => void }} props */
-function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }) {
-  const [form, setForm] = useState(/** @type {HTMLFormElement | null} */ (null));
+interface TransitionConfirmationProps {
+  action: CropCycleTransitionAction;
+  isBusy: boolean;
+  onCancel: () => void;
+  onConfirm: (data?: FormData) => void | Promise<void>;
+}
+
+function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }: TransitionConfirmationProps) {
+  const form = useRef<HTMLFormElement>(null);
   const [clientError, setClientError] = useState('');
   const [title, description, confirmLabel] = transitionCopy[action];
 
   const submit = () => {
-    if (form && !form.reportValidity()) return;
-    const data = form ? new FormData(form) : undefined;
+    if (form.current && !form.current.reportValidity()) return;
+    const data = form.current ? new FormData(form.current) : undefined;
     if (action === 'Harvest' && Number(data?.get('actualTonnes')) <= 0) {
       setClientError('Actual tonnes must be greater than zero.');
       return;
@@ -128,7 +136,7 @@ function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }) {
   };
 
   return <ConfirmationDialog title={title} description={description} confirmLabel={confirmLabel} isBusy={isBusy} onConfirm={submit} onCancel={onCancel}>
-    {(action === 'Cancel' || action === 'Harvest') && <form ref={setForm} className="confirmation-form" onSubmit={(event) => event.preventDefault()}>
+    {(action === 'Cancel' || action === 'Harvest') && <form ref={form} className="confirmation-form" onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}>
       {action === 'Cancel' && <label>Cancellation reason<textarea name="reason" rows={3} maxLength={500} required autoFocus /></label>}
       {action === 'Harvest' && <><label>Harvest date<DatePicker name="harvestDate" required autoFocus /></label><label>Actual tonnes<input name="actualTonnes" type="number" min="0.001" max="1000000" step="0.001" inputMode="decimal" required /></label></>}
       <ValidationError message={clientError} />
@@ -136,37 +144,34 @@ function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }) {
   </ConfirmationDialog>;
 }
 
-/** @param {{ icon: import('lucide-react').LucideIcon, title: string }} props */
-function UnavailableHistory({ icon: Icon, title }) {
+function UnavailableHistory({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
   return <article className="unavailable-card">{createElement(Icon, { size: 18, 'aria-hidden': true })}<div><strong>{title}</strong><span>Unavailable until this module is implemented.</span></div></article>;
 }
 
-/** @param {string} status */
-function nextStepTitle(status) {
+function nextStepTitle(status: string): string {
   return ({ Draft: 'Review and activate', Active: 'Prepare for harvest', ReadyForHarvest: 'Record harvest', Harvested: 'Close the cycle', Closed: 'Cycle complete', Cancelled: 'Draft cancelled' })[status] ?? status;
 }
 
-/** @param {string} status */
-function nextStepDescription(status) {
+function nextStepDescription(status: string): string {
   return ({ Draft: 'Activation makes this the field’s current crop. Cancel only if the draft will not proceed.', Active: 'Mark the crop ready only when harvest preparation should begin.', ReadyForHarvest: 'A valid harvest date and positive actual tonnes are required.', Harvested: 'Review the permanent harvest result before closing this cycle.' })[status] ?? '';
 }
 
-/** @param {string} action */
-function actionLabel(action) {
+function actionLabel(action: string): string {
   return ({ Activate: 'Activate cycle', Cancel: 'Cancel draft', ReadyForHarvest: 'Mark ready for harvest', Harvest: 'Record harvest', Close: 'Close cycle', Modify: 'Further changes' })[action] ?? action;
 }
 
-/** @param {string} value */
-function formatDate(value) {
+function formatDate(value: string): string {
   return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`));
 }
 
-/** @param {string} value */
-function formatEventDate(value) {
+function formatEventDate(value: string): string {
   return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
 }
 
-/** @param {string} value */
-function formatTimestamp(value) {
+function formatTimestamp(value: string): string {
   return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+}
+
+function isTransitionAction(action: string): action is CropCycleTransitionAction {
+  return action === 'Activate' || action === 'Cancel' || action === 'ReadyForHarvest' || action === 'Harvest' || action === 'Close';
 }
