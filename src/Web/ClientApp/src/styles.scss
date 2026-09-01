@@ -124,6 +124,49 @@
   --pico-del-color: var(--error-700);
 }
 
+.settlement-workspace { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.settlement-metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; margin: .75rem 0; }
+.settlement-metrics > span { display: grid; gap: .15rem; padding: .65rem .75rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--surface-raised); }
+.settlement-metrics small, .settlement-worker-row small, .payment-chain small { color: var(--text-muted); }
+.settlement-worker-list { display: grid; border: 1px solid var(--border); border-radius: .65rem; overflow: hidden; }
+.settlement-worker-heading, .settlement-worker-row { display: grid; grid-template-columns: minmax(10rem, 1.4fr) repeat(5, minmax(5.5rem, .7fr)) minmax(12rem, 1.4fr); gap: .55rem; align-items: center; padding: .65rem .75rem; }
+.settlement-worker-heading { background: var(--surface-muted); font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.settlement-worker-row { border-top: 1px solid var(--border); }
+.settlement-worker-row > span { display: grid; }
+.settlement-worker-row .row-actions { justify-content: flex-end; }
+.payment-chain { grid-column: 1 / -1; padding: .5rem .65rem; background: var(--surface-muted); border-radius: .5rem; }
+.payment-chain > div { display: grid; grid-template-columns: minmax(12rem, 1.2fr) minmax(12rem, 1fr) auto; gap: .65rem; padding: .55rem 0; border-top: 1px solid var(--border); }
+.payment-chain > div > span { display: grid; }
+.reversal-line { grid-column: 1 / -1; color: var(--danger); }
+.settlement-actions { display: flex; justify-content: flex-end; gap: .55rem; margin-top: .75rem; }
+.payment-form, .print-document { margin-top: .8rem; padding: 1rem; border: 1px solid var(--border); border-radius: .7rem; background: var(--surface-raised); }
+.payment-form > header, .print-toolbar { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.print-document { position: relative; }
+.print-document dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.print-document dl > div { display: grid; grid-template-columns: 9rem 1fr; padding: .35rem 0; border-bottom: 1px solid var(--border); }
+.print-document dd { margin: 0; font-weight: 650; }
+.print-document table { width: 100%; font-size: .86rem; }
+
+@media (max-width: 47.5rem) {
+  .settlement-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .settlement-worker-heading { display: none; }
+  .settlement-worker-row { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: .8rem; }
+  .settlement-worker-row > span:first-child, .settlement-worker-row > .row-actions, .payment-chain { grid-column: 1 / -1; }
+  .settlement-worker-row .row-actions, .settlement-actions { display: grid; grid-template-columns: 1fr; }
+  .settlement-worker-row button, .settlement-actions button { min-height: 44px; width: 100%; }
+  .payment-chain > div { grid-template-columns: 1fr; }
+  .print-document { overflow-x: auto; }
+}
+
+@media print {
+  body * { visibility: hidden !important; }
+  .print-document, .print-document * { visibility: visible !important; }
+  .print-document { position: absolute; inset: 0; width: 100%; margin: 0; padding: 0; border: 0; color: #111; background: #fff; }
+  .print-toolbar { display: none !important; }
+  .print-document table { border-collapse: collapse; }
+  .print-document th, .print-document td { border: 1px solid #bbb; padding: 6px; }
+}
+
 .activity-inputs-panel,
 .input-approval-queue,
 .input-issue-register,

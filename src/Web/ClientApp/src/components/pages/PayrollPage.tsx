@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { BadgeCheck, Calculator, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, HandCoins, Link2, LockKeyhole, RefreshCw, ShieldAlert, WalletCards } from 'lucide-react';
+import { BadgeCheck, Calculator, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, FileText, HandCoins, Link2, LockKeyhole, Printer, RefreshCw, ShieldAlert, WalletCards } from 'lucide-react';
 import {
   PayrollClient,
   CancelPayrollPeriodRequest,
@@ -15,12 +15,21 @@ import {
   SubmitPayrollRunRequest,
   UpdateWorkerAdvanceRequest,
   VersionedPayrollRequest,
+  ClosePayrollSettlementRequest,
+  RecordPaymentAcknowledgementRequest,
+  RecordPayrollPaymentRequest,
+  ReopenPayrollSettlementRequest,
+  ReversePayrollPaymentRequest,
   type AdvanceSchedulePreviewDto,
   type PayrollPeriodDto,
   type PayrollPreflightDto,
   type PayrollRunDto,
   type PayrollWorkspaceDto,
   type WorkerAdvanceDto,
+  type CashPaymentRegisterDto,
+  OperationalPayslipDto,
+  type RunSettlementDto,
+  type WorkerSettlementDto,
 } from '../../web-api-client';
 import { PageHeader } from '../PageHeader';
 import { LoadingState } from '../LoadingState';
@@ -270,6 +279,7 @@ function PayrollRunWorkspace({ role, periods, selectedPeriod, runs, selectedRun,
           {calculation.blockerCount > 0 && <div className="payroll-blockers"><strong>Submission blocked</strong><p>Resolve every authoritative source issue, then calculate a new version.</p><div>{calculation.blockerCodes.map((code) => <code key={code}>{code}</code>)}</div></div>}
           {selectedRun.status === 'PendingGrowerApproval' && <div className="stale-calculation-warning"><RefreshCw size={16} /><span><strong>Approval revalidates every source.</strong>If labour evidence, verification, snapshots, worker state, advances, balances, or the period changed, approval returns a conflict and creates no facts.</span></div>}
           <div className="payroll-worker-table" role="table" aria-label="Worker payroll calculation"><div className="payroll-worker-heading" role="row"><span>Worker / source</span><span>Gross</span><span>Advance</span><span>Net</span></div>{calculation.workers.map((worker) => <details key={worker.id} className="payroll-worker-row"><summary><span><strong>{worker.workerName}</strong><small>{worker.earnings.length} earning line{worker.earnings.length === 1 ? '' : 's'}</small></span><b>USD {money(worker.grossAmountUsd)}</b><b>USD {money(worker.deductionAmountUsd)}</b><strong>USD {money(worker.netAmountUsd)}</strong></summary><div className="payroll-source-chain"><section><h4>Earning evidence</h4>{worker.earnings.map((line) => <article key={line.id}><span><b>{line.rateType} · {formatDate(line.workDate)}</b><small>{line.quantity} {line.unit} × USD {line.rateAmountUsd}</small></span><strong>USD {money(line.earningAmountUsd)}</strong><small>Evidence {shortId(line.evidenceId)} · attendance {shortId(line.attendanceId)} · field {shortId(line.fieldId)} · rate v{line.rateVersion}</small></article>)}</section><section><h4>Advance allocation</h4>{worker.advanceDeductions.length ? worker.advanceDeductions.map((deduction) => <article key={deduction.id}><span><b>Installment {deduction.installmentSequence}</b><small>Outstanding before USD {money(deduction.outstandingBeforeUsd)}</small></span><strong>USD {money(deduction.amountUsd)}</strong><small>Advance {shortId(deduction.workerAdvanceId)} · due period {periods.find((period) => period.id === deduction.recoveryPayrollPeriodId)?.displayName ?? shortId(deduction.recoveryPayrollPeriodId)}</small></article>) : <p>No due issued advance recovery.</p>}</section></div></details>)}</div>
+          {selectedRun.status === 'Approved' && <SettlementWorkspace run={selectedRun} role={role} />}
         </> : <EmptyState title="Not calculated" copy="Calculate to include every authoritative eligible labour record automatically." />}
         {canDecidePayrollRun(role, selectedRun.status) && <label className="rejection-reason">Rejection reason<input value={decisionReason} onChange={(event) => setDecisionReason(event.target.value)} maxLength={500} placeholder="Required only when rejecting" /></label>}
         {canCancelPayrollRun(role, selectedRun.status) && <label className="rejection-reason">Cancellation reason<input value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} maxLength={500} placeholder="Required to cancel this run" /></label>}
@@ -277,6 +287,91 @@ function PayrollRunWorkspace({ role, periods, selectedPeriod, runs, selectedRun,
       </article>}
     </div>}
   </section>;
+}
+
+function SettlementWorkspace({ run, role }: { run: PayrollRunDto; role: string }) {
+  const [summary, setSummary] = useState<RunSettlementDto | null>(null);
+  const [paymentWorker, setPaymentWorker] = useState<WorkerSettlementDto | null>(null);
+  const [method, setMethod] = useState('Cash');
+  const [busy, setBusy] = useState('');
+  const [message, setMessage] = useState('');
+  const [settlementError, setSettlementError] = useState('');
+  const [document, setDocument] = useState<OperationalPayslipDto | CashPaymentRegisterDto | null>(null);
+  const [reversalPayment, setReversalPayment] = useState<{ id: string; amount: number } | null>(null);
+  const [reversalReason, setReversalReason] = useState('');
+  const [reopenReason, setReopenReason] = useState('');
+
+  const load = useCallback(async () => setSummary(await api.settlement(run.id)), [run.id]);
+  useEffect(() => { load().catch(async (requestError) => setSettlementError(getApiError(requestError))); }, [load]);
+
+  const mutate = async (key: string, action: () => Promise<unknown>, success: string) => {
+    if (busy) return; setBusy(key); setSettlementError(''); setMessage('');
+    try { await action(); await load(); setPaymentWorker(null); setMessage(success); }
+    catch (requestError) { setSettlementError(getApiError(requestError)); }
+    finally { setBusy(''); }
+  };
+
+  const recordPayment = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); if (!paymentWorker || !summary) return;
+    const data = new FormData(event.currentTarget); const selectedMethod = String(data.get('method'));
+    await mutate('payment', () => api.payments(run.id, new RecordPayrollPaymentRequest({
+      calculationVersion: summary.calculationVersion, payrollWorkerLineId: paymentWorker.payrollWorkerLineId,
+      method: selectedMethod, amountUsd: Number(data.get('amountUsd')), paymentDate: String(data.get('paymentDate')),
+      provider: selectedMethod === 'MobileMoney' ? String(data.get('provider')) : undefined,
+      recipientNumber: selectedMethod === 'MobileMoney' ? String(data.get('recipientNumber')) : undefined,
+      transactionReference: selectedMethod === 'MobileMoney' ? String(data.get('transactionReference')) : undefined,
+      externalStatus: selectedMethod === 'MobileMoney' ? String(data.get('externalStatus')) : undefined,
+      idempotencyKey: newIdempotencyKey('payroll-payment'),
+    })), 'Payment evidence recorded. No external payment was executed.');
+  };
+
+  const acknowledge = (paymentId: string) => mutate(`ack-${paymentId}`, () => api.acknowledgement(paymentId,
+    new RecordPaymentAcknowledgementRequest({ status: 'Acknowledged', acknowledgedByPersonId: undefined,
+      acknowledgedAt: new Date(), evidenceReference: undefined,
+      idempotencyKey: newIdempotencyKey('payment-acknowledgement') })), 'Payment acknowledgement recorded.');
+
+  const reverse = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); if (!reversalPayment || !reversalReason.trim()) return;
+    await mutate(`reverse-${reversalPayment.id}`, () => api.reversal(reversalPayment.id, new ReversePayrollPaymentRequest({
+      amountUsd: reversalPayment.amount, reason: reversalReason.trim(), idempotencyKey: newIdempotencyKey('payment-reversal') })), 'Payment reversal recorded; the original remains visible.');
+    setReversalPayment(null); setReversalReason('');
+  };
+
+  const showPayslip = async (worker: WorkerSettlementDto) => {
+    if (!summary) return; setBusy(`payslip-${worker.payrollWorkerLineId}`); setSettlementError('');
+    try { setDocument(await api.payslip(run.id, summary.calculationVersion, worker.payrollWorkerLineId)); }
+    catch (requestError) { setSettlementError(getApiError(requestError)); } finally { setBusy(''); }
+  };
+  const showRegister = async () => {
+    if (!summary) return; setBusy('cash-register'); setSettlementError('');
+    try { setDocument(await api.cashRegister(run.id, summary.calculationVersion)); }
+    catch (requestError) { setSettlementError(getApiError(requestError)); } finally { setBusy(''); }
+  };
+
+  if (!summary) return <LoadingState label="Loading authoritative settlement" />;
+  return <section className="settlement-workspace">
+    <header className="section-heading"><div><span className="eyebrow">Post-approval settlement</span><h3><HandCoins size={18} /> Payment and settlement</h3><p>Calculation v{summary.calculationVersion} · payment evidence only; Cane360 does not execute funds.</p></div><StatusBadge status={summary.settlementStatus} /></header>
+    <ValidationError message={settlementError} />{message && <p className="success-banner"><BadgeCheck size={16} />{message}</p>}
+    <div className="settlement-metrics"><span><small>Net payroll</small><strong>USD {money(summary.netAmountUsd)}</strong></span><span><small>Paid</small><strong>USD {money(summary.paidAmountUsd)}</strong></span><span><small>Outstanding</small><strong>USD {money(summary.outstandingAmountUsd)}</strong></span><span><small>Workers settled</small><strong>{summary.workersSettled}/{summary.workerCount}</strong></span><span><small>Acknowledgement exceptions</small><strong>{summary.acknowledgementExceptions}</strong></span></div>
+    {summary.isClosed && <div className="payroll-lock-notice"><LockKeyhole size={17} /><span><strong>Settlement closed</strong>Payment actions are read-only. The Phase 6B labour and approved calculation locks remain unchanged.</span></div>}
+    <div className="settlement-worker-list" role="table" aria-label="Payroll worker settlement">
+      <div className="settlement-worker-heading" role="row"><span>Worker</span><span>Gross</span><span>Deductions</span><span>Net</span><span>Paid</span><span>Outstanding</span><span>Status / actions</span></div>
+      {summary.workers.map((worker) => <article key={worker.payrollWorkerLineId} className="settlement-worker-row">
+        <span><strong>{worker.workerName}</strong><small>{worker.paymentMethodSummary || 'No active payment'}</small></span><b>USD {money(worker.grossAmountUsd)}</b><b>USD {money(worker.deductionAmountUsd)}</b><b>USD {money(worker.approvedNetUsd)}</b><b>USD {money(worker.validPaidAmountUsd)}</b><strong>USD {money(worker.outstandingAmountUsd)}</strong>
+        <div className="row-actions"><StatusBadge status={worker.settlementStatus} />{!summary.isClosed && worker.outstandingAmountUsd > 0 && <button type="button" onClick={() => setPaymentWorker(worker)}>Record payment</button>}<button type="button" className="secondary" disabled={Boolean(busy)} onClick={() => showPayslip(worker)}><FileText size={14} /> Payslip</button></div>
+        {worker.payments.length > 0 && <details className="payment-chain"><summary>{worker.payments.length} payment record{worker.payments.length === 1 ? '' : 's'} · view trace</summary>{worker.payments.map((payment) => <div key={payment.id}><span><b>{payment.method} · USD {money(payment.amountUsd)}</b><small>{formatDate(payment.paymentDate)} · {payment.externalStatus}{payment.provider ? ` · ${payment.provider}` : ''}{payment.maskedRecipientNumber ? ` · ${payment.maskedRecipientNumber}` : ''}{payment.transactionReference ? ` · ${payment.transactionReference}` : ''}</small></span><span><small>Recorded {formatDateTime(payment.createdAt)} · active USD {money(payment.activeAmountUsd)}</small><small>{payment.acknowledgement ? `Acknowledgement: ${payment.acknowledgement.status}` : payment.method === 'Cash' ? 'Acknowledgement outstanding' : 'Acknowledgement not required'}</small></span><div className="row-actions">{!summary.isClosed && payment.method === 'Cash' && !payment.acknowledgement && payment.activeAmountUsd > 0 && <button type="button" disabled={Boolean(busy)} onClick={() => acknowledge(payment.id)}>Acknowledge</button>}{!summary.isClosed && payment.activeAmountUsd > 0 && <button type="button" className="text-action" disabled={Boolean(busy)} onClick={() => setReversalPayment({ id: payment.id, amount: payment.activeAmountUsd })}>Reverse</button>}</div>{payment.reversals.map((item) => <small key={item.id} className="reversal-line">Reversed USD {money(item.amountUsd)} · {item.reason} · {formatDateTime(item.reversedAt)}</small>)}</div>)}</details>}
+      </article>)}
+    </div>
+    <footer className="settlement-actions"><button type="button" className="secondary" disabled={Boolean(busy)} onClick={showRegister}><Printer size={15} /> Cash register</button>{!summary.isClosed && <button type="button" disabled={Boolean(busy) || !summary.canClose} onClick={() => mutate('close-settlement', () => api.close2(run.id, new ClosePayrollSettlementRequest({ calculationVersion: summary.calculationVersion, idempotencyKey: newIdempotencyKey('settlement-close') })), 'Final payroll settlement closed.')}>Close settlement</button>}{summary.isClosed && role === 'Grower' && <><label>Reopen reason<input value={reopenReason} maxLength={500} onChange={(event) => setReopenReason(event.target.value)} /></label><button type="button" className="secondary" disabled={Boolean(busy) || !reopenReason.trim()} onClick={() => mutate('reopen-settlement', () => api.reopen(run.id, new ReopenPayrollSettlementRequest({ calculationVersion: summary.calculationVersion, reason: reopenReason.trim(), idempotencyKey: newIdempotencyKey('settlement-reopen') })), 'Settlement reopened for payment-side correction only.')}>Reopen settlement</button></>}</footer>
+    {paymentWorker && <form className="payment-form" onSubmit={recordPayment}><header><div><span className="eyebrow">Exact approved worker line</span><h4>Record payment · {paymentWorker.workerName}</h4></div><button type="button" className="secondary" onClick={() => setPaymentWorker(null)}>Close</button></header><p>Outstanding USD {money(paymentWorker.outstandingAmountUsd)}. Client totals are revalidated transactionally by the server.</p><div className="form-grid"><label>Method<select name="method" value={method} onChange={(event) => setMethod(event.target.value)}><option value="Cash">Cash</option><option value="MobileMoney">Mobile money</option></select></label><label>Amount (USD)<input name="amountUsd" type="number" min="0.01" max={paymentWorker.outstandingAmountUsd} step="0.01" defaultValue={paymentWorker.outstandingAmountUsd} required /></label><label>Actual payment date<input name="paymentDate" type="date" defaultValue={today} required /></label>{method === 'MobileMoney' && <><label>Provider<input name="provider" maxLength={80} required autoComplete="off" /></label><label>Recipient number<input name="recipientNumber" type="tel" minLength={4} maxLength={20} required autoComplete="off" /><small>Encrypted at rest; only the masked value is displayed.</small></label><label>Transaction reference<input name="transactionReference" maxLength={160} required autoComplete="off" /></label><label>External status<select name="externalStatus" defaultValue="Successful"><option>Successful</option><option>Posted</option><option>Pending</option><option>Failed</option></select></label></>}</div><footer className="form-actions"><span>Retry-safe idempotency is generated for this submission.</span><button disabled={Boolean(busy)}>{busy === 'payment' ? 'Recording…' : 'Record payment evidence'}</button></footer></form>}
+    {reversalPayment && <form className="payment-form" onSubmit={reverse}><header><div><span className="eyebrow">Append-only correction</span><h4>Reverse USD {money(reversalPayment.amount)}</h4></div><button type="button" className="secondary" onClick={() => setReversalPayment(null)}>Close</button></header><label>Mandatory reason<textarea value={reversalReason} maxLength={500} required onChange={(event) => setReversalReason(event.target.value)} /></label><footer className="form-actions"><span>The original payment remains unchanged and visible.</span><button disabled={Boolean(busy) || !reversalReason.trim()}>Record reversal</button></footer></form>}
+    {document && <PrintablePayrollDocument document={document} onClose={() => setDocument(null)} />}
+  </section>;
+}
+
+function PrintablePayrollDocument({ document, onClose }: { document: OperationalPayslipDto | CashPaymentRegisterDto; onClose: () => void }) {
+  const isPayslip = document instanceof OperationalPayslipDto;
+  return <section className="print-document"><header className="print-toolbar"><button type="button" className="secondary" onClick={onClose}>Close</button><button type="button" onClick={() => globalThis.print()}><Printer size={15} /> Print</button></header>{isPayslip ? <><span className="eyebrow">Cane360 · {document.farmName}</span><h2>Operational payslip</h2><p><strong>{document.documentStatement}</strong></p><dl><div><dt>Payroll period</dt><dd>{document.payrollPeriod}</dd></div><div><dt>Worker</dt><dd>{document.workerName}</dd></div><div><dt>Worker identifier</dt><dd>{document.maskedWorkerIdentifier}</dd></div><div><dt>Approved version</dt><dd>Calculation v{document.calculationVersion} · {shortId(document.payrollRunId)}</dd></div></dl><table><thead><tr><th>Earning</th><th>Quantity / rate</th><th>USD</th></tr></thead><tbody>{document.earnings.map((line) => <tr key={line.id}><td>{line.rateType} · {formatDate(line.workDate)}</td><td>{line.quantity} {line.unit} × {money(line.rateAmountUsd)}</td><td>{money(line.earningAmountUsd)}</td></tr>)}</tbody><tfoot><tr><th colSpan={2}>Gross</th><td>{money(document.grossAmountUsd)}</td></tr><tr><th colSpan={2}>Deductions / advance recovery</th><td>{money(document.deductionAmountUsd)}</td></tr><tr><th colSpan={2}>Net pay</th><td>{money(document.netAmountUsd)}</td></tr><tr><th colSpan={2}>Paid / outstanding</th><td>{money(document.paidAmountUsd)} / {money(document.outstandingAmountUsd)}</td></tr></tfoot></table><small>Generated {formatDateTime(document.generatedAt)} · {document.documentReference}</small></> : <><span className="eyebrow">Cane360 · {document.farmName}</span><h2>Cash payment register</h2><p>{document.payrollPeriod} · calculation v{document.calculationVersion}</p><table><thead><tr><th>Worker</th><th>Identifier</th><th>Approved net</th><th>Cash paid</th><th>Payment date</th><th>Acknowledgement</th><th>Outstanding</th></tr></thead><tbody>{document.workers.map((worker) => <tr key={worker.payrollWorkerLineId}><td>{worker.workerName}</td><td>{worker.maskedWorkerIdentifier}</td><td>{money(worker.approvedNetUsd)}</td><td>{money(worker.cashAmountPaidUsd)}</td><td>{worker.lastCashPaymentDate ? formatDate(worker.lastCashPaymentDate) : '—'}</td><td>{worker.acknowledgementState}</td><td>{money(worker.outstandingAmountUsd)}</td></tr>)}</tbody><tfoot><tr><th colSpan={2}>Totals</th><td>{money(document.totalApprovedNetUsd)}</td><td>{money(document.totalActiveCashPaidUsd)}</td><td colSpan={2}></td><td>{money(document.totalOutstandingUsd)}</td></tr></tfoot></table><small>Generated {formatDateTime(document.generatedAt)} · {document.documentReference}</small></>}</section>;
 }
 
 function AdvanceEditor({ form, setForm, workers, periods, preview, pending, onPreview, onSubmit, onClose }: { form: AdvanceFormState; setForm: (form: AdvanceFormState) => void; workers: PayrollWorker[]; periods: PayrollPeriodDto[]; preview: AdvanceSchedulePreviewDto | null; pending: string; onPreview: () => Promise<void>; onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>; onClose: () => void }) {

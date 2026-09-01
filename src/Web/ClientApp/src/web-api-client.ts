@@ -7064,6 +7064,511 @@ export class PayrollClient {
         }
         return Promise.resolve<PayrollRunDto>(null as any);
     }
+
+    /**
+     * @return OK
+     */
+    settlement(runId: string): Promise<RunSettlementDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSettlement(_response);
+        });
+    }
+
+    protected processSettlement(response: Response): Promise<RunSettlementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RunSettlementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RunSettlementDto>(null as any);
+    }
+
+    /**
+     * @param calculationVersion (optional)
+     * @return OK
+     */
+    workersGET(runId: string, workerLineId: string, calculationVersion: number | undefined): Promise<WorkerSettlementDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/workers/{workerLineId}?";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        if (workerLineId === undefined || workerLineId === null)
+            throw new globalThis.Error("The parameter 'workerLineId' must be defined.");
+        url_ = url_.replace("{workerLineId}", encodeURIComponent("" + workerLineId));
+        if (calculationVersion === null)
+            throw new globalThis.Error("The parameter 'calculationVersion' cannot be null.");
+        else if (calculationVersion !== undefined)
+            url_ += "calculationVersion=" + encodeURIComponent("" + calculationVersion) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processWorkersGET(_response);
+        });
+    }
+
+    protected processWorkersGET(response: Response): Promise<WorkerSettlementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WorkerSettlementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerSettlementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    payments(runId: string, body: RecordPayrollPaymentRequest): Promise<PayrollPaymentDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/payments";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPayments(_response);
+        });
+    }
+
+    protected processPayments(response: Response): Promise<PayrollPaymentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPaymentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPaymentDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    acknowledgement(paymentId: string, body: RecordPaymentAcknowledgementRequest): Promise<PayrollPaymentDto> {
+        let url_ = this.baseUrl + "/api/payroll/payments/{paymentId}/acknowledgement";
+        if (paymentId === undefined || paymentId === null)
+            throw new globalThis.Error("The parameter 'paymentId' must be defined.");
+        url_ = url_.replace("{paymentId}", encodeURIComponent("" + paymentId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAcknowledgement(_response);
+        });
+    }
+
+    protected processAcknowledgement(response: Response): Promise<PayrollPaymentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPaymentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPaymentDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reversal(paymentId: string, body: ReversePayrollPaymentRequest): Promise<PayrollPaymentDto> {
+        let url_ = this.baseUrl + "/api/payroll/payments/{paymentId}/reversal";
+        if (paymentId === undefined || paymentId === null)
+            throw new globalThis.Error("The parameter 'paymentId' must be defined.");
+        url_ = url_.replace("{paymentId}", encodeURIComponent("" + paymentId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReversal(_response);
+        });
+    }
+
+    protected processReversal(response: Response): Promise<PayrollPaymentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollPaymentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollPaymentDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    close2(runId: string, body: ClosePayrollSettlementRequest): Promise<RunSettlementDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/close";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processClose2(_response);
+        });
+    }
+
+    protected processClose2(response: Response): Promise<RunSettlementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RunSettlementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RunSettlementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reopen(runId: string, body: ReopenPayrollSettlementRequest): Promise<RunSettlementDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/reopen";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReopen(_response);
+        });
+    }
+
+    protected processReopen(response: Response): Promise<RunSettlementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RunSettlementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RunSettlementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    payslip(runId: string, calculationVersion: number, workerLineId: string): Promise<OperationalPayslipDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/calculations/{calculationVersion}/worker-lines/{workerLineId}/payslip";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        if (calculationVersion === undefined || calculationVersion === null)
+            throw new globalThis.Error("The parameter 'calculationVersion' must be defined.");
+        url_ = url_.replace("{calculationVersion}", encodeURIComponent("" + calculationVersion));
+        if (workerLineId === undefined || workerLineId === null)
+            throw new globalThis.Error("The parameter 'workerLineId' must be defined.");
+        url_ = url_.replace("{workerLineId}", encodeURIComponent("" + workerLineId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPayslip(_response);
+        });
+    }
+
+    protected processPayslip(response: Response): Promise<OperationalPayslipDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalPayslipDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalPayslipDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cashRegister(runId: string, calculationVersion: number): Promise<CashPaymentRegisterDto> {
+        let url_ = this.baseUrl + "/api/payroll/runs/{runId}/calculations/{calculationVersion}/cash-register";
+        if (runId === undefined || runId === null)
+            throw new globalThis.Error("The parameter 'runId' must be defined.");
+        url_ = url_.replace("{runId}", encodeURIComponent("" + runId));
+        if (calculationVersion === undefined || calculationVersion === null)
+            throw new globalThis.Error("The parameter 'calculationVersion' must be defined.");
+        url_ = url_.replace("{calculationVersion}", encodeURIComponent("" + calculationVersion));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCashRegister(_response);
+        });
+    }
+
+    protected processCashRegister(response: Response): Promise<CashPaymentRegisterDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CashPaymentRegisterDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CashPaymentRegisterDto>(null as any);
+    }
 }
 
 export class UsersClient {
@@ -7531,7 +8036,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    workersGET(workerId: string): Promise<WorkerDetailsDto> {
+    workersGET2(workerId: string): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -7546,11 +8051,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkersGET(_response);
+            return this.processWorkersGET2(_response);
         });
     }
 
-    protected processWorkersGET(response: Response): Promise<WorkerDetailsDto> {
+    protected processWorkersGET2(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -9479,6 +9984,233 @@ export class CancelWorkerAdvanceRequest implements ICancelWorkerAdvanceRequest {
 export interface ICancelWorkerAdvanceRequest {
     expectedVersion: number;
     reason: string;
+
+    [key: string]: any;
+}
+
+export class CashPaymentRegisterDto implements ICashPaymentRegisterDto {
+    farmName!: string;
+    payrollPeriod!: string;
+    payrollRunId!: string;
+    payrollCalculationId!: string;
+    calculationVersion!: number;
+    workers!: CashPaymentRegisterRowDto[];
+    totalApprovedNetUsd!: number;
+    totalActiveCashPaidUsd!: number;
+    totalOutstandingUsd!: number;
+    generatedAt!: Date;
+    documentReference!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICashPaymentRegisterDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.workers = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.farmName = _data["farmName"];
+            this.payrollPeriod = _data["payrollPeriod"];
+            this.payrollRunId = _data["payrollRunId"];
+            this.payrollCalculationId = _data["payrollCalculationId"];
+            this.calculationVersion = _data["calculationVersion"];
+            if (Array.isArray(_data["workers"])) {
+                this.workers = [] as any;
+                for (let item of _data["workers"])
+                    this.workers!.push(CashPaymentRegisterRowDto.fromJS(item));
+            }
+            this.totalApprovedNetUsd = _data["totalApprovedNetUsd"];
+            this.totalActiveCashPaidUsd = _data["totalActiveCashPaidUsd"];
+            this.totalOutstandingUsd = _data["totalOutstandingUsd"];
+            this.generatedAt = _data["generatedAt"] ? new Date(_data["generatedAt"].toString()) : undefined as any;
+            this.documentReference = _data["documentReference"];
+        }
+    }
+
+    static fromJS(data: any): CashPaymentRegisterDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CashPaymentRegisterDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["farmName"] = this.farmName;
+        data["payrollPeriod"] = this.payrollPeriod;
+        data["payrollRunId"] = this.payrollRunId;
+        data["payrollCalculationId"] = this.payrollCalculationId;
+        data["calculationVersion"] = this.calculationVersion;
+        if (Array.isArray(this.workers)) {
+            data["workers"] = [];
+            for (let item of this.workers)
+                data["workers"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["totalApprovedNetUsd"] = this.totalApprovedNetUsd;
+        data["totalActiveCashPaidUsd"] = this.totalActiveCashPaidUsd;
+        data["totalOutstandingUsd"] = this.totalOutstandingUsd;
+        data["generatedAt"] = this.generatedAt ? this.generatedAt.toISOString() : undefined as any;
+        data["documentReference"] = this.documentReference;
+        return data;
+    }
+}
+
+export interface ICashPaymentRegisterDto {
+    farmName: string;
+    payrollPeriod: string;
+    payrollRunId: string;
+    payrollCalculationId: string;
+    calculationVersion: number;
+    workers: CashPaymentRegisterRowDto[];
+    totalApprovedNetUsd: number;
+    totalActiveCashPaidUsd: number;
+    totalOutstandingUsd: number;
+    generatedAt: Date;
+    documentReference: string;
+
+    [key: string]: any;
+}
+
+export class CashPaymentRegisterRowDto implements ICashPaymentRegisterRowDto {
+    payrollWorkerLineId!: string;
+    workerName!: string;
+    maskedWorkerIdentifier!: string;
+    approvedNetUsd!: number;
+    cashAmountPaidUsd!: number;
+    lastCashPaymentDate!: Date | undefined;
+    acknowledgementState!: string;
+    outstandingAmountUsd!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICashPaymentRegisterRowDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.workerName = _data["workerName"];
+            this.maskedWorkerIdentifier = _data["maskedWorkerIdentifier"];
+            this.approvedNetUsd = _data["approvedNetUsd"];
+            this.cashAmountPaidUsd = _data["cashAmountPaidUsd"];
+            this.lastCashPaymentDate = _data["lastCashPaymentDate"] ? new Date(_data["lastCashPaymentDate"].toString()) : undefined as any;
+            this.acknowledgementState = _data["acknowledgementState"];
+            this.outstandingAmountUsd = _data["outstandingAmountUsd"];
+        }
+    }
+
+    static fromJS(data: any): CashPaymentRegisterRowDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CashPaymentRegisterRowDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["workerName"] = this.workerName;
+        data["maskedWorkerIdentifier"] = this.maskedWorkerIdentifier;
+        data["approvedNetUsd"] = this.approvedNetUsd;
+        data["cashAmountPaidUsd"] = this.cashAmountPaidUsd;
+        data["lastCashPaymentDate"] = this.lastCashPaymentDate ? formatDate(this.lastCashPaymentDate) : undefined as any;
+        data["acknowledgementState"] = this.acknowledgementState;
+        data["outstandingAmountUsd"] = this.outstandingAmountUsd;
+        return data;
+    }
+}
+
+export interface ICashPaymentRegisterRowDto {
+    payrollWorkerLineId: string;
+    workerName: string;
+    maskedWorkerIdentifier: string;
+    approvedNetUsd: number;
+    cashAmountPaidUsd: number;
+    lastCashPaymentDate: Date | undefined;
+    acknowledgementState: string;
+    outstandingAmountUsd: number;
+
+    [key: string]: any;
+}
+
+export class ClosePayrollSettlementRequest implements IClosePayrollSettlementRequest {
+    calculationVersion!: number;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IClosePayrollSettlementRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.calculationVersion = _data["calculationVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ClosePayrollSettlementRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClosePayrollSettlementRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["calculationVersion"] = this.calculationVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IClosePayrollSettlementRequest {
+    calculationVersion: number;
+    idempotencyKey: string;
 
     [key: string]: any;
 }
@@ -15737,6 +16469,213 @@ export interface IManagerInvitationDto {
     [key: string]: any;
 }
 
+export class OperationalPayslipDto implements IOperationalPayslipDto {
+    documentStatement!: string;
+    farmName!: string;
+    payrollPeriod!: string;
+    payrollRunId!: string;
+    payrollCalculationId!: string;
+    calculationVersion!: number;
+    payrollWorkerLineId!: string;
+    workerName!: string;
+    maskedWorkerIdentifier!: string;
+    earnings!: PayrollEarningLineDto[];
+    grossAmountUsd!: number;
+    deductionAmountUsd!: number;
+    advanceRecoveryUsd!: number;
+    netAmountUsd!: number;
+    paidAmountUsd!: number;
+    outstandingAmountUsd!: number;
+    settlementStatus!: string;
+    generatedAt!: Date;
+    documentReference!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IOperationalPayslipDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.earnings = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.documentStatement = _data["documentStatement"];
+            this.farmName = _data["farmName"];
+            this.payrollPeriod = _data["payrollPeriod"];
+            this.payrollRunId = _data["payrollRunId"];
+            this.payrollCalculationId = _data["payrollCalculationId"];
+            this.calculationVersion = _data["calculationVersion"];
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.workerName = _data["workerName"];
+            this.maskedWorkerIdentifier = _data["maskedWorkerIdentifier"];
+            if (Array.isArray(_data["earnings"])) {
+                this.earnings = [] as any;
+                for (let item of _data["earnings"])
+                    this.earnings!.push(PayrollEarningLineDto.fromJS(item));
+            }
+            this.grossAmountUsd = _data["grossAmountUsd"];
+            this.deductionAmountUsd = _data["deductionAmountUsd"];
+            this.advanceRecoveryUsd = _data["advanceRecoveryUsd"];
+            this.netAmountUsd = _data["netAmountUsd"];
+            this.paidAmountUsd = _data["paidAmountUsd"];
+            this.outstandingAmountUsd = _data["outstandingAmountUsd"];
+            this.settlementStatus = _data["settlementStatus"];
+            this.generatedAt = _data["generatedAt"] ? new Date(_data["generatedAt"].toString()) : undefined as any;
+            this.documentReference = _data["documentReference"];
+        }
+    }
+
+    static fromJS(data: any): OperationalPayslipDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OperationalPayslipDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["documentStatement"] = this.documentStatement;
+        data["farmName"] = this.farmName;
+        data["payrollPeriod"] = this.payrollPeriod;
+        data["payrollRunId"] = this.payrollRunId;
+        data["payrollCalculationId"] = this.payrollCalculationId;
+        data["calculationVersion"] = this.calculationVersion;
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["workerName"] = this.workerName;
+        data["maskedWorkerIdentifier"] = this.maskedWorkerIdentifier;
+        if (Array.isArray(this.earnings)) {
+            data["earnings"] = [];
+            for (let item of this.earnings)
+                data["earnings"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["grossAmountUsd"] = this.grossAmountUsd;
+        data["deductionAmountUsd"] = this.deductionAmountUsd;
+        data["advanceRecoveryUsd"] = this.advanceRecoveryUsd;
+        data["netAmountUsd"] = this.netAmountUsd;
+        data["paidAmountUsd"] = this.paidAmountUsd;
+        data["outstandingAmountUsd"] = this.outstandingAmountUsd;
+        data["settlementStatus"] = this.settlementStatus;
+        data["generatedAt"] = this.generatedAt ? this.generatedAt.toISOString() : undefined as any;
+        data["documentReference"] = this.documentReference;
+        return data;
+    }
+}
+
+export interface IOperationalPayslipDto {
+    documentStatement: string;
+    farmName: string;
+    payrollPeriod: string;
+    payrollRunId: string;
+    payrollCalculationId: string;
+    calculationVersion: number;
+    payrollWorkerLineId: string;
+    workerName: string;
+    maskedWorkerIdentifier: string;
+    earnings: PayrollEarningLineDto[];
+    grossAmountUsd: number;
+    deductionAmountUsd: number;
+    advanceRecoveryUsd: number;
+    netAmountUsd: number;
+    paidAmountUsd: number;
+    outstandingAmountUsd: number;
+    settlementStatus: string;
+    generatedAt: Date;
+    documentReference: string;
+
+    [key: string]: any;
+}
+
+export class PaymentAcknowledgementDto implements IPaymentAcknowledgementDto {
+    id!: string;
+    status!: string;
+    acknowledgedByPersonId!: string | undefined;
+    capturedByUserId!: string;
+    capturedByPersonId!: string | undefined;
+    acknowledgedAt!: Date;
+    evidenceReference!: string | undefined;
+    createdAt!: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IPaymentAcknowledgementDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.status = _data["status"];
+            this.acknowledgedByPersonId = _data["acknowledgedByPersonId"];
+            this.capturedByUserId = _data["capturedByUserId"];
+            this.capturedByPersonId = _data["capturedByPersonId"];
+            this.acknowledgedAt = _data["acknowledgedAt"] ? new Date(_data["acknowledgedAt"].toString()) : undefined as any;
+            this.evidenceReference = _data["evidenceReference"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PaymentAcknowledgementDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PaymentAcknowledgementDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["status"] = this.status;
+        data["acknowledgedByPersonId"] = this.acknowledgedByPersonId;
+        data["capturedByUserId"] = this.capturedByUserId;
+        data["capturedByPersonId"] = this.capturedByPersonId;
+        data["acknowledgedAt"] = this.acknowledgedAt ? this.acknowledgedAt.toISOString() : undefined as any;
+        data["evidenceReference"] = this.evidenceReference;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPaymentAcknowledgementDto {
+    id: string;
+    status: string;
+    acknowledgedByPersonId: string | undefined;
+    capturedByUserId: string;
+    capturedByPersonId: string | undefined;
+    acknowledgedAt: Date;
+    evidenceReference: string | undefined;
+    createdAt: Date;
+
+    [key: string]: any;
+}
+
 export class PayrollAdvanceDeductionDto implements IPayrollAdvanceDeductionDto {
     id!: string;
     workerAdvanceId!: string;
@@ -16112,6 +17051,209 @@ export interface IPayrollEarningLineDto {
     rateVersion: number;
     earningAmountUsd: number;
     sourceFingerprint: string;
+
+    [key: string]: any;
+}
+
+export class PayrollPaymentDto implements IPayrollPaymentDto {
+    id!: string;
+    payrollRunId!: string;
+    payrollCalculationId!: string;
+    calculationVersion!: number;
+    payrollWorkerLineId!: string;
+    workerProfileId!: string;
+    method!: string;
+    amountUsd!: number;
+    paymentDate!: Date;
+    externalStatus!: string;
+    provider!: string | undefined;
+    maskedRecipientNumber!: string | undefined;
+    transactionReference!: string | undefined;
+    recordedByUserId!: string;
+    recordedByPersonId!: string | undefined;
+    createdAt!: Date;
+    reversedAmountUsd!: number;
+    activeAmountUsd!: number;
+    acknowledgement!: PaymentAcknowledgementDto | undefined;
+    reversals!: PayrollPaymentReversalDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollPaymentDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.reversals = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.payrollRunId = _data["payrollRunId"];
+            this.payrollCalculationId = _data["payrollCalculationId"];
+            this.calculationVersion = _data["calculationVersion"];
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.workerProfileId = _data["workerProfileId"];
+            this.method = _data["method"];
+            this.amountUsd = _data["amountUsd"];
+            this.paymentDate = _data["paymentDate"] ? new Date(_data["paymentDate"].toString()) : undefined as any;
+            this.externalStatus = _data["externalStatus"];
+            this.provider = _data["provider"];
+            this.maskedRecipientNumber = _data["maskedRecipientNumber"];
+            this.transactionReference = _data["transactionReference"];
+            this.recordedByUserId = _data["recordedByUserId"];
+            this.recordedByPersonId = _data["recordedByPersonId"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.reversedAmountUsd = _data["reversedAmountUsd"];
+            this.activeAmountUsd = _data["activeAmountUsd"];
+            this.acknowledgement = _data["acknowledgement"] ? PaymentAcknowledgementDto.fromJS(_data["acknowledgement"]) : undefined as any;
+            if (Array.isArray(_data["reversals"])) {
+                this.reversals = [] as any;
+                for (let item of _data["reversals"])
+                    this.reversals!.push(PayrollPaymentReversalDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PayrollPaymentDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollPaymentDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["payrollRunId"] = this.payrollRunId;
+        data["payrollCalculationId"] = this.payrollCalculationId;
+        data["calculationVersion"] = this.calculationVersion;
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["workerProfileId"] = this.workerProfileId;
+        data["method"] = this.method;
+        data["amountUsd"] = this.amountUsd;
+        data["paymentDate"] = this.paymentDate ? formatDate(this.paymentDate) : undefined as any;
+        data["externalStatus"] = this.externalStatus;
+        data["provider"] = this.provider;
+        data["maskedRecipientNumber"] = this.maskedRecipientNumber;
+        data["transactionReference"] = this.transactionReference;
+        data["recordedByUserId"] = this.recordedByUserId;
+        data["recordedByPersonId"] = this.recordedByPersonId;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["reversedAmountUsd"] = this.reversedAmountUsd;
+        data["activeAmountUsd"] = this.activeAmountUsd;
+        data["acknowledgement"] = this.acknowledgement ? this.acknowledgement.toJSON() : undefined as any;
+        if (Array.isArray(this.reversals)) {
+            data["reversals"] = [];
+            for (let item of this.reversals)
+                data["reversals"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IPayrollPaymentDto {
+    id: string;
+    payrollRunId: string;
+    payrollCalculationId: string;
+    calculationVersion: number;
+    payrollWorkerLineId: string;
+    workerProfileId: string;
+    method: string;
+    amountUsd: number;
+    paymentDate: Date;
+    externalStatus: string;
+    provider: string | undefined;
+    maskedRecipientNumber: string | undefined;
+    transactionReference: string | undefined;
+    recordedByUserId: string;
+    recordedByPersonId: string | undefined;
+    createdAt: Date;
+    reversedAmountUsd: number;
+    activeAmountUsd: number;
+    acknowledgement: PaymentAcknowledgementDto | undefined;
+    reversals: PayrollPaymentReversalDto[];
+
+    [key: string]: any;
+}
+
+export class PayrollPaymentReversalDto implements IPayrollPaymentReversalDto {
+    id!: string;
+    amountUsd!: number;
+    reason!: string;
+    reversedByUserId!: string;
+    reversedByPersonId!: string | undefined;
+    reversedAt!: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollPaymentReversalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.amountUsd = _data["amountUsd"];
+            this.reason = _data["reason"];
+            this.reversedByUserId = _data["reversedByUserId"];
+            this.reversedByPersonId = _data["reversedByPersonId"];
+            this.reversedAt = _data["reversedAt"] ? new Date(_data["reversedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PayrollPaymentReversalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollPaymentReversalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["amountUsd"] = this.amountUsd;
+        data["reason"] = this.reason;
+        data["reversedByUserId"] = this.reversedByUserId;
+        data["reversedByPersonId"] = this.reversedByPersonId;
+        data["reversedAt"] = this.reversedAt ? this.reversedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPayrollPaymentReversalDto {
+    id: string;
+    amountUsd: number;
+    reason: string;
+    reversedByUserId: string;
+    reversedByPersonId: string | undefined;
+    reversedAt: Date;
 
     [key: string]: any;
 }
@@ -17669,6 +18811,154 @@ export interface IRecordAttendanceRequest {
     [key: string]: any;
 }
 
+export class RecordPaymentAcknowledgementRequest implements IRecordPaymentAcknowledgementRequest {
+    status!: string;
+    acknowledgedByPersonId!: string | undefined;
+    acknowledgedAt!: Date;
+    evidenceReference!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRecordPaymentAcknowledgementRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.status = _data["status"];
+            this.acknowledgedByPersonId = _data["acknowledgedByPersonId"];
+            this.acknowledgedAt = _data["acknowledgedAt"] ? new Date(_data["acknowledgedAt"].toString()) : undefined as any;
+            this.evidenceReference = _data["evidenceReference"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): RecordPaymentAcknowledgementRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecordPaymentAcknowledgementRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["status"] = this.status;
+        data["acknowledgedByPersonId"] = this.acknowledgedByPersonId;
+        data["acknowledgedAt"] = this.acknowledgedAt ? this.acknowledgedAt.toISOString() : undefined as any;
+        data["evidenceReference"] = this.evidenceReference;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IRecordPaymentAcknowledgementRequest {
+    status: string;
+    acknowledgedByPersonId: string | undefined;
+    acknowledgedAt: Date;
+    evidenceReference: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class RecordPayrollPaymentRequest implements IRecordPayrollPaymentRequest {
+    calculationVersion!: number;
+    payrollWorkerLineId!: string;
+    method!: string;
+    amountUsd!: number;
+    paymentDate!: string;
+    provider!: string | undefined;
+    recipientNumber!: string | undefined;
+    transactionReference!: string | undefined;
+    externalStatus!: string | undefined;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRecordPayrollPaymentRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.calculationVersion = _data["calculationVersion"];
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.method = _data["method"];
+            this.amountUsd = _data["amountUsd"];
+            this.paymentDate = _data["paymentDate"];
+            this.provider = _data["provider"];
+            this.recipientNumber = _data["recipientNumber"];
+            this.transactionReference = _data["transactionReference"];
+            this.externalStatus = _data["externalStatus"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): RecordPayrollPaymentRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecordPayrollPaymentRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["calculationVersion"] = this.calculationVersion;
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["method"] = this.method;
+        data["amountUsd"] = this.amountUsd;
+        data["paymentDate"] = this.paymentDate;
+        data["provider"] = this.provider;
+        data["recipientNumber"] = this.recipientNumber;
+        data["transactionReference"] = this.transactionReference;
+        data["externalStatus"] = this.externalStatus;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IRecordPayrollPaymentRequest {
+    calculationVersion: number;
+    payrollWorkerLineId: string;
+    method: string;
+    amountUsd: number;
+    paymentDate: string;
+    provider: string | undefined;
+    recipientNumber: string | undefined;
+    transactionReference: string | undefined;
+    externalStatus: string | undefined;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class RedeemManagerInvitationRequest implements IRedeemManagerInvitationRequest {
     token!: string;
 
@@ -17765,6 +19055,62 @@ export class RegisterRequest implements IRegisterRequest {
 export interface IRegisterRequest {
     email: string;
     password: string;
+
+    [key: string]: any;
+}
+
+export class ReopenPayrollSettlementRequest implements IReopenPayrollSettlementRequest {
+    calculationVersion!: number;
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IReopenPayrollSettlementRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.calculationVersion = _data["calculationVersion"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ReopenPayrollSettlementRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReopenPayrollSettlementRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["calculationVersion"] = this.calculationVersion;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IReopenPayrollSettlementRequest {
+    calculationVersion: number;
+    reason: string;
+    idempotencyKey: string;
 
     [key: string]: any;
 }
@@ -17881,6 +19227,62 @@ export class RequestStockIssueCorrectionRequest implements IRequestStockIssueCor
 export interface IRequestStockIssueCorrectionRequest {
     expectedVersion: number;
     reason: string;
+
+    [key: string]: any;
+}
+
+export class ReversePayrollPaymentRequest implements IReversePayrollPaymentRequest {
+    amountUsd!: number;
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IReversePayrollPaymentRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.amountUsd = _data["amountUsd"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ReversePayrollPaymentRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReversePayrollPaymentRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["amountUsd"] = this.amountUsd;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IReversePayrollPaymentRequest {
+    amountUsd: number;
+    reason: string;
+    idempotencyKey: string;
 
     [key: string]: any;
 }
@@ -18101,6 +19503,137 @@ export interface IReverseStockReturnRequest {
     expectedVersion: number;
     reason: string;
     idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class RunSettlementDto implements IRunSettlementDto {
+    payrollRunId!: string;
+    payrollCalculationId!: string;
+    calculationVersion!: number;
+    farmName!: string;
+    payrollPeriod!: string;
+    grossAmountUsd!: number;
+    deductionAmountUsd!: number;
+    netAmountUsd!: number;
+    paidAmountUsd!: number;
+    reversedAmountUsd!: number;
+    outstandingAmountUsd!: number;
+    workerCount!: number;
+    workersSettled!: number;
+    workersOutstanding!: number;
+    acknowledgementExceptions!: number;
+    settlementStatus!: string;
+    isClosed!: boolean;
+    canClose!: boolean;
+    workers!: WorkerSettlementDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IRunSettlementDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.workers = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.payrollRunId = _data["payrollRunId"];
+            this.payrollCalculationId = _data["payrollCalculationId"];
+            this.calculationVersion = _data["calculationVersion"];
+            this.farmName = _data["farmName"];
+            this.payrollPeriod = _data["payrollPeriod"];
+            this.grossAmountUsd = _data["grossAmountUsd"];
+            this.deductionAmountUsd = _data["deductionAmountUsd"];
+            this.netAmountUsd = _data["netAmountUsd"];
+            this.paidAmountUsd = _data["paidAmountUsd"];
+            this.reversedAmountUsd = _data["reversedAmountUsd"];
+            this.outstandingAmountUsd = _data["outstandingAmountUsd"];
+            this.workerCount = _data["workerCount"];
+            this.workersSettled = _data["workersSettled"];
+            this.workersOutstanding = _data["workersOutstanding"];
+            this.acknowledgementExceptions = _data["acknowledgementExceptions"];
+            this.settlementStatus = _data["settlementStatus"];
+            this.isClosed = _data["isClosed"];
+            this.canClose = _data["canClose"];
+            if (Array.isArray(_data["workers"])) {
+                this.workers = [] as any;
+                for (let item of _data["workers"])
+                    this.workers!.push(WorkerSettlementDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RunSettlementDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RunSettlementDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["payrollRunId"] = this.payrollRunId;
+        data["payrollCalculationId"] = this.payrollCalculationId;
+        data["calculationVersion"] = this.calculationVersion;
+        data["farmName"] = this.farmName;
+        data["payrollPeriod"] = this.payrollPeriod;
+        data["grossAmountUsd"] = this.grossAmountUsd;
+        data["deductionAmountUsd"] = this.deductionAmountUsd;
+        data["netAmountUsd"] = this.netAmountUsd;
+        data["paidAmountUsd"] = this.paidAmountUsd;
+        data["reversedAmountUsd"] = this.reversedAmountUsd;
+        data["outstandingAmountUsd"] = this.outstandingAmountUsd;
+        data["workerCount"] = this.workerCount;
+        data["workersSettled"] = this.workersSettled;
+        data["workersOutstanding"] = this.workersOutstanding;
+        data["acknowledgementExceptions"] = this.acknowledgementExceptions;
+        data["settlementStatus"] = this.settlementStatus;
+        data["isClosed"] = this.isClosed;
+        data["canClose"] = this.canClose;
+        if (Array.isArray(this.workers)) {
+            data["workers"] = [];
+            for (let item of this.workers)
+                data["workers"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRunSettlementDto {
+    payrollRunId: string;
+    payrollCalculationId: string;
+    calculationVersion: number;
+    farmName: string;
+    payrollPeriod: string;
+    grossAmountUsd: number;
+    deductionAmountUsd: number;
+    netAmountUsd: number;
+    paidAmountUsd: number;
+    reversedAmountUsd: number;
+    outstandingAmountUsd: number;
+    workerCount: number;
+    workersSettled: number;
+    workersOutstanding: number;
+    acknowledgementExceptions: number;
+    settlementStatus: string;
+    isClosed: boolean;
+    canClose: boolean;
+    workers: WorkerSettlementDto[];
 
     [key: string]: any;
 }
@@ -20294,6 +21827,117 @@ export interface IWorkerRateDto {
     effectiveFrom: Date;
     effectiveTo: Date | undefined;
     version: number;
+
+    [key: string]: any;
+}
+
+export class WorkerSettlementDto implements IWorkerSettlementDto {
+    payrollWorkerLineId!: string;
+    workerProfileId!: string;
+    workerName!: string;
+    grossAmountUsd!: number;
+    deductionAmountUsd!: number;
+    approvedNetUsd!: number;
+    validPaidAmountUsd!: number;
+    reversedAmountUsd!: number;
+    outstandingAmountUsd!: number;
+    paymentCount!: number;
+    paymentMethodSummary!: string;
+    acknowledgementComplete!: boolean;
+    settlementStatus!: string;
+    payments!: PayrollPaymentDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerSettlementDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.payments = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.workerProfileId = _data["workerProfileId"];
+            this.workerName = _data["workerName"];
+            this.grossAmountUsd = _data["grossAmountUsd"];
+            this.deductionAmountUsd = _data["deductionAmountUsd"];
+            this.approvedNetUsd = _data["approvedNetUsd"];
+            this.validPaidAmountUsd = _data["validPaidAmountUsd"];
+            this.reversedAmountUsd = _data["reversedAmountUsd"];
+            this.outstandingAmountUsd = _data["outstandingAmountUsd"];
+            this.paymentCount = _data["paymentCount"];
+            this.paymentMethodSummary = _data["paymentMethodSummary"];
+            this.acknowledgementComplete = _data["acknowledgementComplete"];
+            this.settlementStatus = _data["settlementStatus"];
+            if (Array.isArray(_data["payments"])) {
+                this.payments = [] as any;
+                for (let item of _data["payments"])
+                    this.payments!.push(PayrollPaymentDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WorkerSettlementDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerSettlementDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["workerProfileId"] = this.workerProfileId;
+        data["workerName"] = this.workerName;
+        data["grossAmountUsd"] = this.grossAmountUsd;
+        data["deductionAmountUsd"] = this.deductionAmountUsd;
+        data["approvedNetUsd"] = this.approvedNetUsd;
+        data["validPaidAmountUsd"] = this.validPaidAmountUsd;
+        data["reversedAmountUsd"] = this.reversedAmountUsd;
+        data["outstandingAmountUsd"] = this.outstandingAmountUsd;
+        data["paymentCount"] = this.paymentCount;
+        data["paymentMethodSummary"] = this.paymentMethodSummary;
+        data["acknowledgementComplete"] = this.acknowledgementComplete;
+        data["settlementStatus"] = this.settlementStatus;
+        if (Array.isArray(this.payments)) {
+            data["payments"] = [];
+            for (let item of this.payments)
+                data["payments"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IWorkerSettlementDto {
+    payrollWorkerLineId: string;
+    workerProfileId: string;
+    workerName: string;
+    grossAmountUsd: number;
+    deductionAmountUsd: number;
+    approvedNetUsd: number;
+    validPaidAmountUsd: number;
+    reversedAmountUsd: number;
+    outstandingAmountUsd: number;
+    paymentCount: number;
+    paymentMethodSummary: string;
+    acknowledgementComplete: boolean;
+    settlementStatus: string;
+    payments: PayrollPaymentDto[];
 
     [key: string]: any;
 }

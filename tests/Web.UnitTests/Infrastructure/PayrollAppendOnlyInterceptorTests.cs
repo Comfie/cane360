@@ -41,6 +41,18 @@ public sealed class PayrollAppendOnlyInterceptorTests
         Should.Throw<InvalidOperationException>(() => context.SaveChanges()).Message.ShouldContain("append-only");
     }
 
+    [TestCase(true)]
+    [TestCase(false)]
+    public void Phase6CPaymentFactsUpdateAndDeleteAreRejectedBeforeDatabaseAccess(bool delete)
+    {
+        var payment = PayrollPayment.Cash(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            Guid.NewGuid(), Guid.NewGuid(), 1, Guid.NewGuid(), Guid.NewGuid(), 10m,
+            new DateOnly(2037, 1, 1), "manager", null, DateTimeOffset.UtcNow, "key", "correlation");
+        using var context = Context(); context.Attach(payment);
+        context.Entry(payment).State = delete ? EntityState.Deleted : EntityState.Modified;
+        Should.Throw<InvalidOperationException>(() => context.SaveChanges()).Message.ShouldContain("append-only");
+    }
+
     private static WorkerAdvance CreateAdvance()
     {
         var advance = WorkerAdvance.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 10m, "Test", new DateOnly(2028, 1, 1), Guid.NewGuid(), 1, DateTimeOffset.UtcNow, "manager", null);
