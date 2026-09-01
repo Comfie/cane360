@@ -86,6 +86,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<PayrollApproval> PayrollApprovals => Set<PayrollApproval>();
     public DbSet<PayrollEvidenceConsumption> PayrollEvidenceConsumptions => Set<PayrollEvidenceConsumption>();
     public DbSet<AdvanceRecovery> AdvanceRecoveries => Set<AdvanceRecovery>();
+    public DbSet<PayrollPayment> PayrollPayments => Set<PayrollPayment>();
+    public DbSet<PaymentAcknowledgement> PaymentAcknowledgements => Set<PaymentAcknowledgement>();
+    public DbSet<PayrollPaymentReversal> PayrollPaymentReversals => Set<PayrollPaymentReversal>();
+    public DbSet<PayrollSettlementClosure> PayrollSettlementClosures => Set<PayrollSettlementClosure>();
+    public DbSet<PayrollSettlementReopen> PayrollSettlementReopens => Set<PayrollSettlementReopen>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

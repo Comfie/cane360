@@ -70,7 +70,7 @@ export function LabourPage() {
   };
 
   const openWorker = async (workerId: string) => {
-    try { setSelectedWorker(await workersClient.workersGET(workerId)); }
+    try { setSelectedWorker(await workersClient.workersGET2(workerId)); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
 

@@ -22,6 +22,18 @@ public interface IPayrollRepository
     Task<IReadOnlySet<Guid>> GetConsumedEvidenceIdsAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
     Task<PayrollApproval?> GetPayrollApprovalByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
     Task<PayrollApproval?> GetPayrollDecisionAsync(Guid tenantId, Guid farmId, Guid runId, CancellationToken cancellationToken);
+    Task<PayrollPayment?> GetPaymentAsync(Guid tenantId, Guid farmId, Guid paymentId, CancellationToken cancellationToken);
+    Task<PayrollPayment?> GetPaymentByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PayrollPayment>> GetPaymentsAsync(Guid tenantId, Guid farmId, Guid runId, CancellationToken cancellationToken);
+    Task<PaymentAcknowledgement?> GetAcknowledgementAsync(Guid tenantId, Guid farmId, Guid paymentId, CancellationToken cancellationToken);
+    Task<PaymentAcknowledgement?> GetAcknowledgementByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PaymentAcknowledgement>> GetAcknowledgementsAsync(Guid tenantId, Guid farmId, IReadOnlyCollection<Guid> paymentIds, CancellationToken cancellationToken);
+    Task<PayrollPaymentReversal?> GetReversalByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PayrollPaymentReversal>> GetReversalsAsync(Guid tenantId, Guid farmId, Guid runId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PayrollSettlementClosure>> GetSettlementClosuresAsync(Guid tenantId, Guid farmId, Guid runId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<PayrollSettlementReopen>> GetSettlementReopensAsync(Guid tenantId, Guid farmId, Guid runId, CancellationToken cancellationToken);
+    Task<PayrollSettlementClosure?> GetSettlementClosureByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
+    Task<PayrollSettlementReopen?> GetSettlementReopenByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, CancellationToken cancellationToken);
     void Add(PayrollPeriod period);
     void Add(WorkerAdvance advance);
     void RemoveDraftInstallments(IReadOnlyCollection<AdvanceInstallment> installments);
@@ -34,5 +46,10 @@ public interface IPayrollRepository
     void Add(PayrollApproval approval);
     void Add(PayrollEvidenceConsumption consumption);
     void Add(AdvanceRecovery recovery);
+    void Add(PayrollPayment payment);
+    void Add(PaymentAcknowledgement acknowledgement);
+    void Add(PayrollPaymentReversal reversal);
+    void Add(PayrollSettlementClosure closure);
+    void Add(PayrollSettlementReopen reopen);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

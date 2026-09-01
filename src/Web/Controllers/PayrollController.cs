@@ -1,4 +1,5 @@
 using Cane360.Application.Payroll;
+using Cane360.Application.Common.Interfaces;
 using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Payroll;
 using MediatR;
@@ -10,8 +11,9 @@ namespace Cane360.Web.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/payroll")]
-public sealed class PayrollController(ISender sender) : ControllerBase
+public sealed class PayrollController(ISender sender, IPayrollSettlementService? settlement = null) : ControllerBase
 {
+    private IPayrollSettlementService SettlementService => settlement ?? throw new InvalidOperationException("Payroll settlement service is unavailable.");
     [HttpGet("workspace")]
     public async Task<ActionResult<PayrollWorkspaceDto>> Workspace(CancellationToken cancellationToken) => Ok(await sender.Send(new GetPayrollWorkspaceQuery(), cancellationToken));
     [HttpGet("periods")]
@@ -70,4 +72,36 @@ public sealed class PayrollController(ISender sender) : ControllerBase
     public async Task<ActionResult<PayrollRunDto>> CancelRun(Guid runId, CancelPayrollRunRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new CancelPayrollRunCommand(runId, request.ExpectedVersion, request.Reason), cancellationToken));
     [HttpGet("runs/{runId:guid}/approved-source-chain")]
     public async Task<ActionResult<PayrollRunDto>> ApprovedSourceChain(Guid runId, CancellationToken cancellationToken) { var result = await sender.Send(new GetPayrollRunQuery(runId), cancellationToken); return result.Status != "Approved" ? Conflict() : Ok(result); }
+
+    [HttpGet("runs/{runId:guid}/settlement")]
+    public async Task<ActionResult<RunSettlementDto>> Settlement(Guid runId, CancellationToken cancellationToken) => Ok(await SettlementService.GetRunAsync(runId, cancellationToken));
+
+    [HttpGet("runs/{runId:guid}/settlement/workers/{workerLineId:guid}")]
+    public async Task<ActionResult<WorkerSettlementDto>> WorkerSettlement(Guid runId, Guid workerLineId, [FromQuery] int calculationVersion, CancellationToken cancellationToken) => Ok(await SettlementService.GetWorkerAsync(runId, calculationVersion, workerLineId, cancellationToken));
+
+    [HttpPost("runs/{runId:guid}/payments")]
+    public async Task<ActionResult<PayrollPaymentDto>> RecordPayment(Guid runId, RecordPayrollPaymentRequest request, CancellationToken cancellationToken)
+    {
+        if (!TransportValueParser.TryParseDateOnly(request.PaymentDate, out var paymentDate)) return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]> { [nameof(request.PaymentDate)] = ["Date must use yyyy-MM-dd."] }));
+        var result = await SettlementService.RecordPaymentAsync(runId, new(request.CalculationVersion, request.PayrollWorkerLineId, request.Method, request.AmountUsd, paymentDate, request.Provider, request.RecipientNumber, request.TransactionReference, request.ExternalStatus, request.IdempotencyKey), cancellationToken);
+        return CreatedAtAction(nameof(WorkerSettlement), new { runId, workerLineId = request.PayrollWorkerLineId, calculationVersion = request.CalculationVersion }, result);
+    }
+
+    [HttpPost("payments/{paymentId:guid}/acknowledgement")]
+    public async Task<ActionResult<PayrollPaymentDto>> AcknowledgePayment(Guid paymentId, RecordPaymentAcknowledgementRequest request, CancellationToken cancellationToken) => Ok(await SettlementService.AcknowledgeAsync(paymentId, new(request.Status, request.AcknowledgedByPersonId, request.AcknowledgedAt, request.EvidenceReference, request.IdempotencyKey), cancellationToken));
+
+    [HttpPost("payments/{paymentId:guid}/reversal")]
+    public async Task<ActionResult<PayrollPaymentDto>> ReversePayment(Guid paymentId, ReversePayrollPaymentRequest request, CancellationToken cancellationToken) => Ok(await SettlementService.ReverseAsync(paymentId, new(request.AmountUsd, request.Reason, request.IdempotencyKey), cancellationToken));
+
+    [HttpPost("runs/{runId:guid}/settlement/close")]
+    public async Task<ActionResult<RunSettlementDto>> CloseSettlement(Guid runId, ClosePayrollSettlementRequest request, CancellationToken cancellationToken) => Ok(await SettlementService.CloseAsync(runId, new(request.CalculationVersion, request.IdempotencyKey), cancellationToken));
+
+    [HttpPost("runs/{runId:guid}/settlement/reopen")]
+    public async Task<ActionResult<RunSettlementDto>> ReopenSettlement(Guid runId, ReopenPayrollSettlementRequest request, CancellationToken cancellationToken) => Ok(await SettlementService.ReopenAsync(runId, new(request.CalculationVersion, request.Reason, request.IdempotencyKey), cancellationToken));
+
+    [HttpGet("runs/{runId:guid}/calculations/{calculationVersion:int}/worker-lines/{workerLineId:guid}/payslip")]
+    public async Task<ActionResult<OperationalPayslipDto>> Payslip(Guid runId, int calculationVersion, Guid workerLineId, CancellationToken cancellationToken) => Ok(await SettlementService.GetPayslipAsync(runId, calculationVersion, workerLineId, cancellationToken));
+
+    [HttpGet("runs/{runId:guid}/calculations/{calculationVersion:int}/cash-register")]
+    public async Task<ActionResult<CashPaymentRegisterDto>> CashRegister(Guid runId, int calculationVersion, CancellationToken cancellationToken) => Ok(await SettlementService.GetCashRegisterAsync(runId, calculationVersion, cancellationToken));
 }

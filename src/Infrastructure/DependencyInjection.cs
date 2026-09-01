@@ -49,6 +49,7 @@ public static class DependencyInjection
         }
         builder.Services.AddSingleton<IValidateOptions<NationalIdProtectionOptions>, NationalIdProtectionOptionsValidator>();
         builder.Services.AddSingleton<IWorkerSensitiveDataProtector, WorkerSensitiveDataProtector>();
+        builder.Services.AddSingleton<IPaymentRecipientProtector, PaymentRecipientProtector>();
 
         builder.Services.AddAuthentication(options =>
             {

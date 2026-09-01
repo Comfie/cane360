@@ -149,6 +149,17 @@ test('responsive desktop tables and mobile cards keep workflows available', () =
   assert.match(stylesSource, /\.advance-actions \{ display: flex; flex-wrap: wrap/);
   assert.doesNotMatch(stylesSource, /\.advance-actions \{ position: sticky/);
   assert.match(stylesSource, /\.advance-actions button \{ min-height: 2\.75rem/);
+  assert.match(stylesSource, /\.settlement-worker-heading, \.settlement-worker-row \{ display: grid; grid-template-columns:/);
+  assert.match(stylesSource, /@media \(max-width: 47\.5rem\)[\s\S]*\.settlement-worker-heading \{ display: none; \}/);
+  assert.match(stylesSource, /\.settlement-worker-row button, \.settlement-actions button \{ min-height: 44px; width: 100%; \}/);
+  assert.match(stylesSource, /@media print[\s\S]*\.print-document/);
+});
+
+test('Phase 6C settlement uses generated-client payment and document operations', () => {
+  for (const method of ['settlement', 'payments', 'acknowledgement', 'reversal', 'close2', 'reopen', 'payslip', 'cashRegister']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
+  assert.match(pageSource, /Operational payslip/);
+  assert.match(pageSource, /Encrypted at rest; only the masked value is displayed/);
+  assert.doesNotMatch(pageSource, /globalThis\.prompt|window\.prompt/);
 });
 
 test('production workspace calls only generated PayrollClient methods', () => {

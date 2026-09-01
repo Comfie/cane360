@@ -12,7 +12,7 @@ internal sealed class PayrollCalculationConfiguration : IEntityTypeConfiguration
     public void Configure(EntityTypeBuilder<PayrollCalculation> builder)
     {
         builder.ToTable("PayrollCalculations", "payroll", table => { table.HasCheckConstraint("CK_PayrollCalculations_Totals", "\"GrossAmountUsd\" >= 0 AND \"DeductionAmountUsd\" >= 0 AND \"NetAmountUsd\" >= 0 AND \"NetAmountUsd\" = \"GrossAmountUsd\" - \"DeductionAmountUsd\""); table.HasCheckConstraint("CK_PayrollCalculations_Version", "\"CalculationVersion\" > 0"); });
-        builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.HasAlternateKey(x => new { x.Id, x.TenantId, x.FarmId });
+        builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.HasAlternateKey(x => new { x.Id, x.TenantId, x.FarmId }); builder.HasAlternateKey(x => new { x.Id, x.PayrollRunId, x.CalculationVersion, x.TenantId, x.FarmId });
         Money(builder.Property(x => x.GrossAmountUsd)); Money(builder.Property(x => x.DeductionAmountUsd)); Money(builder.Property(x => x.NetAmountUsd));
         builder.Property(x => x.BlockerSnapshot).HasColumnType("jsonb").IsRequired(); builder.Property(x => x.SourceFingerprint).HasMaxLength(64).IsRequired(); builder.Property(x => x.CalculatedByUserId).HasMaxLength(450).IsRequired();
         builder.HasOne<PayrollRun>().WithMany().HasForeignKey(x => new { x.PayrollRunId, x.TenantId, x.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);

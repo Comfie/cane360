@@ -29,7 +29,7 @@ public sealed class AppendOnlyEntityInterceptor : SaveChangesInterceptor
     {
         if (context is null) return;
         foreach (var entry in context.ChangeTracker.Entries().Where(entry =>
-            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink or PayrollAuditEventLink or AdvanceApproval or AdvanceIssue or PayrollCalculation or PayrollWorkerLine or PayrollEarningLine or PayrollAdvanceDeduction or PayrollApproval or PayrollEvidenceConsumption or AdvanceRecovery) &&
+            (entry.Entity is AuditEvent or StockMovement or ApprovalDecision or CorrectionRecord or InventoryAuditEventLink or PayrollAuditEventLink or AdvanceApproval or AdvanceIssue or PayrollCalculation or PayrollWorkerLine or PayrollEarningLine or PayrollAdvanceDeduction or PayrollApproval or PayrollEvidenceConsumption or AdvanceRecovery or PayrollPayment or PaymentAcknowledgement or PayrollPaymentReversal or PayrollSettlementClosure or PayrollSettlementReopen) &&
             entry.State is EntityState.Modified or EntityState.Deleted))
         {
             throw new InvalidOperationException($"{entry.Metadata.ClrType.Name} records are append-only.");
