@@ -27,6 +27,7 @@ import {
 import { formatActivityStatus, groupActivitiesByDate, monthGridDates, orderedActions, quantityLabel } from '../activities/activityView';
 
 const personnelClient = new FarmPersonnelClient();
+const timelinePageSize = 6;
 
 export function ActivitiesPage() {
   const { setup, error: setupError, isLoading: setupLoading } = useFarmSetup();
@@ -232,9 +233,16 @@ function ActivityOverview({ details, onChanged, onError }: ActivityOverviewProps
   const activity = details.activity;
   const [saving, setSaving] = useState(false);
   const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
+  const [timelinePage, setTimelinePage] = useState(0);
+  useEffect(() => setTimelinePage(0), [activity.id]);
   const run = async (action: string, reason?: string) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
   const saveActual = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); try { onChanged(await recordActual(activity.id, activity.version, String(data.get('actualAt')), activity.quantityBasis === 'None' ? undefined : Number(data.get('actualQuantity')), String(data.get('lateEntryReason')).trim() || undefined)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
   const saveReference = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); try { onChanged(await addSourceReference(activity.id, activity.version, String(data.get('reference')).trim(), String(data.get('capturedDate')))); form.reset(); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
+  const timelinePageCount = Math.max(1, Math.ceil(details.timeline.length / timelinePageSize));
+  const currentTimelinePage = Math.min(timelinePage, timelinePageCount - 1);
+  const timelineStart = currentTimelinePage * timelinePageSize;
+  const visibleTimeline = details.timeline.slice(timelineStart, timelineStart + timelinePageSize);
+  const timelineEnd = timelineStart + visibleTimeline.length;
   return <div className="activity-overview">
     <div className="overview-facts"><span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span></div>
     {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18} /><div><strong>Retrospective entry · {activity.entryDelayDays} calendar days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span></div></div>}
@@ -242,7 +250,11 @@ function ActivityOverview({ details, onChanged, onError }: ActivityOverviewProps
     {['Draft', 'Planned', 'InProgress'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3><div className="form-grid"><label>When work happened<DatePicker name="actualAt" type="datetime-local" required value={actualAtValue} onChange={setActualAtValue} /></label>{activity.quantityBasis !== 'None' && <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number" min="0.0001" step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'} required defaultValue={activity.actualQuantity} /></label>}<label className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason} /></label></div><button disabled={saving}>Save actual work</button></form>}
     <section className="lifecycle-actions"><h3>Next action</h3>{orderedActions(details.allowedTransitions).map((action) => <button key={action} type="button" className={action === 'Cancelled' ? 'secondary outline' : 'secondary-action'} disabled={saving} onClick={() => run(action, action === 'Cancelled' ? window.prompt('Cancellation reason') || '' : undefined)}>{action === 'ManagerConfirmation' ? 'Supervisor verified' : formatActivityStatus(action)}</button>)}{Object.values(details.blockedTransitions).map((message) => <p className="context-note" key={message}>{message}</p>)}</section>
     {!['Closed', 'Cancelled'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3><div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required placeholder="e.g. Field sheet FS-204" /></label><label>Captured date<DatePicker name="capturedDate" defaultValue={harareToday()} required /></label></div><button disabled={saving}>Add reference</button><small>Metadata only. Document and photo upload is unavailable.</small></form>}
-    <section className="diary-timeline"><h3>Chronological diary</h3>{details.timeline.map((event) => <article key={`${event.type}-${event.id}`}><span className="timeline-dot" /><div><small>{formatDateTime(event.eventAt)}</small><strong>{event.title}</strong><p>{event.detail}</p><span>Entered by {event.enteredBy}{event.operationalActor ? ` · operational actor ${event.operationalActor}` : ''}</span>{event.reason && <em>{event.reason}</em>}</div></article>)}</section>
+    <section className="diary-timeline">
+      <header><h3>Chronological diary</h3><small aria-live="polite">{details.timeline.length === 0 ? 'No entries' : `${timelineStart + 1}–${timelineEnd} of ${details.timeline.length}`} · newest first</small></header>
+      {visibleTimeline.map((event) => <article key={`${event.type}-${event.id}`}><span className="timeline-dot" /><div><small>{formatDateTime(event.eventAt)}</small><strong>{event.title}</strong><p>{event.detail}</p><span>Entered by {event.enteredBy}{event.operationalActor ? ` · operational actor ${event.operationalActor}` : ''}</span>{event.reason && <em>{event.reason}</em>}</div></article>)}
+      {timelinePageCount > 1 && <nav className="diary-pagination" aria-label="Chronological diary pages"><button type="button" className="secondary-action" disabled={currentTimelinePage === 0} onClick={() => setTimelinePage(currentTimelinePage - 1)}>Newer</button><span>Page {currentTimelinePage + 1} of {timelinePageCount}</span><button type="button" className="secondary-action" disabled={currentTimelinePage === timelinePageCount - 1} onClick={() => setTimelinePage(currentTimelinePage + 1)}>Older</button></nav>}
+    </section>
   </div>;
 }
 
