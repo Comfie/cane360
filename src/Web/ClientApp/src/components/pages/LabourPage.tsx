@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { BadgeCheck, CalendarCheck, ClipboardList, Plus, ShieldCheck, UserRound, UsersRound, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { getApiError } from '../apiError';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
@@ -78,6 +79,7 @@ export function LabourPage() {
 
   return <div className="page-stack labour-page">
     <PageHeader eyebrow="Payroll-ready evidence" title="Labour" description="Register workers, allocate daily attendance, and confirm traceable work evidence—without calculating payroll.">
+      <Link className="secondary-action" to="/payroll">Open payroll runs</Link>
       <button type="button" className="primary-action" onClick={() => setShowWorker(true)}><Plus size={17} /> Register worker</button>
     </PageHeader>
     <ValidationError message={error} />

@@ -45,12 +45,14 @@ interface NavigationLinkProps {
 
 function NavigationLink({ item, compact = false, iconOnly = false, onNavigate }: NavigationLinkProps) {
   const Icon = icons[item.id];
+  const location = useLocation();
+  const labourAndPayrollActive = item.id === 'labour' && (location.pathname === '/labour' || location.pathname === '/payroll');
 
   return (
     <NavLink
       to={item.path}
       end={item.path === '/'}
-      className={({ isActive }) => `navigation-link${isActive ? ' is-active' : ''}${compact ? ' is-compact' : ''}`}
+      className={({ isActive }) => `navigation-link${isActive || labourAndPayrollActive ? ' is-active' : ''}${compact ? ' is-compact' : ''}`}
       onClick={onNavigate}
       aria-label={iconOnly ? item.label : undefined}
       title={iconOnly ? item.label : undefined}
