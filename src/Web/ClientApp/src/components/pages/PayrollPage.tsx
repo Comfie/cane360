@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { BadgeCheck, Calculator, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, FileText, HandCoins, Link2, LockKeyhole, Printer, RefreshCw, ShieldAlert, WalletCards } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   PayrollClient,
   CancelPayrollPeriodRequest,
@@ -205,7 +206,9 @@ export function PayrollPage() {
   const pageCount = preflight ? Math.max(1, Math.ceil(preflight.totalCount / preflight.pageSize)) : 1;
 
   return <div className="page-stack payroll-page">
-    <PageHeader eyebrow="Phase 6B · calculation and dual control" title="Payroll runs" description="Calculate exact monthly earnings and advance recoveries, then send the immutable result to the Grower for approval. Approval closes the period; no money is paid here." />
+    <PageHeader eyebrow="Phase 6B · calculation and dual control" title="Payroll runs" description="Calculate exact monthly earnings and advance recoveries, then send the immutable result to the Grower for approval. Approval closes the period; no money is paid here.">
+      <Link className="secondary-action" to="/labour">Manage workers &amp; rates</Link>
+    </PageHeader>
     <div className="payroll-boundary"><LockKeyhole size={16} aria-hidden="true" /><span><strong>Approval boundary:</strong> previews never consume evidence or record recovery. Only Grower approval locks facts and closes the period.</span><em>{workspace.role}</em></div>
     <div aria-live="polite">{success && <p className="success-banner"><BadgeCheck size={16} /> {success}</p>}<ValidationError message={error} /></div>
 

@@ -4,13 +4,19 @@ import test from 'node:test';
 import { advancePayload, canCalculatePayrollRun, canCancelPayrollRun, canCreatePayrollRun, canDecideAdvance, canDecidePayrollRun, canEditAdvance, canIssueAdvance, canSubmitAdvance, canSubmitPayrollRun, defaultPeriodId, issuePayload, payrollDecisionPayload, payrollErrorMessage, periodPayload, schedulePayload } from './payrollView.ts';
 
 const pageSource = readFileSync(new URL('../pages/PayrollPage.tsx', import.meta.url), 'utf8');
+const labourPageSource = readFileSync(new URL('../pages/LabourPage.tsx', import.meta.url), 'utf8');
 const routesSource = readFileSync(new URL('../../AppRoutes.tsx', import.meta.url), 'utf8');
 const navigationSource = readFileSync(new URL('../../navigation.ts', import.meta.url), 'utf8');
+const navigationComponentSource = readFileSync(new URL('../Navigation.tsx', import.meta.url), 'utf8');
 const stylesSource = readFileSync(new URL('../../styles.scss', import.meta.url), 'utf8');
 
 test('protected payroll route and Labour and Payroll navigation target the real workspace', () => {
   assert.match(routesSource, /<Route path="\/payroll" element={<PayrollPage \/>} \/>/);
+  assert.match(routesSource, /<Route path="\/labour" element={<LabourPage \/>} \/>/);
   assert.match(navigationSource, /path: '\/payroll',[\s\S]*label: 'Labour and Payroll'/);
+  assert.match(pageSource, /to="\/labour">Manage workers &amp; rates/);
+  assert.match(labourPageSource, /to="\/payroll">Open payroll runs/);
+  assert.match(navigationComponentSource, /location\.pathname === '\/labour' \|\| location\.pathname === '\/payroll'/);
 });
 
 test('period form emits numeric calendar payload', () => assert.deepEqual(periodPayload('2028', '2'), { year: 2028, month: 2 }));
