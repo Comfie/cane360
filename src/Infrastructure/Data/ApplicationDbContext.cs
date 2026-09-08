@@ -6,6 +6,7 @@ using Cane360.Domain.Auditing;
 using Cane360.Domain.Labour;
 using Cane360.Domain.Inventory;
 using Cane360.Domain.Payroll;
+using Cane360.Domain.Finance;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<PayrollPaymentReversal> PayrollPaymentReversals => Set<PayrollPaymentReversal>();
     public DbSet<PayrollSettlementClosure> PayrollSettlementClosures => Set<PayrollSettlementClosure>();
     public DbSet<PayrollSettlementReopen> PayrollSettlementReopens => Set<PayrollSettlementReopen>();
+    public DbSet<OperationalTransaction> OperationalTransactions => Set<OperationalTransaction>();
+    public DbSet<TransactionAllocation> TransactionAllocations => Set<TransactionAllocation>();
+    public DbSet<FinanceAuditEventLink> FinanceAuditEventLinks => Set<FinanceAuditEventLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

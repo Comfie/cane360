@@ -10,6 +10,8 @@ public static class DependencyInjection
     {
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         builder.Services.AddScoped<IPayrollSettlementService, Cane360.Application.Payroll.PayrollSettlementService>();
+        builder.Services.AddScoped<IFinanceService, Cane360.Application.Finance.FinanceService>();
+        builder.Services.AddScoped<IPayrollCostProjectionService, Cane360.Application.Finance.PayrollCostProjectionService>();
 
         builder.Services.AddMediatR(cfg => {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
