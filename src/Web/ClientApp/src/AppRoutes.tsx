@@ -9,6 +9,7 @@ import { ActivitiesPage } from './components/pages/ActivitiesPage';
 import { LabourPage } from './components/pages/LabourPage';
 import { InventoryPage } from './components/pages/InventoryPage';
 import { PayrollPage } from './components/pages/PayrollPage';
+import { FinancePage } from './components/pages/FinancePage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
@@ -29,7 +30,8 @@ export function AppRoutes() {
         <Route path="/labour" element={<LabourPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
-        {protectedNavigation.slice(6).map((item) => (
+        <Route path="/finance" element={<FinancePage />} />
+        {protectedNavigation.slice(7).map((item) => (
           <Route
             key={item.id}
             path={item.path}

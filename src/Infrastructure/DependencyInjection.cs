@@ -40,6 +40,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ILabourRepository, LabourRepository>();
         builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
         builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
+        builder.Services.AddScoped<IFinanceRepository, FinanceRepository>();
         OptionsBuilder<NationalIdProtectionOptions> nationalIdOptions = builder.Services
             .AddOptions<NationalIdProtectionOptions>()
             .Bind(builder.Configuration.GetSection(NationalIdProtectionOptions.SectionName));

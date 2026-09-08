@@ -2595,6 +2595,533 @@ export class FieldLineProfilesClient {
     }
 }
 
+export class FinanceClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param type (optional)
+     * @param category (optional)
+     * @param status (optional)
+     * @param search (optional)
+     * @return OK
+     */
+    getFinanceTransactions(from: string | undefined, to: string | undefined, type: string | undefined, category: string | undefined, status: string | undefined, search: string | undefined): Promise<OperationalTransactionDto[]> {
+        let url_ = this.baseUrl + "/api/finance/transactions?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (type === null)
+            throw new globalThis.Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
+        if (category === null)
+            throw new globalThis.Error("The parameter 'category' cannot be null.");
+        else if (category !== undefined)
+            url_ += "category=" + encodeURIComponent("" + category) + "&";
+        if (status === null)
+            throw new globalThis.Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceTransactions(_response);
+        });
+    }
+
+    protected processGetFinanceTransactions(response: Response): Promise<OperationalTransactionDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OperationalTransactionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createFinanceTransaction(body: CreateOperationalTransactionRequest): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateFinanceTransaction(_response);
+        });
+    }
+
+    protected processCreateFinanceTransaction(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getFinanceTransaction(transactionId: string): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions/{transactionId}";
+        if (transactionId === undefined || transactionId === null)
+            throw new globalThis.Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceTransaction(_response);
+        });
+    }
+
+    protected processGetFinanceTransaction(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateFinanceTransaction(transactionId: string, body: UpdateOperationalTransactionRequest): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions/{transactionId}";
+        if (transactionId === undefined || transactionId === null)
+            throw new globalThis.Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFinanceTransaction(_response);
+        });
+    }
+
+    protected processUpdateFinanceTransaction(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    setFinanceTransactionAllocations(transactionId: string, body: SetTransactionAllocationsRequest): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions/{transactionId}/allocations";
+        if (transactionId === undefined || transactionId === null)
+            throw new globalThis.Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetFinanceTransactionAllocations(_response);
+        });
+    }
+
+    protected processSetFinanceTransactionAllocations(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    postFinanceTransaction(transactionId: string, body: PostOperationalTransactionRequest): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions/{transactionId}/post";
+        if (transactionId === undefined || transactionId === null)
+            throw new globalThis.Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPostFinanceTransaction(_response);
+        });
+    }
+
+    protected processPostFinanceTransaction(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reverseFinanceTransaction(transactionId: string, body: ReverseOperationalTransactionRequest): Promise<OperationalTransactionDto> {
+        let url_ = this.baseUrl + "/api/finance/transactions/{transactionId}/reverse";
+        if (transactionId === undefined || transactionId === null)
+            throw new globalThis.Error("The parameter 'transactionId' must be defined.");
+        url_ = url_.replace("{transactionId}", encodeURIComponent("" + transactionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReverseFinanceTransaction(_response);
+        });
+    }
+
+    protected processReverseFinanceTransaction(response: Response): Promise<OperationalTransactionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OperationalTransactionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OperationalTransactionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getFinanceCropCycleCost(cropCycleId: string): Promise<CropCycleCostSummaryDto> {
+        let url_ = this.baseUrl + "/api/finance/crop-cycles/{cropCycleId}/cost";
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceCropCycleCost(_response);
+        });
+    }
+
+    protected processGetFinanceCropCycleCost(response: Response): Promise<CropCycleCostSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CropCycleCostSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CropCycleCostSummaryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reconcileFinancePayrollCosts(): Promise<PayrollCostReconciliationDto> {
+        let url_ = this.baseUrl + "/api/finance/payroll-costs/reconcile";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReconcileFinancePayrollCosts(_response);
+        });
+    }
+
+    protected processReconcileFinancePayrollCosts(response: Response): Promise<PayrollCostReconciliationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PayrollCostReconciliationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PayrollCostReconciliationDto>(null as any);
+    }
+}
+
 export class HealthClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -10402,6 +10929,122 @@ export interface ICorrectWorkRecordRequest {
     [key: string]: any;
 }
 
+export class CostSourceDto implements ICostSourceDto {
+    id!: string;
+    category!: string;
+    amountUsd!: number;
+    sourceType!: string;
+    sourceId!: string;
+    activityId!: string | undefined;
+    fieldId!: string;
+    cropCycleId!: string;
+    reversalOfId!: string | undefined;
+    sourceDescription!: string;
+    payrollRunId!: string | undefined;
+    payrollCalculationId!: string | undefined;
+    payrollCalculationVersion!: number | undefined;
+    payrollWorkerLineId!: string | undefined;
+    workerProfileId!: string | undefined;
+    workRecordId!: string | undefined;
+    operationalTransactionId!: string | undefined;
+    transactionAllocationId!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICostSourceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.category = _data["category"];
+            this.amountUsd = _data["amountUsd"];
+            this.sourceType = _data["sourceType"];
+            this.sourceId = _data["sourceId"];
+            this.activityId = _data["activityId"];
+            this.fieldId = _data["fieldId"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.reversalOfId = _data["reversalOfId"];
+            this.sourceDescription = _data["sourceDescription"];
+            this.payrollRunId = _data["payrollRunId"];
+            this.payrollCalculationId = _data["payrollCalculationId"];
+            this.payrollCalculationVersion = _data["payrollCalculationVersion"];
+            this.payrollWorkerLineId = _data["payrollWorkerLineId"];
+            this.workerProfileId = _data["workerProfileId"];
+            this.workRecordId = _data["workRecordId"];
+            this.operationalTransactionId = _data["operationalTransactionId"];
+            this.transactionAllocationId = _data["transactionAllocationId"];
+        }
+    }
+
+    static fromJS(data: any): CostSourceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CostSourceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["category"] = this.category;
+        data["amountUsd"] = this.amountUsd;
+        data["sourceType"] = this.sourceType;
+        data["sourceId"] = this.sourceId;
+        data["activityId"] = this.activityId;
+        data["fieldId"] = this.fieldId;
+        data["cropCycleId"] = this.cropCycleId;
+        data["reversalOfId"] = this.reversalOfId;
+        data["sourceDescription"] = this.sourceDescription;
+        data["payrollRunId"] = this.payrollRunId;
+        data["payrollCalculationId"] = this.payrollCalculationId;
+        data["payrollCalculationVersion"] = this.payrollCalculationVersion;
+        data["payrollWorkerLineId"] = this.payrollWorkerLineId;
+        data["workerProfileId"] = this.workerProfileId;
+        data["workRecordId"] = this.workRecordId;
+        data["operationalTransactionId"] = this.operationalTransactionId;
+        data["transactionAllocationId"] = this.transactionAllocationId;
+        return data;
+    }
+}
+
+export interface ICostSourceDto {
+    id: string;
+    category: string;
+    amountUsd: number;
+    sourceType: string;
+    sourceId: string;
+    activityId: string | undefined;
+    fieldId: string;
+    cropCycleId: string;
+    reversalOfId: string | undefined;
+    sourceDescription: string;
+    payrollRunId: string | undefined;
+    payrollCalculationId: string | undefined;
+    payrollCalculationVersion: number | undefined;
+    payrollWorkerLineId: string | undefined;
+    workerProfileId: string | undefined;
+    workRecordId: string | undefined;
+    operationalTransactionId: string | undefined;
+    transactionAllocationId: string | undefined;
+
+    [key: string]: any;
+}
+
 export class CreateActivityRequest implements ICreateActivityRequest {
     fieldId!: string;
     cropCycleId!: string;
@@ -11651,6 +12294,78 @@ export interface ICreateManagerInvitationRequest {
     [key: string]: any;
 }
 
+export class CreateOperationalTransactionRequest implements ICreateOperationalTransactionRequest {
+    type!: string;
+    category!: string;
+    eventDate!: string;
+    payeeOrPayer!: string;
+    amountUsd!: number;
+    sourceReference!: string | undefined;
+    notes!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateOperationalTransactionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.category = _data["category"];
+            this.eventDate = _data["eventDate"];
+            this.payeeOrPayer = _data["payeeOrPayer"];
+            this.amountUsd = _data["amountUsd"];
+            this.sourceReference = _data["sourceReference"];
+            this.notes = _data["notes"];
+        }
+    }
+
+    static fromJS(data: any): CreateOperationalTransactionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateOperationalTransactionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["category"] = this.category;
+        data["eventDate"] = this.eventDate;
+        data["payeeOrPayer"] = this.payeeOrPayer;
+        data["amountUsd"] = this.amountUsd;
+        data["sourceReference"] = this.sourceReference;
+        data["notes"] = this.notes;
+        return data;
+    }
+}
+
+export interface ICreateOperationalTransactionRequest {
+    type: string;
+    category: string;
+    eventDate: string;
+    payeeOrPayer: string;
+    amountUsd: number;
+    sourceReference: string | undefined;
+    notes: string | undefined;
+
+    [key: string]: any;
+}
+
 export class CreatePayrollPeriodRequest implements ICreatePayrollPeriodRequest {
     year!: number;
     month!: number;
@@ -12838,6 +13553,113 @@ export class CropCycleCollectionDto implements ICropCycleCollectionDto {
 export interface ICropCycleCollectionDto {
     field: CropCycleFieldDto;
     cropCycles: CropCycleListItemDto[];
+
+    [key: string]: any;
+}
+
+export class CropCycleCostSummaryDto implements ICropCycleCostSummaryDto {
+    cropCycleId!: string;
+    fieldId!: string;
+    fieldName!: string;
+    labourUsd!: number;
+    appliedInputsUsd!: number;
+    directExpensesUsd!: number;
+    approvedInventoryLossUsd!: number;
+    totalCostUsd!: number;
+    reportingHectares!: number | undefined;
+    costPerHectareUsd!: number | undefined;
+    actualHarvestedTonnes!: number | undefined;
+    costPerTonneUsd!: number | undefined;
+    sources!: CostSourceDto[];
+
+    [key: string]: any;
+
+    constructor(data?: ICropCycleCostSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.sources = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.cropCycleId = _data["cropCycleId"];
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.labourUsd = _data["labourUsd"];
+            this.appliedInputsUsd = _data["appliedInputsUsd"];
+            this.directExpensesUsd = _data["directExpensesUsd"];
+            this.approvedInventoryLossUsd = _data["approvedInventoryLossUsd"];
+            this.totalCostUsd = _data["totalCostUsd"];
+            this.reportingHectares = _data["reportingHectares"];
+            this.costPerHectareUsd = _data["costPerHectareUsd"];
+            this.actualHarvestedTonnes = _data["actualHarvestedTonnes"];
+            this.costPerTonneUsd = _data["costPerTonneUsd"];
+            if (Array.isArray(_data["sources"])) {
+                this.sources = [] as any;
+                for (let item of _data["sources"])
+                    this.sources!.push(CostSourceDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CropCycleCostSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CropCycleCostSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["cropCycleId"] = this.cropCycleId;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["labourUsd"] = this.labourUsd;
+        data["appliedInputsUsd"] = this.appliedInputsUsd;
+        data["directExpensesUsd"] = this.directExpensesUsd;
+        data["approvedInventoryLossUsd"] = this.approvedInventoryLossUsd;
+        data["totalCostUsd"] = this.totalCostUsd;
+        data["reportingHectares"] = this.reportingHectares;
+        data["costPerHectareUsd"] = this.costPerHectareUsd;
+        data["actualHarvestedTonnes"] = this.actualHarvestedTonnes;
+        data["costPerTonneUsd"] = this.costPerTonneUsd;
+        if (Array.isArray(this.sources)) {
+            data["sources"] = [];
+            for (let item of this.sources)
+                data["sources"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICropCycleCostSummaryDto {
+    cropCycleId: string;
+    fieldId: string;
+    fieldName: string;
+    labourUsd: number;
+    appliedInputsUsd: number;
+    directExpensesUsd: number;
+    approvedInventoryLossUsd: number;
+    totalCostUsd: number;
+    reportingHectares: number | undefined;
+    costPerHectareUsd: number | undefined;
+    actualHarvestedTonnes: number | undefined;
+    costPerTonneUsd: number | undefined;
+    sources: CostSourceDto[];
 
     [key: string]: any;
 }
@@ -16600,6 +17422,129 @@ export interface IOperationalPayslipDto {
     [key: string]: any;
 }
 
+export class OperationalTransactionDto implements IOperationalTransactionDto {
+    id!: string;
+    type!: string;
+    category!: string;
+    eventDate!: string;
+    payeeOrPayer!: string;
+    amountUsd!: number;
+    sourceReference!: string | undefined;
+    notes!: string | undefined;
+    status!: string;
+    version!: number;
+    createdAt!: Date;
+    postedAt!: Date | undefined;
+    isClosedCycleCorrection!: boolean;
+    closedCycleCorrectionReason!: string | undefined;
+    reversalOfOperationalTransactionId!: string | undefined;
+    reversalReason!: string | undefined;
+    allocations!: TransactionAllocationDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IOperationalTransactionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.allocations = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.type = _data["type"];
+            this.category = _data["category"];
+            this.eventDate = _data["eventDate"];
+            this.payeeOrPayer = _data["payeeOrPayer"];
+            this.amountUsd = _data["amountUsd"];
+            this.sourceReference = _data["sourceReference"];
+            this.notes = _data["notes"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.postedAt = _data["postedAt"] ? new Date(_data["postedAt"].toString()) : undefined as any;
+            this.isClosedCycleCorrection = _data["isClosedCycleCorrection"];
+            this.closedCycleCorrectionReason = _data["closedCycleCorrectionReason"];
+            this.reversalOfOperationalTransactionId = _data["reversalOfOperationalTransactionId"];
+            this.reversalReason = _data["reversalReason"];
+            if (Array.isArray(_data["allocations"])) {
+                this.allocations = [] as any;
+                for (let item of _data["allocations"])
+                    this.allocations!.push(TransactionAllocationDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): OperationalTransactionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OperationalTransactionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["type"] = this.type;
+        data["category"] = this.category;
+        data["eventDate"] = this.eventDate;
+        data["payeeOrPayer"] = this.payeeOrPayer;
+        data["amountUsd"] = this.amountUsd;
+        data["sourceReference"] = this.sourceReference;
+        data["notes"] = this.notes;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["postedAt"] = this.postedAt ? this.postedAt.toISOString() : undefined as any;
+        data["isClosedCycleCorrection"] = this.isClosedCycleCorrection;
+        data["closedCycleCorrectionReason"] = this.closedCycleCorrectionReason;
+        data["reversalOfOperationalTransactionId"] = this.reversalOfOperationalTransactionId;
+        data["reversalReason"] = this.reversalReason;
+        if (Array.isArray(this.allocations)) {
+            data["allocations"] = [];
+            for (let item of this.allocations)
+                data["allocations"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IOperationalTransactionDto {
+    id: string;
+    type: string;
+    category: string;
+    eventDate: string;
+    payeeOrPayer: string;
+    amountUsd: number;
+    sourceReference: string | undefined;
+    notes: string | undefined;
+    status: string;
+    version: number;
+    createdAt: Date;
+    postedAt: Date | undefined;
+    isClosedCycleCorrection: boolean;
+    closedCycleCorrectionReason: string | undefined;
+    reversalOfOperationalTransactionId: string | undefined;
+    reversalReason: string | undefined;
+    allocations: TransactionAllocationDto[];
+
+    [key: string]: any;
+}
+
 export class PaymentAcknowledgementDto implements IPaymentAcknowledgementDto {
     id!: string;
     status!: string;
@@ -16924,6 +17869,62 @@ export interface IPayrollCalculationDto {
     blockerCount: number;
     sourceFingerprint: string;
     workers: PayrollWorkerLineDto[];
+
+    [key: string]: any;
+}
+
+export class PayrollCostReconciliationDto implements IPayrollCostReconciliationDto {
+    approvedEarningSourcesExamined!: number;
+    postingsAdded!: number;
+    existingPostingsPreserved!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPayrollCostReconciliationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.approvedEarningSourcesExamined = _data["approvedEarningSourcesExamined"];
+            this.postingsAdded = _data["postingsAdded"];
+            this.existingPostingsPreserved = _data["existingPostingsPreserved"];
+        }
+    }
+
+    static fromJS(data: any): PayrollCostReconciliationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new PayrollCostReconciliationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["approvedEarningSourcesExamined"] = this.approvedEarningSourcesExamined;
+        data["postingsAdded"] = this.postingsAdded;
+        data["existingPostingsPreserved"] = this.existingPostingsPreserved;
+        return data;
+    }
+}
+
+export interface IPayrollCostReconciliationDto {
+    approvedEarningSourcesExamined: number;
+    postingsAdded: number;
+    existingPostingsPreserved: number;
 
     [key: string]: any;
 }
@@ -18069,6 +19070,69 @@ export interface IPersonRoleAssignmentDto {
     isPrimary: boolean;
     effectiveFrom: string;
     effectiveTo: string | undefined;
+
+    [key: string]: any;
+}
+
+export class PostOperationalTransactionRequest implements IPostOperationalTransactionRequest {
+    expectedVersion!: number;
+    idempotencyKey!: string;
+    authorizedClosedCycleCorrection?: boolean;
+    correctionReason?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IPostOperationalTransactionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.authorizedClosedCycleCorrection = false;
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+            this.authorizedClosedCycleCorrection = _data["authorizedClosedCycleCorrection"] !== undefined ? _data["authorizedClosedCycleCorrection"] : false;
+            this.correctionReason = _data["correctionReason"];
+        }
+    }
+
+    static fromJS(data: any): PostOperationalTransactionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PostOperationalTransactionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        data["authorizedClosedCycleCorrection"] = this.authorizedClosedCycleCorrection;
+        data["correctionReason"] = this.correctionReason;
+        return data;
+    }
+}
+
+export interface IPostOperationalTransactionRequest {
+    expectedVersion: number;
+    idempotencyKey: string;
+    authorizedClosedCycleCorrection?: boolean;
+    correctionReason?: string | undefined;
 
     [key: string]: any;
 }
@@ -19231,6 +20295,58 @@ export interface IRequestStockIssueCorrectionRequest {
     [key: string]: any;
 }
 
+export class ReverseOperationalTransactionRequest implements IReverseOperationalTransactionRequest {
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IReverseOperationalTransactionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ReverseOperationalTransactionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReverseOperationalTransactionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IReverseOperationalTransactionRequest {
+    reason: string;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class ReversePayrollPaymentRequest implements IReversePayrollPaymentRequest {
     amountUsd!: number;
     reason!: string;
@@ -19634,6 +20750,69 @@ export interface IRunSettlementDto {
     isClosed: boolean;
     canClose: boolean;
     workers: WorkerSettlementDto[];
+
+    [key: string]: any;
+}
+
+export class SetTransactionAllocationsRequest implements ISetTransactionAllocationsRequest {
+    expectedVersion!: number;
+    allocations!: TransactionAllocationRequest[];
+
+    [key: string]: any;
+
+    constructor(data?: ISetTransactionAllocationsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.allocations = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            if (Array.isArray(_data["allocations"])) {
+                this.allocations = [] as any;
+                for (let item of _data["allocations"])
+                    this.allocations!.push(TransactionAllocationRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): SetTransactionAllocationsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetTransactionAllocationsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        if (Array.isArray(this.allocations)) {
+            data["allocations"] = [];
+            for (let item of this.allocations)
+                data["allocations"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ISetTransactionAllocationsRequest {
+    expectedVersion: number;
+    allocations: TransactionAllocationRequest[];
 
     [key: string]: any;
 }
@@ -20763,6 +21942,138 @@ export interface ITenantSessionDto {
     [key: string]: any;
 }
 
+export class TransactionAllocationDto implements ITransactionAllocationDto {
+    id!: string;
+    cropCycleId!: string | undefined;
+    fieldId!: string | undefined;
+    category!: string;
+    amountUsd!: number;
+    allocationType!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionAllocationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.fieldId = _data["fieldId"];
+            this.category = _data["category"];
+            this.amountUsd = _data["amountUsd"];
+            this.allocationType = _data["allocationType"];
+        }
+    }
+
+    static fromJS(data: any): TransactionAllocationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionAllocationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["cropCycleId"] = this.cropCycleId;
+        data["fieldId"] = this.fieldId;
+        data["category"] = this.category;
+        data["amountUsd"] = this.amountUsd;
+        data["allocationType"] = this.allocationType;
+        return data;
+    }
+}
+
+export interface ITransactionAllocationDto {
+    id: string;
+    cropCycleId: string | undefined;
+    fieldId: string | undefined;
+    category: string;
+    amountUsd: number;
+    allocationType: string;
+
+    [key: string]: any;
+}
+
+export class TransactionAllocationRequest implements ITransactionAllocationRequest {
+    cropCycleId!: string | undefined;
+    fieldId!: string | undefined;
+    category!: string;
+    amountUsd!: number;
+    allocationType!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ITransactionAllocationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.cropCycleId = _data["cropCycleId"];
+            this.fieldId = _data["fieldId"];
+            this.category = _data["category"];
+            this.amountUsd = _data["amountUsd"];
+            this.allocationType = _data["allocationType"];
+        }
+    }
+
+    static fromJS(data: any): TransactionAllocationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TransactionAllocationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["cropCycleId"] = this.cropCycleId;
+        data["fieldId"] = this.fieldId;
+        data["category"] = this.category;
+        data["amountUsd"] = this.amountUsd;
+        data["allocationType"] = this.allocationType;
+        return data;
+    }
+}
+
+export interface ITransactionAllocationRequest {
+    cropCycleId: string | undefined;
+    fieldId: string | undefined;
+    category: string;
+    amountUsd: number;
+    allocationType: string;
+
+    [key: string]: any;
+}
+
 export class TransitionActivityRequest implements ITransitionActivityRequest {
     expectedVersion!: number;
     reason!: string | undefined;
@@ -21011,6 +22322,82 @@ export interface IUpdateFarmInformationRequest {
     tenure: string;
     declaredHectares: number;
     irrigationContext: string;
+
+    [key: string]: any;
+}
+
+export class UpdateOperationalTransactionRequest implements IUpdateOperationalTransactionRequest {
+    type!: string;
+    category!: string;
+    eventDate!: string;
+    payeeOrPayer!: string;
+    amountUsd!: number;
+    sourceReference!: string | undefined;
+    notes!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateOperationalTransactionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.category = _data["category"];
+            this.eventDate = _data["eventDate"];
+            this.payeeOrPayer = _data["payeeOrPayer"];
+            this.amountUsd = _data["amountUsd"];
+            this.sourceReference = _data["sourceReference"];
+            this.notes = _data["notes"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateOperationalTransactionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateOperationalTransactionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["category"] = this.category;
+        data["eventDate"] = this.eventDate;
+        data["payeeOrPayer"] = this.payeeOrPayer;
+        data["amountUsd"] = this.amountUsd;
+        data["sourceReference"] = this.sourceReference;
+        data["notes"] = this.notes;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IUpdateOperationalTransactionRequest {
+    type: string;
+    category: string;
+    eventDate: string;
+    payeeOrPayer: string;
+    amountUsd: number;
+    sourceReference: string | undefined;
+    notes: string | undefined;
+    expectedVersion: number;
 
     [key: string]: any;
 }

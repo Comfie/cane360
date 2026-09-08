@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Cane360.Application.Payroll;
 
-public sealed class DecidePayrollRunCommandHandler(IFarmSetupRepository farms, ILabourRepository labour, IPayrollRepository payroll, IUser user, TimeProvider clock) : IRequestHandler<DecidePayrollRunCommand, PayrollRunDto>
+public sealed class DecidePayrollRunCommandHandler(IFarmSetupRepository farms, ILabourRepository labour, IPayrollRepository payroll, IUser user, TimeProvider clock, IPayrollCostProjectionService? costProjection = null) : IRequestHandler<DecidePayrollRunCommand, PayrollRunDto>
 {
     public async Task<PayrollRunDto> Handle(DecidePayrollRunCommand request, CancellationToken cancellationToken)
     {
@@ -41,6 +41,10 @@ public sealed class DecidePayrollRunCommandHandler(IFarmSetupRepository farms, I
             foreach (var deduction in calculation.WorkerLines.SelectMany(x => x.AdvanceDeductions)) payroll.Add(AdvanceRecovery.Create(run.Id, calculation.Id, deduction, now));
             PayrollAccess.Domain(() => period.Close(now, userId, PayrollAccess.OperationalPerson(tenant, userId), run.Id, period.Version), nameof(period.Version));
         }
-        PayrollAudit.PayrollDecision(payroll, tenant, farm, user, run, approval, now); await payroll.SaveChangesAsync(cancellationToken); var response = await PayrollRunMapper.MapAsync(payroll, run, period, user, cancellationToken); await transaction.CommitAsync(cancellationToken); return response;
+        PayrollAudit.PayrollDecision(payroll, tenant, farm, user, run, approval, now);
+        await payroll.SaveChangesAsync(cancellationToken);
+        if (request.Approved && costProjection is not null)
+            await costProjection.ProjectAsync(tenant, farm, run, calculation, user, cancellationToken);
+        var response = await PayrollRunMapper.MapAsync(payroll, run, period, user, cancellationToken); await transaction.CommitAsync(cancellationToken); return response;
     }
 }

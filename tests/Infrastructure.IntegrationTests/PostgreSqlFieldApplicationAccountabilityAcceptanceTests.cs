@@ -32,6 +32,26 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     }
 
     [Test]
+    public async Task Phase5CCostAppendOnlyTriggerAndFunctionRemainPresent()
+    {
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await using var command = new NpgsqlCommand("""
+            SELECT EXISTS (
+                SELECT 1
+                FROM pg_trigger trigger
+                JOIN pg_proc function ON function.oid = trigger.tgfoid
+                JOIN pg_namespace function_schema ON function_schema.oid = function.pronamespace
+                WHERE trigger.tgrelid = 'finance."OperationalCostPostings"'::regclass
+                  AND trigger.tgname = 'TR_OperationalCostPostings_AppendOnly'
+                  AND function_schema.nspname = 'inventory'
+                  AND function.proname = 'RejectAppendOnlyMutation'
+                  AND NOT trigger.tgisinternal)
+            """, connection);
+        Convert.ToBoolean(await command.ExecuteScalarAsync()).ShouldBeTrue();
+    }
+
+    [Test]
     public async Task ConcurrentApplicationAndReturnAllowOnlyOneResolution()
     {
         var scenario = await CreateScenarioAsync();
