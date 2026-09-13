@@ -5,6 +5,12 @@ namespace Cane360.Application.Finance;
 public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepository finance,
     IPayrollCostProjectionService payrollProjection, IUser user, TimeProvider clock) : IFinanceService
 {
+    public async Task<FinanceSessionDto> GetSessionAsync(CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        return new(Role(context));
+    }
+
     public async Task<IReadOnlyList<OperationalTransactionDto>> GetTransactionsAsync(
         FinanceTransactionFilter filter, CancellationToken cancellationToken)
     {
@@ -202,6 +208,312 @@ public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepositor
         return result;
     }
 
+    public async Task<IReadOnlyList<BudgetDto>> GetBudgetsAsync(Guid cropCycleId,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        RequireCycle(context, cropCycleId);
+        return (await finance.GetBudgetsAsync(context.Tenant.Id, context.Farm.Id, cropCycleId,
+            false, cancellationToken)).Select(MapBudget).ToArray();
+    }
+
+    public async Task<BudgetDto> GetBudgetAsync(Guid budgetId,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        return MapBudget(await RequireBudgetAsync(context, budgetId, false, cancellationToken));
+    }
+
+    public async Task<BudgetDto?> GetCurrentApprovedBudgetAsync(Guid cropCycleId,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        RequireCycle(context, cropCycleId);
+        Budget? budget = await finance.GetCurrentApprovedBudgetAsync(context.Tenant.Id,
+            context.Farm.Id, cropCycleId, false, cancellationToken);
+        return budget is null ? null : MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> CreateBudgetAsync(CreateBudgetInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        RequireOperator(context);
+        (Field field, CropCycle cycle) = RequireCycle(context, input.CropCycleId);
+        RequireOpenForPlanning(cycle);
+        await using IFinanceTransaction transaction = await finance.BeginSerializableTransactionAsync(cancellationToken);
+        IReadOnlyList<Budget> history = await finance.GetBudgetsAsync(context.Tenant.Id,
+            context.Farm.Id, cycle.Id, false, cancellationToken);
+        if (history.Count != 0)
+            throw new ConflictException("This crop cycle already has budget history. Create a revision from the current approved budget.");
+        decimal? area = input.ReportingAreaHa ?? ReportingArea(field);
+        decimal? tonnes = input.ExpectedProductionTonnes ?? (cycle.ExpectedYieldTonnes > 0
+            ? cycle.ExpectedYieldTonnes : null);
+        Budget budget = Apply(() => Budget.CreateDraft(context.Tenant.Id, context.Farm.Id,
+            field.Id, cycle.Id, 1, input.Name, area, tonnes, input.Notes, context.UserId,
+            clock.GetUtcNow()), nameof(input.Name));
+        finance.Add(budget);
+        Audit(context, budget.Id, "BudgetCreated", null, "Crop-cycle budget draft version 1 created.",
+            audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, budget.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> UpdateBudgetAsync(Guid budgetId, UpdateBudgetInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        Apply(() => budget.UpdateDraft(input.Name, input.ReportingAreaHa,
+            input.ExpectedProductionTonnes, input.Notes, input.ExpectedRowVersion),
+            nameof(input.ExpectedRowVersion));
+        Audit(context, budget.Id, "BudgetDraftChanged", null, "Budget draft details changed.",
+            audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, budget.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> AddBudgetLineAsync(Guid budgetId, BudgetLineInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        BudgetLine line = Apply(() => budget.AddLine(ParseBudgetCategory(input.Category),
+            input.Description, input.AmountUsd, input.Quantity, input.Unit, input.UnitRateUsd,
+            input.Notes, clock.GetUtcNow(), input.ExpectedRowVersion), nameof(input.AmountUsd));
+        Audit(context, line.Id, "BudgetLineAdded", null, "Budget draft line added.",
+            audit => FinanceAuditEventLink.ForBudgetLine(audit.Id, context.Tenant.Id, context.Farm.Id, line.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> UpdateBudgetLineAsync(Guid budgetId, Guid lineId,
+        BudgetLineInput input, CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        Apply(() => budget.UpdateLine(lineId, ParseBudgetCategory(input.Category), input.Description,
+            input.AmountUsd, input.Quantity, input.Unit, input.UnitRateUsd, input.Notes,
+            input.ExpectedRowVersion), nameof(input.ExpectedRowVersion));
+        Audit(context, lineId, "BudgetLineChanged", null, "Budget draft line changed.",
+            audit => FinanceAuditEventLink.ForBudgetLine(audit.Id, context.Tenant.Id, context.Farm.Id, lineId));
+        await finance.SaveChangesAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> RemoveBudgetLineAsync(Guid budgetId, Guid lineId,
+        BudgetActionInput input, CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        BudgetLine removed = Apply(() => budget.RemoveLine(lineId, input.ExpectedRowVersion),
+            nameof(input.ExpectedRowVersion));
+        Audit(context, budget.Id, "BudgetLineRemoved", null,
+            $"Budget draft line {removed.Id:N} removed.", audit => FinanceAuditEventLink.ForBudget(
+                audit.Id, context.Tenant.Id, context.Farm.Id, budget.Id));
+        finance.Remove(removed);
+        await finance.SaveChangesAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> SubmitBudgetAsync(Guid budgetId, BudgetActionInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        Apply(() => budget.Submit(context.UserId, clock.GetUtcNow(), input.ExpectedRowVersion),
+            nameof(input.ExpectedRowVersion));
+        Audit(context, budget.Id, "BudgetSubmitted", null,
+            "Budget submitted with its exact line set and server-derived total for Grower approval.",
+            audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, budget.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> ApproveBudgetAsync(Guid budgetId, ApproveBudgetInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireGrower(context);
+        await using IFinanceTransaction transaction = await finance.BeginSerializableTransactionAsync(cancellationToken);
+        Budget? retry = await finance.GetBudgetByApprovalKeyAsync(context.Tenant.Id,
+            context.Farm.Id, input.IdempotencyKey, cancellationToken);
+        if (retry is not null)
+        {
+            if (retry.Id != budgetId)
+                throw new ConflictException("This approval idempotency key is bound to another budget.");
+            await transaction.CommitAsync(cancellationToken);
+            return MapBudget(retry);
+        }
+        Budget budget = await RequireBudgetAsync(context, budgetId, true, cancellationToken);
+        Budget? current = await finance.GetCurrentApprovedBudgetAsync(context.Tenant.Id,
+            context.Farm.Id, budget.CropCycleId, true, cancellationToken);
+        if (current is not null && current.Id != budget.SupersedesBudgetId)
+            throw new ConflictException("The submitted revision no longer supersedes the current approved budget.");
+        if (current is not null)
+        {
+            Apply(current.Supersede, nameof(budgetId));
+            Audit(context, current.Id, "BudgetSuperseded", null,
+                $"Approved budget version {current.Version} superseded by version {budget.Version}.",
+                audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, current.Id));
+            await finance.SaveChangesAsync(cancellationToken);
+        }
+        Apply(() => budget.Approve(context.UserId, clock.GetUtcNow(), input.IdempotencyKey,
+            input.ExpectedRowVersion), nameof(input.ExpectedRowVersion));
+        Audit(context, budget.Id, "BudgetApproved", null,
+            $"Grower approved immutable budget version {budget.Version} with server-derived total {budget.TotalUsd:0.00} USD.",
+            audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, budget.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return MapBudget(budget);
+    }
+
+    public async Task<BudgetDto> CreateBudgetRevisionAsync(Guid budgetId,
+        CreateBudgetRevisionInput input, CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        RequireGrower(context);
+        await using IFinanceTransaction transaction = await finance.BeginSerializableTransactionAsync(cancellationToken);
+        Budget source = await RequireBudgetAsync(context, budgetId, false, cancellationToken);
+        if (source.Status != BudgetStatus.Approved)
+            throw new ConflictException("A revision must start from the current approved budget.");
+        (_, CropCycle cycle) = RequireCycle(context, source.CropCycleId);
+        RequireOpenForPlanning(cycle);
+        IReadOnlyList<Budget> history = await finance.GetBudgetsAsync(context.Tenant.Id,
+            context.Farm.Id, source.CropCycleId, false, cancellationToken);
+        if (history.Any(x => x.Status is BudgetStatus.Draft or BudgetStatus.Submitted))
+            throw new ConflictException("This crop cycle already has an unfinished budget revision.");
+        int nextVersion = checked(history.Max(x => x.Version) + 1);
+        Budget revision = Apply(() => Budget.CreateDraft(context.Tenant.Id, context.Farm.Id,
+            source.FieldId, source.CropCycleId, nextVersion, input.Name ?? source.Name,
+            source.ReportingAreaHa, source.ExpectedProductionTonnes, input.Notes ?? source.Notes,
+            context.UserId, clock.GetUtcNow(), source.Id), nameof(input.Name));
+        foreach (BudgetLine line in source.Lines)
+            revision.AddLine(line.Category, line.Description, line.AmountUsd, line.Quantity,
+                line.Unit, line.UnitRateUsd, line.Notes, clock.GetUtcNow(), revision.RowVersion);
+        finance.Add(revision);
+        Audit(context, revision.Id, "BudgetRevisionCreated", null,
+            $"Draft budget version {revision.Version} copied from approved version {source.Version}.",
+            audit => FinanceAuditEventLink.ForBudget(audit.Id, context.Tenant.Id, context.Farm.Id, revision.Id));
+        await finance.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return MapBudget(revision);
+    }
+
+    public async Task<BudgetVarianceReportDto> GetBudgetVarianceAsync(Guid cropCycleId,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(false, cancellationToken);
+        (Field field, CropCycle cycle) = RequireCycle(context, cropCycleId);
+        Budget budget = await finance.GetCurrentApprovedBudgetAsync(context.Tenant.Id,
+            context.Farm.Id, cropCycleId, false, cancellationToken)
+            ?? throw new NotFoundException(cropCycleId.ToString(), "Current approved budget");
+        IReadOnlyList<OperationalCostPosting> postings = await finance.GetCostPostingsAsync(
+            context.Tenant.Id, context.Farm.Id, cropCycleId, cancellationToken);
+        BudgetCategory[] categories = Enum.GetValues<BudgetCategory>();
+        BudgetVarianceRowDto[] rows = categories.Select(category => VarianceRow(category,
+            budget.Lines.Where(x => x.Category == category).Sum(x => x.AmountUsd),
+            ActualFor(postings, category))).ToArray();
+        decimal budgetTotal = rows.Sum(x => x.BudgetUsd);
+        decimal actualTotal = rows.Sum(x => x.ActualUsd);
+        decimal? area = ReportingArea(field) ?? budget.ReportingAreaHa;
+        decimal? actualTonnes = cycle.HarvestResult?.ActualTonnes is > 0
+            ? cycle.HarvestResult.ActualTonnes : null;
+        IReadOnlyDictionary<Guid, CostSourceChain> chains = (await finance.GetCostSourceChainsAsync(
+            context.Tenant.Id, context.Farm.Id, postings.Select(x => x.Id).ToArray(), cancellationToken))
+            .ToDictionary(x => x.PostingId);
+        BudgetVarianceRowDto total = VarianceRow(null, budgetTotal, actualTotal);
+        return new(cycle.Id, field.Id, context.Farm.Name, field.Name, budget.Version,
+            budget.ApprovedAt!.Value, clock.GetUtcNow(), budgetTotal, actualTotal,
+            total.VarianceUsd, total.VariancePercent, total.Status, area,
+            CropCostMath.PerUnit(budgetTotal, area), CropCostMath.PerUnit(actualTotal, area),
+            budget.ExpectedProductionTonnes, actualTonnes,
+            CropCostMath.PerUnit(budgetTotal, budget.ExpectedProductionTonnes),
+            CropCostMath.PerUnit(actualTotal, actualTonnes), rows,
+            postings.Select(posting => MapSource(posting, chains.GetValueOrDefault(posting.Id))).ToArray());
+    }
+
+    private Task<Budget> RequireBudgetAsync(Context context, Guid id, bool track,
+        CancellationToken cancellationToken) => RequireBudgetResultAsync(finance.GetBudgetAsync(
+            context.Tenant.Id, context.Farm.Id, id, track, cancellationToken), id);
+
+    private static async Task<Budget> RequireBudgetResultAsync(Task<Budget?> task, Guid id) =>
+        await task ?? throw new NotFoundException(id.ToString(), "Budget");
+
+    private static (Field Field, CropCycle Cycle) RequireCycle(Context context, Guid cropCycleId)
+    {
+        Field? field = context.Farm.Fields.SingleOrDefault(x =>
+            x.CropCycles.Any(cycle => cycle.Id == cropCycleId));
+        CropCycle cycle = field?.CropCycles.Single(x => x.Id == cropCycleId)
+            ?? throw new NotFoundException(cropCycleId.ToString(), "Crop cycle");
+        return (field, cycle);
+    }
+
+    private static void RequireOpenForPlanning(CropCycle cycle)
+    {
+        if (cycle.Status is CropCycleStatus.Harvested or CropCycleStatus.Closed or CropCycleStatus.Cancelled)
+            throw new ConflictException("An ordinary budget or revision cannot be created for a harvested, closed, or cancelled crop cycle.");
+    }
+
+    private static decimal? ReportingArea(Field field)
+    {
+        try { return field.ReportingHectares > 0 ? field.ReportingHectares : null; }
+        catch (InvalidOperationException) { return null; }
+    }
+
+    private static BudgetDto MapBudget(Budget budget)
+    {
+        decimal labour = BudgetSum(budget, BudgetCategory.Labour);
+        decimal inputs = BudgetSum(budget, BudgetCategory.AppliedInput);
+        decimal direct = BudgetSum(budget, BudgetCategory.DirectExpense);
+        decimal variance = BudgetSum(budget, BudgetCategory.ApprovedVarianceCost);
+        return new(budget.Id, budget.CropCycleId, budget.FieldId, budget.Version,
+            budget.Status.ToString(), budget.Name, budget.ReportingAreaHa,
+            budget.ExpectedProductionTonnes, budget.Notes, budget.CreatedByUserId,
+            budget.CreatedAt, budget.SubmittedByUserId, budget.SubmittedAt,
+            budget.ApprovedByUserId, budget.ApprovedAt, budget.SupersedesBudgetId,
+            budget.RowVersion, labour, inputs, direct, variance,
+            labour + inputs + direct + variance, budget.Lines.OrderBy(x => x.Category)
+                .ThenBy(x => x.Description).Select(MapBudgetLine).ToArray());
+    }
+
+    private static BudgetLineDto MapBudgetLine(BudgetLine line) => new(line.Id,
+        line.Category.ToString(), line.Description, line.AmountUsd, line.Quantity, line.Unit,
+        line.UnitRateUsd, line.Notes, line.CreatedAt);
+
+    private static decimal BudgetSum(Budget budget, BudgetCategory category) =>
+        budget.Lines.Where(x => x.Category == category).Sum(x => x.AmountUsd);
+
+    private static BudgetVarianceRowDto VarianceRow(BudgetCategory? category, decimal budget,
+        decimal actual)
+    {
+        decimal variance = actual - budget;
+        decimal? percent = budget == 0 ? null : decimal.Round(variance / budget * 100m, 2,
+            MidpointRounding.AwayFromZero);
+        BudgetVarianceStatus status = budget == 0 ? BudgetVarianceStatus.NotComparable :
+            variance > 0 ? BudgetVarianceStatus.OverBudget :
+            variance < 0 ? BudgetVarianceStatus.UnderBudget : BudgetVarianceStatus.OnBudget;
+        return new(category?.ToString() ?? "Total", budget, actual, variance, percent,
+            status.ToString());
+    }
+
+    private static decimal ActualFor(IEnumerable<OperationalCostPosting> postings,
+        BudgetCategory category) => category switch
+    {
+        BudgetCategory.Labour => Sum(postings, OperationalCostCategory.Labour),
+        BudgetCategory.AppliedInput => Sum(postings, OperationalCostCategory.AppliedInput),
+        BudgetCategory.DirectExpense => Sum(postings, OperationalCostCategory.DirectExpense),
+        BudgetCategory.ApprovedVarianceCost => Sum(postings,
+            OperationalCostCategory.ApprovedInventoryLoss),
+        _ => throw new ArgumentOutOfRangeException(nameof(category))
+    };
+
     private async Task<Context> ContextAsync(bool track, CancellationToken cancellationToken)
     {
         string userId = user.Id ?? throw new UnauthorizedAccessException();
@@ -250,6 +562,7 @@ public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepositor
     private static OperationalTransactionType ParseType(string value) => Parse<OperationalTransactionType>(value, "type");
     private static OperationalFinanceCategory ParseCategory(string value) => Parse<OperationalFinanceCategory>(value, "category");
     private static TransactionAllocationType ParseAllocationType(string value) => Parse<TransactionAllocationType>(value, "allocationType");
+    private static BudgetCategory ParseBudgetCategory(string value) => Parse<BudgetCategory>(value, "category");
     private static T Parse<T>(string value, string field) where T : struct, Enum =>
         Enum.TryParse(value, true, out T parsed) && Enum.IsDefined(parsed) ? parsed : throw Validation(field, $"Unsupported {field}.");
     private static T Apply<T>(Func<T> action, string field)

@@ -25,10 +25,20 @@ public interface IFinanceRepository
         Guid farmId, IReadOnlyCollection<Guid> allocationIds, CancellationToken cancellationToken);
     Task<bool> HasPayrollCostPostingAsync(Guid tenantId, Guid farmId, Guid earningLineId,
         Guid cropCycleId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<Budget>> GetBudgetsAsync(Guid tenantId, Guid farmId, Guid cropCycleId,
+        bool trackChanges, CancellationToken cancellationToken);
+    Task<Budget?> GetBudgetAsync(Guid tenantId, Guid farmId, Guid budgetId,
+        bool trackChanges, CancellationToken cancellationToken);
+    Task<Budget?> GetCurrentApprovedBudgetAsync(Guid tenantId, Guid farmId, Guid cropCycleId,
+        bool trackChanges, CancellationToken cancellationToken);
+    Task<Budget?> GetBudgetByApprovalKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey,
+        CancellationToken cancellationToken);
     void RemoveDraftAllocations(IReadOnlyCollection<TransactionAllocation> allocations);
     void Add(OperationalTransaction transaction);
     void Add(OperationalCostPosting posting);
     void Add(AuditEvent auditEvent);
     void Add(FinanceAuditEventLink auditLink);
+    void Add(Budget budget);
+    void Remove(BudgetLine line);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
