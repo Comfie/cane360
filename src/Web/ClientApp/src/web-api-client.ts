@@ -2606,6 +2606,55 @@ export class FinanceClient {
     }
 
     /**
+     * @return OK
+     */
+    getFinanceSession(): Promise<FinanceSessionDto> {
+        let url_ = this.baseUrl + "/api/finance/session";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceSession(_response);
+        });
+    }
+
+    protected processGetFinanceSession(response: Response): Promise<FinanceSessionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FinanceSessionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FinanceSessionDto>(null as any);
+    }
+
+    /**
      * @param from (optional)
      * @param to (optional)
      * @param type (optional)
@@ -3119,6 +3168,673 @@ export class FinanceClient {
             });
         }
         return Promise.resolve<PayrollCostReconciliationDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getFinanceBudgets(cropCycleId: string): Promise<BudgetDto[]> {
+        let url_ = this.baseUrl + "/api/finance/crop-cycles/{cropCycleId}/budgets";
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceBudgets(_response);
+        });
+    }
+
+    protected processGetFinanceBudgets(response: Response): Promise<BudgetDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(BudgetDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getFinanceBudget(budgetId: string): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceBudget(_response);
+        });
+    }
+
+    protected processGetFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateFinanceBudget(budgetId: string, body: UpdateBudgetRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFinanceBudget(_response);
+        });
+    }
+
+    protected processUpdateFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getCurrentFinanceBudget(cropCycleId: string): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/crop-cycles/{cropCycleId}/budgets/current";
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCurrentFinanceBudget(_response);
+        });
+    }
+
+    protected processGetCurrentFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createFinanceBudget(body: CreateBudgetRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateFinanceBudget(_response);
+        });
+    }
+
+    protected processCreateFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    addFinanceBudgetLine(budgetId: string, body: BudgetLineRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/lines";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddFinanceBudgetLine(_response);
+        });
+    }
+
+    protected processAddFinanceBudgetLine(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateFinanceBudgetLine(budgetId: string, lineId: string, body: BudgetLineRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/lines/{lineId}";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        if (lineId === undefined || lineId === null)
+            throw new globalThis.Error("The parameter 'lineId' must be defined.");
+        url_ = url_.replace("{lineId}", encodeURIComponent("" + lineId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFinanceBudgetLine(_response);
+        });
+    }
+
+    protected processUpdateFinanceBudgetLine(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @param expectedRowVersion (optional)
+     * @return OK
+     */
+    removeFinanceBudgetLine(budgetId: string, lineId: string, expectedRowVersion: number | undefined): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/lines/{lineId}?";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        if (lineId === undefined || lineId === null)
+            throw new globalThis.Error("The parameter 'lineId' must be defined.");
+        url_ = url_.replace("{lineId}", encodeURIComponent("" + lineId));
+        if (expectedRowVersion === null)
+            throw new globalThis.Error("The parameter 'expectedRowVersion' cannot be null.");
+        else if (expectedRowVersion !== undefined)
+            url_ += "expectedRowVersion=" + encodeURIComponent("" + expectedRowVersion) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveFinanceBudgetLine(_response);
+        });
+    }
+
+    protected processRemoveFinanceBudgetLine(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    submitFinanceBudget(budgetId: string, body: BudgetActionRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/submit";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitFinanceBudget(_response);
+        });
+    }
+
+    protected processSubmitFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    approveFinanceBudget(budgetId: string, body: ApproveBudgetRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/approve";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processApproveFinanceBudget(_response);
+        });
+    }
+
+    protected processApproveFinanceBudget(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createFinanceBudgetRevision(budgetId: string, body: CreateBudgetRevisionRequest): Promise<BudgetDto> {
+        let url_ = this.baseUrl + "/api/finance/budgets/{budgetId}/revisions";
+        if (budgetId === undefined || budgetId === null)
+            throw new globalThis.Error("The parameter 'budgetId' must be defined.");
+        url_ = url_.replace("{budgetId}", encodeURIComponent("" + budgetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateFinanceBudgetRevision(_response);
+        });
+    }
+
+    protected processCreateFinanceBudgetRevision(response: Response): Promise<BudgetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getFinanceBudgetVariance(cropCycleId: string): Promise<BudgetVarianceReportDto> {
+        let url_ = this.baseUrl + "/api/finance/crop-cycles/{cropCycleId}/budget-variance";
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFinanceBudgetVariance(_response);
+        });
+    }
+
+    protected processGetFinanceBudgetVariance(response: Response): Promise<BudgetVarianceReportDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = BudgetVarianceReportDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<BudgetVarianceReportDto>(null as any);
     }
 }
 
@@ -9875,6 +10591,58 @@ export interface IAdvanceSchedulePreviewDto {
     [key: string]: any;
 }
 
+export class ApproveBudgetRequest implements IApproveBudgetRequest {
+    expectedRowVersion!: number;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IApproveBudgetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedRowVersion = _data["expectedRowVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ApproveBudgetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApproveBudgetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedRowVersion"] = this.expectedRowVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IApproveBudgetRequest {
+    expectedRowVersion: number;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class ArchiveWorkerRequest implements IArchiveWorkerRequest {
     activeTo!: string;
     expectedVersion!: number;
@@ -10199,6 +10967,573 @@ export interface IAttestInputApplicationRequest {
     supervisorPersonId: string;
     note: string | undefined;
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class BudgetActionRequest implements IBudgetActionRequest {
+    expectedRowVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetActionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedRowVersion = _data["expectedRowVersion"];
+        }
+    }
+
+    static fromJS(data: any): BudgetActionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetActionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedRowVersion"] = this.expectedRowVersion;
+        return data;
+    }
+}
+
+export interface IBudgetActionRequest {
+    expectedRowVersion: number;
+
+    [key: string]: any;
+}
+
+export class BudgetDto implements IBudgetDto {
+    id!: string;
+    cropCycleId!: string;
+    fieldId!: string;
+    version!: number;
+    status!: string;
+    name!: string;
+    reportingAreaHa!: number | undefined;
+    expectedProductionTonnes!: number | undefined;
+    notes!: string | undefined;
+    createdByUserId!: string;
+    createdAt!: Date;
+    submittedByUserId!: string | undefined;
+    submittedAt!: Date | undefined;
+    approvedByUserId!: string | undefined;
+    approvedAt!: Date | undefined;
+    supersedesBudgetId!: string | undefined;
+    rowVersion!: number;
+    labourBudgetUsd!: number;
+    appliedInputBudgetUsd!: number;
+    directExpenseBudgetUsd!: number;
+    approvedVarianceBudgetUsd!: number;
+    totalBudgetUsd!: number;
+    lines!: BudgetLineDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.lines = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.fieldId = _data["fieldId"];
+            this.version = _data["version"];
+            this.status = _data["status"];
+            this.name = _data["name"];
+            this.reportingAreaHa = _data["reportingAreaHa"];
+            this.expectedProductionTonnes = _data["expectedProductionTonnes"];
+            this.notes = _data["notes"];
+            this.createdByUserId = _data["createdByUserId"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.submittedByUserId = _data["submittedByUserId"];
+            this.submittedAt = _data["submittedAt"] ? new Date(_data["submittedAt"].toString()) : undefined as any;
+            this.approvedByUserId = _data["approvedByUserId"];
+            this.approvedAt = _data["approvedAt"] ? new Date(_data["approvedAt"].toString()) : undefined as any;
+            this.supersedesBudgetId = _data["supersedesBudgetId"];
+            this.rowVersion = _data["rowVersion"];
+            this.labourBudgetUsd = _data["labourBudgetUsd"];
+            this.appliedInputBudgetUsd = _data["appliedInputBudgetUsd"];
+            this.directExpenseBudgetUsd = _data["directExpenseBudgetUsd"];
+            this.approvedVarianceBudgetUsd = _data["approvedVarianceBudgetUsd"];
+            this.totalBudgetUsd = _data["totalBudgetUsd"];
+            if (Array.isArray(_data["lines"])) {
+                this.lines = [] as any;
+                for (let item of _data["lines"])
+                    this.lines!.push(BudgetLineDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BudgetDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["cropCycleId"] = this.cropCycleId;
+        data["fieldId"] = this.fieldId;
+        data["version"] = this.version;
+        data["status"] = this.status;
+        data["name"] = this.name;
+        data["reportingAreaHa"] = this.reportingAreaHa;
+        data["expectedProductionTonnes"] = this.expectedProductionTonnes;
+        data["notes"] = this.notes;
+        data["createdByUserId"] = this.createdByUserId;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["submittedByUserId"] = this.submittedByUserId;
+        data["submittedAt"] = this.submittedAt ? this.submittedAt.toISOString() : undefined as any;
+        data["approvedByUserId"] = this.approvedByUserId;
+        data["approvedAt"] = this.approvedAt ? this.approvedAt.toISOString() : undefined as any;
+        data["supersedesBudgetId"] = this.supersedesBudgetId;
+        data["rowVersion"] = this.rowVersion;
+        data["labourBudgetUsd"] = this.labourBudgetUsd;
+        data["appliedInputBudgetUsd"] = this.appliedInputBudgetUsd;
+        data["directExpenseBudgetUsd"] = this.directExpenseBudgetUsd;
+        data["approvedVarianceBudgetUsd"] = this.approvedVarianceBudgetUsd;
+        data["totalBudgetUsd"] = this.totalBudgetUsd;
+        if (Array.isArray(this.lines)) {
+            data["lines"] = [];
+            for (let item of this.lines)
+                data["lines"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IBudgetDto {
+    id: string;
+    cropCycleId: string;
+    fieldId: string;
+    version: number;
+    status: string;
+    name: string;
+    reportingAreaHa: number | undefined;
+    expectedProductionTonnes: number | undefined;
+    notes: string | undefined;
+    createdByUserId: string;
+    createdAt: Date;
+    submittedByUserId: string | undefined;
+    submittedAt: Date | undefined;
+    approvedByUserId: string | undefined;
+    approvedAt: Date | undefined;
+    supersedesBudgetId: string | undefined;
+    rowVersion: number;
+    labourBudgetUsd: number;
+    appliedInputBudgetUsd: number;
+    directExpenseBudgetUsd: number;
+    approvedVarianceBudgetUsd: number;
+    totalBudgetUsd: number;
+    lines: BudgetLineDto[];
+
+    [key: string]: any;
+}
+
+export class BudgetLineDto implements IBudgetLineDto {
+    id!: string;
+    category!: string;
+    description!: string;
+    amountUsd!: number;
+    quantity!: number | undefined;
+    unit!: string | undefined;
+    unitRateUsd!: number | undefined;
+    notes!: string | undefined;
+    createdAt!: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetLineDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.category = _data["category"];
+            this.description = _data["description"];
+            this.amountUsd = _data["amountUsd"];
+            this.quantity = _data["quantity"];
+            this.unit = _data["unit"];
+            this.unitRateUsd = _data["unitRateUsd"];
+            this.notes = _data["notes"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): BudgetLineDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetLineDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["category"] = this.category;
+        data["description"] = this.description;
+        data["amountUsd"] = this.amountUsd;
+        data["quantity"] = this.quantity;
+        data["unit"] = this.unit;
+        data["unitRateUsd"] = this.unitRateUsd;
+        data["notes"] = this.notes;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IBudgetLineDto {
+    id: string;
+    category: string;
+    description: string;
+    amountUsd: number;
+    quantity: number | undefined;
+    unit: string | undefined;
+    unitRateUsd: number | undefined;
+    notes: string | undefined;
+    createdAt: Date;
+
+    [key: string]: any;
+}
+
+export class BudgetLineRequest implements IBudgetLineRequest {
+    category!: string;
+    description!: string;
+    amountUsd!: number;
+    quantity!: number | undefined;
+    unit!: string | undefined;
+    unitRateUsd!: number | undefined;
+    notes!: string | undefined;
+    expectedRowVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetLineRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.category = _data["category"];
+            this.description = _data["description"];
+            this.amountUsd = _data["amountUsd"];
+            this.quantity = _data["quantity"];
+            this.unit = _data["unit"];
+            this.unitRateUsd = _data["unitRateUsd"];
+            this.notes = _data["notes"];
+            this.expectedRowVersion = _data["expectedRowVersion"];
+        }
+    }
+
+    static fromJS(data: any): BudgetLineRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetLineRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["category"] = this.category;
+        data["description"] = this.description;
+        data["amountUsd"] = this.amountUsd;
+        data["quantity"] = this.quantity;
+        data["unit"] = this.unit;
+        data["unitRateUsd"] = this.unitRateUsd;
+        data["notes"] = this.notes;
+        data["expectedRowVersion"] = this.expectedRowVersion;
+        return data;
+    }
+}
+
+export interface IBudgetLineRequest {
+    category: string;
+    description: string;
+    amountUsd: number;
+    quantity: number | undefined;
+    unit: string | undefined;
+    unitRateUsd: number | undefined;
+    notes: string | undefined;
+    expectedRowVersion: number;
+
+    [key: string]: any;
+}
+
+export class BudgetVarianceReportDto implements IBudgetVarianceReportDto {
+    cropCycleId!: string;
+    fieldId!: string;
+    farmName!: string;
+    fieldName!: string;
+    budgetVersion!: number;
+    budgetApprovedAt!: Date;
+    actualCostAsOf!: Date;
+    totalBudgetUsd!: number;
+    totalActualUsd!: number;
+    totalVarianceUsd!: number;
+    totalVariancePercent!: number | undefined;
+    status!: string;
+    reportingAreaHa!: number | undefined;
+    budgetCostPerHectareUsd!: number | undefined;
+    actualCostPerHectareUsd!: number | undefined;
+    expectedProductionTonnes!: number | undefined;
+    actualHarvestedTonnes!: number | undefined;
+    budgetCostPerTonneUsd!: number | undefined;
+    actualCostPerTonneUsd!: number | undefined;
+    categories!: BudgetVarianceRowDto[];
+    actualSources!: CostSourceDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetVarianceReportDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.categories = [];
+            this.actualSources = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.cropCycleId = _data["cropCycleId"];
+            this.fieldId = _data["fieldId"];
+            this.farmName = _data["farmName"];
+            this.fieldName = _data["fieldName"];
+            this.budgetVersion = _data["budgetVersion"];
+            this.budgetApprovedAt = _data["budgetApprovedAt"] ? new Date(_data["budgetApprovedAt"].toString()) : undefined as any;
+            this.actualCostAsOf = _data["actualCostAsOf"] ? new Date(_data["actualCostAsOf"].toString()) : undefined as any;
+            this.totalBudgetUsd = _data["totalBudgetUsd"];
+            this.totalActualUsd = _data["totalActualUsd"];
+            this.totalVarianceUsd = _data["totalVarianceUsd"];
+            this.totalVariancePercent = _data["totalVariancePercent"];
+            this.status = _data["status"];
+            this.reportingAreaHa = _data["reportingAreaHa"];
+            this.budgetCostPerHectareUsd = _data["budgetCostPerHectareUsd"];
+            this.actualCostPerHectareUsd = _data["actualCostPerHectareUsd"];
+            this.expectedProductionTonnes = _data["expectedProductionTonnes"];
+            this.actualHarvestedTonnes = _data["actualHarvestedTonnes"];
+            this.budgetCostPerTonneUsd = _data["budgetCostPerTonneUsd"];
+            this.actualCostPerTonneUsd = _data["actualCostPerTonneUsd"];
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(BudgetVarianceRowDto.fromJS(item));
+            }
+            if (Array.isArray(_data["actualSources"])) {
+                this.actualSources = [] as any;
+                for (let item of _data["actualSources"])
+                    this.actualSources!.push(CostSourceDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): BudgetVarianceReportDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetVarianceReportDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["cropCycleId"] = this.cropCycleId;
+        data["fieldId"] = this.fieldId;
+        data["farmName"] = this.farmName;
+        data["fieldName"] = this.fieldName;
+        data["budgetVersion"] = this.budgetVersion;
+        data["budgetApprovedAt"] = this.budgetApprovedAt ? this.budgetApprovedAt.toISOString() : undefined as any;
+        data["actualCostAsOf"] = this.actualCostAsOf ? this.actualCostAsOf.toISOString() : undefined as any;
+        data["totalBudgetUsd"] = this.totalBudgetUsd;
+        data["totalActualUsd"] = this.totalActualUsd;
+        data["totalVarianceUsd"] = this.totalVarianceUsd;
+        data["totalVariancePercent"] = this.totalVariancePercent;
+        data["status"] = this.status;
+        data["reportingAreaHa"] = this.reportingAreaHa;
+        data["budgetCostPerHectareUsd"] = this.budgetCostPerHectareUsd;
+        data["actualCostPerHectareUsd"] = this.actualCostPerHectareUsd;
+        data["expectedProductionTonnes"] = this.expectedProductionTonnes;
+        data["actualHarvestedTonnes"] = this.actualHarvestedTonnes;
+        data["budgetCostPerTonneUsd"] = this.budgetCostPerTonneUsd;
+        data["actualCostPerTonneUsd"] = this.actualCostPerTonneUsd;
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.actualSources)) {
+            data["actualSources"] = [];
+            for (let item of this.actualSources)
+                data["actualSources"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IBudgetVarianceReportDto {
+    cropCycleId: string;
+    fieldId: string;
+    farmName: string;
+    fieldName: string;
+    budgetVersion: number;
+    budgetApprovedAt: Date;
+    actualCostAsOf: Date;
+    totalBudgetUsd: number;
+    totalActualUsd: number;
+    totalVarianceUsd: number;
+    totalVariancePercent: number | undefined;
+    status: string;
+    reportingAreaHa: number | undefined;
+    budgetCostPerHectareUsd: number | undefined;
+    actualCostPerHectareUsd: number | undefined;
+    expectedProductionTonnes: number | undefined;
+    actualHarvestedTonnes: number | undefined;
+    budgetCostPerTonneUsd: number | undefined;
+    actualCostPerTonneUsd: number | undefined;
+    categories: BudgetVarianceRowDto[];
+    actualSources: CostSourceDto[];
+
+    [key: string]: any;
+}
+
+export class BudgetVarianceRowDto implements IBudgetVarianceRowDto {
+    category!: string;
+    budgetUsd!: number;
+    actualUsd!: number;
+    varianceUsd!: number;
+    variancePercent!: number | undefined;
+    status!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IBudgetVarianceRowDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.category = _data["category"];
+            this.budgetUsd = _data["budgetUsd"];
+            this.actualUsd = _data["actualUsd"];
+            this.varianceUsd = _data["varianceUsd"];
+            this.variancePercent = _data["variancePercent"];
+            this.status = _data["status"];
+        }
+    }
+
+    static fromJS(data: any): BudgetVarianceRowDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new BudgetVarianceRowDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["category"] = this.category;
+        data["budgetUsd"] = this.budgetUsd;
+        data["actualUsd"] = this.actualUsd;
+        data["varianceUsd"] = this.varianceUsd;
+        data["variancePercent"] = this.variancePercent;
+        data["status"] = this.status;
+        return data;
+    }
+}
+
+export interface IBudgetVarianceRowDto {
+    category: string;
+    budgetUsd: number;
+    actualUsd: number;
+    varianceUsd: number;
+    variancePercent: number | undefined;
+    status: string;
 
     [key: string]: any;
 }
@@ -11173,6 +12508,122 @@ export interface ICreateActivityTypeRequest {
     supportsPlanned: boolean;
     supportsUnplanned: boolean;
     quantityBasis: string;
+
+    [key: string]: any;
+}
+
+export class CreateBudgetRequest implements ICreateBudgetRequest {
+    cropCycleId!: string;
+    name!: string;
+    reportingAreaHa!: number | undefined;
+    expectedProductionTonnes!: number | undefined;
+    notes!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateBudgetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.cropCycleId = _data["cropCycleId"];
+            this.name = _data["name"];
+            this.reportingAreaHa = _data["reportingAreaHa"];
+            this.expectedProductionTonnes = _data["expectedProductionTonnes"];
+            this.notes = _data["notes"];
+        }
+    }
+
+    static fromJS(data: any): CreateBudgetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateBudgetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["cropCycleId"] = this.cropCycleId;
+        data["name"] = this.name;
+        data["reportingAreaHa"] = this.reportingAreaHa;
+        data["expectedProductionTonnes"] = this.expectedProductionTonnes;
+        data["notes"] = this.notes;
+        return data;
+    }
+}
+
+export interface ICreateBudgetRequest {
+    cropCycleId: string;
+    name: string;
+    reportingAreaHa: number | undefined;
+    expectedProductionTonnes: number | undefined;
+    notes: string | undefined;
+
+    [key: string]: any;
+}
+
+export class CreateBudgetRevisionRequest implements ICreateBudgetRevisionRequest {
+    name!: string | undefined;
+    notes!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateBudgetRevisionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.notes = _data["notes"];
+        }
+    }
+
+    static fromJS(data: any): CreateBudgetRevisionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateBudgetRevisionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["notes"] = this.notes;
+        return data;
+    }
+}
+
+export interface ICreateBudgetRevisionRequest {
+    name: string | undefined;
+    notes: string | undefined;
 
     [key: string]: any;
 }
@@ -15353,6 +16804,54 @@ export interface IFieldReceiptLineDto {
     lotCode: string | undefined;
     unitCode: string;
     quantity: number;
+
+    [key: string]: any;
+}
+
+export class FinanceSessionDto implements IFinanceSessionDto {
+    securityRole!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IFinanceSessionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.securityRole = _data["securityRole"];
+        }
+    }
+
+    static fromJS(data: any): FinanceSessionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FinanceSessionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["securityRole"] = this.securityRole;
+        return data;
+    }
+}
+
+export interface IFinanceSessionDto {
+    securityRole: string;
 
     [key: string]: any;
 }
@@ -22242,6 +23741,70 @@ export interface IUnitOfMeasureDto {
     decimalPlaces: number;
     status: string;
     version: number;
+
+    [key: string]: any;
+}
+
+export class UpdateBudgetRequest implements IUpdateBudgetRequest {
+    name!: string;
+    reportingAreaHa!: number | undefined;
+    expectedProductionTonnes!: number | undefined;
+    notes!: string | undefined;
+    expectedRowVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateBudgetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.reportingAreaHa = _data["reportingAreaHa"];
+            this.expectedProductionTonnes = _data["expectedProductionTonnes"];
+            this.notes = _data["notes"];
+            this.expectedRowVersion = _data["expectedRowVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateBudgetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateBudgetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["reportingAreaHa"] = this.reportingAreaHa;
+        data["expectedProductionTonnes"] = this.expectedProductionTonnes;
+        data["notes"] = this.notes;
+        data["expectedRowVersion"] = this.expectedRowVersion;
+        return data;
+    }
+}
+
+export interface IUpdateBudgetRequest {
+    name: string;
+    reportingAreaHa: number | undefined;
+    expectedProductionTonnes: number | undefined;
+    notes: string | undefined;
+    expectedRowVersion: number;
 
     [key: string]: any;
 }

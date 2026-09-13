@@ -95,6 +95,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<OperationalTransaction> OperationalTransactions => Set<OperationalTransaction>();
     public DbSet<TransactionAllocation> TransactionAllocations => Set<TransactionAllocation>();
     public DbSet<FinanceAuditEventLink> FinanceAuditEventLinks => Set<FinanceAuditEventLink>();
+    public DbSet<Budget> Budgets => Set<Budget>();
+    public DbSet<BudgetLine> BudgetLines => Set<BudgetLine>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

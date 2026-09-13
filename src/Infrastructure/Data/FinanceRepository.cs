@@ -114,12 +114,45 @@ public sealed class FinanceRepository(ApplicationDbContext context) : IFinanceRe
             x.PayrollEarningLineId == earningLineId && x.CropCycleId == cropCycleId &&
             x.ReversalOfOperationalCostPostingId == null, cancellationToken);
 
+    public async Task<IReadOnlyList<Budget>> GetBudgetsAsync(Guid tenantId, Guid farmId,
+        Guid cropCycleId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Budget> query = context.Budgets.Include(x => x.Lines).Where(x =>
+            x.TenantId == tenantId && x.FarmId == farmId && x.CropCycleId == cropCycleId);
+        if (!trackChanges) query = query.AsNoTracking();
+        return await query.OrderByDescending(x => x.Version).ToListAsync(cancellationToken);
+    }
+
+    public Task<Budget?> GetBudgetAsync(Guid tenantId, Guid farmId, Guid budgetId,
+        bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Budget> query = context.Budgets.Include(x => x.Lines).Where(x =>
+            x.TenantId == tenantId && x.FarmId == farmId && x.Id == budgetId);
+        return (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<Budget?> GetCurrentApprovedBudgetAsync(Guid tenantId, Guid farmId,
+        Guid cropCycleId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Budget> query = context.Budgets.Include(x => x.Lines).Where(x =>
+            x.TenantId == tenantId && x.FarmId == farmId && x.CropCycleId == cropCycleId &&
+            x.Status == BudgetStatus.Approved);
+        return (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<Budget?> GetBudgetByApprovalKeyAsync(Guid tenantId, Guid farmId,
+        string idempotencyKey, CancellationToken cancellationToken) => context.Budgets.AsNoTracking()
+        .Include(x => x.Lines).SingleOrDefaultAsync(x => x.TenantId == tenantId &&
+            x.FarmId == farmId && x.ApprovalIdempotencyKey == idempotencyKey, cancellationToken);
+
     public void RemoveDraftAllocations(IReadOnlyCollection<TransactionAllocation> allocations) =>
         context.TransactionAllocations.RemoveRange(allocations);
     public void Add(OperationalTransaction transaction) => context.OperationalTransactions.Add(transaction);
     public void Add(OperationalCostPosting posting) => context.OperationalCostPostings.Add(posting);
     public void Add(AuditEvent auditEvent) => context.AuditEvents.Add(auditEvent);
     public void Add(FinanceAuditEventLink auditLink) => context.FinanceAuditEventLinks.Add(auditLink);
+    public void Add(Budget budget) => context.Budgets.Add(budget);
+    public void Remove(BudgetLine line) => context.BudgetLines.Remove(line);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {

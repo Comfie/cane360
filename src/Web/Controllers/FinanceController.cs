@@ -12,6 +12,10 @@ namespace Cane360.Web.Controllers;
 [Route("api/finance")]
 public sealed class FinanceController(IFinanceService finance) : ControllerBase
 {
+    [HttpGet("session", Name = "GetFinanceSession")]
+    public async Task<ActionResult<FinanceSessionDto>> GetSession(CancellationToken cancellationToken) =>
+        Ok(await finance.GetSessionAsync(cancellationToken));
+
     [HttpGet("transactions", Name = "GetFinanceTransactions")]
     public async Task<ActionResult<IReadOnlyList<OperationalTransactionDto>>> GetTransactions(
         [FromQuery] string? from, [FromQuery] string? to, [FromQuery] string? type,
@@ -80,6 +84,76 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
     public async Task<ActionResult<PayrollCostReconciliationDto>> ReconcilePayrollCosts(
         CancellationToken cancellationToken) => Ok(await finance.ReconcilePayrollAsync(cancellationToken));
 
+    [HttpGet("crop-cycles/{cropCycleId:guid}/budgets", Name = "GetFinanceBudgets")]
+    public async Task<ActionResult<IReadOnlyList<BudgetDto>>> GetBudgets(Guid cropCycleId,
+        CancellationToken cancellationToken) => Ok(await finance.GetBudgetsAsync(cropCycleId,
+            cancellationToken));
+
+    [HttpGet("budgets/{budgetId:guid}", Name = "GetFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> GetBudget(Guid budgetId,
+        CancellationToken cancellationToken) => Ok(await finance.GetBudgetAsync(budgetId,
+            cancellationToken));
+
+    [HttpGet("crop-cycles/{cropCycleId:guid}/budgets/current", Name = "GetCurrentFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> GetCurrentBudget(Guid cropCycleId,
+        CancellationToken cancellationToken)
+    {
+        BudgetDto? result = await finance.GetCurrentApprovedBudgetAsync(cropCycleId, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpPost("budgets", Name = "CreateFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> CreateBudget(CreateBudgetRequest request,
+        CancellationToken cancellationToken)
+    {
+        BudgetDto result = await finance.CreateBudgetAsync(new(request.CropCycleId, request.Name,
+            request.ReportingAreaHa, request.ExpectedProductionTonnes, request.Notes), cancellationToken);
+        return CreatedAtAction(nameof(GetBudget), new { budgetId = result.Id }, result);
+    }
+
+    [HttpPut("budgets/{budgetId:guid}", Name = "UpdateFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> UpdateBudget(Guid budgetId,
+        UpdateBudgetRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.UpdateBudgetAsync(budgetId, new(request.Name, request.ReportingAreaHa,
+            request.ExpectedProductionTonnes, request.Notes, request.ExpectedRowVersion),
+            cancellationToken));
+
+    [HttpPost("budgets/{budgetId:guid}/lines", Name = "AddFinanceBudgetLine")]
+    public async Task<ActionResult<BudgetDto>> AddBudgetLine(Guid budgetId,
+        BudgetLineRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.AddBudgetLineAsync(budgetId, LineInput(request), cancellationToken));
+
+    [HttpPut("budgets/{budgetId:guid}/lines/{lineId:guid}", Name = "UpdateFinanceBudgetLine")]
+    public async Task<ActionResult<BudgetDto>> UpdateBudgetLine(Guid budgetId, Guid lineId,
+        BudgetLineRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.UpdateBudgetLineAsync(budgetId, lineId, LineInput(request), cancellationToken));
+
+    [HttpDelete("budgets/{budgetId:guid}/lines/{lineId:guid}", Name = "RemoveFinanceBudgetLine")]
+    public async Task<ActionResult<BudgetDto>> RemoveBudgetLine(Guid budgetId, Guid lineId,
+        [FromQuery] long expectedRowVersion, CancellationToken cancellationToken) => Ok(await
+        finance.RemoveBudgetLineAsync(budgetId, lineId, new(expectedRowVersion), cancellationToken));
+
+    [HttpPost("budgets/{budgetId:guid}/submit", Name = "SubmitFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> SubmitBudget(Guid budgetId,
+        BudgetActionRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.SubmitBudgetAsync(budgetId, new(request.ExpectedRowVersion), cancellationToken));
+
+    [HttpPost("budgets/{budgetId:guid}/approve", Name = "ApproveFinanceBudget")]
+    public async Task<ActionResult<BudgetDto>> ApproveBudget(Guid budgetId,
+        ApproveBudgetRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.ApproveBudgetAsync(budgetId, new(request.ExpectedRowVersion,
+            request.IdempotencyKey), cancellationToken));
+
+    [HttpPost("budgets/{budgetId:guid}/revisions", Name = "CreateFinanceBudgetRevision")]
+    public async Task<ActionResult<BudgetDto>> CreateBudgetRevision(Guid budgetId,
+        CreateBudgetRevisionRequest request, CancellationToken cancellationToken) => Ok(await
+        finance.CreateBudgetRevisionAsync(budgetId, new(request.Name, request.Notes), cancellationToken));
+
+    [HttpGet("crop-cycles/{cropCycleId:guid}/budget-variance", Name = "GetFinanceBudgetVariance")]
+    public async Task<ActionResult<BudgetVarianceReportDto>> GetBudgetVariance(Guid cropCycleId,
+        CancellationToken cancellationToken) => Ok(await finance.GetBudgetVarianceAsync(cropCycleId,
+            cancellationToken));
+
     private static bool TryOptionalDate(string? value, out DateOnly? date)
     {
         date = null;
@@ -92,4 +166,8 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
     private BadRequestObjectResult DateError(string propertyName) => BadRequest(
         new ValidationProblemDetails(new Dictionary<string, string[]>
             { [propertyName] = ["Date must use yyyy-MM-dd."] }));
+
+    private static BudgetLineInput LineInput(BudgetLineRequest request) => new(request.Category,
+        request.Description, request.AmountUsd, request.Quantity, request.Unit,
+        request.UnitRateUsd, request.Notes, request.ExpectedRowVersion);
 }
