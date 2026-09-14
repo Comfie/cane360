@@ -6907,6 +6907,1556 @@ export class InventoryClient {
     }
 }
 
+export class MillRecordsClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    getMillRecordsSession(): Promise<MillRecordsSessionDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/session";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMillRecordsSession(_response);
+        });
+    }
+
+    protected processGetMillRecordsSession(response: Response): Promise<MillRecordsSessionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MillRecordsSessionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillRecordsSessionDto>(null as any);
+    }
+
+    /**
+     * @param includeInactive (optional)
+     * @return OK
+     */
+    getMills(includeInactive: boolean | undefined): Promise<MillDto[]> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/mills?";
+        if (includeInactive === null)
+            throw new globalThis.Error("The parameter 'includeInactive' cannot be null.");
+        else if (includeInactive !== undefined)
+            url_ += "includeInactive=" + encodeURIComponent("" + includeInactive) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMills(_response);
+        });
+    }
+
+    protected processGetMills(response: Response): Promise<MillDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(MillDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createMill(body: MillRequest): Promise<MillDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/mills";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateMill(_response);
+        });
+    }
+
+    protected processCreateMill(response: Response): Promise<MillDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MillDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateMill(millId: string, body: MillRequest): Promise<MillDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/mills/{millId}";
+        if (millId === undefined || millId === null)
+            throw new globalThis.Error("The parameter 'millId' must be defined.");
+        url_ = url_.replace("{millId}", encodeURIComponent("" + millId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMill(_response);
+        });
+    }
+
+    protected processUpdateMill(response: Response): Promise<MillDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MillDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    deactivateMill(millId: string, body: RecordMillRecordRequest): Promise<MillDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/mills/{millId}/deactivate";
+        if (millId === undefined || millId === null)
+            throw new globalThis.Error("The parameter 'millId' must be defined.");
+        url_ = url_.replace("{millId}", encodeURIComponent("" + millId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeactivateMill(_response);
+        });
+    }
+
+    protected processDeactivateMill(response: Response): Promise<MillDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MillDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillDto>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param millId (optional)
+     * @param fieldId (optional)
+     * @param cropCycleId (optional)
+     * @param status (optional)
+     * @param matchStatus (optional)
+     * @param search (optional)
+     * @return OK
+     */
+    getWeighbridgeTickets(from: string | undefined, to: string | undefined, millId: string | undefined, fieldId: string | undefined, cropCycleId: string | undefined, status: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<WeighbridgeTicketDto[]> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (millId === null)
+            throw new globalThis.Error("The parameter 'millId' cannot be null.");
+        else if (millId !== undefined)
+            url_ += "millId=" + encodeURIComponent("" + millId) + "&";
+        if (fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' cannot be null.");
+        else if (fieldId !== undefined)
+            url_ += "fieldId=" + encodeURIComponent("" + fieldId) + "&";
+        if (cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' cannot be null.");
+        else if (cropCycleId !== undefined)
+            url_ += "cropCycleId=" + encodeURIComponent("" + cropCycleId) + "&";
+        if (status === null)
+            throw new globalThis.Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        if (matchStatus === null)
+            throw new globalThis.Error("The parameter 'matchStatus' cannot be null.");
+        else if (matchStatus !== undefined)
+            url_ += "matchStatus=" + encodeURIComponent("" + matchStatus) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetWeighbridgeTickets(_response);
+        });
+    }
+
+    protected processGetWeighbridgeTickets(response: Response): Promise<WeighbridgeTicketDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(WeighbridgeTicketDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createWeighbridgeTicket(body: TicketRequest): Promise<WeighbridgeTicketDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateWeighbridgeTicket(_response);
+        });
+    }
+
+    protected processCreateWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeighbridgeTicketDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getWeighbridgeTicket(ticketId: string): Promise<WeighbridgeTicketDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/{ticketId}";
+        if (ticketId === undefined || ticketId === null)
+            throw new globalThis.Error("The parameter 'ticketId' must be defined.");
+        url_ = url_.replace("{ticketId}", encodeURIComponent("" + ticketId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetWeighbridgeTicket(_response);
+        });
+    }
+
+    protected processGetWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeighbridgeTicketDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateWeighbridgeTicket(ticketId: string, body: TicketRequest): Promise<WeighbridgeTicketDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/{ticketId}";
+        if (ticketId === undefined || ticketId === null)
+            throw new globalThis.Error("The parameter 'ticketId' must be defined.");
+        url_ = url_.replace("{ticketId}", encodeURIComponent("" + ticketId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateWeighbridgeTicket(_response);
+        });
+    }
+
+    protected processUpdateWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeighbridgeTicketDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    recordWeighbridgeTicket(ticketId: string, body: RecordMillRecordRequest): Promise<WeighbridgeTicketDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/{ticketId}/record";
+        if (ticketId === undefined || ticketId === null)
+            throw new globalThis.Error("The parameter 'ticketId' must be defined.");
+        url_ = url_.replace("{ticketId}", encodeURIComponent("" + ticketId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRecordWeighbridgeTicket(_response);
+        });
+    }
+
+    protected processRecordWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeighbridgeTicketDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    correctWeighbridgeTicket(ticketId: string, body: CorrectTicketRequest): Promise<WeighbridgeTicketDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/{ticketId}/corrections";
+        if (ticketId === undefined || ticketId === null)
+            throw new globalThis.Error("The parameter 'ticketId' must be defined.");
+        url_ = url_.replace("{ticketId}", encodeURIComponent("" + ticketId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCorrectWeighbridgeTicket(_response);
+        });
+    }
+
+    protected processCorrectWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeighbridgeTicketDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeighbridgeTicketDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    uploadWeighbridgeTicketEvidence(ticketId: string, body: EvidenceUploadRequest): Promise<EvidenceDocumentDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/{ticketId}/evidence";
+        if (ticketId === undefined || ticketId === null)
+            throw new globalThis.Error("The parameter 'ticketId' must be defined.");
+        url_ = url_.replace("{ticketId}", encodeURIComponent("" + ticketId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadWeighbridgeTicketEvidence(_response);
+        });
+    }
+
+    protected processUploadWeighbridgeTicketEvidence(response: Response): Promise<EvidenceDocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EvidenceDocumentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EvidenceDocumentDto>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param millId (optional)
+     * @param matchStatus (optional)
+     * @param search (optional)
+     * @return OK
+     */
+    getGrowerStatements(from: string | undefined, to: string | undefined, millId: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<GrowerStatementDto[]> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (millId === null)
+            throw new globalThis.Error("The parameter 'millId' cannot be null.");
+        else if (millId !== undefined)
+            url_ += "millId=" + encodeURIComponent("" + millId) + "&";
+        if (matchStatus === null)
+            throw new globalThis.Error("The parameter 'matchStatus' cannot be null.");
+        else if (matchStatus !== undefined)
+            url_ += "matchStatus=" + encodeURIComponent("" + matchStatus) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetGrowerStatements(_response);
+        });
+    }
+
+    protected processGetGrowerStatements(response: Response): Promise<GrowerStatementDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(GrowerStatementDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    createGrowerStatement(body: StatementRequest): Promise<GrowerStatementDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateGrowerStatement(_response);
+        });
+    }
+
+    protected processCreateGrowerStatement(response: Response): Promise<GrowerStatementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GrowerStatementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getGrowerStatement(statementId: string): Promise<GrowerStatementDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetGrowerStatement(_response);
+        });
+    }
+
+    protected processGetGrowerStatement(response: Response): Promise<GrowerStatementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GrowerStatementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateGrowerStatement(statementId: string, body: StatementRequest): Promise<GrowerStatementDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateGrowerStatement(_response);
+        });
+    }
+
+    protected processUpdateGrowerStatement(response: Response): Promise<GrowerStatementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GrowerStatementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    recordGrowerStatement(statementId: string, body: RecordMillRecordRequest): Promise<GrowerStatementDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/record";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRecordGrowerStatement(_response);
+        });
+    }
+
+    protected processRecordGrowerStatement(response: Response): Promise<GrowerStatementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GrowerStatementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    correctGrowerStatement(statementId: string, body: CorrectStatementRequest): Promise<GrowerStatementDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/corrections";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCorrectGrowerStatement(_response);
+        });
+    }
+
+    protected processCorrectGrowerStatement(response: Response): Promise<GrowerStatementDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = GrowerStatementDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<GrowerStatementDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    uploadGrowerStatementEvidence(statementId: string, body: EvidenceUploadRequest): Promise<EvidenceDocumentDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/evidence";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadGrowerStatementEvidence(_response);
+        });
+    }
+
+    protected processUploadGrowerStatementEvidence(response: Response): Promise<EvidenceDocumentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EvidenceDocumentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EvidenceDocumentDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    downloadMillRecordEvidence(evidenceId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/evidence/{evidenceId}";
+        if (evidenceId === undefined || evidenceId === null)
+            throw new globalThis.Error("The parameter 'evidenceId' must be defined.");
+        url_ = url_.replace("{evidenceId}", encodeURIComponent("" + evidenceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDownloadMillRecordEvidence(_response);
+        });
+    }
+
+    protected processDownloadMillRecordEvidence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getStatementCandidateTickets(statementId: string): Promise<CandidateTicketDto[]> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/candidates";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetStatementCandidateTickets(_response);
+        });
+    }
+
+    protected processGetStatementCandidateTickets(response: Response): Promise<CandidateTicketDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CandidateTicketDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CandidateTicketDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    addStatementTicketMatch(statementId: string, body: AddStatementTicketMatchRequest): Promise<ReconciliationSummaryDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/matches";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddStatementTicketMatch(_response);
+        });
+    }
+
+    protected processAddStatementTicketMatch(response: Response): Promise<ReconciliationSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReconciliationSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReconciliationSummaryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reverseStatementTicketMatch(statementId: string, matchId: string, body: ReverseStatementTicketMatchRequest): Promise<ReconciliationSummaryDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/matches/{matchId}/reverse";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        if (matchId === undefined || matchId === null)
+            throw new globalThis.Error("The parameter 'matchId' must be defined.");
+        url_ = url_.replace("{matchId}", encodeURIComponent("" + matchId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReverseStatementTicketMatch(_response);
+        });
+    }
+
+    protected processReverseStatementTicketMatch(response: Response): Promise<ReconciliationSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReconciliationSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReconciliationSummaryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getStatementReconciliation(statementId: string): Promise<ReconciliationSummaryDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/{statementId}/reconciliation";
+        if (statementId === undefined || statementId === null)
+            throw new globalThis.Error("The parameter 'statementId' must be defined.");
+        url_ = url_.replace("{statementId}", encodeURIComponent("" + statementId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetStatementReconciliation(_response);
+        });
+    }
+
+    protected processGetStatementReconciliation(response: Response): Promise<ReconciliationSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReconciliationSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReconciliationSummaryDto>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param millId (optional)
+     * @param fieldId (optional)
+     * @param cropCycleId (optional)
+     * @param status (optional)
+     * @param matchStatus (optional)
+     * @param search (optional)
+     * @return OK
+     */
+    exportWeighbridgeRegister(from: string | undefined, to: string | undefined, millId: string | undefined, fieldId: string | undefined, cropCycleId: string | undefined, status: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/tickets/export?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (millId === null)
+            throw new globalThis.Error("The parameter 'millId' cannot be null.");
+        else if (millId !== undefined)
+            url_ += "millId=" + encodeURIComponent("" + millId) + "&";
+        if (fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' cannot be null.");
+        else if (fieldId !== undefined)
+            url_ += "fieldId=" + encodeURIComponent("" + fieldId) + "&";
+        if (cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' cannot be null.");
+        else if (cropCycleId !== undefined)
+            url_ += "cropCycleId=" + encodeURIComponent("" + cropCycleId) + "&";
+        if (status === null)
+            throw new globalThis.Error("The parameter 'status' cannot be null.");
+        else if (status !== undefined)
+            url_ += "status=" + encodeURIComponent("" + status) + "&";
+        if (matchStatus === null)
+            throw new globalThis.Error("The parameter 'matchStatus' cannot be null.");
+        else if (matchStatus !== undefined)
+            url_ += "matchStatus=" + encodeURIComponent("" + matchStatus) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExportWeighbridgeRegister(_response);
+        });
+    }
+
+    protected processExportWeighbridgeRegister(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param millId (optional)
+     * @param matchStatus (optional)
+     * @param search (optional)
+     * @return OK
+     */
+    exportStatementReconciliation(from: string | undefined, to: string | undefined, millId: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/statements/export?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "from=" + encodeURIComponent("" + from) + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "to=" + encodeURIComponent("" + to) + "&";
+        if (millId === null)
+            throw new globalThis.Error("The parameter 'millId' cannot be null.");
+        else if (millId !== undefined)
+            url_ += "millId=" + encodeURIComponent("" + millId) + "&";
+        if (matchStatus === null)
+            throw new globalThis.Error("The parameter 'matchStatus' cannot be null.");
+        else if (matchStatus !== undefined)
+            url_ += "matchStatus=" + encodeURIComponent("" + matchStatus) + "&";
+        if (search === null)
+            throw new globalThis.Error("The parameter 'search' cannot be null.");
+        else if (search !== undefined)
+            url_ += "search=" + encodeURIComponent("" + search) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExportStatementReconciliation(_response);
+        });
+    }
+
+    protected processExportStatementReconciliation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export class PayrollClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -10264,6 +11814,82 @@ export interface IAddSourceReferenceRequest {
     [key: string]: any;
 }
 
+export class AddStatementTicketMatchRequest implements IAddStatementTicketMatchRequest {
+    weighbridgeTicketId!: string;
+    matchedTonnes!: number | undefined;
+    matchedAmountUsd!: number | undefined;
+    completesMatching!: boolean;
+    reason!: string | undefined;
+    idempotencyKey!: string;
+    expectedStatementVersion!: number;
+    expectedTicketVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAddStatementTicketMatchRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.weighbridgeTicketId = _data["weighbridgeTicketId"];
+            this.matchedTonnes = _data["matchedTonnes"];
+            this.matchedAmountUsd = _data["matchedAmountUsd"];
+            this.completesMatching = _data["completesMatching"];
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+            this.expectedStatementVersion = _data["expectedStatementVersion"];
+            this.expectedTicketVersion = _data["expectedTicketVersion"];
+        }
+    }
+
+    static fromJS(data: any): AddStatementTicketMatchRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AddStatementTicketMatchRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["weighbridgeTicketId"] = this.weighbridgeTicketId;
+        data["matchedTonnes"] = this.matchedTonnes;
+        data["matchedAmountUsd"] = this.matchedAmountUsd;
+        data["completesMatching"] = this.completesMatching;
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        data["expectedStatementVersion"] = this.expectedStatementVersion;
+        data["expectedTicketVersion"] = this.expectedTicketVersion;
+        return data;
+    }
+}
+
+export interface IAddStatementTicketMatchRequest {
+    weighbridgeTicketId: string;
+    matchedTonnes: number | undefined;
+    matchedAmountUsd: number | undefined;
+    completesMatching: boolean;
+    reason: string | undefined;
+    idempotencyKey: string;
+    expectedStatementVersion: number;
+    expectedTicketVersion: number;
+
+    [key: string]: any;
+}
+
 export class AddUnexpectedStockCountLineRequest implements IAddUnexpectedStockCountLineRequest {
     inventoryItemId!: string;
     inventoryLotId!: string | undefined;
@@ -11850,6 +13476,94 @@ export interface ICancelWorkerAdvanceRequest {
     [key: string]: any;
 }
 
+export class CandidateTicketDto implements ICandidateTicketDto {
+    id!: string;
+    ticketReference!: string;
+    ticketDate!: string;
+    netTonnes!: number;
+    availableTonnes!: number;
+    version!: number;
+    fieldId!: string | undefined;
+    fieldName!: string | undefined;
+    cropCycleId!: string | undefined;
+    cropCycleLabel!: string | undefined;
+    matchedToAnotherStatement!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICandidateTicketDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.ticketReference = _data["ticketReference"];
+            this.ticketDate = _data["ticketDate"];
+            this.netTonnes = _data["netTonnes"];
+            this.availableTonnes = _data["availableTonnes"];
+            this.version = _data["version"];
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.cropCycleLabel = _data["cropCycleLabel"];
+            this.matchedToAnotherStatement = _data["matchedToAnotherStatement"];
+        }
+    }
+
+    static fromJS(data: any): CandidateTicketDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CandidateTicketDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["ticketReference"] = this.ticketReference;
+        data["ticketDate"] = this.ticketDate;
+        data["netTonnes"] = this.netTonnes;
+        data["availableTonnes"] = this.availableTonnes;
+        data["version"] = this.version;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["cropCycleId"] = this.cropCycleId;
+        data["cropCycleLabel"] = this.cropCycleLabel;
+        data["matchedToAnotherStatement"] = this.matchedToAnotherStatement;
+        return data;
+    }
+}
+
+export interface ICandidateTicketDto {
+    id: string;
+    ticketReference: string;
+    ticketDate: string;
+    netTonnes: number;
+    availableTonnes: number;
+    version: number;
+    fieldId: string | undefined;
+    fieldName: string | undefined;
+    cropCycleId: string | undefined;
+    cropCycleLabel: string | undefined;
+    matchedToAnotherStatement: boolean;
+
+    [key: string]: any;
+}
+
 export class CashPaymentRegisterDto implements ICashPaymentRegisterDto {
     farmName!: string;
     payrollPeriod!: string;
@@ -12177,6 +13891,124 @@ export class ConfirmWorkRecordRequest implements IConfirmWorkRecordRequest {
 
 export interface IConfirmWorkRecordRequest {
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class CorrectStatementRequest implements ICorrectStatementRequest {
+    reason!: string;
+    idempotencyKey!: string;
+    replacement!: StatementRequest;
+
+    [key: string]: any;
+
+    constructor(data?: ICorrectStatementRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.replacement = new StatementRequest();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+            this.replacement = _data["replacement"] ? StatementRequest.fromJS(_data["replacement"]) : new StatementRequest();
+        }
+    }
+
+    static fromJS(data: any): CorrectStatementRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CorrectStatementRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        data["replacement"] = this.replacement ? this.replacement.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICorrectStatementRequest {
+    reason: string;
+    idempotencyKey: string;
+    replacement: StatementRequest;
+
+    [key: string]: any;
+}
+
+export class CorrectTicketRequest implements ICorrectTicketRequest {
+    reason!: string;
+    idempotencyKey!: string;
+    replacement!: TicketRequest;
+
+    [key: string]: any;
+
+    constructor(data?: ICorrectTicketRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.replacement = new TicketRequest();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+            this.replacement = _data["replacement"] ? TicketRequest.fromJS(_data["replacement"]) : new TicketRequest();
+        }
+    }
+
+    static fromJS(data: any): CorrectTicketRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CorrectTicketRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        data["replacement"] = this.replacement ? this.replacement.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICorrectTicketRequest {
+    reason: string;
+    idempotencyKey: string;
+    replacement: TicketRequest;
 
     [key: string]: any;
 }
@@ -16270,6 +18102,70 @@ export interface IEnterStockCountLineRequest {
     [key: string]: any;
 }
 
+export class EvidenceDocumentDto implements IEvidenceDocumentDto {
+    id!: string;
+    originalFileName!: string;
+    contentType!: string;
+    sizeBytes!: number;
+    uploadedAt!: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IEvidenceDocumentDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.originalFileName = _data["originalFileName"];
+            this.contentType = _data["contentType"];
+            this.sizeBytes = _data["sizeBytes"];
+            this.uploadedAt = _data["uploadedAt"] ? new Date(_data["uploadedAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): EvidenceDocumentDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EvidenceDocumentDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["originalFileName"] = this.originalFileName;
+        data["contentType"] = this.contentType;
+        data["sizeBytes"] = this.sizeBytes;
+        data["uploadedAt"] = this.uploadedAt ? this.uploadedAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IEvidenceDocumentDto {
+    id: string;
+    originalFileName: string;
+    contentType: string;
+    sizeBytes: number;
+    uploadedAt: Date;
+
+    [key: string]: any;
+}
+
 export class EvidenceLinkDto implements IEvidenceLinkDto {
     id!: string;
     role!: string;
@@ -16334,6 +18230,62 @@ export interface IEvidenceLinkDto {
     capturedDate: string;
     recordedAt: string;
     recordedBy: string;
+
+    [key: string]: any;
+}
+
+export class EvidenceUploadRequest implements IEvidenceUploadRequest {
+    fileName!: string;
+    contentType!: string;
+    contentBase64!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IEvidenceUploadRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.fileName = _data["fileName"];
+            this.contentType = _data["contentType"];
+            this.contentBase64 = _data["contentBase64"];
+        }
+    }
+
+    static fromJS(data: any): EvidenceUploadRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new EvidenceUploadRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["fileName"] = this.fileName;
+        data["contentType"] = this.contentType;
+        data["contentBase64"] = this.contentBase64;
+        return data;
+    }
+}
+
+export interface IEvidenceUploadRequest {
+    fileName: string;
+    contentType: string;
+    contentBase64: string;
 
     [key: string]: any;
 }
@@ -16904,6 +18856,142 @@ export class GrowerDto implements IGrowerDto {
 export interface IGrowerDto {
     displayName: string;
     phone: string | undefined;
+
+    [key: string]: any;
+}
+
+export class GrowerStatementDto implements IGrowerStatementDto {
+    id!: string;
+    millId!: string;
+    millCode!: string;
+    millName!: string;
+    statementReference!: string;
+    periodStart!: string;
+    periodEnd!: string;
+    totalTonnes!: number;
+    totalAmountUsd!: number;
+    notes!: string | undefined;
+    status!: string;
+    version!: number;
+    createdAt!: Date;
+    recordedAt!: Date | undefined;
+    correctsStatementId!: string | undefined;
+    correctionReason!: string | undefined;
+    correctedByStatementId!: string | undefined;
+    isCurrent!: boolean;
+    evidence!: EvidenceDocumentDto[];
+    reconciliation!: ReconciliationSummaryDto;
+
+    [key: string]: any;
+
+    constructor(data?: IGrowerStatementDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.evidence = [];
+            this.reconciliation = new ReconciliationSummaryDto();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.millId = _data["millId"];
+            this.millCode = _data["millCode"];
+            this.millName = _data["millName"];
+            this.statementReference = _data["statementReference"];
+            this.periodStart = _data["periodStart"];
+            this.periodEnd = _data["periodEnd"];
+            this.totalTonnes = _data["totalTonnes"];
+            this.totalAmountUsd = _data["totalAmountUsd"];
+            this.notes = _data["notes"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.recordedAt = _data["recordedAt"] ? new Date(_data["recordedAt"].toString()) : undefined as any;
+            this.correctsStatementId = _data["correctsStatementId"];
+            this.correctionReason = _data["correctionReason"];
+            this.correctedByStatementId = _data["correctedByStatementId"];
+            this.isCurrent = _data["isCurrent"];
+            if (Array.isArray(_data["evidence"])) {
+                this.evidence = [] as any;
+                for (let item of _data["evidence"])
+                    this.evidence!.push(EvidenceDocumentDto.fromJS(item));
+            }
+            this.reconciliation = _data["reconciliation"] ? ReconciliationSummaryDto.fromJS(_data["reconciliation"]) : new ReconciliationSummaryDto();
+        }
+    }
+
+    static fromJS(data: any): GrowerStatementDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrowerStatementDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["millId"] = this.millId;
+        data["millCode"] = this.millCode;
+        data["millName"] = this.millName;
+        data["statementReference"] = this.statementReference;
+        data["periodStart"] = this.periodStart;
+        data["periodEnd"] = this.periodEnd;
+        data["totalTonnes"] = this.totalTonnes;
+        data["totalAmountUsd"] = this.totalAmountUsd;
+        data["notes"] = this.notes;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["recordedAt"] = this.recordedAt ? this.recordedAt.toISOString() : undefined as any;
+        data["correctsStatementId"] = this.correctsStatementId;
+        data["correctionReason"] = this.correctionReason;
+        data["correctedByStatementId"] = this.correctedByStatementId;
+        data["isCurrent"] = this.isCurrent;
+        if (Array.isArray(this.evidence)) {
+            data["evidence"] = [];
+            for (let item of this.evidence)
+                data["evidence"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["reconciliation"] = this.reconciliation ? this.reconciliation.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IGrowerStatementDto {
+    id: string;
+    millId: string;
+    millCode: string;
+    millName: string;
+    statementReference: string;
+    periodStart: string;
+    periodEnd: string;
+    totalTonnes: number;
+    totalAmountUsd: number;
+    notes: string | undefined;
+    status: string;
+    version: number;
+    createdAt: Date;
+    recordedAt: Date | undefined;
+    correctsStatementId: string | undefined;
+    correctionReason: string | undefined;
+    correctedByStatementId: string | undefined;
+    isCurrent: boolean;
+    evidence: EvidenceDocumentDto[];
+    reconciliation: ReconciliationSummaryDto;
 
     [key: string]: any;
 }
@@ -18786,6 +20874,332 @@ export interface IManagerInvitationDto {
     revokedAt: Date | undefined;
     redeemedAt: Date | undefined;
     version: number;
+
+    [key: string]: any;
+}
+
+export class MillCropCycleDto implements IMillCropCycleDto {
+    id!: string;
+    variety!: string;
+    status!: string;
+    actualHarvestedTonnes!: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IMillCropCycleDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.variety = _data["variety"];
+            this.status = _data["status"];
+            this.actualHarvestedTonnes = _data["actualHarvestedTonnes"];
+        }
+    }
+
+    static fromJS(data: any): MillCropCycleDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MillCropCycleDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["variety"] = this.variety;
+        data["status"] = this.status;
+        data["actualHarvestedTonnes"] = this.actualHarvestedTonnes;
+        return data;
+    }
+}
+
+export interface IMillCropCycleDto {
+    id: string;
+    variety: string;
+    status: string;
+    actualHarvestedTonnes: number | undefined;
+
+    [key: string]: any;
+}
+
+export class MillDto implements IMillDto {
+    id!: string;
+    code!: string;
+    name!: string;
+    location!: string | undefined;
+    active!: boolean;
+    createdAt!: Date;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMillDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.location = _data["location"];
+            this.active = _data["active"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): MillDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MillDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["location"] = this.location;
+        data["active"] = this.active;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IMillDto {
+    id: string;
+    code: string;
+    name: string;
+    location: string | undefined;
+    active: boolean;
+    createdAt: Date;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class MillFieldDto implements IMillFieldDto {
+    id!: string;
+    code!: string;
+    name!: string;
+    cropCycles!: MillCropCycleDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IMillFieldDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.cropCycles = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+            if (Array.isArray(_data["cropCycles"])) {
+                this.cropCycles = [] as any;
+                for (let item of _data["cropCycles"])
+                    this.cropCycles!.push(MillCropCycleDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MillFieldDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MillFieldDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        if (Array.isArray(this.cropCycles)) {
+            data["cropCycles"] = [];
+            for (let item of this.cropCycles)
+                data["cropCycles"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IMillFieldDto {
+    id: string;
+    code: string;
+    name: string;
+    cropCycles: MillCropCycleDto[];
+
+    [key: string]: any;
+}
+
+export class MillRecordsSessionDto implements IMillRecordsSessionDto {
+    role!: string;
+    fields!: MillFieldDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IMillRecordsSessionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.fields = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.role = _data["role"];
+            if (Array.isArray(_data["fields"])) {
+                this.fields = [] as any;
+                for (let item of _data["fields"])
+                    this.fields!.push(MillFieldDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MillRecordsSessionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MillRecordsSessionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["role"] = this.role;
+        if (Array.isArray(this.fields)) {
+            data["fields"] = [];
+            for (let item of this.fields)
+                data["fields"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IMillRecordsSessionDto {
+    role: string;
+    fields: MillFieldDto[];
+
+    [key: string]: any;
+}
+
+export class MillRequest implements IMillRequest {
+    code!: string;
+    name!: string;
+    location!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IMillRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.location = _data["location"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): MillRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new MillRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["location"] = this.location;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IMillRequest {
+    code: string;
+    name: string;
+    location: string | undefined;
+    expectedVersion: number;
 
     [key: string]: any;
 }
@@ -21247,6 +23661,105 @@ export interface IProblemDetails {
     [key: string]: any;
 }
 
+export class ReconciliationSummaryDto implements IReconciliationSummaryDto {
+    growerStatementId!: string;
+    statementTonnes!: number;
+    matchedTicketTonnes!: number;
+    tonnesVariance!: number;
+    statementAmountUsd!: number;
+    matchedAmountUsd!: number | undefined;
+    amountVarianceUsd!: number | undefined;
+    amountStatus!: string;
+    status!: string;
+    hasCrossStatementTicketReuse!: boolean;
+    matches!: StatementTicketMatchDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IReconciliationSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.matches = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.growerStatementId = _data["growerStatementId"];
+            this.statementTonnes = _data["statementTonnes"];
+            this.matchedTicketTonnes = _data["matchedTicketTonnes"];
+            this.tonnesVariance = _data["tonnesVariance"];
+            this.statementAmountUsd = _data["statementAmountUsd"];
+            this.matchedAmountUsd = _data["matchedAmountUsd"];
+            this.amountVarianceUsd = _data["amountVarianceUsd"];
+            this.amountStatus = _data["amountStatus"];
+            this.status = _data["status"];
+            this.hasCrossStatementTicketReuse = _data["hasCrossStatementTicketReuse"];
+            if (Array.isArray(_data["matches"])) {
+                this.matches = [] as any;
+                for (let item of _data["matches"])
+                    this.matches!.push(StatementTicketMatchDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ReconciliationSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReconciliationSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["growerStatementId"] = this.growerStatementId;
+        data["statementTonnes"] = this.statementTonnes;
+        data["matchedTicketTonnes"] = this.matchedTicketTonnes;
+        data["tonnesVariance"] = this.tonnesVariance;
+        data["statementAmountUsd"] = this.statementAmountUsd;
+        data["matchedAmountUsd"] = this.matchedAmountUsd;
+        data["amountVarianceUsd"] = this.amountVarianceUsd;
+        data["amountStatus"] = this.amountStatus;
+        data["status"] = this.status;
+        data["hasCrossStatementTicketReuse"] = this.hasCrossStatementTicketReuse;
+        if (Array.isArray(this.matches)) {
+            data["matches"] = [];
+            for (let item of this.matches)
+                data["matches"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IReconciliationSummaryDto {
+    growerStatementId: string;
+    statementTonnes: number;
+    matchedTicketTonnes: number;
+    tonnesVariance: number;
+    statementAmountUsd: number;
+    matchedAmountUsd: number | undefined;
+    amountVarianceUsd: number | undefined;
+    amountStatus: string;
+    status: string;
+    hasCrossStatementTicketReuse: boolean;
+    matches: StatementTicketMatchDto[];
+
+    [key: string]: any;
+}
+
 export class RecordActualWorkRequest implements IRecordActualWorkRequest {
     expectedVersion!: number;
     actualAt!: string;
@@ -21370,6 +23883,58 @@ export interface IRecordAttendanceRequest {
     workDate: string;
     lateEntryReason: string | undefined;
     entries: AttendanceEntryRequest[];
+
+    [key: string]: any;
+}
+
+export class RecordMillRecordRequest implements IRecordMillRecordRequest {
+    expectedVersion!: number;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRecordMillRecordRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): RecordMillRecordRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecordMillRecordRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IRecordMillRecordRequest {
+    expectedVersion: number;
+    idempotencyKey: string;
 
     [key: string]: any;
 }
@@ -21902,6 +24467,58 @@ export interface IReversePayrollPaymentRequest {
     [key: string]: any;
 }
 
+export class ReverseStatementTicketMatchRequest implements IReverseStatementTicketMatchRequest {
+    reason!: string;
+    idempotencyKey!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IReverseStatementTicketMatchRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.reason = _data["reason"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): ReverseStatementTicketMatchRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReverseStatementTicketMatchRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["reason"] = this.reason;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IReverseStatementTicketMatchRequest {
+    reason: string;
+    idempotencyKey: string;
+
+    [key: string]: any;
+}
+
 export class ReverseStockAdjustmentRequest implements IReverseStockAdjustmentRequest {
     reason!: string;
     idempotencyKey!: string;
@@ -22312,6 +24929,174 @@ export class SetTransactionAllocationsRequest implements ISetTransactionAllocati
 export interface ISetTransactionAllocationsRequest {
     expectedVersion: number;
     allocations: TransactionAllocationRequest[];
+
+    [key: string]: any;
+}
+
+export class StatementRequest implements IStatementRequest {
+    millId!: string;
+    statementReference!: string;
+    periodStart!: string;
+    periodEnd!: string;
+    totalTonnes!: number;
+    totalAmountUsd!: number;
+    notes!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IStatementRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.millId = _data["millId"];
+            this.statementReference = _data["statementReference"];
+            this.periodStart = _data["periodStart"];
+            this.periodEnd = _data["periodEnd"];
+            this.totalTonnes = _data["totalTonnes"];
+            this.totalAmountUsd = _data["totalAmountUsd"];
+            this.notes = _data["notes"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): StatementRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new StatementRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["millId"] = this.millId;
+        data["statementReference"] = this.statementReference;
+        data["periodStart"] = this.periodStart;
+        data["periodEnd"] = this.periodEnd;
+        data["totalTonnes"] = this.totalTonnes;
+        data["totalAmountUsd"] = this.totalAmountUsd;
+        data["notes"] = this.notes;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IStatementRequest {
+    millId: string;
+    statementReference: string;
+    periodStart: string;
+    periodEnd: string;
+    totalTonnes: number;
+    totalAmountUsd: number;
+    notes: string | undefined;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class StatementTicketMatchDto implements IStatementTicketMatchDto {
+    id!: string;
+    weighbridgeTicketId!: string;
+    ticketReference!: string;
+    ticketDate!: string;
+    ticketNetTonnes!: number;
+    matchedTonnes!: number;
+    matchedAmountUsd!: number | undefined;
+    completesMatching!: boolean;
+    reason!: string | undefined;
+    createdAt!: Date;
+    active!: boolean;
+    reversedByMatchId!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IStatementTicketMatchDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.weighbridgeTicketId = _data["weighbridgeTicketId"];
+            this.ticketReference = _data["ticketReference"];
+            this.ticketDate = _data["ticketDate"];
+            this.ticketNetTonnes = _data["ticketNetTonnes"];
+            this.matchedTonnes = _data["matchedTonnes"];
+            this.matchedAmountUsd = _data["matchedAmountUsd"];
+            this.completesMatching = _data["completesMatching"];
+            this.reason = _data["reason"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.active = _data["active"];
+            this.reversedByMatchId = _data["reversedByMatchId"];
+        }
+    }
+
+    static fromJS(data: any): StatementTicketMatchDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new StatementTicketMatchDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["weighbridgeTicketId"] = this.weighbridgeTicketId;
+        data["ticketReference"] = this.ticketReference;
+        data["ticketDate"] = this.ticketDate;
+        data["ticketNetTonnes"] = this.ticketNetTonnes;
+        data["matchedTonnes"] = this.matchedTonnes;
+        data["matchedAmountUsd"] = this.matchedAmountUsd;
+        data["completesMatching"] = this.completesMatching;
+        data["reason"] = this.reason;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["active"] = this.active;
+        data["reversedByMatchId"] = this.reversedByMatchId;
+        return data;
+    }
+}
+
+export interface IStatementTicketMatchDto {
+    id: string;
+    weighbridgeTicketId: string;
+    ticketReference: string;
+    ticketDate: string;
+    ticketNetTonnes: number;
+    matchedTonnes: number;
+    matchedAmountUsd: number | undefined;
+    completesMatching: boolean;
+    reason: string | undefined;
+    createdAt: Date;
+    active: boolean;
+    reversedByMatchId: string | undefined;
 
     [key: string]: any;
 }
@@ -23441,6 +26226,94 @@ export interface ITenantSessionDto {
     [key: string]: any;
 }
 
+export class TicketRequest implements ITicketRequest {
+    millId!: string;
+    ticketReference!: string;
+    ticketDate!: string;
+    grossTonnes!: number;
+    tareTonnes!: number | undefined;
+    netTonnes!: number;
+    fieldId!: string | undefined;
+    cropCycleId!: string | undefined;
+    sourceReference!: string | undefined;
+    notes!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ITicketRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.millId = _data["millId"];
+            this.ticketReference = _data["ticketReference"];
+            this.ticketDate = _data["ticketDate"];
+            this.grossTonnes = _data["grossTonnes"];
+            this.tareTonnes = _data["tareTonnes"];
+            this.netTonnes = _data["netTonnes"];
+            this.fieldId = _data["fieldId"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.sourceReference = _data["sourceReference"];
+            this.notes = _data["notes"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): TicketRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TicketRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["millId"] = this.millId;
+        data["ticketReference"] = this.ticketReference;
+        data["ticketDate"] = this.ticketDate;
+        data["grossTonnes"] = this.grossTonnes;
+        data["tareTonnes"] = this.tareTonnes;
+        data["netTonnes"] = this.netTonnes;
+        data["fieldId"] = this.fieldId;
+        data["cropCycleId"] = this.cropCycleId;
+        data["sourceReference"] = this.sourceReference;
+        data["notes"] = this.notes;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface ITicketRequest {
+    millId: string;
+    ticketReference: string;
+    ticketDate: string;
+    grossTonnes: number;
+    tareTonnes: number | undefined;
+    netTonnes: number;
+    fieldId: string | undefined;
+    cropCycleId: string | undefined;
+    sourceReference: string | undefined;
+    notes: string | undefined;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class TransactionAllocationDto implements ITransactionAllocationDto {
     id!: string;
     cropCycleId!: string | undefined;
@@ -24425,6 +27298,178 @@ export class VersionedRequest implements IVersionedRequest {
 
 export interface IVersionedRequest {
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class WeighbridgeTicketDto implements IWeighbridgeTicketDto {
+    id!: string;
+    millId!: string;
+    millCode!: string;
+    millName!: string;
+    ticketReference!: string;
+    ticketDate!: string;
+    grossTonnes!: number;
+    tareTonnes!: number | undefined;
+    netTonnes!: number;
+    fieldId!: string | undefined;
+    fieldName!: string | undefined;
+    cropCycleId!: string | undefined;
+    cropCycleLabel!: string | undefined;
+    recordedHarvestTonnes!: number | undefined;
+    sourceReference!: string | undefined;
+    notes!: string | undefined;
+    status!: string;
+    version!: number;
+    createdAt!: Date;
+    recordedAt!: Date | undefined;
+    correctsTicketId!: string | undefined;
+    correctionReason!: string | undefined;
+    correctedByTicketId!: string | undefined;
+    isCurrent!: boolean;
+    evidence!: EvidenceDocumentDto[];
+    matchedStatementIds!: string[];
+    matchedToAnotherStatement!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IWeighbridgeTicketDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.evidence = [];
+            this.matchedStatementIds = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.millId = _data["millId"];
+            this.millCode = _data["millCode"];
+            this.millName = _data["millName"];
+            this.ticketReference = _data["ticketReference"];
+            this.ticketDate = _data["ticketDate"];
+            this.grossTonnes = _data["grossTonnes"];
+            this.tareTonnes = _data["tareTonnes"];
+            this.netTonnes = _data["netTonnes"];
+            this.fieldId = _data["fieldId"];
+            this.fieldName = _data["fieldName"];
+            this.cropCycleId = _data["cropCycleId"];
+            this.cropCycleLabel = _data["cropCycleLabel"];
+            this.recordedHarvestTonnes = _data["recordedHarvestTonnes"];
+            this.sourceReference = _data["sourceReference"];
+            this.notes = _data["notes"];
+            this.status = _data["status"];
+            this.version = _data["version"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.recordedAt = _data["recordedAt"] ? new Date(_data["recordedAt"].toString()) : undefined as any;
+            this.correctsTicketId = _data["correctsTicketId"];
+            this.correctionReason = _data["correctionReason"];
+            this.correctedByTicketId = _data["correctedByTicketId"];
+            this.isCurrent = _data["isCurrent"];
+            if (Array.isArray(_data["evidence"])) {
+                this.evidence = [] as any;
+                for (let item of _data["evidence"])
+                    this.evidence!.push(EvidenceDocumentDto.fromJS(item));
+            }
+            if (Array.isArray(_data["matchedStatementIds"])) {
+                this.matchedStatementIds = [] as any;
+                for (let item of _data["matchedStatementIds"])
+                    this.matchedStatementIds!.push(item);
+            }
+            this.matchedToAnotherStatement = _data["matchedToAnotherStatement"];
+        }
+    }
+
+    static fromJS(data: any): WeighbridgeTicketDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeighbridgeTicketDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["millId"] = this.millId;
+        data["millCode"] = this.millCode;
+        data["millName"] = this.millName;
+        data["ticketReference"] = this.ticketReference;
+        data["ticketDate"] = this.ticketDate;
+        data["grossTonnes"] = this.grossTonnes;
+        data["tareTonnes"] = this.tareTonnes;
+        data["netTonnes"] = this.netTonnes;
+        data["fieldId"] = this.fieldId;
+        data["fieldName"] = this.fieldName;
+        data["cropCycleId"] = this.cropCycleId;
+        data["cropCycleLabel"] = this.cropCycleLabel;
+        data["recordedHarvestTonnes"] = this.recordedHarvestTonnes;
+        data["sourceReference"] = this.sourceReference;
+        data["notes"] = this.notes;
+        data["status"] = this.status;
+        data["version"] = this.version;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["recordedAt"] = this.recordedAt ? this.recordedAt.toISOString() : undefined as any;
+        data["correctsTicketId"] = this.correctsTicketId;
+        data["correctionReason"] = this.correctionReason;
+        data["correctedByTicketId"] = this.correctedByTicketId;
+        data["isCurrent"] = this.isCurrent;
+        if (Array.isArray(this.evidence)) {
+            data["evidence"] = [];
+            for (let item of this.evidence)
+                data["evidence"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.matchedStatementIds)) {
+            data["matchedStatementIds"] = [];
+            for (let item of this.matchedStatementIds)
+                data["matchedStatementIds"].push(item);
+        }
+        data["matchedToAnotherStatement"] = this.matchedToAnotherStatement;
+        return data;
+    }
+}
+
+export interface IWeighbridgeTicketDto {
+    id: string;
+    millId: string;
+    millCode: string;
+    millName: string;
+    ticketReference: string;
+    ticketDate: string;
+    grossTonnes: number;
+    tareTonnes: number | undefined;
+    netTonnes: number;
+    fieldId: string | undefined;
+    fieldName: string | undefined;
+    cropCycleId: string | undefined;
+    cropCycleLabel: string | undefined;
+    recordedHarvestTonnes: number | undefined;
+    sourceReference: string | undefined;
+    notes: string | undefined;
+    status: string;
+    version: number;
+    createdAt: Date;
+    recordedAt: Date | undefined;
+    correctsTicketId: string | undefined;
+    correctionReason: string | undefined;
+    correctedByTicketId: string | undefined;
+    isCurrent: boolean;
+    evidence: EvidenceDocumentDto[];
+    matchedStatementIds: string[];
+    matchedToAnotherStatement: boolean;
 
     [key: string]: any;
 }

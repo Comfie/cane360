@@ -7,6 +7,7 @@ using Cane360.Domain.Labour;
 using Cane360.Domain.Inventory;
 using Cane360.Domain.Payroll;
 using Cane360.Domain.Finance;
+using Cane360.Domain.MillRecords;
 using Cane360.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -97,6 +98,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<FinanceAuditEventLink> FinanceAuditEventLinks => Set<FinanceAuditEventLink>();
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<BudgetLine> BudgetLines => Set<BudgetLine>();
+    public DbSet<Mill> Mills => Set<Mill>();
+    public DbSet<WeighbridgeTicket> WeighbridgeTickets => Set<WeighbridgeTicket>();
+    public DbSet<GrowerStatement> GrowerStatements => Set<GrowerStatement>();
+    public DbSet<StatementTicketMatch> StatementTicketMatches => Set<StatementTicketMatch>();
+    public DbSet<EvidenceDocument> EvidenceDocuments => Set<EvidenceDocument>();
+    public DbSet<MillRecordAuditEventLink> MillRecordAuditEventLinks => Set<MillRecordAuditEventLink>();
+    public DbSet<MillRecordExport> MillRecordExports => Set<MillRecordExport>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

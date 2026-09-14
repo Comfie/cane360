@@ -6,5 +6,6 @@ global using Cane360.Domain.Farms;
 global using Cane360.Domain.Inventory;
 global using Cane360.Domain.Payroll;
 global using Cane360.Domain.Finance;
+global using Cane360.Domain.MillRecords;
 global using FluentValidation;
 global using MediatR;
