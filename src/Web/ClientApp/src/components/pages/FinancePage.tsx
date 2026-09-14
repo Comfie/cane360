@@ -22,6 +22,7 @@ import { ValidationError } from '../ValidationError';
 import { getApiError } from '../apiError';
 import { financeCategories, financeLabel, newFinanceKey, perUnit, usd } from '../finance/financeView';
 import { BudgetWorkspace, type FinanceCycleOption } from '../finance/BudgetWorkspace';
+import { MillRecordsWorkspace } from '../finance/MillRecordsWorkspace';
 
 const financeApi = new FinanceClient();
 const farmApi = new FarmSetupClient();
@@ -36,7 +37,7 @@ export function FinancePage() {
   const [cycles, setCycles] = useState<FinanceCycleOption[]>([]);
   const [cost, setCost] = useState<CropCycleCostSummaryDto | null>(null);
   const [role, setRole] = useState('');
-  const [tab, setTab] = useState<'transactions' | 'cost' | 'budgets'>('transactions');
+  const [tab, setTab] = useState<'transactions' | 'cost' | 'budgets' | 'mill-records'>('transactions');
   const [filters, setFilters] = useState({ from: '', to: '', type: '', category: '', status: '', search: '' });
   const [editor, setEditor] = useState<OperationalTransactionDto | 'new' | null>(null);
   const [allocating, setAllocating] = useState<OperationalTransactionDto | null>(null);
@@ -113,6 +114,7 @@ export function FinancePage() {
         <button aria-current={tab === 'transactions'} onClick={() => setTab('transactions')}>Transaction register</button>
         <button aria-current={tab === 'cost'} onClick={() => setTab('cost')}>Crop cost trace</button>
         <button aria-current={tab === 'budgets'} onClick={() => setTab('budgets')}>Budgets &amp; variance</button>
+        <button aria-current={tab === 'mill-records'} onClick={() => setTab('mill-records')}>Mill records</button>
       </nav>
       <button className="text-action" disabled={pending === 'reconcile'} onClick={() => mutate('reconcile', () => financeApi.reconcileFinancePayrollCosts(), 'Approved payroll cost reconciliation completed.')}><RefreshCw size={15} /> Reconcile payroll costs</button>
     </section>
@@ -131,6 +133,7 @@ export function FinancePage() {
     </>}
     {tab === 'cost' && <CostWorkspace cycles={cycles} cost={cost} loading={pending === 'cost'} onSelect={loadCost} />}
     {tab === 'budgets' && <BudgetWorkspace cycles={cycles} role={role} onError={setError} onSuccess={setSuccess} />}
+    {tab === 'mill-records' && <MillRecordsWorkspace onError={setError} onSuccess={setSuccess} />}
     {editor && <FinanceDialog title={editor === 'new' ? 'Record transaction draft' : 'Edit transaction draft'} onClose={() => setEditor(null)}><TransactionForm transaction={editor === 'new' ? null : editor} onSaved={async () => { setEditor(null); await refresh(); }} onError={setError} /></FinanceDialog>}
     {allocating && <FinanceDialog title="Allocate full transaction amount" onClose={() => setAllocating(null)}><AllocationForm transaction={allocating} farm={farm?.farm ?? null} cycles={cycles} onSaved={async () => { setAllocating(null); await refresh(); }} onError={setError} /></FinanceDialog>}
   </div>;
