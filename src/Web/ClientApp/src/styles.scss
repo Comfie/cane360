@@ -1208,9 +1208,12 @@ p {
   to { opacity: 1; transform: scaleY(1); }
 }
 
-.auth-layout {
+#root .auth-layout {
   display: grid;
   min-height: 100vh;
+  min-height: 100dvh;
+  max-width: none;
+  margin: 0;
   padding: 0;
   background: var(--canvas);
 }
@@ -1221,16 +1224,20 @@ p {
 
 .auth-panel {
   display: grid;
-  align-content: start;
+  align-content: center;
+  justify-items: center;
   min-width: 0;
-  padding: var(--space-4);
+  padding: var(--space-8) var(--space-4);
+  background:
+    radial-gradient(135% 100% at 50% -25%, color-mix(in srgb, var(--cane-500) 9%, var(--canvas)), transparent 55%),
+    var(--canvas);
 }
 
 .auth-mobile-brand {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: var(--space-3) 0 var(--space-8);
+  margin: 0 0 var(--space-6);
   color: var(--cane-700);
   font-family: var(--font-display);
   font-size: var(--type-xl);
@@ -1239,12 +1246,12 @@ p {
 
 .auth-card {
   width: 100%;
-  max-width: 30rem;
+  max-width: 27rem;
   margin: 0 auto;
-  padding: var(--space-6);
+  padding: var(--space-8);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--surface-raised);
   box-shadow: var(--shadow-2);
 }
 
@@ -1253,12 +1260,18 @@ p {
 }
 
 .auth-card > header h2 {
-  margin: var(--space-2) 0;
+  margin: var(--space-3) 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--type-2xl);
+  line-height: var(--line-tight);
+  letter-spacing: -0.02em;
 }
 
 .auth-card > header p {
   margin: 0;
   color: var(--text-muted);
+  font-size: var(--type-sm);
+  line-height: var(--line-body);
 }
 
 .auth-card form {
@@ -1266,34 +1279,64 @@ p {
 }
 
 .auth-card label {
-  margin-bottom: var(--space-2);
+  display: block;
+  margin: 0 0 var(--space-2);
   color: var(--text-strong);
   font-size: var(--type-sm);
   font-weight: 650;
 }
 
 .auth-card input {
-  min-height: var(--control-height);
-  margin-bottom: var(--space-2);
+  min-height: 2.75rem;
+  margin: 0;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--type-base);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.auth-card input:focus,
+.auth-card input:focus-visible {
+  border-color: var(--cane-500);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .auth-card small {
   display: block;
   min-height: 1.35rem;
-  margin-bottom: var(--space-4);
+  margin: var(--space-2) 0 0;
   color: var(--text-muted);
   font-size: var(--type-xs);
+  line-height: var(--line-snug);
+}
+
+.auth-card :is(input, small) + label {
+  margin-top: var(--space-5);
 }
 
 .auth-card form > button[type="submit"] {
   width: 100%;
   min-height: 3rem;
-  margin: var(--space-2) 0 0;
+  margin: var(--space-6) 0 0;
+  border-radius: var(--radius-md);
   font-weight: 700;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-mid) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.auth-card form > button[type="submit"]:hover:not(:disabled) {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
 }
 
 .auth-switch {
-  margin: var(--space-5) 0 0;
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
   color: var(--text-muted);
   font-size: var(--type-sm);
   text-align: center;
@@ -2538,15 +2581,18 @@ p {
 
   .auth-layout {
     grid-template-columns: minmax(24rem, 0.9fr) minmax(32rem, 1.1fr);
+    grid-template-rows: 100vh;
+    grid-template-rows: 100dvh;
   }
 
   .auth-story {
     position: relative;
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
     flex-direction: column;
     justify-content: space-between;
-    padding: var(--space-10);
+    padding: clamp(var(--space-8), 6vh, var(--space-10)) var(--space-10);
     overflow: hidden;
     background:
       radial-gradient(circle at 85% 15%, rgba(143, 195, 160, 0.24), transparent 28%),
@@ -2584,7 +2630,7 @@ p {
     position: relative;
     z-index: 1;
     max-width: 35rem;
-    margin-block: var(--space-12);
+    margin-block: clamp(var(--space-8), 6vh, var(--space-12));
   }
 
   .auth-story-copy .eyebrow {
@@ -2595,7 +2641,7 @@ p {
     max-width: 9ch;
     margin: var(--space-4) 0 var(--space-6);
     color: #f5faf6;
-    font-size: clamp(2.75rem, 4.8vw, 4.75rem);
+    font-size: clamp(2.75rem, 4.6vw, 4.5rem);
     line-height: 0.98;
   }
 
@@ -2606,8 +2652,8 @@ p {
 
   .auth-story-copy ul {
     display: grid;
-    gap: var(--space-3);
-    margin: var(--space-8) 0 0;
+    gap: clamp(var(--space-2), 2vh, var(--space-3));
+    margin: clamp(var(--space-5), 4vh, var(--space-8)) 0 0;
     padding: 0;
     list-style: none;
   }
@@ -3595,6 +3641,33 @@ p {
 body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
 .administration-page {
   min-width: 0;
+}
+
+.administration-page > .record-panel {
+  min-width: 0;
+  padding: var(--card-padding);
+}
+
+.administration-events {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.administration-events li {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) minmax(8rem, auto) minmax(0, 1fr);
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 48rem) {
+  .administration-events li {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
 }
 
 .administration-tabs {
