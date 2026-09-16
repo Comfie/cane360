@@ -8,6 +8,17 @@ public sealed class PayrollEarningLine : BaseEntity
     public Guid PayrollWorkerLineId { get; private set; } public Guid PayrollCalculationId { get; private set; } public Guid TenantId { get; private set; } public Guid FarmId { get; private set; } public Guid WorkerProfileId { get; private set; }
     public Guid EvidenceId { get; private set; } public string EvidenceType { get; private set; } = string.Empty; public DateOnly WorkDate { get; private set; } public Guid AttendanceId { get; private set; } public long AttendanceVersion { get; private set; } public DateTimeOffset SupervisorVerifiedAtSnapshot { get; private set; } public DateTimeOffset ManagerConfirmedAtSnapshot { get; private set; } public Guid FieldId { get; private set; } public string ActivitySnapshot { get; private set; } = string.Empty;
     public decimal Quantity { get; private set; } public string Unit { get; private set; } = string.Empty; public string RateType { get; private set; } = string.Empty; public decimal RateAmountUsd { get; private set; } public Guid RateSourceId { get; private set; } public long RateVersion { get; private set; } public decimal EarningAmountUsd { get; private set; } public string SourceFingerprint { get; private set; } = string.Empty;
-    public static PayrollEarningLine Create(Guid workerLineId, Guid calculationId, Guid tenantId, Guid farmId, Guid workerId, Guid evidenceId, string type, DateOnly date, Guid attendanceId, long attendanceVersion, DateTimeOffset supervisorVerifiedAt, DateTimeOffset managerConfirmedAt, Guid fieldId, string activities, decimal quantity, string unit, string rateType, decimal rate, Guid rateSourceId, long rateVersion, string fingerprint)
-    { var amount = decimal.Round(quantity * rate, 2, MidpointRounding.AwayFromZero); if (quantity <= 0 || rate <= 0 || amount <= 0) throw new InvalidOperationException("Payroll earning lines must be positive."); return new(workerLineId, calculationId, tenantId, farmId, workerId, evidenceId, type, date, attendanceId, attendanceVersion, supervisorVerifiedAt, managerConfirmedAt, fieldId, activities, quantity, unit, rateType, rate, rateSourceId, rateVersion, amount, fingerprint); }
+    public static PayrollEarningLine Create(Guid workerLineId, Guid calculationId, Guid tenantId, Guid farmId, Guid workerId, Guid evidenceId, string type, DateOnly date, Guid attendanceId, long attendanceVersion, DateTimeOffset supervisorVerifiedAt, DateTimeOffset managerConfirmedAt, Guid fieldId, string activities, decimal quantity, string unit, string rateType, decimal rate, Guid rateSourceId, long rateVersion, string fingerprint, decimal? amountOverride = null)
+    {
+        var roundedProduct = decimal.Round(quantity * rate, 2, MidpointRounding.AwayFromZero);
+        var amount = amountOverride ?? roundedProduct;
+        if (quantity <= 0 || rate <= 0 || amount <= 0)
+            throw new InvalidOperationException("Payroll earning lines must be positive.");
+        if (amountOverride.HasValue && (rateType != "Monthly" ||
+            quantity != decimal.Round(1m / DateTime.DaysInMonth(date.Year, date.Month), 6) ||
+            decimal.Abs(amount - decimal.Round(rate / DateTime.DaysInMonth(date.Year, date.Month),
+                2, MidpointRounding.AwayFromZero)) > .01m))
+            throw new InvalidOperationException("Monthly earning allocation must match one calendar-day share of its rate snapshot.");
+        return new(workerLineId, calculationId, tenantId, farmId, workerId, evidenceId, type, date, attendanceId, attendanceVersion, supervisorVerifiedAt, managerConfirmedAt, fieldId, activities, quantity, unit, rateType, rate, rateSourceId, rateVersion, amount, fingerprint);
+    }
 }

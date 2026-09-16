@@ -15,7 +15,7 @@ public static class PayrollPreflightAssessment
         Add(input.SupersededEvidence, PayrollPreflightBlockerCodes.SupersededEvidence, "This evidence was superseded by an append-only correction.");
         Add(input.InactiveEvidence, PayrollPreflightBlockerCodes.InactiveEvidence, "This evidence is cancelled and inactive.");
         Add(input.MissingRateSnapshot, PayrollPreflightBlockerCodes.MissingRateSnapshot, "A positive event-date rate snapshot is required.");
-        Add(input.MonthlyProrationUnresolved, PayrollPreflightBlockerCodes.MonthlyProrationNotConfigured, "Monthly evidence cannot be calculated because no workday or proration policy is configured.");
+        Add(input.MonthlyRateBelowDailyCent, PayrollPreflightBlockerCodes.MonthlyRateBelowDailyCent, "The monthly rate is too small to allocate at least one cent to each verified day.");
         Add(input.DuplicateOrScopeCollision, PayrollPreflightBlockerCodes.DuplicateOrScopeCollision, "Duplicate active evidence or an unresolved work-scope collision exists for this worker, day, and activity.");
         Add(input.CrossTenantOrFarmMismatch, PayrollPreflightBlockerCodes.CrossTenantOrFarmMismatch, "A worker, attendance, or evidence source is outside the authenticated tenant and farm.");
         Add(input.ArchivedWorker, PayrollPreflightBlockerCodes.ArchivedWorker, "Historical evidence remains visible, but archived workers cannot enter new payroll processing.");

@@ -17,7 +17,7 @@ public sealed class PayrollPreflightAssessmentTests
         yield return Case(PayrollPreflightBlockerCodes.SupersededEvidence, input => input with { SupersededEvidence = true });
         yield return Case(PayrollPreflightBlockerCodes.InactiveEvidence, input => input with { InactiveEvidence = true });
         yield return Case(PayrollPreflightBlockerCodes.MissingRateSnapshot, input => input with { MissingRateSnapshot = true });
-        yield return Case(PayrollPreflightBlockerCodes.MonthlyProrationUnresolved, input => input with { MonthlyProrationUnresolved = true });
+        yield return Case(PayrollPreflightBlockerCodes.MonthlyRateBelowDailyCent, input => input with { MonthlyRateBelowDailyCent = true });
         yield return Case(PayrollPreflightBlockerCodes.DuplicateOrScopeCollision, input => input with { DuplicateOrScopeCollision = true });
         yield return Case(PayrollPreflightBlockerCodes.CrossTenantOrFarmMismatch, input => input with { CrossTenantOrFarmMismatch = true });
         yield return Case(PayrollPreflightBlockerCodes.ArchivedWorker, input => input with { ArchivedWorker = true });

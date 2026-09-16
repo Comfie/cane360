@@ -54,18 +54,34 @@ public sealed class PayrollCalculationBuilderTests
     }
 
     [Test]
-    public async Task MonthlyEvidenceProducesStableBlockerAndCannotBecomeAnEarningLine()
+    public async Task MonthlyEvidenceEarnsOneCalendarDayShareOfTheSnapshotRate()
     {
         var setup = CalculationSetup.Create();
         setup.AddEvidence(PayBasis.Monthly, 400m, null, new DateOnly(2036, 8, 2));
+        setup.AddEvidence(PayBasis.Monthly, 400m, null, new DateOnly(2036, 8, 3), true);
 
         PayrollCalculation calculation = await setup.BuildAsync(1);
         string[] blockers = JsonSerializer.Deserialize<string[]>(calculation.BlockerSnapshot)!;
 
-        blockers.ShouldContain(PayrollPreflightBlockerCodes.MonthlyProrationNotConfigured);
-        blockers.ShouldContain(PayrollPreflightBlockerCodes.PayrollCalculationIncomplete);
+        blockers.ShouldBeEmpty();
+        calculation.EvidenceCount.ShouldBe(2);
+        calculation.GrossAmountUsd.ShouldBe(25.81m);
+        calculation.WorkerLines.Single().EarningLines.Select(line => line.EarningAmountUsd)
+            .ShouldBe([12.90m, 12.91m]);
+    }
+
+    [Test]
+    public async Task TwoMonthlyWorkRecordsOnOneDayCannotPayTheDayTwice()
+    {
+        var setup = CalculationSetup.Create();
+        setup.AddEvidence(PayBasis.Monthly, 400m, null, new DateOnly(2036, 8, 2));
+        setup.AddEvidence(PayBasis.Monthly, 400m, null, new DateOnly(2036, 8, 2), true);
+
+        PayrollCalculation calculation = await setup.BuildAsync(1);
+
+        JsonSerializer.Deserialize<string[]>(calculation.BlockerSnapshot)!
+            .ShouldContain(PayrollPreflightBlockerCodes.DuplicateOrScopeCollision);
         calculation.EvidenceCount.ShouldBe(0);
-        calculation.GrossAmountUsd.ShouldBe(0m);
     }
 
     [Test]
@@ -128,7 +144,7 @@ public sealed class PayrollCalculationBuilderTests
             return new CalculationSetup(tenant, farm, period, run, supervisor.Id);
         }
 
-        public WorkRecord AddEvidence(PayBasis basis, decimal rateAmount, decimal? quantity, DateOnly workDate)
+        public WorkRecord AddEvidence(PayBasis basis, decimal rateAmount, decimal? quantity, DateOnly workDate, bool reuseLastWorker = false)
         {
             var field = _farm.Fields.Single();
             var cycle = field.CropCycles.Single();
@@ -141,20 +157,31 @@ public sealed class PayrollCalculationBuilderTests
             var type = _tenant.AddActivityType($"A{_activities.Count}", $"Activity {_activities.Count}", true, true, quantityBasis);
             var activity = cycle.CreateActivity(_tenant.Id, _farm.Id, field.Id, type, ActivityPlanningKind.Planned, workDate, _supervisorId);
             _activities.Add(activity);
-            var person = _farm.AddPerson($"Worker {_workers.Count}", null, new DateOnly(2036, 1, 1));
-            var worker = WorkerProfile.Create(Guid.NewGuid(), _tenant.Id, _farm.Id, person.Id, EmploymentType.Seasonal,
-                new DateOnly(2036, 1, 1), [1], new byte[12], new byte[16], "test-key", new byte[32], "***1234");
-            var rate = WorkerRate.Create(_tenant.Id, _farm.Id, worker.Id, basis,
-                basis is PayBasis.Hectare or PayBasis.StandardLine ? type.Id : null, rateAmount, new DateOnly(2036, 1, 1), null);
-            var attendance = Attendance.Create(_tenant.Id, _farm.Id, worker.Id, workDate, AttendanceStatus.Present,
-                field.Id, Now, "manager", null, 0);
+            WorkerProfile worker;
+            WorkerRate rate;
+            if (reuseLastWorker)
+            {
+                worker = _workers[^1];
+                rate = _rates.Single(item => item.WorkerProfileId == worker.Id && item.Basis == basis);
+            }
+            else
+            {
+                var person = _farm.AddPerson($"Worker {_workers.Count}", null, new DateOnly(2036, 1, 1));
+                worker = WorkerProfile.Create(Guid.NewGuid(), _tenant.Id, _farm.Id, person.Id, EmploymentType.Seasonal,
+                    new DateOnly(2036, 1, 1), [1], new byte[12], new byte[16], "test-key", new byte[32], "***1234");
+                rate = WorkerRate.Create(_tenant.Id, _farm.Id, worker.Id, basis,
+                    basis is PayBasis.Hectare or PayBasis.StandardLine ? type.Id : null, rateAmount, new DateOnly(2036, 1, 1), null);
+                _workers.Add(worker);
+                _rates.Add(rate);
+            }
+            var attendance = _attendance.SingleOrDefault(item => item.WorkerProfileId == worker.Id && item.WorkDate == workDate)
+                ?? Attendance.Create(_tenant.Id, _farm.Id, worker.Id, workDate, AttendanceStatus.Present,
+                    field.Id, Now, "manager", null, 0);
             var record = WorkRecord.Create(_tenant.Id, _farm.Id, attendance.Id, worker.Id, field.Id, workDate,
                 rate, quantity, [activity.Id], Now, "manager", null, 0);
             record.RecordSupervisorVerification(_supervisorId, Now, "manager", record.Version);
             record.Confirm(Now, "manager", record.Version);
-            _workers.Add(worker);
-            _rates.Add(rate);
-            _attendance.Add(attendance);
+            if (!_attendance.Contains(attendance)) _attendance.Add(attendance);
             _records.Add(record);
             return record;
         }

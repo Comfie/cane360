@@ -13,6 +13,7 @@ public static class PayrollPreflightBlockerCodes
     public const string OutsidePayrollPeriod = "OUTSIDE_PAYROLL_PERIOD";
     public const string CrossTenantOrFarmMismatch = "CROSS_TENANT_OR_FARM_MISMATCH";
     public const string MissingRateSnapshot = "MISSING_RATE_SNAPSHOT";
+    public const string MonthlyRateBelowDailyCent = "MONTHLY_RATE_BELOW_DAILY_CENT";
     public const string ArchivedWorker = "ARCHIVED_WORKER";
     public const string MonthlyProrationNotConfigured = "MonthlyProrationNotConfigured";
     public const string MonthlyProrationUnresolved = MonthlyProrationNotConfigured;

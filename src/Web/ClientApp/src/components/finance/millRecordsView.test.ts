@@ -38,6 +38,15 @@ test('workspace preserves responsive cards and stacked matching hooks', async ()
   assert.match(styles, /\.match-form \{ grid-template-columns: 1fr; \}/);
 });
 
+test('grower statement editor uses the fixed dialog backdrop', async () => {
+  const source = await readFile(new URL('./MillRecordsWorkspace.tsx', import.meta.url), 'utf8');
+  const styles = await readFile(new URL('../../styles.scss', import.meta.url), 'utf8');
+  assert.match(source, /statementEditor && <Editor title=/);
+  assert.match(source, /className="dialog-backdrop" role="presentation"/);
+  assert.match(source, /className="mill-editor-dialog finance-dialog" role="dialog" aria-modal="true"/);
+  assert.match(styles, /\.mill-editor-dialog \{[^}]*max-height:[^}]*overflow-y: auto/);
+});
+
 test('statement evidence remains distinct from operational income', async () => {
   const source = await readFile(new URL('./MillRecordsWorkspace.tsx', import.meta.url), 'utf8');
   assert.match(source, /not income or settlement/i);

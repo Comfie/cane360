@@ -55,7 +55,7 @@ test('blocked evidence presents stable codes, explanations, and source chain', (
   assert.match(pageSource, /evidence\.sourceChain\.map/);
 });
 
-test('monthly work clearly blocks submission without an invented proration policy', () => { assert.match(pageSource, /Monthly proration not configured/); assert.match(pageSource, /Submission blocker/); });
+test('monthly evidence shows its calendar-day basis without a blanket submission warning', () => { assert.match(pageSource, /One verified calendar day/); assert.doesNotMatch(pageSource, /Monthly work requires a proration policy|Submission blocker/); });
 
 test('payroll run capabilities preserve manager and grower dual control', () => {
   const period = { id: 'period', status: 'Open' };

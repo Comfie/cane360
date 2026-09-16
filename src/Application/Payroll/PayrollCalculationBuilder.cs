@@ -14,9 +14,13 @@ internal static class PayrollCalculationBuilder
         var records = (await labour.GetWorkRecordsAsync(tenant.Id, farm.Id, null, null, null, false, cancellationToken)).Where(x => x.WorkDate >= period.StartDate && x.WorkDate <= period.EndDate).OrderBy(x => x.WorkDate).ThenBy(x => x.Id).ToArray();
         var workers = (await labour.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken)).ToDictionary(x => x.Id);
         var consumed = await payroll.GetConsumedEvidenceIdsAsync(tenant.Id, farm.Id, cancellationToken);
-        var duplicateIds = records.Where(IsActive).GroupBy(record => $"{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}:{string.Join(',', record.Activities.Select(activity => activity.ActivityId).Order())}").Where(group => group.Count() > 1).SelectMany(group => group.Select(record => record.Id)).ToHashSet();
+        var duplicateIds = records.Where(IsActive).GroupBy(record => record.PayBasis == PayBasis.Monthly
+            ? $"monthly:{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}"
+            : $"{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}:{string.Join(',', record.Activities.Select(activity => activity.ActivityId).Order())}").Where(group => group.Count() > 1).SelectMany(group => group.Select(record => record.Id)).ToHashSet();
         var blockers = new List<string>();
-        var sourceTokens = new List<string> { $"period:{period.Id:N}:{period.Status}:{period.Version}" };
+        var sourceTokens = new List<string> { $"period:{period.Id:N}:{period.Status}:{period.Version}", "monthly-policy:calendar-days:v1" };
+        var monthlyDayCounts = new Dictionary<Guid, int>();
+        var daysInMonth = DateTime.DaysInMonth(period.Year, period.Month);
         if (period.Status != PayrollPeriodStatus.Open) blockers.Add(PayrollPreflightBlockerCodes.PayrollPeriodNotOpen);
         var earningGroups = new Dictionary<Guid, (Guid LineId, string Name, List<PayrollEarningLine> Lines)>();
 
@@ -27,7 +31,7 @@ internal static class PayrollCalculationBuilder
             var field = farm.Fields.SingleOrDefault(candidate => candidate.Id == record.FieldId);
             var activities = record.Activities.Select(link => farm.Fields.SelectMany(candidate => candidate.CropCycles).SelectMany(cycle => cycle.Activities).SingleOrDefault(activity => activity.Id == link.ActivityId)).ToArray();
             var crossScope = record.TenantId != tenant.Id || record.FarmId != farm.Id || attendance is not null && (attendance.TenantId != tenant.Id || attendance.FarmId != farm.Id) || worker is null || worker.TenantId != tenant.Id || worker.FarmId != farm.Id;
-            var assessed = PayrollPreflightAssessment.Assess(new PayrollPreflightAssessmentInput(false, attendance is null || attendance.Status != AttendanceStatus.Present, attendance?.FieldId is null, attendance?.FieldId is not null && attendance.FieldId != record.FieldId, record.Verification is null, record.Verification?.ManagerConfirmedAt is null, record.Status == WorkRecordStatus.Superseded, record.Status == WorkRecordStatus.Cancelled, record.AppliedRateUsd <= 0 || record.WorkerRateId == Guid.Empty, record.PayBasis == PayBasis.Monthly, duplicateIds.Contains(record.Id) || record.Scopes.Any(scope => scope.SupersededAt is not null) && IsActive(record), crossScope, !crossScope && worker!.Status != RecordStatus.Active, field is null || activities.Any(activity => activity is null || activity.TenantId != tenant.Id || activity.FarmId != farm.Id || activity.FieldId != record.FieldId || activity.IsTerminal))).Select(x => x.Code).ToList();
+            var assessed = PayrollPreflightAssessment.Assess(new PayrollPreflightAssessmentInput(false, attendance is null || attendance.Status != AttendanceStatus.Present, attendance?.FieldId is null, attendance?.FieldId is not null && attendance.FieldId != record.FieldId, record.Verification is null, record.Verification?.ManagerConfirmedAt is null, record.Status == WorkRecordStatus.Superseded, record.Status == WorkRecordStatus.Cancelled, record.AppliedRateUsd <= 0 || record.WorkerRateId == Guid.Empty, record.PayBasis == PayBasis.Monthly && record.AppliedRateUsd < daysInMonth * .01m, duplicateIds.Contains(record.Id) || record.Scopes.Any(scope => scope.SupersededAt is not null) && IsActive(record), crossScope, !crossScope && worker!.Status != RecordStatus.Active, field is null || activities.Any(activity => activity is null || activity.TenantId != tenant.Id || activity.FarmId != farm.Id || activity.FieldId != record.FieldId || activity.IsTerminal))).Select(x => x.Code).ToList();
             if (consumed.Contains(record.Id)) assessed.Add(PayrollPreflightBlockerCodes.EvidenceAlreadyConsumedByPayroll);
             blockers.AddRange(assessed);
             var currentRate = worker is null ? null : (await labour.GetRatesAsync(tenant.Id, farm.Id, worker.Id, false, cancellationToken)).SingleOrDefault(x => x.Id == record.WorkerRateId);
@@ -35,9 +39,17 @@ internal static class PayrollCalculationBuilder
             sourceTokens.Add(token);
             if (assessed.Count != 0 || worker is null || attendance is null) continue;
             if (!earningGroups.TryGetValue(worker.Id, out var group)) group = (Guid.NewGuid(), farm.Persons.Single(x => x.Id == worker.PersonId).DisplayName, []);
-            var quantity = record.PayBasis == PayBasis.Daily ? 1m : record.Quantity!.Value;
-            var unit = record.PayBasis switch { PayBasis.Daily => "day", PayBasis.Hectare => "hectare", PayBasis.StandardLine => "standard-line", _ => throw new InvalidOperationException() };
-            group.Lines.Add(PayrollEarningLine.Create(group.LineId, calculationId, tenant.Id, farm.Id, worker.Id, record.Id, "WorkRecord", record.WorkDate, attendance.Id, attendance.Version, record.Verification!.SupervisorVerifiedAt, record.Verification.ManagerConfirmedAt!.Value, record.FieldId, JsonSerializer.Serialize(record.Activities.Select(x => x.ActivityId).Order()), quantity, unit, record.PayBasis.ToString(), record.AppliedRateUsd, record.WorkerRateId, currentRate?.Version ?? 0, Hash(token)));
+            var isMonthly = record.PayBasis == PayBasis.Monthly;
+            var quantity = isMonthly ? decimal.Round(1m / daysInMonth, 6) : record.PayBasis == PayBasis.Daily ? 1m : record.Quantity!.Value;
+            var unit = record.PayBasis switch { PayBasis.Daily => "day", PayBasis.Monthly => "month share", PayBasis.Hectare => "hectare", PayBasis.StandardLine => "standard-line", _ => throw new InvalidOperationException() };
+            decimal? monthlyAmount = null;
+            if (isMonthly)
+            {
+                var verifiedDayNumber = monthlyDayCounts.GetValueOrDefault(record.WorkerRateId) + 1;
+                monthlyDayCounts[record.WorkerRateId] = verifiedDayNumber;
+                monthlyAmount = MonthlyPayrollProration.EarningForDay(record.AppliedRateUsd, daysInMonth, verifiedDayNumber);
+            }
+            group.Lines.Add(PayrollEarningLine.Create(group.LineId, calculationId, tenant.Id, farm.Id, worker.Id, record.Id, "WorkRecord", record.WorkDate, attendance.Id, attendance.Version, record.Verification!.SupervisorVerifiedAt, record.Verification.ManagerConfirmedAt!.Value, record.FieldId, JsonSerializer.Serialize(record.Activities.Select(x => x.ActivityId).Order()), quantity, unit, record.PayBasis.ToString(), record.AppliedRateUsd, record.WorkerRateId, currentRate?.Version ?? 0, Hash(token), monthlyAmount));
             earningGroups[worker.Id] = group;
         }
 

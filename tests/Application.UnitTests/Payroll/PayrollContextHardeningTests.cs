@@ -2,6 +2,7 @@ using Ardalis.GuardClauses;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Payroll;
 using Cane360.Domain.Farms;
+using Cane360.Domain.Labour;
 using Cane360.Domain.Payroll;
 using Moq;
 using NUnit.Framework;
@@ -71,5 +72,44 @@ public sealed class PayrollContextHardeningTests
 
         farms.Verify(x => x.GetTenantReferenceContextForUserAsync(It.IsAny<string>(),
             It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task PreflightExcludesEvidenceOutsideSelectedPeriod()
+    {
+        const string userId = "AUTOTEST-PREFLIGHT-period";
+        Tenant tenant = Tenant.CreateForGrower(userId, "AUTOTEST-PREFLIGHT", null);
+        Farm farm = tenant.CreateFarm("PREFLIGHT", "AUTOTEST-PREFLIGHT Farm", "Synthetic", "Synthetic",
+            "Other", 10m, "Synthetic");
+        PayrollPeriod period = PayrollPeriod.Create(tenant.Id, farm.Id, 2041, 9,
+            DateTimeOffset.UtcNow, userId, null);
+        Guid workerId = Guid.NewGuid();
+        WorkerRate rate = WorkerRate.Create(tenant.Id, farm.Id, workerId, PayBasis.Monthly,
+            null, 55m, new DateOnly(2041, 8, 1), null);
+        WorkRecord augustRecord = WorkRecord.Create(tenant.Id, farm.Id, Guid.NewGuid(),
+            workerId, Guid.NewGuid(), new DateOnly(2041, 8, 22), rate, null,
+            [Guid.NewGuid()], DateTimeOffset.UtcNow, userId, null, 0);
+        var farms = new Mock<IFarmSetupRepository>(MockBehavior.Strict);
+        farms.Setup(x => x.GetTenantForUserAsync(userId, false, CancellationToken.None))
+            .ReturnsAsync(tenant);
+        var payroll = new Mock<IPayrollRepository>(MockBehavior.Strict);
+        payroll.Setup(x => x.GetPeriodAsync(tenant.Id, farm.Id, period.Id, false,
+            CancellationToken.None)).ReturnsAsync(period);
+        var labour = new Mock<ILabourRepository>(MockBehavior.Strict);
+        labour.Setup(x => x.GetWorkersAsync(tenant.Id, farm.Id, false, CancellationToken.None))
+            .ReturnsAsync([]);
+        labour.Setup(x => x.GetWorkRecordsAsync(tenant.Id, farm.Id, null, null, null,
+            false, CancellationToken.None)).ReturnsAsync([augustRecord]);
+        var user = new Mock<IUser>();
+        user.SetupGet(x => x.Id).Returns(userId);
+
+        PayrollPreflightDto result = await new GetPayrollPreflightQueryHandler(farms.Object,
+            labour.Object, payroll.Object, user.Object).Handle(new GetPayrollPreflightQuery(
+                period.Id, null, null, null, 1, 25), CancellationToken.None);
+
+        result.TotalCount.ShouldBe(0);
+        labour.Verify(x => x.GetAttendanceAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
+            It.IsAny<Guid>(), It.IsAny<DateOnly>(), It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 }

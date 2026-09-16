@@ -29,7 +29,7 @@ public sealed class PayrollControllerTests
     public async Task PreflightMapsFiltersAndPaginationWithoutClientTotals()
     {
         var sender = new Mock<ISender>(); var periodId = Guid.NewGuid(); var workerId = Guid.NewGuid();
-        var expected = new PayrollPreflightDto(periodId, "Deferred", [], 0, 0, 0, 0, 0, 2, 10, [], []);
+        var expected = new PayrollPreflightDto(periodId, [], 0, 0, 0, 0, 0, 2, 10, [], []);
         sender.Setup(service => service.Send(It.Is<GetPayrollPreflightQuery>(query => query.PayrollPeriodId == periodId && query.WorkerId == workerId && query.Eligible == false && query.EvidenceType == "WorkRecord" && query.Page == 2 && query.PageSize == 10), It.IsAny<CancellationToken>())).ReturnsAsync(expected);
         var result = await new PayrollController(sender.Object).Preflight(periodId, workerId, false, "WorkRecord", 2, 10, CancellationToken.None);
         result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);

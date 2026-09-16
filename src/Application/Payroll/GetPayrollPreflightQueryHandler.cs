@@ -11,8 +11,11 @@ public sealed class GetPayrollPreflightQueryHandler(IFarmSetupRepository farms, 
             cancellationToken, true);
         var period = PayrollAccess.RequirePeriod(await payroll.GetPeriodAsync(tenant.Id, farm.Id, request.PayrollPeriodId, false, cancellationToken), request.PayrollPeriodId);
         var workers = (await labour.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken)).ToDictionary(worker => worker.Id);
-        var records = await labour.GetWorkRecordsAsync(tenant.Id, farm.Id, null, request.WorkerId, null, false, cancellationToken);
-        var duplicateIds = records.Where(IsActive).GroupBy(record => $"{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}:{string.Join(',', record.Activities.Select(activity => activity.ActivityId).Order())}").Where(group => group.Count() > 1).SelectMany(group => group.Select(record => record.Id)).ToHashSet();
+        var records = (await labour.GetWorkRecordsAsync(tenant.Id, farm.Id, null, request.WorkerId, null, false, cancellationToken))
+            .Where(record => record.WorkDate >= period.StartDate && record.WorkDate <= period.EndDate).ToArray();
+        var duplicateIds = records.Where(IsActive).GroupBy(record => record.PayBasis == PayBasis.Monthly
+            ? $"monthly:{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}"
+            : $"{record.WorkerProfileId:N}:{record.WorkDate:yyyyMMdd}:{string.Join(',', record.Activities.Select(activity => activity.ActivityId).Order())}").Where(group => group.Count() > 1).SelectMany(group => group.Select(record => record.Id)).ToHashSet();
         var result = new List<PreflightEvidenceDto>();
 
         foreach (var record in records)
@@ -32,7 +35,7 @@ public sealed class GetPayrollPreflightQueryHandler(IFarmSetupRepository farms, 
                 record.Status == WorkRecordStatus.Superseded,
                 record.Status == WorkRecordStatus.Cancelled,
                 record.AppliedRateUsd <= 0 || record.WorkerRateId == Guid.Empty,
-                record.PayBasis == PayBasis.Monthly,
+                record.PayBasis == PayBasis.Monthly && record.AppliedRateUsd < DateTime.DaysInMonth(period.Year, period.Month) * .01m,
                 duplicateIds.Contains(record.Id) || record.Scopes.Any(scope => scope.SupersededAt is not null) && IsActive(record),
                 crossScope,
                 !crossScope && worker!.Status != RecordStatus.Active,
@@ -57,7 +60,7 @@ public sealed class GetPayrollPreflightQueryHandler(IFarmSetupRepository farms, 
         var workerTotals = complete.GroupBy(item => new { item.WorkerId, item.WorkerName }).Select(group => new PreflightWorkerTotalDto(group.Key.WorkerId, group.Key.WorkerName, group.Count(item => item.Eligible), group.Count(item => !item.Eligible))).OrderBy(item => item.WorkerName).ToArray();
         var evidenceTotals = complete.GroupBy(item => item.EvidenceType).Select(group => new PreflightEvidenceTypeTotalDto(group.Key, group.Count(item => item.Eligible), group.Count(item => !item.Eligible))).OrderBy(item => item.EvidenceType).ToArray();
         var page = complete.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToArray();
-        return new PayrollPreflightDto(period.Id, "Monthly work evidence remains uncalculated. Phase 6B must define and approve a proration rule before it can be processed.", page, complete.Count(item => item.Eligible), complete.Count(item => !item.Eligible), workerTotals.Count(item => item.EligibleCount > 0), workerTotals.Count(item => item.BlockedCount > 0), complete.Length, request.Page, request.PageSize, workerTotals, evidenceTotals);
+        return new PayrollPreflightDto(period.Id, page, complete.Count(item => item.Eligible), complete.Count(item => !item.Eligible), workerTotals.Count(item => item.EligibleCount > 0), workerTotals.Count(item => item.BlockedCount > 0), complete.Length, request.Page, request.PageSize, workerTotals, evidenceTotals);
     }
 
     private static bool IsActive(WorkRecord record) => record.Status is not (WorkRecordStatus.Cancelled or WorkRecordStatus.Superseded);

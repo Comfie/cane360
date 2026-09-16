@@ -10,7 +10,7 @@ public sealed record PayrollPreflightAssessmentInput(
     bool SupersededEvidence,
     bool InactiveEvidence,
     bool MissingRateSnapshot,
-    bool MonthlyProrationUnresolved,
+    bool MonthlyRateBelowDailyCent,
     bool DuplicateOrScopeCollision,
     bool CrossTenantOrFarmMismatch,
     bool ArchivedWorker,

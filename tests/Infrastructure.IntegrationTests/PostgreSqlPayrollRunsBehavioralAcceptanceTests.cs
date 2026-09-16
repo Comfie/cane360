@@ -59,16 +59,17 @@ public sealed class PostgreSqlPayrollRunsBehavioralAcceptanceTests
     }
 
     [Test]
-    public async Task Phase6BBehaviorMonthlyEvidenceBlocksSubmissionWithoutSilentOmission()
+    public async Task Phase6BBehaviorMonthlyEvidenceCalculatesAndCanBeSubmitted()
     {
         Scenario scenario = await SeedAsync([new EvidenceSpec(PayBasis.Monthly, 400m, null, 2)]);
         PayrollRunDto calculated = await CalculateAsync(scenario, await CreateRunAsync(scenario));
 
         PayrollCalculationDto monthly = calculated.Calculation.ShouldNotBeNull();
-        monthly.BlockerCodes.ShouldContain(PayrollPreflightBlockerCodes.MonthlyProrationNotConfigured);
-        monthly.EvidenceCount.ShouldBe(0);
-        ConflictException exception = await Should.ThrowAsync<ConflictException>(() => SubmitAsync(scenario, calculated));
-        exception.Message.ShouldContain(PayrollPreflightBlockerCodes.MonthlyProrationNotConfigured);
+        monthly.BlockerCodes.ShouldBeEmpty();
+        monthly.EvidenceCount.ShouldBe(1);
+        monthly.GrossAmountUsd.ShouldBe(12.90m);
+        PayrollRunDto submitted = await SubmitAsync(scenario, calculated);
+        submitted.Status.ShouldBe("PendingGrowerApproval");
     }
 
     [Test]
