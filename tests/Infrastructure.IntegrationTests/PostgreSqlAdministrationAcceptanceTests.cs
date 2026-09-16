@@ -5,6 +5,7 @@ using Cane360.Domain.Inventory;
 using Cane360.Domain.MillRecords;
 using Cane360.Infrastructure.Data;
 using Cane360.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -37,14 +38,36 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
             "Synthetic address", "Railway Development", "Synthetic", 10m, "Synthetic");
         var type = tenant.AddActivityType($"A{Guid.NewGuid():N}"[..20],
             "Synthetic administration work", true, true, ActivityQuantityBasis.Hectares);
+        string? browserPassword = Environment.GetEnvironmentVariable("CANE360_P8B_BROWSER_PASSWORD");
+        string? managerId = null;
+        if (!string.IsNullOrWhiteSpace(browserPassword))
+        {
+            managerId = $"p8b-manager-{Guid.NewGuid():N}";
+            Person manager = farm.AddPerson("Synthetic FarmManager", null, new DateOnly(2026, 1, 1));
+            farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
+            tenant.AddFarmManagerMembership(managerId, manager.Id);
+        }
         _tenantId = tenant.Id;
         _farmId = farm.Id;
         _activityTypeId = type.Id;
         await using var context = CreateContext();
-        context.Users.Add(User(_userId));
+        ApplicationUser growerUser = User(_userId);
+        if (browserPassword is not null)
+            growerUser.PasswordHash = new PasswordHasher<ApplicationUser>()
+                .HashPassword(growerUser, browserPassword);
+        context.Users.Add(growerUser);
+        if (managerId is not null)
+        {
+            ApplicationUser managerUser = User(managerId);
+            managerUser.PasswordHash = new PasswordHasher<ApplicationUser>()
+                .HashPassword(managerUser, browserPassword!);
+            context.Users.Add(managerUser);
+        }
         context.Tenants.Add(tenant);
         await context.SaveChangesAsync();
         TestContext.Progress.WriteLine($"Retained synthetic Administration run: {_runId}; tenant: {_tenantId}");
+        if (managerId is not null)
+            TestContext.Progress.WriteLine($"Browser fixture Grower: {growerUser.Email}; FarmManager: {managerId}@invalid.example");
     }
 
     [Test]

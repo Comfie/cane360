@@ -3609,7 +3609,7 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
   border: 1px solid var(--pico-muted-border-color);
   border-radius: .55rem;
   background: var(--pico-card-background-color);
-  color: var(--pico-color);
+  color: var(--text);
   font-size: .85rem;
 }
 
@@ -3645,6 +3645,7 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
 
 .administration-summary button strong {
   font-size: 1.35rem;
+  color: var(--text-strong);
 }
 
 .administration-list {
@@ -3670,6 +3671,8 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
 .administration-list article > div {
   display: grid;
   gap: .15rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .administration-list article > div:nth-child(2) {
