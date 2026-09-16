@@ -5,7 +5,7 @@ using Scalar.AspNetCore;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(new RailwayJsonFormatter())
     .CreateBootstrapLogger();
 
 try
@@ -30,7 +30,8 @@ try
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .Enrich.WithProperty("Application", "Cane360"));
+        .Enrich.WithProperty("Application", "Cane360")
+        .WriteTo.Console(new RailwayJsonFormatter()));
 
     string? portValue = Environment.GetEnvironmentVariable("PORT");
 
@@ -72,6 +73,8 @@ try
 
     app.UseFileServer();
 
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate = "Cane360 HTTP {RequestMethod} {EndpointRoute} responded {StatusCode} in {Elapsed:0.0000} ms; reference {CorrelationId}";
@@ -88,7 +91,7 @@ try
     app.MapOpenApi();
     app.MapScalarApiReference();
 
-app.UseExceptionHandler();
+    app.UseExceptionHandler();
 
     app.UseAuthentication();
     app.UseAuthorization();

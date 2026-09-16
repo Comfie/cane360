@@ -2,7 +2,6 @@
 using Cane360.Application.Common.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NUnit.Framework;
 
@@ -10,39 +9,51 @@ namespace Cane360.Application.UnitTests.Common.Behaviours;
 
 public class RequestLoggerTests
 {
-    private ILogger<TestRequest> _logger = null!;
+    private Mock<ILogger<TestRequest>> _logger = null!;
     private Mock<IUser> _user = null!;
-    private Mock<IIdentityService> _identityService = null!;
 
     [SetUp]
     public void Setup()
     {
-        _logger = NullLogger<TestRequest>.Instance;
+        _logger = new Mock<ILogger<TestRequest>>();
         _user = new Mock<IUser>();
-        _identityService = new Mock<IIdentityService>();
     }
 
     [Test]
-    public async Task ShouldCallGetUserNameAsyncOnceIfAuthenticated()
+    public async Task ProcessLogsRequestTypeAndCorrelationWithoutUserIdentity()
     {
-        _user.Setup(x => x.Id).Returns(Guid.NewGuid().ToString());
+        _user.Setup(x => x.Id).Returns("private-user-id");
+        _user.Setup(x => x.CorrelationId).Returns("safe-correlation");
 
-        var requestLogger = new LoggingBehaviour<TestRequest>(_logger, _user.Object, _identityService.Object);
+        var requestLogger = new LoggingBehaviour<TestRequest>(_logger.Object, _user.Object);
 
         await requestLogger.Process(new TestRequest(), CancellationToken.None);
 
-        _identityService.Verify(i => i.GetUserNameAsync(It.IsAny<string>()), Times.Once);
+        _logger.Verify(logger => logger.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, _) =>
+                state.ToString()!.Contains(nameof(TestRequest), StringComparison.Ordinal) &&
+                state.ToString()!.Contains("safe-correlation", StringComparison.Ordinal) &&
+                !state.ToString()!.Contains("private-user-id", StringComparison.Ordinal)),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 
     [Test]
-    public async Task ShouldNotCallGetUserNameAsyncOnceIfUnauthenticated()
+    public async Task ProcessLogsUnauthenticatedRequestWithoutIdentityLookup()
     {
-        var requestLogger = new LoggingBehaviour<TestRequest>(_logger, _user.Object, _identityService.Object);
+        var requestLogger = new LoggingBehaviour<TestRequest>(_logger.Object, _user.Object);
 
         await requestLogger.Process(new TestRequest(), CancellationToken.None);
 
-        _identityService.Verify(i => i.GetUserNameAsync(It.IsAny<string>()), Times.Never);
+        _logger.Verify(logger => logger.Log(
+            LogLevel.Information,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains(nameof(TestRequest), StringComparison.Ordinal)),
+            null,
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
 
-    private sealed record TestRequest : IRequest;
+    public sealed record TestRequest : IRequest;
 }

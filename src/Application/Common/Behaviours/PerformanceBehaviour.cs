@@ -10,18 +10,15 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
     private readonly Stopwatch _timer;
     private readonly ILogger<TRequest> _logger;
     private readonly IUser _user;
-    private readonly IIdentityService _identityService;
 
     public PerformanceBehaviour(
         ILogger<TRequest> logger,
-        IUser user,
-        IIdentityService identityService)
+        IUser user)
     {
         _timer = new Stopwatch();
 
         _logger = logger;
         _user = user;
-        _identityService = identityService;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -37,16 +34,9 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         if (elapsedMilliseconds > 500)
         {
             var requestName = typeof(TRequest).Name;
-            var userId = _user.Id ?? string.Empty;
-            var userName = string.Empty;
 
-            if (!string.IsNullOrEmpty(userId))
-            {
-                userName = await _identityService.GetUserNameAsync(userId);
-            }
-
-            _logger.LogWarning("Cane360 Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {UserId} {UserName} {CorrelationId}",
-                requestName, elapsedMilliseconds, userId, userName, _user.CorrelationId);
+            _logger.LogWarning("Cane360 long-running application request {RequestName} completed in {ElapsedMilliseconds} ms; reference {CorrelationId}",
+                requestName, elapsedMilliseconds, _user.CorrelationId);
         }
 
         return response;
