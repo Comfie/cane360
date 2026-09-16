@@ -10,7 +10,10 @@ public sealed class GetWorkersQueryHandler(IFarmSetupRepository farmRepository, 
 {
     public async Task<IReadOnlyList<WorkerListItemDto>> Handle(GetWorkersQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await LabourAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        string userId = LabourAccess.RequireUserId(user);
+        var tenant = await farmRepository.GetTenantPeopleContextForUserAsync(userId, false,
+            cancellationToken) ?? throw new NotFoundException(userId,
+                "Active grower or farm-manager membership");
         var farm = LabourAccess.RequireFarm(tenant);
         var workers = await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
         return workers.Select(worker => LabourMapper.Worker(farm, worker)).OrderBy(worker => worker.DisplayName).ToArray();

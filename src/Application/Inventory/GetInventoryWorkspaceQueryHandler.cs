@@ -13,7 +13,10 @@ public sealed class GetInventoryWorkspaceQueryHandler(
     public async Task<InventoryWorkspaceDto> Handle(
         GetInventoryWorkspaceQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        string userId = InventoryAccess.RequireUserId(user);
+        var tenant = await farmRepository.GetTenantPeopleContextForUserAsync(userId, false,
+            cancellationToken) ?? throw new NotFoundException(userId,
+                "Active grower or farm-manager membership");
         var farm = InventoryAccess.RequireFarm(tenant);
         var units = await inventoryRepository.GetUnitsAsync(tenant.Id, false, cancellationToken);
         var items = await inventoryRepository.GetItemsAsync(tenant.Id, farm.Id, false, cancellationToken);

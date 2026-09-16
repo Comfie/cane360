@@ -1,4 +1,5 @@
 import { createElement, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useDialogFocus } from '../useDialogFocus';
 import { Archive, Boxes, ClipboardCheck, PackagePlus, Plus, ReceiptText, RotateCcw, Scale, ShieldCheck, Truck, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type {
@@ -254,7 +255,7 @@ function SimpleForm({ submit, onSaved, onError, action, children }: { submit: (d
   return <form className="inventory-form" onSubmit={save}><div className="form-grid">{children}</div><footer className="form-actions"><span>Archived reference data remains available in history.</span><button disabled={saving}>{saving ? 'Saving…' : action}</button></footer></form>;
 }
 
-function InventoryDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <dialog open className="activity-dialog inventory-dialog"><article><header><div><span className="eyebrow">Store daybook</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
+function InventoryDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLDialogElement>(onClose); return <dialog open className="activity-dialog inventory-dialog" ref={dialogRef} aria-modal="true" aria-label={title}><article><header><div><span className="eyebrow">Store daybook</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
 function InventoryEmpty({ icon, title, copy }: { icon: LucideIcon; title: string; copy: string }) { return <div className="inventory-empty">{createElement(icon, { size: 26 })}<div><strong>{title}</strong><span>{copy}</span></div></div>; }
 function formatDate(value: Date | string): string { const iso = value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10); return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T00:00:00`)); }
 function formatTimestamp(value: Date | string): string { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Harare' }).format(new Date(value)); }

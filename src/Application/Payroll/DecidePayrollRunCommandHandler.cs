@@ -6,7 +6,8 @@ public sealed class DecidePayrollRunCommandHandler(IFarmSetupRepository farms, I
 {
     public async Task<PayrollRunDto> Handle(DecidePayrollRunCommand request, CancellationToken cancellationToken)
     {
-        var (tenant, farm, userId) = await PayrollAccess.ContextAsync(farms, user, false, cancellationToken); PayrollAccess.RequireGrower(tenant, userId);
+        var (tenant, farm, userId) = await PayrollAccess.ContextAsync(farms, user, false,
+            cancellationToken, true); PayrollAccess.RequireGrower(tenant, userId);
         await using var transaction = await payroll.BeginSerializableTransactionAsync(cancellationToken);
         var existing = await payroll.GetPayrollApprovalByKeyAsync(tenant.Id, farm.Id, request.IdempotencyKey, cancellationToken);
         if (existing is not null)

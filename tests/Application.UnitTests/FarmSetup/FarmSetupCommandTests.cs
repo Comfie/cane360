@@ -11,6 +11,27 @@ namespace Cane360.Application.UnitTests.FarmSetup;
 public class FarmSetupCommandTests
 {
     [Test]
+    public async Task FarmSetupReadUsesReferenceContextWithoutOperationalHistory()
+    {
+        Tenant tenant = Tenant.CreateForGrower("user-1", "Tariro Moyo", null);
+        tenant.CreateFarm("GREEN-01", "Green Valley", "Synthetic", "Triangle", "Owned",
+            120m, "Furrow");
+        var repository = new Mock<IFarmSetupRepository>(MockBehavior.Strict);
+        repository.Setup(store => store.GetTenantReferenceContextForUserAsync("user-1", false,
+            CancellationToken.None)).ReturnsAsync(tenant);
+        var user = new Mock<IUser>();
+        user.SetupGet(current => current.Id).Returns("user-1");
+
+        FarmSetupDto result = await new GetFarmSetupQueryHandler(repository.Object, user.Object)
+            .Handle(new GetFarmSetupQuery(), CancellationToken.None);
+
+        result.IsConfigured.ShouldBeTrue();
+        result.Farm!.Name.ShouldBe("Green Valley");
+        repository.Verify(store => store.GetTenantForUserAsync(It.IsAny<string>(),
+            It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
     public async Task CreateGrowerFarmCreatesOneAtomicTenantGraph()
     {
         var repository = new Mock<IFarmSetupRepository>();

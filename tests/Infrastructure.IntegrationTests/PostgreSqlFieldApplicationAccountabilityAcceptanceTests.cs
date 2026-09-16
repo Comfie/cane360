@@ -138,6 +138,7 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task CostCorrectionCreatesImmutableReversalAndReplacement()
     {
         var scenario = await CreateScenarioAsync();
@@ -181,6 +182,7 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task OneOpenControlExceptionPerTraceItemAndCode()
     {
         var scenario = await CreateScenarioAsync();
@@ -202,6 +204,7 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task ActivityClosureRequiresZeroUnaccountedQuantity()
     {
         var scenario = await CreateScenarioAsync();
@@ -214,6 +217,7 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task Phase5CHistoryDoesNotDuplicateLedgerOrCostRows()
     {
         var scenario = await CreateScenarioAsync();

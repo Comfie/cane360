@@ -3,6 +3,7 @@ import { BadgeCheck, Pencil, UserPlus, Users, X } from 'lucide-react';
 import { CreatePersonRequest, FarmPersonnelClient, UpdatePersonRequest, type PersonDto, type PersonnelRegisterDto } from '../../web-api-client';
 import { DatePicker } from '../DatePicker';
 import { getApiError } from './farmSetupApi';
+import { useDialogFocus } from '../useDialogFocus';
 
 const personnelClient = new FarmPersonnelClient();
 
@@ -30,7 +31,6 @@ export function PersonnelRegister() {
     return () => { current = false; };
   }, []);
 
-  if (!register) return null;
   const openAddPerson = () => {
     setError('');
     setRole('Supervisor');
@@ -62,6 +62,8 @@ export function PersonnelRegister() {
     setRoleEffectiveFromMinimum('');
     setError('');
   };
+  const dialogRef = useDialogFocus<HTMLDialogElement>(() => { if (!saving) closeAddPerson(); }, adding || Boolean(editingPerson));
+  if (!register) return null;
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); setError('');
     try {
@@ -90,15 +92,15 @@ export function PersonnelRegister() {
     <header className="section-heading"><div><span className="eyebrow">People and roles</span><h2>Personnel register</h2></div><button type="button" className="secondary-action" onClick={openAddPerson}><UserPlus size={16} /> Add person</button></header>
     {!register.primaryManagerAssigned && <div className="manager-gap"><Users size={18} /><div><strong>Primary manager not assigned</strong><span>Add a named person with the primary Farm manager role when ready. The grower has not been assumed to be the manager.</span></div></div>}
     {error && !adding && !editingPerson && <p className="form-error">{error}</p>}
-    {(adding || editingPerson) && <dialog open className="activity-dialog personnel-dialog" aria-labelledby="person-editor-title" onCancel={(event) => { event.preventDefault(); closeAddPerson(); }}>
+    {(adding || editingPerson) && <dialog open className="activity-dialog personnel-dialog" ref={dialogRef} aria-modal="true" aria-labelledby="person-editor-title" onCancel={(event) => { event.preventDefault(); if (!saving) closeAddPerson(); }}>
       <article>
         <header>
           <div><span className="eyebrow">People and roles</span><h2 id="person-editor-title">{editingPerson ? 'Edit person' : 'Add person'}</h2></div>
-          <button type="button" className="dialog-close" onClick={closeAddPerson} aria-label="Close"><X /></button>
+          <button type="button" className="dialog-close" onClick={closeAddPerson} disabled={saving} aria-label="Close"><X /></button>
         </header>
         <form className="personnel-form" onSubmit={save}>
           <div className="form-grid">
-            <label>Display name<input name="displayName" maxLength={120} required autoFocus defaultValue={editingPerson?.displayName} /></label>
+            <label>Display name<input name="displayName" maxLength={120} required defaultValue={editingPerson?.displayName} /></label>
             <label>Phone <small>Optional</small><input name="phone" type="tel" maxLength={30} defaultValue={editingPerson?.phone} /></label>
             {editingPerson
               ? <label>Role effective from<DatePicker name="roleEffectiveFrom" value={roleEffectiveFrom} min={roleEffectiveFromMinimum} onChange={setRoleEffectiveFrom} required /><small>Current roles end on the day before this date.</small></label>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useDialogFocus } from '../useDialogFocus';
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardCheck, List, Plus, Sheet, TriangleAlert, X } from 'lucide-react';
 import {
   CreateActivityTypeRequest,
@@ -163,7 +164,8 @@ interface ActivityDialogProps {
 }
 
 function ActivityDialog({ title, onClose, children }: ActivityDialogProps) {
-  return <dialog open className="activity-dialog"><article><header><div><span className="eyebrow">Field diary</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>;
+  const dialogRef = useDialogFocus<HTMLDialogElement>(onClose);
+  return <dialog open className="activity-dialog" ref={dialogRef} aria-modal="true" aria-label={title}><article><header><div><span className="eyebrow">Field diary</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>;
 }
 
 interface CreateActivityFormProps {

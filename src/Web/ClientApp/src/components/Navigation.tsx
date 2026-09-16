@@ -23,6 +23,7 @@ import { protectedNavigation } from '../navigation.ts';
 import type { NavigationId, NavigationItem } from '../navigation.ts';
 import { useAuth } from './api-authorization/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
+import { useDialogFocus } from './useDialogFocus';
 
 const icons: Record<NavigationId, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -158,6 +159,7 @@ export function MobileHeader() {
 
 export function MobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const dialogRef = useDialogFocus<HTMLElement>(() => setIsOpen(false), isOpen);
   const location = useLocation();
   const primaryItems = protectedNavigation.slice(0, 3);
   const secondaryItems = protectedNavigation.slice(3);
@@ -169,6 +171,7 @@ export function MobileNavigation() {
         <div className="mobile-menu-backdrop" role="presentation" onClick={() => setIsOpen(false)}>
           <section
             id="mobile-menu"
+            ref={dialogRef}
             className="mobile-menu-sheet"
             role="dialog"
             aria-modal="true"

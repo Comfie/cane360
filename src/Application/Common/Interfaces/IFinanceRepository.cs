@@ -11,6 +11,9 @@ public interface IFinanceRepository
     Task<IReadOnlyList<OperationalTransaction>> GetTransactionsAsync(Guid tenantId, Guid farmId,
         DateOnly? from, DateOnly? to, string? type, string? category, string? status, string? search,
         CancellationToken cancellationToken);
+    Task<FinanceTransactionPageSource> GetTransactionPageAsync(Guid tenantId, Guid farmId,
+        DateOnly? from, DateOnly? to, string? type, string? category, string? status, string? search,
+        int page, int pageSize, CancellationToken cancellationToken);
     Task<OperationalTransaction?> GetTransactionAsync(Guid tenantId, Guid farmId, Guid id,
         bool trackChanges, CancellationToken cancellationToken);
     Task<OperationalTransaction?> GetTransactionByPostingKeyAsync(Guid tenantId, Guid farmId,

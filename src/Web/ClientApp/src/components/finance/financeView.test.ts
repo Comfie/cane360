@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { canApproveBudget, canEditBudget, canReviseBudget, canSubmitBudget, financeLabel, perUnit, usd, variancePercent } from './financeView.ts';
+
+const financePageSource = readFileSync(new URL('../pages/FinancePage.tsx', import.meta.url), 'utf8');
 
 test('missing cost denominators are not displayed as zero dollars', () => {
   assert.equal(perUnit(undefined, 'ha'), 'Not available');
@@ -23,4 +26,12 @@ test('budget workflow separates draft preparation from Grower approval', () => {
 test('zero-budget variance percent stays unavailable', () => {
   assert.equal(variancePercent(undefined), 'Not available');
   assert.equal(variancePercent(12.5), '+12.50%');
+});
+
+test('transaction register uses bounded server pages and authoritative filtered totals', () => {
+  assert.match(financePageSource, /getFinanceTransactions\([\s\S]*page, 50\)/);
+  assert.match(financePageSource, /setTransactions\(result\.items\)/);
+  assert.match(financePageSource, /setTransactionTotals\(result\)/);
+  assert.match(financePageSource, /Math\.ceil\(totals\.totalCount \/ 50\)/);
+  assert.match(financePageSource, /onPage\(page \+ 1\)/);
 });

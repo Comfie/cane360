@@ -6,10 +6,14 @@ namespace Cane360.Application.Payroll;
 
 internal static class PayrollAccess
 {
-    public static async Task<(Tenant Tenant, Farm Farm, string UserId)> ContextAsync(IFarmSetupRepository farms, IUser user, bool track, CancellationToken cancellationToken)
+    public static async Task<(Tenant Tenant, Farm Farm, string UserId)> ContextAsync(IFarmSetupRepository farms,
+        IUser user, bool track, CancellationToken cancellationToken, bool includeOperationalHistory = true)
     {
         var userId = user.Id ?? throw new UnauthorizedAccessException();
-        var tenant = await farms.GetTenantForUserAsync(userId, track, cancellationToken) ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
+        var tenant = await (includeOperationalHistory
+            ? farms.GetTenantForUserAsync(userId, track, cancellationToken)
+            : farms.GetTenantReferenceContextForUserAsync(userId, track, cancellationToken))
+            ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
         return (tenant, tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm"), userId);
     }
     public static Guid? OperationalPerson(Tenant tenant, string userId) => tenant.Memberships.Single(x => x.UserId == userId).PersonId;

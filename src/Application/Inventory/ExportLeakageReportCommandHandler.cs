@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using Cane360.Application.Common.Models;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Inventory;
 
@@ -18,9 +19,15 @@ public sealed class ExportLeakageReportCommandHandler(IFarmSetupRepository farmR
         var export = InventoryLeakageExport.Create(tenant.Id, farm.Id, snapshot, userId, now); inventoryRepository.Add(export);
         var audit = AuditEvent.Create(tenant.Id, farm.Id, nameof(InventoryLeakageExport), export.Id, "Exported", userId, InventoryAccess.SecurityRole(tenant, userId), null, now, InventoryAccess.CorrelationId(user), null, "Exported the complete authorised leakage-report result with its exact filter snapshot."); inventoryRepository.Add(audit); inventoryRepository.Add(InventoryAuditEventLink.ForLeakageExport(audit.Id, tenant.Id, farm.Id, export.Id));
         await inventoryRepository.SaveChangesAsync(cancellationToken);
-        var csv = new StringBuilder(); csv.AppendLine($"Cane360 leakage report,Generated {now:O},Farm {Escape(farm.Name)},USD"); csv.AppendLine($"Filters,{Escape(snapshot)}"); csv.AppendLine("Exception type,Severity,Status,Event date,Item,Lot,Quantity,Unit,Value USD,Source chain,Trace");
+        var csv = new StringBuilder();
+        csv.AppendLine("Report,Cane360 leakage report");
+        csv.AppendLine($"Farm,{Escape(farm.Name)}");
+        csv.AppendLine($"Generated UTC,{now:O}");
+        csv.AppendLine($"Filters,{Escape(snapshot)}");
+        csv.AppendLine("Source,Authoritative leakage-report query; Currency USD");
+        csv.AppendLine("Exception type,Severity,Status,Event date,Item,Lot,Quantity,Unit,Value USD,Source chain,Trace");
         foreach (var row in rows) csv.AppendLine(string.Join(',', Escape(row.ExceptionType), Escape(row.Severity), Escape(row.Status), row.EventDate.ToString("yyyy-MM-dd"), Escape(row.InventoryItemId?.ToString("N")[..8]), Escape(row.InventoryLotId?.ToString("N")[..8]), row.Quantity.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture), Escape(row.UnitCode), row.ValueUsd.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture), Escape(string.Join("/", row.SourceChainIds.Select(id => id.ToString("N")[..8]))), Escape(row.TraceSummary)));
         return new LeakageCsvExportDto(csv.ToString(), $"cane360-leakage-{now:yyyyMMdd-HHmmss}.csv");
     }
-    private static string Escape(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"")}\"";
+    private static string Escape(string? value) => CsvCell.Text(value);
 }

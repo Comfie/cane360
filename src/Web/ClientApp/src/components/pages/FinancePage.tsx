@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useDialogFocus } from '../useDialogFocus';
 import { CircleDollarSign, FileSearch, Landmark, Plus, RefreshCw, RotateCcw, Send, X } from 'lucide-react';
 import {
   CreateOperationalTransactionRequest,
@@ -39,6 +40,8 @@ export function FinancePage() {
   const [role, setRole] = useState('');
   const [tab, setTab] = useState<'transactions' | 'cost' | 'budgets' | 'mill-records'>('transactions');
   const [filters, setFilters] = useState({ from: '', to: '', type: '', category: '', status: '', search: '' });
+  const [transactionPage, setTransactionPage] = useState(1);
+  const [transactionTotals, setTransactionTotals] = useState({ totalCount: 0, postedExpenseUsd: 0, postedIncomeUsd: 0, draftCount: 0 });
   const [editor, setEditor] = useState<OperationalTransactionDto | 'new' | null>(null);
   const [allocating, setAllocating] = useState<OperationalTransactionDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,20 +49,20 @@ export function FinancePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const loadTransactions = useCallback(async () => {
+  const loadTransactions = useCallback(async (page = transactionPage) => {
     const result = await financeApi.getFinanceTransactions(filters.from || undefined, filters.to || undefined,
       filters.type || undefined, filters.category || undefined, filters.status || undefined,
-      filters.search || undefined);
-    setTransactions(result);
-  }, [filters]);
+      filters.search || undefined, page, 50);
+    setTransactions(result.items); setTransactionTotals(result); setTransactionPage(page);
+  }, [filters, transactionPage]);
 
   useEffect(() => {
     let current = true;
-    Promise.all([financeApi.getFinanceTransactions(undefined, undefined, undefined, undefined, undefined, undefined), farmApi.farmSetup(), financeApi.getFinanceSession()])
+    Promise.all([financeApi.getFinanceTransactions(undefined, undefined, undefined, undefined, undefined, undefined, 1, 50), farmApi.farmSetup(), financeApi.getFinanceSession()])
       .then(async ([nextTransactions, setup, session]) => {
         const collections = await Promise.all((setup.farm?.fields ?? []).map((field) => cyclesApi.cropCyclesGET(field.id)));
         if (!current) return;
-        setTransactions(nextTransactions); setFarm(setup); setRole(session.securityRole);
+        setTransactions(nextTransactions.items); setTransactionTotals(nextTransactions); setFarm(setup); setRole(session.securityRole);
         setCycles(collections.flatMap((collection) => collection.cropCycles.map((cycle) => ({
           id: cycle.id, fieldId: collection.field.id,
           label: `${collection.field.code} · ${cycle.variety} · ${financeLabel(cycle.status)}`,
@@ -121,15 +124,17 @@ export function FinancePage() {
 
     {tab === 'transactions' && <>
       <form className="finance-filters record-panel" onSubmit={(event) => { event.preventDefault(); loadTransactions().catch((e) => setError(getApiError(e))); }}>
-        <label>From<DatePicker name="from" value={filters.from} onChange={(value) => setFilters({ ...filters, from: value })} /></label>
-        <label>To<DatePicker name="to" value={filters.to} onChange={(value) => setFilters({ ...filters, to: value })} /></label>
-        <label>Direction<select value={filters.type} onChange={(event) => setFilters({ ...filters, type: event.target.value })}><option value="">All</option><option>Expense</option><option>Income</option></select></label>
-        <label>Status<select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="">All</option><option>Draft</option><option>Posted</option><option>Reversed</option><option>Cancelled</option></select></label>
-        <label>Category<select value={filters.category} onChange={(event) => setFilters({ ...filters, category: event.target.value })}><option value="">All</option>{financeCategories.map((value) => <option key={value} value={value}>{financeLabel(value)}</option>)}</select></label>
-        <label className="finance-search">Payee or source<input value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} placeholder="Search recorded evidence" /></label>
+        <label>From<DatePicker name="from" value={filters.from} onChange={(value) => { setTransactionPage(1); setFilters({ ...filters, from: value }); }} /></label>
+        <label>To<DatePicker name="to" value={filters.to} onChange={(value) => { setTransactionPage(1); setFilters({ ...filters, to: value }); }} /></label>
+        <label>Direction<select value={filters.type} onChange={(event) => { setTransactionPage(1); setFilters({ ...filters, type: event.target.value }); }}><option value="">All</option><option>Expense</option><option>Income</option></select></label>
+        <label>Status<select value={filters.status} onChange={(event) => { setTransactionPage(1); setFilters({ ...filters, status: event.target.value }); }}><option value="">All</option><option>Draft</option><option>Posted</option><option>Reversed</option><option>Cancelled</option></select></label>
+        <label>Category<select value={filters.category} onChange={(event) => { setTransactionPage(1); setFilters({ ...filters, category: event.target.value }); }}><option value="">All</option>{financeCategories.map((value) => <option key={value} value={value}>{financeLabel(value)}</option>)}</select></label>
+        <label className="finance-search">Payee or source<input value={filters.search} onChange={(event) => { setTransactionPage(1); setFilters({ ...filters, search: event.target.value }); }} placeholder="Search recorded evidence" /></label>
         <button disabled={pending !== ''}>Apply filters</button>
       </form>
-      <TransactionRegister transactions={transactions} pending={pending} onEdit={setEditor} onAllocate={setAllocating} onPost={post} onReverse={reverse} />
+      <TransactionRegister transactions={transactions} totals={transactionTotals} page={transactionPage} pending={pending}
+        onPage={(page) => loadTransactions(page).catch((error) => setError(getApiError(error)))} onEdit={setEditor}
+        onAllocate={setAllocating} onPost={post} onReverse={reverse} />
     </>}
     {tab === 'cost' && <CostWorkspace cycles={cycles} cost={cost} loading={pending === 'cost'} onSelect={loadCost} />}
     {tab === 'budgets' && <BudgetWorkspace cycles={cycles} role={role} onError={setError} onSuccess={setSuccess} />}
@@ -139,10 +144,9 @@ export function FinancePage() {
   </div>;
 }
 
-function TransactionRegister({ transactions, pending, onEdit, onAllocate, onPost, onReverse }: { transactions: OperationalTransactionDto[]; pending: string; onEdit: (value: OperationalTransactionDto) => void; onAllocate: (value: OperationalTransactionDto) => void; onPost: (value: OperationalTransactionDto) => void; onReverse: (value: OperationalTransactionDto) => void; }) {
-  const totals = useMemo(() => ({ income: transactions.filter((x) => x.type === 'Income' && x.status === 'Posted').reduce((n, x) => n + x.amountUsd, 0), expense: transactions.filter((x) => x.type === 'Expense' && x.status === 'Posted').reduce((n, x) => n + x.amountUsd, 0), drafts: transactions.filter((x) => x.status === 'Draft').length }), [transactions]);
+function TransactionRegister({ transactions, totals, page, pending, onPage, onEdit, onAllocate, onPost, onReverse }: { transactions: OperationalTransactionDto[]; totals: { totalCount: number; postedExpenseUsd: number; postedIncomeUsd: number; draftCount: number }; page: number; pending: string; onPage: (page: number) => void; onEdit: (value: OperationalTransactionDto) => void; onAllocate: (value: OperationalTransactionDto) => void; onPost: (value: OperationalTransactionDto) => void; onReverse: (value: OperationalTransactionDto) => void; }) {
   return <section className="finance-register record-panel">
-    <header className="finance-register-summary"><div><small>Posted expenses</small><strong>{usd(totals.expense)}</strong></div><div><small>Posted income</small><strong>{usd(totals.income)}</strong></div><div><small>Drafts awaiting allocation</small><strong>{totals.drafts}</strong></div></header>
+    <header className="finance-register-summary"><div><small>Posted expenses · all filtered</small><strong>{usd(totals.postedExpenseUsd)}</strong></div><div><small>Posted income · all filtered</small><strong>{usd(totals.postedIncomeUsd)}</strong></div><div><small>Drafts awaiting allocation</small><strong>{totals.draftCount}</strong></div></header>
     <div className="finance-ledger-head"><span>Date / source</span><span>Payee or payer</span><span>Category</span><span>Amount</span><span>Status / action</span></div>
     {transactions.length ? transactions.map((transaction) => <article className="finance-row" key={transaction.id}>
       <span><strong>{transaction.eventDate}</strong><small>{transaction.sourceReference || 'No source reference'}</small></span>
@@ -151,6 +155,7 @@ function TransactionRegister({ transactions, pending, onEdit, onAllocate, onPost
       <b className={transaction.type === 'Income' ? 'finance-income' : 'finance-expense'}>{transaction.type === 'Income' ? '+' : '−'}{usd(transaction.amountUsd)}</b>
       <span className="finance-row-actions"><em className={`status-pill status-${transaction.status.toLowerCase()}`}>{transaction.status}</em>{transaction.status === 'Draft' && <><button onClick={() => onEdit(transaction)}>Edit</button><button onClick={() => onAllocate(transaction)}>Allocate</button><button disabled={!transaction.allocations.length || pending !== ''} onClick={() => onPost(transaction)}><Send size={14} /> Post</button></>}{transaction.status === 'Posted' && <button className="text-action" disabled={pending !== ''} onClick={() => onReverse(transaction)}><RotateCcw size={14} /> Reverse</button>}</span>
     </article>) : <div className="finance-empty"><Landmark size={26} /><strong>No operational transactions match these filters.</strong><span>Create a draft or widen the date and status filters.</span></div>}
+    <nav className="payroll-pagination" aria-label="Transaction pages"><button disabled={page <= 1 || pending !== ''} onClick={() => onPage(page - 1)}>Previous transactions</button><span aria-live="polite">Page {page} of {Math.max(1, Math.ceil(totals.totalCount / 50))}</span><button disabled={page * 50 >= totals.totalCount || pending !== ''} onClick={() => onPage(page + 1)}>Next transactions</button></nav>
   </section>;
 }
 
@@ -179,4 +184,4 @@ function CostWorkspace({ cycles, cost, loading, onSelect }: { cycles: FinanceCyc
   return <div className="cost-workspace"><section className="cost-selector record-panel"><label>Crop cycle<select onChange={(event) => onSelect(event.target.value)} defaultValue=""><option value="">Choose a crop cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label><p>Totals come only from signed `OperationalCostPosting` rows. Income and unallocated overhead never alter crop cost.</p></section>{loading && <LoadingState label="Tracing cost sources" />}{cost && <><section className="cost-summary record-panel"><header><div><small>{cost.fieldName}</small><h2>{usd(cost.totalCostUsd)}</h2><span>Total controlled crop cost</span></div><div className="cost-unit-rates"><strong>{perUnit(cost.costPerHectareUsd, 'ha')}</strong><small>{cost.reportingHectares == null ? 'Reporting area missing' : `${cost.reportingHectares} reporting ha`}</small><strong>{perUnit(cost.costPerTonneUsd, 't')}</strong><small>{cost.actualHarvestedTonnes == null ? 'Actual harvest missing' : `${cost.actualHarvestedTonnes} actual t`}</small></div></header><div className="cost-breakdown"><span><small>Labour</small><b>{usd(cost.labourUsd)}</b></span><span><small>Applied inputs</small><b>{usd(cost.appliedInputsUsd)}</b></span><span><small>Direct expenses</small><b>{usd(cost.directExpensesUsd)}</b></span><span><small>Approved loss</small><b>{usd(cost.approvedInventoryLossUsd)}</b></span></div></section><section className="cost-trace record-panel"><header><FileSearch size={19} /><div><h2>Authoritative source trace</h2><p>Every amount below binds to one operational source.</p></div></header>{cost.sources.map((source) => <article key={source.id}><span className="trace-node" /><span><strong>{financeLabel(source.category)}</strong><small>{source.sourceType} · {source.sourceId}</small>{source.payrollRunId && <small>Payroll run {source.payrollRunId} · calculation v{source.payrollCalculationVersion} · worker line {source.payrollWorkerLineId} · work record {source.workRecordId}</small>}{source.operationalTransactionId && <small>Transaction {source.operationalTransactionId} · allocation {source.transactionAllocationId}</small>}<small>{source.reversalOfId ? `Reverses posting ${source.reversalOfId}` : source.sourceDescription}</small></span><b className={source.amountUsd < 0 ? 'finance-income' : ''}>{usd(source.amountUsd)}</b></article>)}</section></> }</div>;
 }
 
-function FinanceDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <div className="dialog-backdrop" role="presentation"><section className="inventory-dialog finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><CircleDollarSign size={19} /><h2>{title}</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button></header>{children}</section></div>; }
+function FinanceDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLElement>(onClose); return <div className="dialog-backdrop" role="presentation"><section ref={dialogRef} className="inventory-dialog finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><CircleDollarSign size={19} /><h2>{title}</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button></header>{children}</section></div>; }

@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { UpdateFarmInformationRequest } from '../../web-api-client';
 import { farmSetupClient, getApiError } from './farmSetupApi';
 import type { FarmSetupDto } from '../../web-api-client';
+import { useDialogFocus } from '../useDialogFocus';
 
 const tenureOptions = ['Owned', 'Leasehold', 'Outgrower agreement', 'Communal land', 'Other'];
 
@@ -16,6 +17,7 @@ interface FarmProfileEditorProps {
 export function FarmProfileEditor({ setup, onClose, onSaved }: FarmProfileEditorProps) {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const dialogRef = useDialogFocus<HTMLDialogElement>(() => { if (!saving) onClose(); });
   const farm = setup.farm;
 
   if (!farm) return null;
@@ -43,15 +45,15 @@ export function FarmProfileEditor({ setup, onClose, onSaved }: FarmProfileEditor
     }
   };
 
-  return <dialog open className="activity-dialog farm-profile-dialog" aria-labelledby="edit-farm-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
+  return <dialog open className="activity-dialog farm-profile-dialog" ref={dialogRef} aria-modal="true" aria-labelledby="edit-farm-title" onCancel={(event) => { event.preventDefault(); if (!saving) onClose(); }}>
     <article>
       <header>
         <div><span className="eyebrow">Farm setup</span><h2 id="edit-farm-title">Edit farm information</h2></div>
-        <button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button>
+        <button type="button" className="dialog-close" onClick={onClose} disabled={saving} aria-label="Close"><X /></button>
       </header>
       <form className="farm-profile-form" onSubmit={save}>
         <fieldset className="form-grid">
-          <label>Grower name<input name="growerDisplayName" autoComplete="name" maxLength={120} defaultValue={setup.grower?.displayName} required autoFocus /></label>
+          <label>Grower name<input name="growerDisplayName" autoComplete="name" maxLength={120} defaultValue={setup.grower?.displayName} required /></label>
           <label>Phone number <small>Optional</small><input name="growerPhone" type="tel" autoComplete="tel" maxLength={30} defaultValue={setup.grower?.phone} /></label>
           <label>Farm code<input name="farmCode" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" defaultValue={farm.code} required /></label>
           <label>Farm name<input name="farmName" maxLength={120} defaultValue={farm.name} required /></label>
@@ -61,7 +63,7 @@ export function FarmProfileEditor({ setup, onClose, onSaved }: FarmProfileEditor
           <label>Declared farm area (ha)<input name="declaredHectares" type="number" min="0.01" max="100000" step="0.01" inputMode="decimal" defaultValue={farm.declaredHectares} required /></label>
           <label className="is-wide">Irrigation context<textarea name="irrigationContext" maxLength={160} rows={3} defaultValue={farm.irrigationContext} required /></label>
         </fieldset>
-        {error && <p className="form-error">{error}</p>}
+        {error && <p className="form-error" role="alert">{error}</p>}
         <footer className="farm-profile-actions">
           <button type="button" className="secondary" onClick={onClose} disabled={saving}>Cancel</button>
           <button disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button>

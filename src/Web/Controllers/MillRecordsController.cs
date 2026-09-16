@@ -1,5 +1,6 @@
 using System.Text;
 using Cane360.Application.Common.Interfaces;
+using Cane360.Application.Common.Models;
 using Cane360.Application.MillRecords;
 using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.MillRecords;
@@ -42,15 +43,15 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         records.DeactivateMillAsync(millId, new(request.ExpectedVersion), cancellationToken));
 
     [HttpGet("tickets", Name = "GetWeighbridgeTickets")]
-    public async Task<ActionResult<IReadOnlyList<WeighbridgeTicketDto>>> GetTickets(
+    public async Task<ActionResult<WeighbridgeTicketPageDto>> GetTickets(
         [FromQuery] string? from, [FromQuery] string? to, [FromQuery] Guid? millId,
         [FromQuery] Guid? fieldId, [FromQuery] Guid? cropCycleId, [FromQuery] string? status,
         [FromQuery] string? matchStatus, [FromQuery] string? search,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return DateError();
-        return Ok(await records.GetTicketsAsync(new(fromDate, toDate, millId, fieldId,
-            cropCycleId, status, matchStatus, search), cancellationToken));
+        return Ok(await records.GetTicketPageAsync(new(fromDate, toDate, millId, fieldId,
+            cropCycleId, status, matchStatus, search), page, pageSize, cancellationToken));
     }
 
     [HttpGet("tickets/{ticketId:guid}", Name = "GetWeighbridgeTicket")]
@@ -101,14 +102,14 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpGet("statements", Name = "GetGrowerStatements")]
-    public async Task<ActionResult<IReadOnlyList<GrowerStatementDto>>> GetStatements(
+    public async Task<ActionResult<GrowerStatementPageDto>> GetStatements(
         [FromQuery] string? from, [FromQuery] string? to, [FromQuery] Guid? millId,
         [FromQuery] string? matchStatus, [FromQuery] string? search,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return DateError();
-        return Ok(await records.GetStatementsAsync(new(fromDate, toDate, millId,
-            matchStatus, search), cancellationToken));
+        return Ok(await records.GetStatementPageAsync(new(fromDate, toDate, millId,
+            matchStatus, search), page, pageSize, cancellationToken));
     }
 
     [HttpGet("statements/{statementId:guid}", Name = "GetGrowerStatement")]
@@ -200,13 +201,14 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return DateError();
         IReadOnlyList<WeighbridgeTicketDto> rows = await records.GetTicketsAsync(new(fromDate,
             toDate, millId, fieldId, cropCycleId, status, matchStatus, search), cancellationToken);
-        await records.RecordExportAsync("WeighbridgeRegister", Request.QueryString.Value ?? string.Empty,
+        ReportExportContext export = await records.RecordExportAsync("WeighbridgeRegister", Request.QueryString.Value ?? string.Empty,
             cancellationToken);
-        var csv = new StringBuilder("Mill,Ticket,Date,Net tonnes,Field,Crop cycle,Match state\n");
+        var csv = ExportHeader(export);
+        csv.AppendLine("Mill,Ticket,Date,Net tonnes,Field,Crop cycle,Match state");
         foreach (WeighbridgeTicketDto row in rows.Where(x => x.IsCurrent)) csv.AppendLine(string.Join(',',
-            Csv(row.MillName), Csv(row.TicketReference), row.TicketDate, row.NetTonnes,
+            Csv(row.MillName), Csv(row.TicketReference), Csv(row.TicketDate), CsvCell.Number(row.NetTonnes),
             Csv(row.FieldName), Csv(row.CropCycleLabel), row.MatchedStatementIds.Count == 0 ? "Unmatched" : "Matched"));
-        return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", "weighbridge-register.csv");
+        return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "weighbridge-register.csv");
     }
 
     [HttpGet("statements/export", Name = "ExportStatementReconciliation")]
@@ -217,16 +219,24 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return DateError();
         IReadOnlyList<GrowerStatementDto> rows = await records.GetStatementsAsync(new(fromDate,
             toDate, millId, matchStatus, search), cancellationToken);
-        await records.RecordExportAsync("StatementReconciliation", Request.QueryString.Value ?? string.Empty,
+        ReportExportContext export = await records.RecordExportAsync("StatementReconciliation", Request.QueryString.Value ?? string.Empty,
             cancellationToken);
-        var csv = new StringBuilder("Statement,Period start,Period end,Mill,Statement tonnes,Matched tonnes,Tonnes variance,Statement USD,Matched USD,Amount variance,Status\n");
+        var csv = ExportHeader(export);
+        csv.AppendLine("Statement,Period start,Period end,Mill,Statement tonnes,Matched tonnes,Tonnes variance,Statement USD,Matched USD,Amount variance,Status");
         foreach (GrowerStatementDto row in rows.Where(x => x.IsCurrent)) csv.AppendLine(string.Join(',',
-            Csv(row.StatementReference), row.PeriodStart, row.PeriodEnd, Csv(row.MillName),
-            row.TotalTonnes, row.Reconciliation.MatchedTicketTonnes, row.Reconciliation.TonnesVariance,
-            row.TotalAmountUsd, row.Reconciliation.MatchedAmountUsd?.ToString() ?? string.Empty,
-            row.Reconciliation.AmountVarianceUsd?.ToString() ?? string.Empty, row.Reconciliation.Status));
-        return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv", "statement-reconciliation.csv");
+            Csv(row.StatementReference), Csv(row.PeriodStart), Csv(row.PeriodEnd), Csv(row.MillName),
+            CsvCell.Number(row.TotalTonnes), CsvCell.Number(row.Reconciliation.MatchedTicketTonnes), CsvCell.Number(row.Reconciliation.TonnesVariance),
+            CsvCell.Number(row.TotalAmountUsd), CsvCell.Number(row.Reconciliation.MatchedAmountUsd),
+            CsvCell.Number(row.Reconciliation.AmountVarianceUsd), Csv(row.Reconciliation.Status)));
+        return File(Encoding.UTF8.GetBytes(csv.ToString()), "text/csv; charset=utf-8", "statement-reconciliation.csv");
     }
+
+    private static StringBuilder ExportHeader(ReportExportContext context) => new StringBuilder()
+        .AppendLine($"Report,{Csv(context.Report)}")
+        .AppendLine($"Farm,{Csv(context.Farm)}")
+        .AppendLine($"Filters,{Csv(string.IsNullOrEmpty(context.Filters) ? "All authorized current records; all dates" : context.Filters)}")
+        .AppendLine($"Generated UTC,{Csv(context.GeneratedAt.ToString("O", System.Globalization.CultureInfo.InvariantCulture))}")
+        .AppendLine($"Source,{Csv(context.Source)}");
 
     private static TicketInput TicketInput(TicketRequest request, DateOnly date) => new(
         request.MillId, request.TicketReference, date, request.GrossTonnes, request.TareTonnes,
@@ -267,5 +277,5 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         catch (FormatException) { return false; }
         return content.LongLength is > 0 and <= 20 * 1024 * 1024;
     }
-    private static string Csv(string? value) => $"\"{(value ?? string.Empty).Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
+    private static string Csv(string? value) => CsvCell.Text(value);
 }

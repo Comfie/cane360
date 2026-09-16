@@ -1,9 +1,12 @@
 interface ApiErrorSource {
+  status?: unknown;
   result?: unknown;
   response?: unknown;
 }
 
 interface ProblemDetails {
+  status?: unknown;
+  traceId?: unknown;
   errors?: Record<string, unknown>;
   detail?: unknown;
   title?: unknown;
@@ -38,6 +41,15 @@ export function getApiError(error: unknown): string {
     }
 
     const problem = asProblemDetails(source.result ?? parsedResponse ?? error);
+    const status = typeof source.status === 'number' ? source.status : problem?.status;
+    const reference = asMessage(problem?.traceId);
+    const support = reference && /^[A-Za-z0-9:._-]{1,128}$/.test(reference) ? ` Support reference: ${reference}.` : '';
+    if (typeof status === 'number' && status >= 500) {
+      return `Cane360 could not complete the request. Refresh to check whether the action completed before trying again.${support}`;
+    }
+    if (status === 401) return 'Your session has expired. Log in again to continue.';
+    if (status === 403) return 'You do not have permission to complete this action. Ask your Grower for help.';
+    if (status === 404) return 'This record is unavailable in your current workspace. Refresh the list and try again.';
     const validationMessages = problem
       ? Object.values(problem.errors ?? {})
         .flatMap((messages) => Array.isArray(messages) ? messages : [messages])

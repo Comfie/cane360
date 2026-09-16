@@ -2661,9 +2661,11 @@ export class FinanceClient {
      * @param category (optional)
      * @param status (optional)
      * @param search (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
      * @return OK
      */
-    getFinanceTransactions(from: string | undefined, to: string | undefined, type: string | undefined, category: string | undefined, status: string | undefined, search: string | undefined): Promise<OperationalTransactionDto[]> {
+    getFinanceTransactions(from: string | undefined, to: string | undefined, type: string | undefined, category: string | undefined, status: string | undefined, search: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<OperationalTransactionPageDto> {
         let url_ = this.baseUrl + "/api/finance/transactions?";
         if (from === null)
             throw new globalThis.Error("The parameter 'from' cannot be null.");
@@ -2689,6 +2691,14 @@ export class FinanceClient {
             throw new globalThis.Error("The parameter 'search' cannot be null.");
         else if (search !== undefined)
             url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -2703,21 +2713,14 @@ export class FinanceClient {
         });
     }
 
-    protected processGetFinanceTransactions(response: Response): Promise<OperationalTransactionDto[]> {
+    protected processGetFinanceTransactions(response: Response): Promise<OperationalTransactionPageDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(OperationalTransactionDto.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
+            result200 = OperationalTransactionPageDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -2737,7 +2740,7 @@ export class FinanceClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<OperationalTransactionDto[]>(null as any);
+        return Promise.resolve<OperationalTransactionPageDto>(null as any);
     }
 
     /**
@@ -7201,9 +7204,11 @@ export class MillRecordsClient {
      * @param status (optional)
      * @param matchStatus (optional)
      * @param search (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
      * @return OK
      */
-    getWeighbridgeTickets(from: string | undefined, to: string | undefined, millId: string | undefined, fieldId: string | undefined, cropCycleId: string | undefined, status: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<WeighbridgeTicketDto[]> {
+    getWeighbridgeTickets(from: string | undefined, to: string | undefined, millId: string | undefined, fieldId: string | undefined, cropCycleId: string | undefined, status: string | undefined, matchStatus: string | undefined, search: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<WeighbridgeTicketPageDto> {
         let url_ = this.baseUrl + "/api/finance/mill-records/tickets?";
         if (from === null)
             throw new globalThis.Error("The parameter 'from' cannot be null.");
@@ -7237,6 +7242,14 @@ export class MillRecordsClient {
             throw new globalThis.Error("The parameter 'search' cannot be null.");
         else if (search !== undefined)
             url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -7251,21 +7264,14 @@ export class MillRecordsClient {
         });
     }
 
-    protected processGetWeighbridgeTickets(response: Response): Promise<WeighbridgeTicketDto[]> {
+    protected processGetWeighbridgeTickets(response: Response): Promise<WeighbridgeTicketPageDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(WeighbridgeTicketDto.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
+            result200 = WeighbridgeTicketPageDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -7285,7 +7291,7 @@ export class MillRecordsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<WeighbridgeTicketDto[]>(null as any);
+        return Promise.resolve<WeighbridgeTicketPageDto>(null as any);
     }
 
     /**
@@ -7623,9 +7629,11 @@ export class MillRecordsClient {
      * @param millId (optional)
      * @param matchStatus (optional)
      * @param search (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
      * @return OK
      */
-    getGrowerStatements(from: string | undefined, to: string | undefined, millId: string | undefined, matchStatus: string | undefined, search: string | undefined): Promise<GrowerStatementDto[]> {
+    getGrowerStatements(from: string | undefined, to: string | undefined, millId: string | undefined, matchStatus: string | undefined, search: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<GrowerStatementPageDto> {
         let url_ = this.baseUrl + "/api/finance/mill-records/statements?";
         if (from === null)
             throw new globalThis.Error("The parameter 'from' cannot be null.");
@@ -7647,6 +7655,14 @@ export class MillRecordsClient {
             throw new globalThis.Error("The parameter 'search' cannot be null.");
         else if (search !== undefined)
             url_ += "search=" + encodeURIComponent("" + search) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "pageSize=" + encodeURIComponent("" + pageSize) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -7661,21 +7677,14 @@ export class MillRecordsClient {
         });
     }
 
-    protected processGetGrowerStatements(response: Response): Promise<GrowerStatementDto[]> {
+    protected processGetGrowerStatements(response: Response): Promise<GrowerStatementPageDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(GrowerStatementDto.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
+            result200 = GrowerStatementPageDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -7695,7 +7704,7 @@ export class MillRecordsClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<GrowerStatementDto[]>(null as any);
+        return Promise.resolve<GrowerStatementPageDto>(null as any);
     }
 
     /**
@@ -18996,6 +19005,77 @@ export interface IGrowerStatementDto {
     [key: string]: any;
 }
 
+export class GrowerStatementPageDto implements IGrowerStatementPageDto {
+    items!: GrowerStatementDto[];
+    page!: number;
+    pageSize!: number;
+    totalCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IGrowerStatementPageDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(GrowerStatementDto.fromJS(item));
+            }
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+            this.totalCount = _data["totalCount"];
+        }
+    }
+
+    static fromJS(data: any): GrowerStatementPageDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new GrowerStatementPageDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        data["totalCount"] = this.totalCount;
+        return data;
+    }
+}
+
+export interface IGrowerStatementPageDto {
+    items: GrowerStatementDto[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+
+    [key: string]: any;
+}
+
 export class HarvestCropCycleRequest implements IHarvestCropCycleRequest {
     expectedVersion!: number;
     harvestDate!: Date;
@@ -21454,6 +21534,89 @@ export interface IOperationalTransactionDto {
     reversalOfOperationalTransactionId: string | undefined;
     reversalReason: string | undefined;
     allocations: TransactionAllocationDto[];
+
+    [key: string]: any;
+}
+
+export class OperationalTransactionPageDto implements IOperationalTransactionPageDto {
+    items!: OperationalTransactionDto[];
+    page!: number;
+    pageSize!: number;
+    totalCount!: number;
+    postedExpenseUsd!: number;
+    postedIncomeUsd!: number;
+    draftCount!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IOperationalTransactionPageDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(OperationalTransactionDto.fromJS(item));
+            }
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+            this.totalCount = _data["totalCount"];
+            this.postedExpenseUsd = _data["postedExpenseUsd"];
+            this.postedIncomeUsd = _data["postedIncomeUsd"];
+            this.draftCount = _data["draftCount"];
+        }
+    }
+
+    static fromJS(data: any): OperationalTransactionPageDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OperationalTransactionPageDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        data["totalCount"] = this.totalCount;
+        data["postedExpenseUsd"] = this.postedExpenseUsd;
+        data["postedIncomeUsd"] = this.postedIncomeUsd;
+        data["draftCount"] = this.draftCount;
+        return data;
+    }
+}
+
+export interface IOperationalTransactionPageDto {
+    items: OperationalTransactionDto[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    postedExpenseUsd: number;
+    postedIncomeUsd: number;
+    draftCount: number;
 
     [key: string]: any;
 }
@@ -27470,6 +27633,85 @@ export interface IWeighbridgeTicketDto {
     evidence: EvidenceDocumentDto[];
     matchedStatementIds: string[];
     matchedToAnotherStatement: boolean;
+
+    [key: string]: any;
+}
+
+export class WeighbridgeTicketPageDto implements IWeighbridgeTicketPageDto {
+    items!: WeighbridgeTicketDto[];
+    page!: number;
+    pageSize!: number;
+    totalCount!: number;
+    unmatchedCount!: number;
+    recordedNetTonnes!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IWeighbridgeTicketPageDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(WeighbridgeTicketDto.fromJS(item));
+            }
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+            this.totalCount = _data["totalCount"];
+            this.unmatchedCount = _data["unmatchedCount"];
+            this.recordedNetTonnes = _data["recordedNetTonnes"];
+        }
+    }
+
+    static fromJS(data: any): WeighbridgeTicketPageDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeighbridgeTicketPageDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        data["totalCount"] = this.totalCount;
+        data["unmatchedCount"] = this.unmatchedCount;
+        data["recordedNetTonnes"] = this.recordedNetTonnes;
+        return data;
+    }
+}
+
+export interface IWeighbridgeTicketPageDto {
+    items: WeighbridgeTicketDto[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    unmatchedCount: number;
+    recordedNetTonnes: number;
 
     [key: string]: any;
 }

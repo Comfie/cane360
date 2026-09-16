@@ -19,6 +19,21 @@ public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepositor
             filter.To, filter.Type, filter.Category, filter.Status, filter.Search, cancellationToken)).Select(Map).ToArray();
     }
 
+    public async Task<OperationalTransactionPageDto> GetTransactionPageAsync(
+        FinanceTransactionFilter filter, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize)
+            throw new Application.Common.Exceptions.ValidationException(
+                [new FluentValidation.Results.ValidationFailure("page",
+                    "Page must be positive and page size must be between 1 and 100.")]);
+        Context context = await ContextAsync(false, cancellationToken);
+        FinanceTransactionPageSource source = await finance.GetTransactionPageAsync(context.Tenant.Id,
+            context.Farm.Id, filter.From, filter.To, filter.Type, filter.Category, filter.Status,
+            filter.Search, page, pageSize, cancellationToken);
+        return new(source.Transactions, page, pageSize, source.TotalCount,
+            source.PostedExpenseUsd, source.PostedIncomeUsd, source.DraftCount);
+    }
+
     public async Task<OperationalTransactionDto> GetTransactionAsync(Guid transactionId,
         CancellationToken cancellationToken)
     {
@@ -199,7 +214,7 @@ public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepositor
     public async Task<PayrollCostReconciliationDto> ReconcilePayrollAsync(
         CancellationToken cancellationToken)
     {
-        Context context = await ContextAsync(false, cancellationToken);
+        Context context = await ContextAsync(false, cancellationToken, includeActivityHistory: true);
         RequireGrower(context);
         await using IFinanceTransaction transaction = await finance.BeginSerializableTransactionAsync(cancellationToken);
         PayrollCostReconciliationDto result = await payrollProjection.ReconcileAsync(context.Tenant,
@@ -514,10 +529,15 @@ public sealed class FinanceService(IFarmSetupRepository farms, IFinanceRepositor
         _ => throw new ArgumentOutOfRangeException(nameof(category))
     };
 
-    private async Task<Context> ContextAsync(bool track, CancellationToken cancellationToken)
+    private async Task<Context> ContextAsync(bool track, CancellationToken cancellationToken,
+        bool includeActivityHistory = false)
     {
         string userId = user.Id ?? throw new UnauthorizedAccessException();
-        Tenant tenant = await farms.GetTenantForUserAsync(userId, track, cancellationToken)
+        // Payroll projection resolves earning evidence against activities. Other finance
+        // operations need membership and field/cycle references, not operational history.
+        Tenant tenant = await (includeActivityHistory
+            ? farms.GetTenantForUserAsync(userId, track, cancellationToken)
+            : farms.GetTenantReferenceContextForUserAsync(userId, track, cancellationToken))
             ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
         return new(tenant, tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(),
             "Active farm"), userId);
