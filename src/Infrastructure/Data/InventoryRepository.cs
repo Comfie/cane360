@@ -230,6 +230,16 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
             .OrderBy(rule => rule.InventoryItemId).ThenByDescending(rule => rule.EffectiveFrom)
             .ToListAsync(cancellationToken);
 
+    public Task<InventoryApplicationRule?> GetRuleAsync(Guid tenantId, Guid farmId,
+        Guid ruleId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<InventoryApplicationRule> query = context.InventoryApplicationRules
+            .Where(item => item.TenantId == tenantId && item.FarmId == farmId &&
+                item.Id == ruleId);
+        return (trackChanges ? query : query.AsNoTracking())
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public Task<InventoryApplicationRule?> GetEffectiveRuleAsync(
         Guid tenantId, Guid farmId, Guid itemId, Guid activityTypeId, DateOnly date,
         CancellationToken cancellationToken) => context.InventoryApplicationRules.AsNoTracking()

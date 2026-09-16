@@ -54,6 +54,16 @@ public sealed class InventoryApplicationRule : BaseAuditableEntity
             ratePerCoverageUnit, lowerTolerancePercent, upperTolerancePercent);
 
     public bool IsEffective(DateOnly date) => EffectiveFrom <= date && (EffectiveTo is null || EffectiveTo >= date);
+
+    public void End(DateOnly effectiveTo, long expectedVersion)
+    {
+        if (Version != expectedVersion)
+            throw new InvalidOperationException("This application rule changed after it was loaded.");
+        if (effectiveTo < EffectiveFrom || (EffectiveTo.HasValue && effectiveTo > EffectiveTo))
+            throw new InvalidOperationException("The end date must stay within the rule's effective range.");
+        EffectiveTo = effectiveTo;
+        Version++;
+    }
     public decimal PlannedQuantity(decimal coverage) => Round(coverage * RatePerCoverageUnit);
     public decimal MinimumQuantity(decimal plannedQuantity) => Round(plannedQuantity * (1 - LowerTolerancePercent / 100m));
     public decimal MaximumQuantity(decimal plannedQuantity) => Round(plannedQuantity * (1 + UpperTolerancePercent / 100m));

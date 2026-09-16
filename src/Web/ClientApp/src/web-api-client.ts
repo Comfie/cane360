@@ -970,7 +970,7 @@ export class ActivityTypesClient {
     /**
      * @return Created
      */
-    activityTypes(body: CreateActivityTypeRequest): Promise<ActivityTypeDto> {
+    activityTypesPOST(body: CreateActivityTypeRequest): Promise<ActivityTypeDto> {
         let url_ = this.baseUrl + "/api/activity-types";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -986,11 +986,11 @@ export class ActivityTypesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivityTypes(_response);
+            return this.processActivityTypesPOST(_response);
         });
     }
 
-    protected processActivityTypes(response: Response): Promise<ActivityTypeDto> {
+    protected processActivityTypesPOST(response: Response): Promise<ActivityTypeDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -1097,6 +1097,1170 @@ export class ActivityTypesClient {
             });
         }
         return Promise.resolve<ActivityTypeDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    activityTypesPUT(activityTypeId: string, body: RenameActivityTypeRequest): Promise<ActivityTypeDto> {
+        let url_ = this.baseUrl + "/api/activity-types/{activityTypeId}";
+        if (activityTypeId === undefined || activityTypeId === null)
+            throw new globalThis.Error("The parameter 'activityTypeId' must be defined.");
+        url_ = url_.replace("{activityTypeId}", encodeURIComponent("" + activityTypeId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processActivityTypesPUT(_response);
+        });
+    }
+
+    protected processActivityTypesPUT(response: Response): Promise<ActivityTypeDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ActivityTypeDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ActivityTypeDto>(null as any);
+    }
+}
+
+export class AdministrationClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    overview(): Promise<AdministrationOverviewDto> {
+        let url_ = this.baseUrl + "/api/administration/overview";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOverview(_response);
+        });
+    }
+
+    protected processOverview(response: Response): Promise<AdministrationOverviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationOverviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationOverviewDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    managerAccess(): Promise<AdministrationManagerAccessDto> {
+        let url_ = this.baseUrl + "/api/administration/manager-access";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processManagerAccess(_response);
+        });
+    }
+
+    protected processManagerAccess(response: Response): Promise<AdministrationManagerAccessDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationManagerAccessDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationManagerAccessDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    rulesAll(): Promise<AdministrationRuleDto[]> {
+        let url_ = this.baseUrl + "/api/administration/rules";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRulesAll(_response);
+        });
+    }
+
+    protected processRulesAll(response: Response): Promise<AdministrationRuleDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdministrationRuleDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationRuleDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    end(ruleId: string, body: EndEffectiveRuleRequest): Promise<AdministrationRuleDto> {
+        let url_ = this.baseUrl + "/api/administration/rules/{ruleId}/end";
+        if (ruleId === undefined || ruleId === null)
+            throw new globalThis.Error("The parameter 'ruleId' must be defined.");
+        url_ = url_.replace("{ruleId}", encodeURIComponent("" + ruleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processEnd(_response);
+        });
+    }
+
+    protected processEnd(response: Response): Promise<AdministrationRuleDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationRuleDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationRuleDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    ruleItems(): Promise<InventoryItemDto[]> {
+        let url_ = this.baseUrl + "/api/administration/rule-items";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRuleItems(_response);
+        });
+    }
+
+    protected processRuleItems(response: Response): Promise<InventoryItemDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(InventoryItemDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryItemDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    settingsAll(): Promise<FarmSettingDto[]> {
+        let url_ = this.baseUrl + "/api/administration/settings";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSettingsAll(_response);
+        });
+    }
+
+    protected processSettingsAll(response: Response): Promise<FarmSettingDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FarmSettingDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmSettingDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    settings(body: CreateFarmSettingRequest): Promise<FarmSettingDto> {
+        let url_ = this.baseUrl + "/api/administration/settings";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSettings(_response);
+        });
+    }
+
+    protected processSettings(response: Response): Promise<FarmSettingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FarmSettingDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmSettingDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    end2(settingId: string, body: EndEffectiveRuleRequest): Promise<FarmSettingDto> {
+        let url_ = this.baseUrl + "/api/administration/settings/{settingId}/end";
+        if (settingId === undefined || settingId === null)
+            throw new globalThis.Error("The parameter 'settingId' must be defined.");
+        url_ = url_.replace("{settingId}", encodeURIComponent("" + settingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processEnd2(_response);
+        });
+    }
+
+    protected processEnd2(response: Response): Promise<FarmSettingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FarmSettingDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmSettingDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    documentCategoriesAll(): Promise<DocumentCategoryDto[]> {
+        let url_ = this.baseUrl + "/api/administration/document-categories";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentCategoriesAll(_response);
+        });
+    }
+
+    protected processDocumentCategoriesAll(response: Response): Promise<DocumentCategoryDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DocumentCategoryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentCategoryDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    documentCategoriesPOST(body: CreateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+        let url_ = this.baseUrl + "/api/administration/document-categories";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentCategoriesPOST(_response);
+        });
+    }
+
+    protected processDocumentCategoriesPOST(response: Response): Promise<DocumentCategoryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentCategoryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentCategoryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    documentCategoriesPUT(categoryId: string, body: UpdateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+        let url_ = this.baseUrl + "/api/administration/document-categories/{categoryId}";
+        if (categoryId === undefined || categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' must be defined.");
+        url_ = url_.replace("{categoryId}", encodeURIComponent("" + categoryId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDocumentCategoriesPUT(_response);
+        });
+    }
+
+    protected processDocumentCategoriesPUT(response: Response): Promise<DocumentCategoryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentCategoryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentCategoryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    archive2(categoryId: string, body: ArchiveDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+        let url_ = this.baseUrl + "/api/administration/document-categories/{categoryId}/archive";
+        if (categoryId === undefined || categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' must be defined.");
+        url_ = url_.replace("{categoryId}", encodeURIComponent("" + categoryId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchive2(_response);
+        });
+    }
+
+    protected processArchive2(response: Response): Promise<DocumentCategoryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DocumentCategoryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DocumentCategoryDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    session(): Promise<AdministrationSessionDto> {
+        let url_ = this.baseUrl + "/api/administration/session";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSession(_response);
+        });
+    }
+
+    protected processSession(response: Response): Promise<AdministrationSessionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationSessionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationSessionDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    roles(): Promise<AdministrationCapabilityDto[]> {
+        let url_ = this.baseUrl + "/api/administration/roles";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRoles(_response);
+        });
+    }
+
+    protected processRoles(response: Response): Promise<AdministrationCapabilityDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdministrationCapabilityDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationCapabilityDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    users(): Promise<AdministrationUserDto[]> {
+        let url_ = this.baseUrl + "/api/administration/users";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUsers(_response);
+        });
+    }
+
+    protected processUsers(response: Response): Promise<AdministrationUserDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(AdministrationUserDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationUserDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    disable(membershipId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/administration/users/{membershipId}/disable";
+        if (membershipId === undefined || membershipId === null)
+            throw new globalThis.Error("The parameter 'membershipId' must be defined.");
+        url_ = url_.replace("{membershipId}", encodeURIComponent("" + membershipId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDisable(_response);
+        });
+    }
+
+    protected processDisable(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param action (optional)
+     * @param subjectType (optional)
+     * @param authenticatedUserId (optional)
+     * @param operationalPersonId (optional)
+     * @param correlationId (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
+     * @return OK
+     */
+    audit(from: Date | undefined, to: Date | undefined, action: string | undefined, subjectType: string | undefined, authenticatedUserId: string | undefined, operationalPersonId: string | undefined, correlationId: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<AdministrationAuditPageDto> {
+        let url_ = this.baseUrl + "/api/administration/audit?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "From=" + encodeURIComponent(from ? "" + from.toISOString() : "") + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "To=" + encodeURIComponent(to ? "" + to.toISOString() : "") + "&";
+        if (action === null)
+            throw new globalThis.Error("The parameter 'action' cannot be null.");
+        else if (action !== undefined)
+            url_ += "Action=" + encodeURIComponent("" + action) + "&";
+        if (subjectType === null)
+            throw new globalThis.Error("The parameter 'subjectType' cannot be null.");
+        else if (subjectType !== undefined)
+            url_ += "SubjectType=" + encodeURIComponent("" + subjectType) + "&";
+        if (authenticatedUserId === null)
+            throw new globalThis.Error("The parameter 'authenticatedUserId' cannot be null.");
+        else if (authenticatedUserId !== undefined)
+            url_ += "AuthenticatedUserId=" + encodeURIComponent("" + authenticatedUserId) + "&";
+        if (operationalPersonId === null)
+            throw new globalThis.Error("The parameter 'operationalPersonId' cannot be null.");
+        else if (operationalPersonId !== undefined)
+            url_ += "OperationalPersonId=" + encodeURIComponent("" + operationalPersonId) + "&";
+        if (correlationId === null)
+            throw new globalThis.Error("The parameter 'correlationId' cannot be null.");
+        else if (correlationId !== undefined)
+            url_ += "CorrelationId=" + encodeURIComponent("" + correlationId) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "Page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAudit(_response);
+        });
+    }
+
+    protected processAudit(response: Response): Promise<AdministrationAuditPageDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationAuditPageDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationAuditPageDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    audit2(eventId: string): Promise<AdministrationAuditDto> {
+        let url_ = this.baseUrl + "/api/administration/audit/{eventId}";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAudit2(_response);
+        });
+    }
+
+    protected processAudit2(response: Response): Promise<AdministrationAuditDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationAuditDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AdministrationAuditDto>(null as any);
+    }
+
+    /**
+     * @param from (optional)
+     * @param to (optional)
+     * @param action (optional)
+     * @param subjectType (optional)
+     * @param authenticatedUserId (optional)
+     * @param operationalPersonId (optional)
+     * @param correlationId (optional)
+     * @param page (optional)
+     * @param pageSize (optional)
+     * @return OK
+     */
+    audit_csv(from: Date | undefined, to: Date | undefined, action: string | undefined, subjectType: string | undefined, authenticatedUserId: string | undefined, operationalPersonId: string | undefined, correlationId: string | undefined, page: number | undefined, pageSize: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/administration/audit.csv?";
+        if (from === null)
+            throw new globalThis.Error("The parameter 'from' cannot be null.");
+        else if (from !== undefined)
+            url_ += "From=" + encodeURIComponent(from ? "" + from.toISOString() : "") + "&";
+        if (to === null)
+            throw new globalThis.Error("The parameter 'to' cannot be null.");
+        else if (to !== undefined)
+            url_ += "To=" + encodeURIComponent(to ? "" + to.toISOString() : "") + "&";
+        if (action === null)
+            throw new globalThis.Error("The parameter 'action' cannot be null.");
+        else if (action !== undefined)
+            url_ += "Action=" + encodeURIComponent("" + action) + "&";
+        if (subjectType === null)
+            throw new globalThis.Error("The parameter 'subjectType' cannot be null.");
+        else if (subjectType !== undefined)
+            url_ += "SubjectType=" + encodeURIComponent("" + subjectType) + "&";
+        if (authenticatedUserId === null)
+            throw new globalThis.Error("The parameter 'authenticatedUserId' cannot be null.");
+        else if (authenticatedUserId !== undefined)
+            url_ += "AuthenticatedUserId=" + encodeURIComponent("" + authenticatedUserId) + "&";
+        if (operationalPersonId === null)
+            throw new globalThis.Error("The parameter 'operationalPersonId' cannot be null.");
+        else if (operationalPersonId !== undefined)
+            url_ += "OperationalPersonId=" + encodeURIComponent("" + operationalPersonId) + "&";
+        if (correlationId === null)
+            throw new globalThis.Error("The parameter 'correlationId' cannot be null.");
+        else if (correlationId !== undefined)
+            url_ += "CorrelationId=" + encodeURIComponent("" + correlationId) + "&";
+        if (page === null)
+            throw new globalThis.Error("The parameter 'page' cannot be null.");
+        else if (page !== undefined)
+            url_ += "Page=" + encodeURIComponent("" + page) + "&";
+        if (pageSize === null)
+            throw new globalThis.Error("The parameter 'pageSize' cannot be null.");
+        else if (pageSize !== undefined)
+            url_ += "PageSize=" + encodeURIComponent("" + pageSize) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAudit_csv(_response);
+        });
+    }
+
+    protected processAudit_csv(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 
@@ -2116,7 +3280,7 @@ export class FarmPersonnelClient {
     /**
      * @return OK
      */
-    end(personId: string, assignmentId: string, body: EndPersonRoleRequest): Promise<PersonnelRegisterDto> {
+    end3(personId: string, assignmentId: string, body: EndPersonRoleRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel/{personId}/roles/{assignmentId}/end";
         if (personId === undefined || personId === null)
             throw new globalThis.Error("The parameter 'personId' must be defined.");
@@ -2138,11 +3302,11 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd(_response);
+            return this.processEnd3(_response);
         });
     }
 
-    protected processEnd(response: Response): Promise<PersonnelRegisterDto> {
+    protected processEnd3(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6503,7 +7667,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    units(body: CreateUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
+    unitsPOST(body: CreateUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
         let url_ = this.baseUrl + "/api/inventory/units";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6519,11 +7683,179 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processUnits(_response);
+            return this.processUnitsPOST(_response);
         });
     }
 
-    protected processUnits(response: Response): Promise<UnitOfMeasureDto> {
+    protected processUnitsPOST(response: Response): Promise<UnitOfMeasureDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UnitOfMeasureDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UnitOfMeasureDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    unitsAll(): Promise<UnitOfMeasureDto[]> {
+        let url_ = this.baseUrl + "/api/inventory/units";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUnitsAll(_response);
+        });
+    }
+
+    protected processUnitsAll(response: Response): Promise<UnitOfMeasureDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(UnitOfMeasureDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UnitOfMeasureDto[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    archive3(unitId: string, body: VersionedInventoryRequest): Promise<UnitOfMeasureDto> {
+        let url_ = this.baseUrl + "/api/inventory/units/{unitId}/archive";
+        if (unitId === undefined || unitId === null)
+            throw new globalThis.Error("The parameter 'unitId' must be defined.");
+        url_ = url_.replace("{unitId}", encodeURIComponent("" + unitId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchive3(_response);
+        });
+    }
+
+    protected processArchive3(response: Response): Promise<UnitOfMeasureDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UnitOfMeasureDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UnitOfMeasureDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    unitsPUT(unitId: string, body: RenameUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
+        let url_ = this.baseUrl + "/api/inventory/units/{unitId}";
+        if (unitId === undefined || unitId === null)
+            throw new globalThis.Error("The parameter 'unitId' must be defined.");
+        url_ = url_.replace("{unitId}", encodeURIComponent("" + unitId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUnitsPUT(_response);
+        });
+    }
+
+    protected processUnitsPUT(response: Response): Promise<UnitOfMeasureDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10739,7 +12071,7 @@ export class WorkerRatesClient {
     /**
      * @return OK
      */
-    end2(workerId: string, rateId: string, body: EndWorkerRateRequest): Promise<WorkerDetailsDto> {
+    end4(workerId: string, rateId: string, body: EndWorkerRateRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/rates/{rateId}/end";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -10761,11 +12093,11 @@ export class WorkerRatesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd2(_response);
+            return this.processEnd4(_response);
         });
     }
 
-    protected processEnd2(response: Response): Promise<WorkerDetailsDto> {
+    protected processEnd4(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10970,7 +12302,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    archive2(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
+    archive4(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/archive";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -10989,11 +12321,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive2(_response);
+            return this.processArchive4(_response);
         });
     }
 
-    protected processArchive2(response: Response): Promise<WorkerDetailsDto> {
+    protected processArchive4(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12035,6 +13367,664 @@ export interface IAddUnexpectedStockCountLineRequest {
     [key: string]: any;
 }
 
+export class AdministrationAuditDto implements IAdministrationAuditDto {
+    id!: string;
+    occurredAt!: Date;
+    subjectType!: string;
+    subjectId!: string;
+    action!: string;
+    authenticatedUserId!: string;
+    authenticatedUserEmail!: string | undefined;
+    operationalPersonId!: string | undefined;
+    operationalPersonName!: string | undefined;
+    safeSummary!: string;
+    reason!: string | undefined;
+    correlationId!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationAuditDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.occurredAt = _data["occurredAt"] ? new Date(_data["occurredAt"].toString()) : undefined as any;
+            this.subjectType = _data["subjectType"];
+            this.subjectId = _data["subjectId"];
+            this.action = _data["action"];
+            this.authenticatedUserId = _data["authenticatedUserId"];
+            this.authenticatedUserEmail = _data["authenticatedUserEmail"];
+            this.operationalPersonId = _data["operationalPersonId"];
+            this.operationalPersonName = _data["operationalPersonName"];
+            this.safeSummary = _data["safeSummary"];
+            this.reason = _data["reason"];
+            this.correlationId = _data["correlationId"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationAuditDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationAuditDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["occurredAt"] = this.occurredAt ? this.occurredAt.toISOString() : undefined as any;
+        data["subjectType"] = this.subjectType;
+        data["subjectId"] = this.subjectId;
+        data["action"] = this.action;
+        data["authenticatedUserId"] = this.authenticatedUserId;
+        data["authenticatedUserEmail"] = this.authenticatedUserEmail;
+        data["operationalPersonId"] = this.operationalPersonId;
+        data["operationalPersonName"] = this.operationalPersonName;
+        data["safeSummary"] = this.safeSummary;
+        data["reason"] = this.reason;
+        data["correlationId"] = this.correlationId;
+        return data;
+    }
+}
+
+export interface IAdministrationAuditDto {
+    id: string;
+    occurredAt: Date;
+    subjectType: string;
+    subjectId: string;
+    action: string;
+    authenticatedUserId: string;
+    authenticatedUserEmail: string | undefined;
+    operationalPersonId: string | undefined;
+    operationalPersonName: string | undefined;
+    safeSummary: string;
+    reason: string | undefined;
+    correlationId: string;
+
+    [key: string]: any;
+}
+
+export class AdministrationAuditPageDto implements IAdministrationAuditPageDto {
+    page!: number;
+    pageSize!: number;
+    totalCount!: number;
+    items!: AdministrationAuditDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationAuditPageDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.items = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.page = _data["page"];
+            this.pageSize = _data["pageSize"];
+            this.totalCount = _data["totalCount"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(AdministrationAuditDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AdministrationAuditPageDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationAuditPageDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["page"] = this.page;
+        data["pageSize"] = this.pageSize;
+        data["totalCount"] = this.totalCount;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IAdministrationAuditPageDto {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    items: AdministrationAuditDto[];
+
+    [key: string]: any;
+}
+
+export class AdministrationCapabilityDto implements IAdministrationCapabilityDto {
+    capability!: string;
+    grower!: boolean;
+    farmManager!: boolean;
+    platformAdministrator!: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationCapabilityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.capability = _data["capability"];
+            this.grower = _data["grower"];
+            this.farmManager = _data["farmManager"];
+            this.platformAdministrator = _data["platformAdministrator"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationCapabilityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationCapabilityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["capability"] = this.capability;
+        data["grower"] = this.grower;
+        data["farmManager"] = this.farmManager;
+        data["platformAdministrator"] = this.platformAdministrator;
+        return data;
+    }
+}
+
+export interface IAdministrationCapabilityDto {
+    capability: string;
+    grower: boolean;
+    farmManager: boolean;
+    platformAdministrator: boolean;
+
+    [key: string]: any;
+}
+
+export class AdministrationManagerAccessDto implements IAdministrationManagerAccessDto {
+    candidates!: AdministrationManagerCandidateDto[];
+    invitations!: ManagerInvitationDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationManagerAccessDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.candidates = [];
+            this.invitations = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["candidates"])) {
+                this.candidates = [] as any;
+                for (let item of _data["candidates"])
+                    this.candidates!.push(AdministrationManagerCandidateDto.fromJS(item));
+            }
+            if (Array.isArray(_data["invitations"])) {
+                this.invitations = [] as any;
+                for (let item of _data["invitations"])
+                    this.invitations!.push(ManagerInvitationDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AdministrationManagerAccessDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationManagerAccessDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.candidates)) {
+            data["candidates"] = [];
+            for (let item of this.candidates)
+                data["candidates"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.invitations)) {
+            data["invitations"] = [];
+            for (let item of this.invitations)
+                data["invitations"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IAdministrationManagerAccessDto {
+    candidates: AdministrationManagerCandidateDto[];
+    invitations: ManagerInvitationDto[];
+
+    [key: string]: any;
+}
+
+export class AdministrationManagerCandidateDto implements IAdministrationManagerCandidateDto {
+    personId!: string;
+    name!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationManagerCandidateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.personId = _data["personId"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationManagerCandidateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationManagerCandidateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["personId"] = this.personId;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IAdministrationManagerCandidateDto {
+    personId: string;
+    name: string;
+
+    [key: string]: any;
+}
+
+export class AdministrationOverviewDto implements IAdministrationOverviewDto {
+    activeUsers!: number;
+    pendingInvitations!: number;
+    activeFarmManager!: string | undefined;
+    activeActivityTypes!: number;
+    activeUnits!: number;
+    ruleCount!: number;
+    attentionCount!: number;
+    recentEvents!: AdministrationAuditDto[];
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationOverviewDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.recentEvents = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.activeUsers = _data["activeUsers"];
+            this.pendingInvitations = _data["pendingInvitations"];
+            this.activeFarmManager = _data["activeFarmManager"];
+            this.activeActivityTypes = _data["activeActivityTypes"];
+            this.activeUnits = _data["activeUnits"];
+            this.ruleCount = _data["ruleCount"];
+            this.attentionCount = _data["attentionCount"];
+            if (Array.isArray(_data["recentEvents"])) {
+                this.recentEvents = [] as any;
+                for (let item of _data["recentEvents"])
+                    this.recentEvents!.push(AdministrationAuditDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AdministrationOverviewDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationOverviewDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["activeUsers"] = this.activeUsers;
+        data["pendingInvitations"] = this.pendingInvitations;
+        data["activeFarmManager"] = this.activeFarmManager;
+        data["activeActivityTypes"] = this.activeActivityTypes;
+        data["activeUnits"] = this.activeUnits;
+        data["ruleCount"] = this.ruleCount;
+        data["attentionCount"] = this.attentionCount;
+        if (Array.isArray(this.recentEvents)) {
+            data["recentEvents"] = [];
+            for (let item of this.recentEvents)
+                data["recentEvents"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IAdministrationOverviewDto {
+    activeUsers: number;
+    pendingInvitations: number;
+    activeFarmManager: string | undefined;
+    activeActivityTypes: number;
+    activeUnits: number;
+    ruleCount: number;
+    attentionCount: number;
+    recentEvents: AdministrationAuditDto[];
+
+    [key: string]: any;
+}
+
+export class AdministrationRuleDto implements IAdministrationRuleDto {
+    id!: string;
+    inventoryItemId!: string;
+    itemName!: string;
+    activityTypeId!: string;
+    activityTypeName!: string;
+    unitCode!: string;
+    coverageBasis!: string;
+    ratePerCoverageUnit!: number;
+    lowerTolerancePercent!: number;
+    upperTolerancePercent!: number;
+    effectiveFrom!: Date;
+    effectiveTo!: Date | undefined;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationRuleDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.inventoryItemId = _data["inventoryItemId"];
+            this.itemName = _data["itemName"];
+            this.activityTypeId = _data["activityTypeId"];
+            this.activityTypeName = _data["activityTypeName"];
+            this.unitCode = _data["unitCode"];
+            this.coverageBasis = _data["coverageBasis"];
+            this.ratePerCoverageUnit = _data["ratePerCoverageUnit"];
+            this.lowerTolerancePercent = _data["lowerTolerancePercent"];
+            this.upperTolerancePercent = _data["upperTolerancePercent"];
+            this.effectiveFrom = _data["effectiveFrom"] ? new Date(_data["effectiveFrom"].toString()) : undefined as any;
+            this.effectiveTo = _data["effectiveTo"] ? new Date(_data["effectiveTo"].toString()) : undefined as any;
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationRuleDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationRuleDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["inventoryItemId"] = this.inventoryItemId;
+        data["itemName"] = this.itemName;
+        data["activityTypeId"] = this.activityTypeId;
+        data["activityTypeName"] = this.activityTypeName;
+        data["unitCode"] = this.unitCode;
+        data["coverageBasis"] = this.coverageBasis;
+        data["ratePerCoverageUnit"] = this.ratePerCoverageUnit;
+        data["lowerTolerancePercent"] = this.lowerTolerancePercent;
+        data["upperTolerancePercent"] = this.upperTolerancePercent;
+        data["effectiveFrom"] = this.effectiveFrom ? formatDate(this.effectiveFrom) : undefined as any;
+        data["effectiveTo"] = this.effectiveTo ? formatDate(this.effectiveTo) : undefined as any;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IAdministrationRuleDto {
+    id: string;
+    inventoryItemId: string;
+    itemName: string;
+    activityTypeId: string;
+    activityTypeName: string;
+    unitCode: string;
+    coverageBasis: string;
+    ratePerCoverageUnit: number;
+    lowerTolerancePercent: number;
+    upperTolerancePercent: number;
+    effectiveFrom: Date;
+    effectiveTo: Date | undefined;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class AdministrationSessionDto implements IAdministrationSessionDto {
+    role!: string;
+    tenantCode!: string;
+    farmName!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationSessionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.role = _data["role"];
+            this.tenantCode = _data["tenantCode"];
+            this.farmName = _data["farmName"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationSessionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationSessionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["role"] = this.role;
+        data["tenantCode"] = this.tenantCode;
+        data["farmName"] = this.farmName;
+        return data;
+    }
+}
+
+export interface IAdministrationSessionDto {
+    role: string;
+    tenantCode: string;
+    farmName: string;
+
+    [key: string]: any;
+}
+
+export class AdministrationUserDto implements IAdministrationUserDto {
+    membershipId!: string;
+    userId!: string;
+    email!: string | undefined;
+    role!: string;
+    status!: string;
+    personId!: string | undefined;
+    personName!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAdministrationUserDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.membershipId = _data["membershipId"];
+            this.userId = _data["userId"];
+            this.email = _data["email"];
+            this.role = _data["role"];
+            this.status = _data["status"];
+            this.personId = _data["personId"];
+            this.personName = _data["personName"];
+        }
+    }
+
+    static fromJS(data: any): AdministrationUserDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AdministrationUserDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["membershipId"] = this.membershipId;
+        data["userId"] = this.userId;
+        data["email"] = this.email;
+        data["role"] = this.role;
+        data["status"] = this.status;
+        data["personId"] = this.personId;
+        data["personName"] = this.personName;
+        return data;
+    }
+}
+
+export interface IAdministrationUserDto {
+    membershipId: string;
+    userId: string;
+    email: string | undefined;
+    role: string;
+    status: string;
+    personId: string | undefined;
+    personName: string | undefined;
+
+    [key: string]: any;
+}
+
 export class AdvanceApprovalDto implements IAdvanceApprovalDto {
     advanceVersion!: number;
     approved!: boolean;
@@ -12354,6 +14344,54 @@ export class ApproveBudgetRequest implements IApproveBudgetRequest {
 export interface IApproveBudgetRequest {
     expectedRowVersion: number;
     idempotencyKey: string;
+
+    [key: string]: any;
+}
+
+export class ArchiveDocumentCategoryRequest implements IArchiveDocumentCategoryRequest {
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IArchiveDocumentCategoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): ArchiveDocumentCategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ArchiveDocumentCategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IArchiveDocumentCategoryRequest {
+    expectedVersion: number;
 
     [key: string]: any;
 }
@@ -14733,6 +16771,122 @@ export interface ICreatedManagerInvitationDto {
     expiresAt: Date;
     version: number;
     token: string;
+
+    [key: string]: any;
+}
+
+export class CreateDocumentCategoryRequest implements ICreateDocumentCategoryRequest {
+    code!: string;
+    name!: string;
+    description!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateDocumentCategoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+        }
+    }
+
+    static fromJS(data: any): CreateDocumentCategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateDocumentCategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        return data;
+    }
+}
+
+export interface ICreateDocumentCategoryRequest {
+    code: string;
+    name: string;
+    description: string | undefined;
+
+    [key: string]: any;
+}
+
+export class CreateFarmSettingRequest implements ICreateFarmSettingRequest {
+    key!: string;
+    value!: number;
+    effectiveFrom!: Date;
+    effectiveTo!: Date | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateFarmSettingRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.key = _data["key"];
+            this.value = _data["value"];
+            this.effectiveFrom = _data["effectiveFrom"] ? new Date(_data["effectiveFrom"].toString()) : undefined as any;
+            this.effectiveTo = _data["effectiveTo"] ? new Date(_data["effectiveTo"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CreateFarmSettingRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFarmSettingRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["key"] = this.key;
+        data["value"] = this.value;
+        data["effectiveFrom"] = this.effectiveFrom ? formatDate(this.effectiveFrom) : undefined as any;
+        data["effectiveTo"] = this.effectiveTo ? formatDate(this.effectiveTo) : undefined as any;
+        return data;
+    }
+}
+
+export interface ICreateFarmSettingRequest {
+    key: string;
+    value: number;
+    effectiveFrom: Date;
+    effectiveTo: Date | undefined;
 
     [key: string]: any;
 }
@@ -17979,6 +20133,74 @@ export interface IDecideWorkerAdvanceRequest {
     [key: string]: any;
 }
 
+export class DocumentCategoryDto implements IDocumentCategoryDto {
+    id!: string;
+    code!: string;
+    name!: string;
+    description!: string | undefined;
+    active!: boolean;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IDocumentCategoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): DocumentCategoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new DocumentCategoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IDocumentCategoryDto {
+    id: string;
+    code: string;
+    name: string;
+    description: string | undefined;
+    active: boolean;
+    version: number;
+
+    [key: string]: any;
+}
+
 export class EditInputRequestLineRequest implements IEditInputRequestLineRequest {
     expectedVersion!: number;
     requestedQuantity!: number;
@@ -18027,6 +20249,58 @@ export class EditInputRequestLineRequest implements IEditInputRequestLineRequest
 export interface IEditInputRequestLineRequest {
     expectedVersion: number;
     requestedQuantity: number;
+
+    [key: string]: any;
+}
+
+export class EndEffectiveRuleRequest implements IEndEffectiveRuleRequest {
+    effectiveTo!: Date;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IEndEffectiveRuleRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.effectiveTo = _data["effectiveTo"] ? new Date(_data["effectiveTo"].toString()) : undefined as any;
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): EndEffectiveRuleRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new EndEffectiveRuleRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["effectiveTo"] = this.effectiveTo ? formatDate(this.effectiveTo) : undefined as any;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IEndEffectiveRuleRequest {
+    effectiveTo: Date;
+    expectedVersion: number;
 
     [key: string]: any;
 }
@@ -18197,6 +20471,8 @@ export class EvidenceDocumentDto implements IEvidenceDocumentDto {
     contentType!: string;
     sizeBytes!: number;
     uploadedAt!: Date;
+    documentCategoryId?: string | undefined;
+    documentCategoryCode?: string | undefined;
 
     [key: string]: any;
 
@@ -18220,6 +20496,8 @@ export class EvidenceDocumentDto implements IEvidenceDocumentDto {
             this.contentType = _data["contentType"];
             this.sizeBytes = _data["sizeBytes"];
             this.uploadedAt = _data["uploadedAt"] ? new Date(_data["uploadedAt"].toString()) : undefined as any;
+            this.documentCategoryId = _data["documentCategoryId"];
+            this.documentCategoryCode = _data["documentCategoryCode"];
         }
     }
 
@@ -18241,6 +20519,8 @@ export class EvidenceDocumentDto implements IEvidenceDocumentDto {
         data["contentType"] = this.contentType;
         data["sizeBytes"] = this.sizeBytes;
         data["uploadedAt"] = this.uploadedAt ? this.uploadedAt.toISOString() : undefined as any;
+        data["documentCategoryId"] = this.documentCategoryId;
+        data["documentCategoryCode"] = this.documentCategoryCode;
         return data;
     }
 }
@@ -18251,6 +20531,8 @@ export interface IEvidenceDocumentDto {
     contentType: string;
     sizeBytes: number;
     uploadedAt: Date;
+    documentCategoryId?: string | undefined;
+    documentCategoryCode?: string | undefined;
 
     [key: string]: any;
 }
@@ -18327,6 +20609,7 @@ export class EvidenceUploadRequest implements IEvidenceUploadRequest {
     fileName!: string;
     contentType!: string;
     contentBase64!: string;
+    documentCategoryId?: string | undefined;
 
     [key: string]: any;
 
@@ -18348,6 +20631,7 @@ export class EvidenceUploadRequest implements IEvidenceUploadRequest {
             this.fileName = _data["fileName"];
             this.contentType = _data["contentType"];
             this.contentBase64 = _data["contentBase64"];
+            this.documentCategoryId = _data["documentCategoryId"];
         }
     }
 
@@ -18367,6 +20651,7 @@ export class EvidenceUploadRequest implements IEvidenceUploadRequest {
         data["fileName"] = this.fileName;
         data["contentType"] = this.contentType;
         data["contentBase64"] = this.contentBase64;
+        data["documentCategoryId"] = this.documentCategoryId;
         return data;
     }
 }
@@ -18375,6 +20660,7 @@ export interface IEvidenceUploadRequest {
     fileName: string;
     contentType: string;
     contentBase64: string;
+    documentCategoryId?: string | undefined;
 
     [key: string]: any;
 }
@@ -18466,6 +20752,78 @@ export interface IFarmDto {
     declaredHectares: number;
     irrigationContext: string;
     fields: FieldDto[];
+
+    [key: string]: any;
+}
+
+export class FarmSettingDto implements IFarmSettingDto {
+    id!: string;
+    key!: string;
+    label!: string;
+    value!: number;
+    effectiveFrom!: Date;
+    effectiveTo!: Date | undefined;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IFarmSettingDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.key = _data["key"];
+            this.label = _data["label"];
+            this.value = _data["value"];
+            this.effectiveFrom = _data["effectiveFrom"] ? new Date(_data["effectiveFrom"].toString()) : undefined as any;
+            this.effectiveTo = _data["effectiveTo"] ? new Date(_data["effectiveTo"].toString()) : undefined as any;
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): FarmSettingDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FarmSettingDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["key"] = this.key;
+        data["label"] = this.label;
+        data["value"] = this.value;
+        data["effectiveFrom"] = this.effectiveFrom ? formatDate(this.effectiveFrom) : undefined as any;
+        data["effectiveTo"] = this.effectiveTo ? formatDate(this.effectiveTo) : undefined as any;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IFarmSettingDto {
+    id: string;
+    key: string;
+    label: string;
+    value: number;
+    effectiveFrom: Date;
+    effectiveTo: Date | undefined;
+    version: number;
 
     [key: string]: any;
 }
@@ -24430,6 +26788,110 @@ export interface IRegisterRequest {
     [key: string]: any;
 }
 
+export class RenameActivityTypeRequest implements IRenameActivityTypeRequest {
+    name!: string;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IRenameActivityTypeRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): RenameActivityTypeRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RenameActivityTypeRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IRenameActivityTypeRequest {
+    name: string;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class RenameUnitOfMeasureRequest implements IRenameUnitOfMeasureRequest {
+    name!: string;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IRenameUnitOfMeasureRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): RenameUnitOfMeasureRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RenameUnitOfMeasureRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IRenameUnitOfMeasureRequest {
+    name: string;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class ReopenPayrollSettlementRequest implements IReopenPayrollSettlementRequest {
     calculationVersion!: number;
     reason!: string;
@@ -26921,6 +29383,62 @@ export interface IUpdateBudgetRequest {
     expectedProductionTonnes: number | undefined;
     notes: string | undefined;
     expectedRowVersion: number;
+
+    [key: string]: any;
+}
+
+export class UpdateDocumentCategoryRequest implements IUpdateDocumentCategoryRequest {
+    name!: string;
+    description!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateDocumentCategoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateDocumentCategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateDocumentCategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IUpdateDocumentCategoryRequest {
+    name: string;
+    description: string | undefined;
+    expectedVersion: number;
 
     [key: string]: any;
 }

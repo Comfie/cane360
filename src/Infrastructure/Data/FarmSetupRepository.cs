@@ -1,6 +1,7 @@
 using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Common.Exceptions;
 using Cane360.Domain.Farms;
+using Cane360.Domain.Auditing;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -8,6 +9,22 @@ namespace Cane360.Infrastructure.Data;
 
 public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSetupRepository
 {
+    public async Task<Tenant?> GetTenantAdministrationContextForUserAsync(string userId,
+        bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Tenant> query = context.Tenants.AsSplitQuery()
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.ActivityTypes)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons)
+                .ThenInclude(person => person.RoleAssignments)
+            .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+        return await (trackChanges ? query : query.AsNoTracking())
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<Tenant?> GetTenantPeopleContextForUserAsync(string userId,
         bool trackChanges, CancellationToken cancellationToken)
     {
@@ -110,6 +127,19 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
 
     public void Add(Tenant tenant) => context.Tenants.Add(tenant);
 
+    public async Task<IReadOnlyList<FarmSetting>> GetFarmSettingsAsync(Guid tenantId, Guid farmId,
+        bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<FarmSetting> query = context.FarmSettings.Where(item =>
+            item.TenantId == tenantId && item.FarmId == farmId);
+        return await (trackChanges ? query : query.AsNoTracking())
+            .OrderByDescending(item => item.EffectiveFrom).ToListAsync(cancellationToken);
+    }
+
+    public void Add(FarmSetting setting) => context.FarmSettings.Add(setting);
+
+    public void Add(AuditEvent auditEvent) => context.AuditEvents.Add(auditEvent);
+
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
@@ -130,6 +160,15 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
         {
             throw new ConflictException(
                 "This field already has an Active or Ready-for-harvest crop cycle.");
+        }
+        catch (DbUpdateException exception) when (
+            exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.ExclusionViolation,
+                ConstraintName: "EX_FarmSettings_NoOverlap"
+            })
+        {
+            throw new ConflictException("This setting overlaps an existing effective version.");
         }
     }
 }

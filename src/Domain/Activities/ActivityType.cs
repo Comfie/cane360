@@ -73,5 +73,18 @@ public sealed class ActivityType : BaseAuditableEntity
         Version++;
     }
 
+    public void Rename(string name, long expectedVersion)
+    {
+        if (Version != expectedVersion)
+            throw new InvalidOperationException("This activity type changed after it was loaded.");
+        if (Status != RecordStatus.Active)
+            throw new InvalidOperationException("Archived activity types cannot be edited.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (name.Trim().Length > 100)
+            throw new InvalidOperationException("Activity type name cannot exceed 100 characters.");
+        Name = name.Trim();
+        Version++;
+    }
+
     private static string NormaliseCode(string code) => code.Trim().ToUpperInvariant();
 }

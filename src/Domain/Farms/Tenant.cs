@@ -114,4 +114,12 @@ public sealed class Tenant : BaseAuditableEntity
         _memberships.Add(membership);
         return membership;
     }
+
+    public TenantMembership DisableFarmManagerMembership(Guid membershipId)
+    {
+        TenantMembership membership = _memberships.SingleOrDefault(item => item.Id == membershipId)
+            ?? throw new InvalidOperationException("Membership does not belong to this tenant.");
+        membership.DisableManager();
+        return membership;
+    }
 }

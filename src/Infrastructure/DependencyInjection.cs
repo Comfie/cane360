@@ -37,6 +37,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IFarmSetupRepository, FarmSetupRepository>();
+        builder.Services.AddScoped<Cane360.Application.Administration.IAdministrationReadRepository,
+            AdministrationReadRepository>();
         builder.Services.AddScoped<ILabourRepository, LabourRepository>();
         builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
         builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();

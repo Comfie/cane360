@@ -37,7 +37,7 @@ interface StockReceiptValues {
 }
 
 export function createUnit(values: ICreateUnitOfMeasureRequest) {
-  return inventoryClient.units(new CreateUnitOfMeasureRequest(values));
+  return inventoryClient.unitsPOST(new CreateUnitOfMeasureRequest(values));
 }
 
 export function createItem(values: ICreateInventoryItemRequest) {

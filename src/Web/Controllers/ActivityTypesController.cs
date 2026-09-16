@@ -45,4 +45,10 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
         CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ArchiveActivityTypeCommand(
             activityTypeId, request.ExpectedVersion), cancellationToken));
+
+    [HttpPut("{activityTypeId:guid}")]
+    public async Task<ActionResult<ActivityTypeDto>> Rename(Guid activityTypeId,
+        RenameActivityTypeRequest request, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new RenameActivityTypeCommand(activityTypeId,
+            request.Name, request.ExpectedVersion), cancellationToken));
 }

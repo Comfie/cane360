@@ -45,6 +45,8 @@ public interface IMillRecordsRepository
         Guid statementId, CancellationToken cancellationToken);
     Task<EvidenceDocument?> GetEvidenceAsync(Guid tenantId, Guid farmId, Guid evidenceId,
         CancellationToken cancellationToken);
+    Task<DocumentCategory?> GetDocumentCategoryAsync(Guid tenantId, Guid categoryId,
+        CancellationToken cancellationToken);
     void Add(Mill mill);
     void Add(WeighbridgeTicket ticket);
     void Add(GrowerStatement statement);

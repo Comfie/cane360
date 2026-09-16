@@ -26,4 +26,11 @@ public sealed class TenantMembership : BaseAuditableEntity
 
     internal static TenantMembership CreateFarmManager(Guid tenantId, Guid farmId, string userId, Guid personId) =>
         new(tenantId, userId, TenantSecurityRoles.FarmManager, farmId, personId);
+
+    internal void DisableManager()
+    {
+        if (SecurityRole != TenantSecurityRoles.FarmManager || Status != RecordStatus.Active)
+            throw new InvalidOperationException("Only an active FarmManager membership may be disabled.");
+        Status = RecordStatus.Archived;
+    }
 }

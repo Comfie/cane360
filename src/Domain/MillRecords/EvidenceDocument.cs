@@ -37,6 +37,18 @@ public sealed class EvidenceDocument : BaseEntity
     public string StorageKey { get; private set; } = string.Empty;
     public string UploadedByUserId { get; private set; } = string.Empty;
     public DateTimeOffset UploadedAt { get; private set; }
+    public Guid? DocumentCategoryId { get; private set; }
+    public string? DocumentCategoryCodeSnapshot { get; private set; }
+
+    public void Classify(DocumentCategory category)
+    {
+        if (category.TenantId != TenantId || !category.Active)
+            throw new InvalidOperationException("The document category must be active in this tenant.");
+        if (DocumentCategoryId.HasValue)
+            throw new InvalidOperationException("Evidence classification cannot be changed after upload.");
+        DocumentCategoryId = category.Id;
+        DocumentCategoryCodeSnapshot = category.Code;
+    }
 
     public static EvidenceDocument ForTicket(Guid tenantId, Guid farmId, Guid ticketId,
         string originalFileName, string contentType, long sizeBytes, string storageKey,

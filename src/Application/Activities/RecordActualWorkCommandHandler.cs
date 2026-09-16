@@ -19,6 +19,10 @@ public sealed class RecordActualWorkCommandHandler(
         var cycle = ActivityAccess.RequireOperationalCycle(field, activity.CropCycleId);
         var actualAtUtc = ActivityAccess.NormalizeUtc(request.ActualAt);
         var eventDate = ActivityAccess.HarareDate(actualAtUtc);
+        var settings = await repository.GetFarmSettingsAsync(tenant.Id, farm.Id, false,
+            cancellationToken);
+        int lateEntryReasonAfterDays = (settings ?? []).SingleOrDefault(item =>
+            item.Key == FarmSetting.ActivityLateEntryReasonDays && item.IsEffective(eventDate))?.Value ?? 2;
         ActivityAccess.RequireSupervisor(farm, activity.SupervisorPersonId, eventDate);
         var profile = field.LineProfiles.SingleOrDefault(candidate => candidate.IsEffective(eventDate));
         var now = timeProvider.GetUtcNow();
@@ -31,7 +35,8 @@ public sealed class RecordActualWorkCommandHandler(
             now,
             ActivityAccess.RequireUserId(user),
             request.LateEntryReason,
-            request.ExpectedVersion));
+            request.ExpectedVersion,
+            lateEntryReasonAfterDays));
         await repository.SaveChangesAsync(cancellationToken);
         return await ActivityMapper.MapDetailsAsync(tenant, activity, identityService);
     }

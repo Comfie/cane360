@@ -16,6 +16,7 @@ import { RegisterPage } from './components/api-authorization/RegisterPage';
 
 const PayrollPage = lazy(() => import('./components/pages/PayrollPage').then((module) => ({ default: module.PayrollPage })));
 const FinancePage = lazy(() => import('./components/pages/FinancePage').then((module) => ({ default: module.FinancePage })));
+const AdministrationPage = lazy(() => import('./components/pages/AdministrationPage').then((module) => ({ default: module.AdministrationPage })));
 
 export function AppRoutes() {
   return (
@@ -32,8 +33,9 @@ export function AppRoutes() {
         <Route path="/labour" element={<LabourPage />} />
         <Route path="/payroll" element={<PayrollPage />} />
         <Route path="/inventory" element={<InventoryPage />} />
+        <Route path="/administration" element={<AdministrationPage />} />
         <Route path="/finance" element={<FinancePage />} />
-        {protectedNavigation.slice(7).map((item) => (
+        {protectedNavigation.filter((item) => item.id === 'reports').map((item) => (
           <Route
             key={item.id}
             path={item.path}

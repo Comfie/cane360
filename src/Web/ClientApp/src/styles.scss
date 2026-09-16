@@ -3590,3 +3590,240 @@ p {
 }
 
 body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
+.administration-page {
+  min-width: 0;
+}
+
+.administration-tabs {
+  display: flex;
+  gap: .4rem;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: .25rem 0 .5rem;
+}
+
+.administration-tabs button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: .5rem .85rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: .55rem;
+  background: var(--pico-card-background-color);
+  color: var(--pico-color);
+  font-size: .85rem;
+}
+
+.administration-tabs button[aria-current="true"] {
+  border-color: var(--pico-primary);
+  color: var(--pico-primary);
+  font-weight: 700;
+}
+
+.administration-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: .75rem;
+}
+
+.administration-summary button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 88px;
+  padding: .8rem 1rem;
+  text-align: left;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: .7rem;
+  background: var(--pico-card-background-color);
+}
+
+.administration-summary button span,
+.administration-list small {
+  color: var(--pico-muted-color);
+  font-size: .78rem;
+}
+
+.administration-summary button strong {
+  font-size: 1.35rem;
+}
+
+.administration-list {
+  display: grid;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+.administration-list article,
+.administration-audit-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem 1rem;
+  min-width: 0;
+  padding: .75rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: .55rem;
+  background: var(--pico-card-background-color);
+}
+
+.administration-list article > div {
+  display: grid;
+  gap: .15rem;
+}
+
+.administration-list article > div:nth-child(2) {
+  font-size: .78rem;
+}
+
+.administration-list button,
+.administration-pagination button,
+.administration-audit-detail button {
+  min-height: 44px;
+  margin: 0;
+}
+
+.administration-form,
+.administration-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .65rem;
+}
+
+.administration-form label,
+.administration-filters label {
+  min-width: min(100%, 170px);
+  margin: 0;
+  font-size: .8rem;
+}
+
+.administration-form input,
+.administration-form select,
+.administration-filters input {
+  margin-bottom: 0;
+}
+
+.administration-form button {
+  min-height: 44px;
+  margin: 0;
+}
+
+.administration-audit-card {
+  width: 100%;
+  text-align: left;
+}
+
+.administration-audit-card time,
+.administration-audit-card strong {
+  white-space: nowrap;
+}
+
+.administration-audit-detail {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: .6rem;
+}
+
+.administration-audit-detail dl {
+  display: grid;
+  grid-template-columns: minmax(0, 130px) minmax(0, 1fr);
+  gap: .35rem .75rem;
+  overflow-wrap: anywhere;
+}
+
+.administration-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+.administration-matrix {
+  display: grid;
+  width: 100%;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: .55rem;
+  overflow: hidden;
+}
+
+.administration-matrix [role="row"] {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: .65rem;
+  padding: .6rem .75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  font-size: .82rem;
+}
+
+.administration-matrix [role="row"]:last-child {
+  border-bottom: 0;
+}
+
+.administration-matrix-head {
+  background: var(--pico-card-background-color);
+}
+
+.administration-end-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .5rem;
+  margin: 0;
+}
+
+.administration-end-action label {
+  margin: 0;
+  font-size: .75rem;
+}
+
+.administration-end-action input {
+  margin-bottom: 0;
+}
+
+.administration-end-action button {
+  min-height: 44px;
+}
+
+.evidence-upload-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+}
+
+.evidence-upload-group select {
+  width: auto;
+  min-width: 130px;
+  min-height: 44px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .administration-matrix [role="row"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow-wrap: anywhere;
+  }
+
+  .administration-matrix [role="row"] > :first-child {
+    grid-column: 1 / -1;
+    font-weight: 700;
+  }
+
+  .administration-form,
+  .administration-filters {
+    display: grid;
+  }
+
+  .administration-list article,
+  .administration-audit-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .administration-audit-detail dl {
+    grid-template-columns: 1fr;
+  }
+}
