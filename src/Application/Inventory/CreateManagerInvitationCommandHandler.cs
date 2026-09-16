@@ -27,7 +27,7 @@ public sealed class CreateManagerInvitationCommandHandler(
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         var now = timeProvider.GetUtcNow();
         var invitation = Cane360.Domain.Farms.ManagerInvitation.Create(
-            tenant.Id, farm.Id, manager.Id, hash, now.AddHours(command.ExpiresInHours), userId);
+            tenant.Id, farm.Id, manager.Id, hash, now.AddHours(command.ExpiresInHours), userId, Cane360.Domain.Farms.TenantSecurityRoles.FarmManager);
         inventoryRepository.Add(invitation);
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,
             "Created", now, null, "Single-use FarmManager invitation created; only its secure hash is retained.");

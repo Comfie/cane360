@@ -5,7 +5,7 @@ public sealed class ManagerInvitation : BaseAuditableEntity
     private ManagerInvitation() { }
 
     private ManagerInvitation(Guid tenantId, Guid farmId, Guid personId, string tokenHash,
-        DateTimeOffset expiresAt, string createdByUserId)
+        DateTimeOffset expiresAt, string createdByUserId, string securityRole)
     {
         TenantId = tenantId;
         FarmId = farmId;
@@ -13,6 +13,7 @@ public sealed class ManagerInvitation : BaseAuditableEntity
         TokenHash = tokenHash;
         ExpiresAt = expiresAt;
         CreatedByUserId = createdByUserId.Trim();
+        SecurityRole = securityRole;
     }
 
     public Guid TenantId { get; private set; }
@@ -21,6 +22,7 @@ public sealed class ManagerInvitation : BaseAuditableEntity
     public string TokenHash { get; private set; } = string.Empty;
     public DateTimeOffset ExpiresAt { get; private set; }
     public string CreatedByUserId { get; private set; } = string.Empty;
+    public string SecurityRole { get; private set; } = string.Empty;
     public DateTimeOffset? RevokedAt { get; private set; }
     public string? RevokedByUserId { get; private set; }
     public DateTimeOffset? RedeemedAt { get; private set; }
@@ -28,11 +30,13 @@ public sealed class ManagerInvitation : BaseAuditableEntity
     public long Version { get; private set; }
 
     public static ManagerInvitation Create(Guid tenantId, Guid farmId, Guid personId,
-        string tokenHash, DateTimeOffset expiresAt, string createdByUserId)
+        string tokenHash, DateTimeOffset expiresAt, string createdByUserId, string securityRole)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tokenHash);
         ArgumentException.ThrowIfNullOrWhiteSpace(createdByUserId);
-        return new(tenantId, farmId, personId, tokenHash, expiresAt, createdByUserId);
+        if (!TenantSecurityRoles.IsInvitable(securityRole))
+            throw new ArgumentException("Invitations may only grant FarmManager or Supervisor.", nameof(securityRole));
+        return new(tenantId, farmId, personId, tokenHash, expiresAt, createdByUserId, securityRole);
     }
 
     public void Revoke(DateTimeOffset revokedAt, string userId, long expectedVersion)

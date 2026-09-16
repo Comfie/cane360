@@ -11,18 +11,18 @@ public sealed class ManagerInvitationDomainTests
     {
         var now = DateTimeOffset.UtcNow;
         var invitation = ManagerInvitation.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            new string('A', 64), now.AddHours(1), "grower-user");
+            new string('A', 64), now.AddHours(1), "grower-user", TenantSecurityRoles.FarmManager);
         invitation.Redeem(now, "manager-user");
         Should.Throw<InvalidOperationException>(() => invitation.Redeem(now, "another-user"));
         Should.Throw<InvalidOperationException>(() => invitation.Revoke(now, "grower-user", invitation.Version));
 
         var revoked = ManagerInvitation.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            new string('B', 64), now.AddHours(1), "grower-user");
+            new string('B', 64), now.AddHours(1), "grower-user", TenantSecurityRoles.FarmManager);
         revoked.Revoke(now, "grower-user", revoked.Version);
         Should.Throw<InvalidOperationException>(() => revoked.Redeem(now, "manager-user"));
 
         var expired = ManagerInvitation.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            new string('C', 64), now.AddMinutes(-1), "grower-user");
+            new string('C', 64), now.AddMinutes(-1), "grower-user", TenantSecurityRoles.FarmManager);
         Should.Throw<InvalidOperationException>(() => expired.Redeem(now, "manager-user"));
     }
 
@@ -33,5 +33,23 @@ public sealed class ManagerInvitationDomainTests
             .ShouldNotContain("Token");
         typeof(ManagerInvitation).GetProperties().Select(property => property.Name)
             .ShouldContain("TokenHash");
+    }
+
+    [Test]
+    public void InvitationStoresTheGrantedRole()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var invitation = ManagerInvitation.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new string('A', 64), now.AddHours(1), "grower-user", TenantSecurityRoles.Supervisor);
+        invitation.SecurityRole.ShouldBe("Supervisor");
+    }
+
+    [Test]
+    public void InvitationRejectsANonInvitableRole()
+    {
+        var now = DateTimeOffset.UtcNow;
+        Should.Throw<ArgumentException>(() => ManagerInvitation.Create(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), new string('A', 64),
+            now.AddHours(1), "grower-user", TenantSecurityRoles.Grower));
     }
 }
