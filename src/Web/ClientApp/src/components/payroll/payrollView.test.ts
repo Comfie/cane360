@@ -159,6 +159,8 @@ test('responsive desktop tables and mobile cards keep workflows available', () =
   assert.match(stylesSource, /@media \(max-width: 47\.5rem\)[\s\S]*\.settlement-worker-heading \{ display: none; \}/);
   assert.match(stylesSource, /\.settlement-worker-row button, \.settlement-actions button \{ min-height: 44px; width: 100%; \}/);
   assert.match(stylesSource, /@media print[\s\S]*\.print-document/);
+  assert.match(stylesSource, /\.print-document thead \{ display: table-header-group; \}/);
+  assert.match(stylesSource, /\.print-document tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
 });
 
 test('Phase 6C settlement uses generated-client payment and document operations', () => {

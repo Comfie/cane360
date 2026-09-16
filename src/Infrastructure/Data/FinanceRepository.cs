@@ -20,8 +20,66 @@ public sealed class FinanceRepository(ApplicationDbContext context) : IFinanceRe
         Guid farmId, DateOnly? from, DateOnly? to, string? type, string? category, string? status, string? search,
         CancellationToken cancellationToken)
     {
+        return await TransactionQuery(tenantId, farmId, from, to, type, category, status, search)
+            .Include(x => x.Allocations).OrderByDescending(x => x.EventDate)
+            .ThenByDescending(x => x.CreatedAt).ThenBy(x => x.Id).ToListAsync(cancellationToken);
+    }
+
+    public async Task<FinanceTransactionPageSource> GetTransactionPageAsync(Guid tenantId,
+        Guid farmId, DateOnly? from, DateOnly? to, string? type, string? category, string? status,
+        string? search, int page, int pageSize, CancellationToken cancellationToken)
+    {
+        if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize)
+            throw new ArgumentOutOfRangeException(nameof(page));
+        IQueryable<OperationalTransaction> query = TransactionQuery(tenantId, farmId, from, to,
+            type, category, status, search);
+        var rows = await query
+            .OrderByDescending(x => x.EventDate).ThenByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize).Select(transaction => new
+            {
+                Transaction = transaction,
+                Allocations = transaction.Allocations.OrderBy(x => x.Id).ToArray(),
+                Total = query.Count(),
+                Expenses = query.Where(x => x.Status == OperationalTransactionStatus.Posted &&
+                    x.Type == OperationalTransactionType.Expense).Sum(x => (decimal?)x.AmountUsd) ?? 0,
+                Income = query.Where(x => x.Status == OperationalTransactionStatus.Posted &&
+                    x.Type == OperationalTransactionType.Income).Sum(x => (decimal?)x.AmountUsd) ?? 0,
+                Drafts = query.Count(x => x.Status == OperationalTransactionStatus.Draft)
+            }).ToArrayAsync(cancellationToken);
+        if (rows.Length > 0)
+            return new(rows.Select(x => Map(x.Transaction, x.Allocations)).ToArray(), rows[0].Total,
+                rows[0].Expenses, rows[0].Income, rows[0].Drafts);
+        if (page == 1) return new([], 0, 0, 0, 0);
+        var summary = await query.GroupBy(_ => 1).Select(group => new
+        {
+            Total = group.Count(),
+            Expenses = group.Sum(x => x.Status == OperationalTransactionStatus.Posted &&
+                x.Type == OperationalTransactionType.Expense ? x.AmountUsd : 0),
+            Income = group.Sum(x => x.Status == OperationalTransactionStatus.Posted &&
+                x.Type == OperationalTransactionType.Income ? x.AmountUsd : 0),
+            Drafts = group.Count(x => x.Status == OperationalTransactionStatus.Draft)
+        }).SingleOrDefaultAsync(cancellationToken);
+        return new([], summary?.Total ?? 0, summary?.Expenses ?? 0,
+            summary?.Income ?? 0, summary?.Drafts ?? 0);
+    }
+
+    private static OperationalTransactionDto Map(OperationalTransaction transaction,
+        IReadOnlyCollection<TransactionAllocation> allocations) => new(transaction.Id,
+        transaction.Type.ToString(), transaction.Category.ToString(),
+        transaction.EventDate.ToString("yyyy-MM-dd"), transaction.PayeeOrPayer,
+        transaction.AmountUsd, transaction.SourceReference, transaction.Notes,
+        transaction.Status.ToString(), transaction.Version, transaction.CreatedAt,
+        transaction.PostedAt, transaction.IsClosedCycleCorrection,
+        transaction.ClosedCycleCorrectionReason, transaction.ReversalOfOperationalTransactionId,
+        transaction.ReversalReason, allocations.Select(x => new TransactionAllocationDto(x.Id,
+            x.CropCycleId, x.FieldId, x.Category.ToString(), x.AmountUsd,
+            x.AllocationType.ToString())).ToArray());
+
+    private IQueryable<OperationalTransaction> TransactionQuery(Guid tenantId, Guid farmId,
+        DateOnly? from, DateOnly? to, string? type, string? category, string? status, string? search)
+    {
         IQueryable<OperationalTransaction> query = context.OperationalTransactions.AsNoTracking()
-            .Include(x => x.Allocations).Where(x => x.TenantId == tenantId && x.FarmId == farmId);
+            .Where(x => x.TenantId == tenantId && x.FarmId == farmId);
         if (from.HasValue) query = query.Where(x => x.EventDate >= from.Value);
         if (to.HasValue) query = query.Where(x => x.EventDate <= to.Value);
         if (Enum.TryParse(type, true, out OperationalTransactionType parsedType))
@@ -36,8 +94,7 @@ public sealed class FinanceRepository(ApplicationDbContext context) : IFinanceRe
             query = query.Where(x => EF.Functions.ILike(x.PayeeOrPayer, $"%{term}%") ||
                 (x.SourceReference != null && EF.Functions.ILike(x.SourceReference, $"%{term}%")));
         }
-        return await query.OrderByDescending(x => x.EventDate).ThenByDescending(x => x.CreatedAt)
-            .ToListAsync(cancellationToken);
+        return query;
     }
 
     public Task<OperationalTransaction?> GetTransactionAsync(Guid tenantId, Guid farmId, Guid id,

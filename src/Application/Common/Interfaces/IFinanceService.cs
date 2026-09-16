@@ -6,6 +6,8 @@ public interface IFinanceService
 {
     Task<FinanceSessionDto> GetSessionAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<OperationalTransactionDto>> GetTransactionsAsync(FinanceTransactionFilter filter, CancellationToken cancellationToken);
+    Task<OperationalTransactionPageDto> GetTransactionPageAsync(FinanceTransactionFilter filter,
+        int page, int pageSize, CancellationToken cancellationToken);
     Task<OperationalTransactionDto> GetTransactionAsync(Guid transactionId, CancellationToken cancellationToken);
     Task<OperationalTransactionDto> CreateAsync(CreateOperationalTransactionInput input, CancellationToken cancellationToken);
     Task<OperationalTransactionDto> UpdateAsync(Guid transactionId, UpdateOperationalTransactionInput input, CancellationToken cancellationToken);

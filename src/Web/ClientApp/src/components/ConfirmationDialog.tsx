@@ -1,5 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
+import { useDialogFocus } from './useDialogFocus';
 
 interface ConfirmationDialogProps {
   title: string;
@@ -12,11 +13,12 @@ interface ConfirmationDialogProps {
 }
 
 export function ConfirmationDialog({ title, description, confirmLabel, isBusy = false, children, onConfirm, onCancel }: ConfirmationDialogProps) {
+  const dialogRef = useDialogFocus<HTMLElement>(() => { if (!isBusy) onCancel(); });
   return (
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget && !isBusy) onCancel();
     }}>
-      <section className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description">
+      <section ref={dialogRef} className="confirmation-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmation-title" aria-describedby="confirmation-description">
         <span className="confirmation-icon" aria-hidden="true"><AlertTriangle size={20} /></span>
         <div>
           <h2 id="confirmation-title">{title}</h2>

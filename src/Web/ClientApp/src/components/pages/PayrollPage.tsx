@@ -76,6 +76,7 @@ export function PayrollPage() {
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [selectedAdvanceId, setSelectedAdvanceId] = useState('');
   const [selectedRunId, setSelectedRunId] = useState('');
+  const [runDetailLoading, setRunDetailLoading] = useState(false);
   const [preflight, setPreflight] = useState<PayrollPreflightDto | null>(null);
   const [preflightFilters, setPreflightFilters] = useState<PreflightFilters>({ workerId: '', eligibility: '', evidenceType: '', page: 1, pageSize: 10 });
   const [loading, setLoading] = useState(true);
@@ -116,6 +117,17 @@ export function PayrollPage() {
     reloadCore().catch((requestError) => { if (current) handleError(requestError); }).finally(() => { if (current) setLoading(false); });
     return () => { current = false; };
   }, [handleError, reloadCore]);
+
+  useEffect(() => {
+    if (!selectedRunId || selectedRun?.calculation) return;
+    let current = true;
+    setRunDetailLoading(true);
+    api.runsGET(selectedRunId).then((detail) => {
+      if (current) setRuns((existing) => existing.map((run) => run.id === detail.id ? detail : run));
+    }).catch((requestError) => { if (current) handleError(requestError); })
+      .finally(() => { if (current) setRunDetailLoading(false); });
+    return () => { current = false; };
+  }, [handleError, selectedRun?.calculation, selectedRunId]);
 
   const loadPreflight = useCallback(async () => {
     if (!selectedPeriodId) { setPreflight(null); return; }
@@ -251,7 +263,7 @@ export function PayrollPage() {
       </> : <EmptyState title="Readiness unavailable" copy="Refresh the selected period to try again." />}
     </section>
 
-    <PayrollRunWorkspace role={workspace.role} periods={periods} selectedPeriod={selectedPeriod} runs={runs} selectedRun={selectedRun} setSelectedRunId={setSelectedRunId} pending={pending} decisionReason={runDecisionReason} setDecisionReason={setRunDecisionReason} cancelReason={runCancelReason} setCancelReason={setRunCancelReason} onCreate={createRun} onCalculate={() => selectedRun ? runMutation(`run-calculate-${selectedRun.id}`, () => api.calculate(selectedRun.id, new VersionedPayrollRequest({ expectedVersion: selectedRun.version })), 'New immutable calculation version created.') : Promise.resolve(false)} onSubmit={() => selectedRun ? runMutation(`run-submit-${selectedRun.id}`, () => api.submit5(selectedRun.id, new SubmitPayrollRunRequest({ expectedVersion: selectedRun.version, calculationVersion: selectedRun.latestCalculationVersion ?? 0 })), 'Exact calculation version sent to the Grower.') : Promise.resolve(false)} onDecide={decideRun} onCancel={async () => { if (selectedRun && await runMutation(`run-cancel-${selectedRun.id}`, () => api.cancel6(selectedRun.id, new CancelPayrollRunRequest({ expectedVersion: selectedRun.version, reason: runCancelReason.trim() })), 'Payroll run cancelled without consuming evidence.')) setRunCancelReason(''); }} />
+    <PayrollRunWorkspace role={workspace.role} periods={periods} selectedPeriod={selectedPeriod} runs={runs} selectedRun={selectedRun} detailLoading={runDetailLoading} setSelectedRunId={setSelectedRunId} pending={pending} decisionReason={runDecisionReason} setDecisionReason={setRunDecisionReason} cancelReason={runCancelReason} setCancelReason={setRunCancelReason} onCreate={createRun} onCalculate={() => selectedRun ? runMutation(`run-calculate-${selectedRun.id}`, () => api.calculate(selectedRun.id, new VersionedPayrollRequest({ expectedVersion: selectedRun.version })), 'New immutable calculation version created.') : Promise.resolve(false)} onSubmit={() => selectedRun ? runMutation(`run-submit-${selectedRun.id}`, () => api.submit5(selectedRun.id, new SubmitPayrollRunRequest({ expectedVersion: selectedRun.version, calculationVersion: selectedRun.latestCalculationVersion ?? 0 })), 'Exact calculation version sent to the Grower.') : Promise.resolve(false)} onDecide={decideRun} onCancel={async () => { if (selectedRun && await runMutation(`run-cancel-${selectedRun.id}`, () => api.cancel6(selectedRun.id, new CancelPayrollRunRequest({ expectedVersion: selectedRun.version, reason: runCancelReason.trim() })), 'Payroll run cancelled without consuming evidence.')) setRunCancelReason(''); }} />
 
     <section className="record-panel payroll-advance-panel">
       <header className="section-heading"><div><span className="eyebrow">Issued advance recovery source</span><h2><HandCoins size={18} /> Worker advances</h2></div><button className="primary-action" type="button" onClick={() => openAdvanceEditor(null)}>New advance</button></header>
@@ -266,17 +278,17 @@ export function PayrollPage() {
   </div>;
 }
 
-function PayrollRunWorkspace({ role, periods, selectedPeriod, runs, selectedRun, setSelectedRunId, pending, decisionReason, setDecisionReason, cancelReason, setCancelReason, onCreate, onCalculate, onSubmit, onDecide, onCancel }: { role: string; periods: PayrollPeriodDto[]; selectedPeriod: PayrollPeriodDto | undefined; runs: PayrollRunDto[]; selectedRun: PayrollRunDto | undefined; setSelectedRunId: (id: string) => void; pending: string; decisionReason: string; setDecisionReason: (value: string) => void; cancelReason: string; setCancelReason: (value: string) => void; onCreate: () => Promise<boolean>; onCalculate: () => Promise<boolean>; onSubmit: () => Promise<boolean>; onDecide: (approved: boolean) => Promise<void>; onCancel: () => Promise<void> }) {
+function PayrollRunWorkspace({ role, periods, selectedPeriod, runs, selectedRun, detailLoading, setSelectedRunId, pending, decisionReason, setDecisionReason, cancelReason, setCancelReason, onCreate, onCalculate, onSubmit, onDecide, onCancel }: { role: string; periods: PayrollPeriodDto[]; selectedPeriod: PayrollPeriodDto | undefined; runs: PayrollRunDto[]; selectedRun: PayrollRunDto | undefined; detailLoading: boolean; setSelectedRunId: (id: string) => void; pending: string; decisionReason: string; setDecisionReason: (value: string) => void; cancelReason: string; setCancelReason: (value: string) => void; onCreate: () => Promise<boolean>; onCalculate: () => Promise<boolean>; onSubmit: () => Promise<boolean>; onDecide: (approved: boolean) => Promise<void>; onCancel: () => Promise<void> }) {
   const calculation = selectedRun?.calculation;
   return <section className="record-panel payroll-run-panel">
     <header className="section-heading"><div><span className="eyebrow">Monthly control ledger</span><h2><Calculator size={18} /> Payroll-run register</h2><p>Every calculation is an immutable version. Amounts below come from the API and are never recomputed in the browser.</p></div>{selectedPeriod && canCreatePayrollRun(role, selectedPeriod, runs) && <button type="button" className="primary-action" disabled={Boolean(pending)} onClick={onCreate}>{pending === 'run-create' ? 'Creating…' : `Create ${selectedPeriod.displayName} run`}</button>}</header>
     {runs.length === 0 ? <EmptyState title="No payroll runs" copy={selectedPeriod?.status === 'Open' ? 'Create the single payroll run for this open period.' : 'Open a payroll period, then create its run.'} /> : <div className="payroll-run-workspace">
       <nav className="payroll-run-register" aria-label="Payroll runs">{runs.map((run) => <button type="button" key={run.id} className={selectedRun?.id === run.id ? 'is-selected' : ''} onClick={() => setSelectedRunId(run.id)}><span><strong>{run.periodName}</strong><small>calculation v{run.latestCalculationVersion || '—'} · run v{run.version}</small></span><span><StatusBadge status={run.status} /><b>USD {money(run.calculation?.netAmountUsd)}</b></span></button>)}</nav>
-      {selectedRun && <article className="payroll-run-detail">
+      {selectedRun && <article className="payroll-run-detail" aria-busy={detailLoading}>
         <header className="payroll-run-title"><div><span className="eyebrow">{selectedRun.periodName} · exact run version {selectedRun.version}</span><h3>{selectedRun.status === 'Approved' ? 'Approved payroll facts' : 'Calculation review'}</h3></div><StatusBadge status={selectedRun.status} /></header>
         {selectedRun.status === 'Approved' && <div className="payroll-lock-notice"><LockKeyhole size={17} /><span><strong>Approved and locked</strong>This period is {selectedRun.periodStatus.toLowerCase()}. Evidence consumption and advance recovery are immutable; no payment was executed.</span></div>}
         {selectedRun.status === 'Rejected' && <div className="monthly-proration-warning"><CircleAlert size={17} /><span><strong>Grower rejected calculation v{selectedRun.submittedCalculationVersion}</strong>{selectedRun.rejectionReason}</span></div>}
-        {calculation ? <>
+        {detailLoading ? <LoadingState label="Loading the selected payroll calculation" /> : calculation ? <>
           <div className="payroll-proof-strip" aria-label="Authoritative payroll totals"><span><small>Workers</small><strong>{calculation.workerCount}</strong></span><span><small>Evidence</small><strong>{calculation.evidenceCount}</strong></span><span><small>Gross USD</small><strong>{money(calculation.grossAmountUsd)}</strong></span><span><small>Advance recovery</small><strong>{money(calculation.deductionAmountUsd)}</strong></span><span className="is-net"><small>Net USD</small><strong>{money(calculation.netAmountUsd)}</strong></span></div>
           <div className="payroll-calculation-proof"><span><b>Calculation v{calculation.calculationVersion}</b><small>{formatDateTime(calculation.calculatedAt)}</small></span><span><b>{calculation.blockerCount ? `${calculation.blockerCount} blocker${calculation.blockerCount === 1 ? '' : 's'}` : 'Complete and ready'}</b><small>source fingerprint {shortId(calculation.sourceFingerprint)}</small></span></div>
           {calculation.blockerCount > 0 && <div className="payroll-blockers"><strong>Submission blocked</strong><p>Resolve every authoritative source issue, then calculate a new version.</p><div>{calculation.blockerCodes.map((code) => <code key={code}>{code}</code>)}</div></div>}

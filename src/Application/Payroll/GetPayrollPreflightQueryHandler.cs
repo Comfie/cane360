@@ -7,7 +7,8 @@ public sealed class GetPayrollPreflightQueryHandler(IFarmSetupRepository farms, 
     public async Task<PayrollPreflightDto> Handle(GetPayrollPreflightQuery request, CancellationToken cancellationToken)
     {
         if (request.Page < 1 || request.PageSize is < 1 or > 100) throw new Cane360.Application.Common.Exceptions.ValidationException([new FluentValidation.Results.ValidationFailure(nameof(request.Page), "Page must be positive and page size must be between 1 and 100.")]);
-        var (tenant, farm, _) = await PayrollAccess.ContextAsync(farms, user, false, cancellationToken);
+        var (tenant, farm, _) = await PayrollAccess.ContextAsync(farms, user, false,
+            cancellationToken, true);
         var period = PayrollAccess.RequirePeriod(await payroll.GetPeriodAsync(tenant.Id, farm.Id, request.PayrollPeriodId, false, cancellationToken), request.PayrollPeriodId);
         var workers = (await labour.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken)).ToDictionary(worker => worker.Id);
         var records = await labour.GetWorkRecordsAsync(tenant.Id, farm.Id, null, request.WorkerId, null, false, cancellationToken);

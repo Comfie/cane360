@@ -16,18 +16,23 @@ public sealed class RevealWorkerNationalIdCommandHandler(
     {
         var tenant = await LabourAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = LabourAccess.RequireFarm(tenant);
+        var userId = LabourAccess.RequireUserId(user);
+        var securityRole = LabourAccess.SecurityRole(tenant, userId);
+        if (securityRole != TenantSecurityRoles.Grower)
+        {
+            throw new ForbiddenAccessException();
+        }
         var worker = LabourAccess.RequireWorker(
             await labourRepository.GetWorkerAsync(tenant.Id, farm.Id, request.WorkerId, false, cancellationToken), request.WorkerId);
-        var userId = LabourAccess.RequireUserId(user);
         labourRepository.Add(AuditEvent.Create(tenant.Id, farm.Id, nameof(WorkerProfile), worker.Id,
-            "NationalIdRevealRequested", userId, LabourAccess.SecurityRole(tenant, userId), worker.PersonId,
+            "NationalIdRevealRequested", userId, securityRole, worker.PersonId,
             timeProvider.GetUtcNow(), LabourAccess.CorrelationId(user), null,
             "Authorised full national-ID reveal requested."));
         await labourRepository.SaveChangesAsync(cancellationToken);
         var nationalId = protector.Reveal(tenant.Id, farm.Id, worker.Id,
             worker.NationalIdCiphertext, worker.NationalIdNonce, worker.NationalIdTag, worker.NationalIdKeyId);
         labourRepository.Add(AuditEvent.Create(tenant.Id, farm.Id, nameof(WorkerProfile), worker.Id,
-            "NationalIdRevealSucceeded", userId, LabourAccess.SecurityRole(tenant, userId), worker.PersonId,
+            "NationalIdRevealSucceeded", userId, securityRole, worker.PersonId,
             timeProvider.GetUtcNow(), LabourAccess.CorrelationId(user), null,
             "Authorised full national-ID reveal succeeded."));
         await labourRepository.SaveChangesAsync(cancellationToken);

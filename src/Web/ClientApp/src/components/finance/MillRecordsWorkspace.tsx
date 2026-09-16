@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { withMutationGuard } from '../mutationGuard';
+import { useDialogFocus } from '../useDialogFocus';
 import { FileDown, FilePlus2, Link2, Plus, Printer, Scale, Warehouse, X } from 'lucide-react';
 import {
   AddStatementTicketMatchRequest,
@@ -38,7 +40,14 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   const [tickets, setTickets] = useState<WeighbridgeTicketDto[]>([]);
   const [statements, setStatements] = useState<GrowerStatementDto[]>([]);
   const [view, setView] = useState<View>('tickets');
-  const [filters, setFilters] = useState({ from: '', to: '', millId: '', fieldId: '', cropCycleId: '', status: '', matchStatus: '', search: '' });
+  const [filters, setFilterValues] = useState({ from: '', to: '', millId: '', fieldId: '', cropCycleId: '', status: '', matchStatus: '', search: '' });
+  const [ticketPage, setTicketPage] = useState(1);
+  const [ticketTotals, setTicketTotals] = useState({ totalCount: 0, unmatchedCount: 0, recordedNetTonnes: 0 });
+  const [statementPage, setStatementPage] = useState(1);
+  const [statementTotal, setStatementTotal] = useState(0);
+  const loadGeneration = useRef(0);
+  const mutationInFlight = useRef(false);
+  const setFilters = (next: typeof filters) => { setTicketPage(1); setStatementPage(1); setFilterValues(next); };
   const [ticketEditor, setTicketEditor] = useState<TicketEditor | null>(null);
   const [statementEditor, setStatementEditor] = useState<StatementEditor | null>(null);
   const [millEditor, setMillEditor] = useState<MillDto | 'new' | null>(null);
@@ -46,52 +55,77 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   const [candidates, setCandidates] = useState<CandidateTicketDto[]>([]);
   const [pending, setPending] = useState('');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const [nextSession, nextMills, nextTickets, nextStatements] = await Promise.all([
-      api.getMillRecordsSession(), api.getMills(true),
-      api.getWeighbridgeTickets(filters.from || undefined, filters.to || undefined,
-        filters.millId || undefined, filters.fieldId || undefined,
-        filters.cropCycleId || undefined, filters.status || undefined,
-        filters.matchStatus || undefined, filters.search || undefined),
-      api.getGrowerStatements(filters.from || undefined, filters.to || undefined,
-        filters.millId || undefined, filters.matchStatus || undefined,
-        filters.search || undefined),
-    ]);
-    setSession(nextSession); setMills(nextMills); setTickets(nextTickets); setStatements(nextStatements);
-    setSelectedStatementId((current) => nextStatements.some((x) => x.id === current)
-      ? current : nextStatements.find((x) => x.isCurrent)?.id ?? '');
-  }, [filters]);
+    const generation = ++loadGeneration.current;
+    setRefreshing(true);
+    try {
+      const [nextSession, nextMills, nextTickets, nextStatements] = await Promise.all([
+        api.getMillRecordsSession(), api.getMills(true),
+        view === 'tickets' ? api.getWeighbridgeTickets(filters.from || undefined, filters.to || undefined,
+          filters.millId || undefined, filters.fieldId || undefined,
+          filters.cropCycleId || undefined, filters.status || undefined,
+          filters.matchStatus || undefined, filters.search || undefined, ticketPage, 50) : Promise.resolve(null),
+        view === 'statements' ? api.getGrowerStatements(filters.from || undefined, filters.to || undefined,
+          filters.millId || undefined, filters.matchStatus || undefined,
+          filters.search || undefined, statementPage, 50) : Promise.resolve(null),
+      ]);
+      if (generation !== loadGeneration.current) return;
+      setSession(nextSession); setMills(nextMills);
+      if (nextTickets) { setTickets(nextTickets.items); setTicketTotals(nextTickets); }
+      if (nextStatements) {
+        setStatements(nextStatements.items); setStatementTotal(nextStatements.totalCount);
+        setSelectedStatementId((current) => nextStatements.items.some((x) => x.id === current)
+          ? current : nextStatements.items.find((x) => x.isCurrent)?.id ?? '');
+      }
+    } finally {
+      if (generation === loadGeneration.current) setRefreshing(false);
+    }
+  }, [filters, ticketPage, statementPage, view]);
+  const refresh = useRef(load);
+  useEffect(() => { refresh.current = load; }, [load]);
+  const invalidateLoad = useCallback(() => { loadGeneration.current++; }, []);
 
   useEffect(() => { let current = true; load().catch((error) => { if (current) onError(getApiError(error)); })
-    .finally(() => { if (current) setLoading(false); }); return () => { current = false; }; }, [load, onError]);
+    .finally(() => { if (current) setLoading(false); }); return () => { current = false; invalidateLoad(); }; }, [load, onError, invalidateLoad]);
 
   useEffect(() => {
-    if (!selectedStatementId) { setCandidates([]); return; }
-    api.getStatementCandidateTickets(selectedStatementId).then(setCandidates)
-      .catch((error) => onError(getApiError(error)));
-  }, [selectedStatementId, statements, onError]);
+    let current = true;
+    if (!selectedStatementId || view !== 'statements') { setCandidates([]); return; }
+    setCandidates([]);
+    api.getStatementCandidateTickets(selectedStatementId).then((next) => { if (current) setCandidates(next); })
+      .catch((error) => { if (current) onError(getApiError(error)); });
+    return () => { current = false; };
+  }, [selectedStatementId, statements, onError, view]);
 
   const mutate = async (key: string, action: () => Promise<unknown>, message: string) => {
-    if (pending) return false;
-    setPending(key); onError(''); onSuccess('');
-    try { await action(); await load(); onSuccess(message); return true; }
+    try { return await withMutationGuard(mutationInFlight, async () => {
+      setPending(key); onError(''); onSuccess('');
+      try {
+        await action();
+        // A failed refresh does not undo a persisted command or invite its resubmission.
+        try { await refresh.current(); }
+        catch (error) { onError(`Saved, but the workspace could not refresh. ${getApiError(error)}`); }
+        onSuccess(message);
+      } finally { setPending(''); }
+    }); }
     catch (error) { onError(getApiError(error)); return false; }
-    finally { setPending(''); }
   };
 
   const activeMills = mills.filter((mill) => mill.active);
   const selectedStatement = statements.find((statement) => statement.id === selectedStatementId);
   const currentTickets = tickets.filter((ticket) => ticket.isCurrent);
   const currentStatements = statements.filter((statement) => statement.isCurrent);
-  const tonnes = currentTickets.filter((ticket) => ticket.status === 'Recorded')
-    .reduce((total, ticket) => total + ticket.netTonnes, 0);
 
   if (loading) return <LoadingState label="Opening mill evidence" />;
-  return <div className="mill-workspace">
+  return <div className="mill-workspace" aria-busy={refreshing}>
     <section className="mill-toolbar record-panel">
       <div className="mill-view-switch" role="group" aria-label="Mill record view">
-        <button aria-current={view === 'tickets'} onClick={() => setView('tickets')}>Tickets</button>
+        <button aria-current={view === 'tickets'} onClick={() => {
+          if (!['', 'Matched', 'Unmatched'].includes(filters.matchStatus)) setFilters({ ...filters, matchStatus: '' });
+          setView('tickets');
+        }}>Tickets</button>
         <button aria-current={view === 'statements'} onClick={() => setView('statements')}>Statements</button>
         <button aria-current={view === 'mills'} onClick={() => setView('mills')}>Mills</button>
       </div>
@@ -104,7 +138,7 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
       </div>
     </section>
 
-    {view !== 'mills' && <form className="mill-filters record-panel" onSubmit={(event) => { event.preventDefault(); load(); }}>
+    {view !== 'mills' && <form className="mill-filters record-panel" onSubmit={(event) => { event.preventDefault(); load().catch((error) => onError(getApiError(error))); }}>
       <label>From<DatePicker name="from" value={filters.from} onChange={(from) => setFilters({ ...filters, from })} /></label>
       <label>To<DatePicker name="to" value={filters.to} onChange={(to) => setFilters({ ...filters, to })} /></label>
       <label>Mill<select value={filters.millId} onChange={(event) => setFilters({ ...filters, millId: event.target.value })}><option value="">All mills</option>{mills.map((mill) => <option key={mill.id} value={mill.id}>{mill.code} · {mill.name}{mill.active ? '' : ' · inactive'}</option>)}</select></label>
@@ -117,13 +151,18 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
     </form>}
 
     {view === 'tickets' && <section className="mill-register record-panel">
-      <header className="mill-summary"><span><small>Recorded net tonnes</small><strong>{tonnes.toLocaleString(undefined, { maximumFractionDigits: 3 })} t</strong></span><span><small>Current tickets</small><strong>{currentTickets.length}</strong></span><span><small>Unmatched</small><strong>{currentTickets.filter((x) => x.matchedStatementIds.length === 0).length}</strong></span></header>
+      <header className="mill-summary"><span><small>Recorded net tonnes · all filtered tickets</small><strong>{ticketTotals.recordedNetTonnes.toLocaleString(undefined, { maximumFractionDigits: 3 })} t</strong></span><span><small>Current tickets</small><strong>{ticketTotals.totalCount}</strong></span><span><small>Unmatched</small><strong>{ticketTotals.unmatchedCount}</strong></span></header>
       <div className="mill-table-head"><span>Date / ticket</span><span>Mill / field</span><span>Weights</span><span>Evidence / match</span><span>State / actions</span></div>
       {currentTickets.length ? currentTickets.map((ticket) => <TicketRow key={ticket.id} ticket={ticket} role={session?.role ?? ''} pending={pending} onEdit={(correction) => setTicketEditor({ ticket, correction })} onMutate={mutate} />) : <Empty label="No weighbridge tickets match these filters." />}
+      <nav className="payroll-pagination" aria-label="Ticket pages">
+        <button disabled={refreshing || ticketPage <= 1 || pending !== ''} onClick={() => setTicketPage((page) => page - 1)}>Previous tickets</button>
+        <span aria-live="polite">Page {ticketPage} of {Math.max(1, Math.ceil(ticketTotals.totalCount / 50))}</span>
+        <button disabled={refreshing || ticketPage * 50 >= ticketTotals.totalCount || pending !== ''} onClick={() => setTicketPage((page) => page + 1)}>Next tickets</button>
+      </nav>
     </section>}
 
     {view === 'statements' && <div className="statement-layout">
-      <section className="statement-list record-panel">{currentStatements.length ? currentStatements.map((statement) => <button key={statement.id} className="statement-card" aria-current={statement.id === selectedStatementId} onClick={() => setSelectedStatementId(statement.id)}><span><strong>{statement.statementReference}</strong><small>{statement.millCode} · {statement.periodStart} to {statement.periodEnd}</small></span><span><b>{statement.totalTonnes.toLocaleString()} t</b><em className={`status-pill status-${statement.reconciliation.status.toLowerCase()}`}>{financeLabel(statement.reconciliation.status)}</em></span></button>) : <Empty label="No grower statements match these filters." />}</section>
+      <section className="statement-list record-panel">{currentStatements.length ? currentStatements.map((statement) => <button key={statement.id} className="statement-card" aria-current={statement.id === selectedStatementId} onClick={() => setSelectedStatementId(statement.id)}><span><strong>{statement.statementReference}</strong><small>{statement.millCode} · {statement.periodStart} to {statement.periodEnd}</small></span><span><b>{statement.totalTonnes.toLocaleString()} t</b><em className={`status-pill status-${statement.reconciliation.status.toLowerCase()}`}>{financeLabel(statement.reconciliation.status)}</em></span></button>) : <Empty label="No grower statements match these filters." />}<nav className="payroll-pagination" aria-label="Statement pages"><button disabled={refreshing || statementPage <= 1 || pending !== ''} onClick={() => setStatementPage((page) => page - 1)}>Previous statements</button><span aria-live="polite">Page {statementPage} of {Math.max(1, Math.ceil(statementTotal / 50))}</span><button disabled={refreshing || statementPage * 50 >= statementTotal || pending !== ''} onClick={() => setStatementPage((page) => page + 1)}>Next statements</button></nav></section>
       {selectedStatement && <StatementDetail statement={selectedStatement} candidates={candidates} role={session?.role ?? ''} pending={pending} onEdit={(correction) => setStatementEditor({ statement: selectedStatement, correction })} onMutate={mutate} />}
     </div>}
 
@@ -178,6 +217,6 @@ function MillForm({ mill, pending, onSaved }: { mill: MillDto | null; pending: s
 
 function EvidenceUploadButton({ label, disabled, onFile }: { label: string; disabled: boolean; onFile: (file: File) => void }) { return <label className="evidence-upload secondary"><FilePlus2 size={14} /> {label}<input type="file" accept="image/*,application/pdf,text/csv" disabled={disabled} onChange={(event) => { const file = event.target.files?.[0]; if (file) onFile(file); event.target.value = ''; }} /></label>; }
 async function evidenceRequest(file: File): Promise<EvidenceUploadRequest> { const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(reader.error); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); return new EvidenceUploadRequest({ fileName: file.name, contentType: file.type || 'application/octet-stream', contentBase64: dataUrl.slice(dataUrl.indexOf(',') + 1) }); }
-function Editor({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section className="modal-card finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><Scale size={19} /><h2>{title}</h2></div><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18} /></button></header>{children}</section></div>; }
+function Editor({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLElement>(onClose); return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialogRef} className="modal-card finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><Scale size={19} /><h2>{title}</h2></div><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18} /></button></header>{children}</section></div>; }
 function Empty({ label }: { label: string }) { return <div className="finance-empty"><Warehouse size={26} /><strong>{label}</strong><span>Adjust filters or capture a new record.</span></div>; }
 function exportUrl(view: View, filters: Record<string, string>) { const path = view === 'statements' ? 'statements/export' : 'tickets/export'; const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value)); return `/api/finance/mill-records/${path}?${params}`; }

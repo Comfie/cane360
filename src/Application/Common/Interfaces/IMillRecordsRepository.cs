@@ -6,6 +6,14 @@ namespace Cane360.Application.Common.Interfaces;
 
 public interface IMillRecordsRepository
 {
+    Task<MillTicketPageSource> GetTicketPageAsync(Guid tenantId, Guid farmId,
+        TicketFilter filter, int page, int pageSize, CancellationToken cancellationToken);
+    Task<MillTicketPageSource> GetTicketReportSourceAsync(Guid tenantId, Guid farmId,
+        TicketFilter filter, CancellationToken cancellationToken);
+    Task<MillStatementPageSource> GetStatementPageSourceAsync(Guid tenantId, Guid farmId,
+        StatementFilter filter, int page, int pageSize, CancellationToken cancellationToken);
+    Task<MillStatementPageSource> GetStatementReportSourceAsync(Guid tenantId, Guid farmId,
+        StatementFilter filter, CancellationToken cancellationToken);
     Task<IMillRecordsTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<Mill>> GetMillsAsync(Guid tenantId, Guid farmId, bool includeInactive,
         CancellationToken cancellationToken);

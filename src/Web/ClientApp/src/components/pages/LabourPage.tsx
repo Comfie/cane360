@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useDialogFocus } from '../useDialogFocus';
 import { BadgeCheck, CalendarCheck, ClipboardList, Plus, ShieldCheck, UserRound, UsersRound, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getApiError } from '../apiError';
@@ -184,7 +185,7 @@ function EvidenceLedger({ date, register, references, records, onChanged, onErro
   </div>;
 }
 
-function LabourDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { return <dialog open className="activity-dialog labour-dialog"><article><header><div><span className="eyebrow">Labour ledger</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
+function LabourDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLDialogElement>(onClose); return <dialog open className="activity-dialog labour-dialog" ref={dialogRef} aria-modal="true" aria-label={title}><article><header><div><span className="eyebrow">Labour ledger</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>; }
 function formatIsoDate(value: Date | string): string { return value instanceof Date ? value.toISOString().slice(0, 10) : String(value).slice(0, 10); }
 function formatDate(value: Date | string): string { const iso = formatIsoDate(value); return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${iso}T00:00:00`)); }
 

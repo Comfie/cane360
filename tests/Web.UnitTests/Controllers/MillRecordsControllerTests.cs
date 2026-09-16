@@ -1,4 +1,7 @@
 using Cane360.Application.Common.Interfaces;
+using Cane360.Application.Common.Models;
+using Microsoft.AspNetCore.Http;
+using System.Text;
 using Cane360.Application.MillRecords;
 using Cane360.Web.Controllers;
 using Cane360.Web.Models.MillRecords;
@@ -9,6 +12,38 @@ namespace Cane360.Web.UnitTests.Controllers;
 
 public sealed class MillRecordsControllerTests
 {
+    [Test]
+    public async Task TicketExportUsesScreenQueryFiltersAndAuditedContextWithProtectedCells()
+    {
+        var service = new Mock<IMillRecordsService>();
+        Guid millId = Guid.NewGuid();
+        WeighbridgeTicketDto row = Ticket(millId) with { TicketReference = "=1+1", NetTonnes = 15.25m };
+        service.Setup(x => x.GetTicketsAsync(It.Is<TicketFilter>(f =>
+            f.MillId == millId && f.From == new DateOnly(2041, 1, 1)), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([row]);
+        var generated = new DateTimeOffset(2041, 1, 2, 3, 4, 5, TimeSpan.Zero);
+        service.Setup(x => x.RecordExportAsync("WeighbridgeRegister", "?from=2041-01-01", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReportExportContext("AUTOTEST-P8A Farm", "WeighbridgeRegister",
+                "?from=2041-01-01", generated, "Authoritative mill records"));
+        var context = new DefaultHttpContext();
+        context.Request.QueryString = new QueryString("?from=2041-01-01");
+        var controller = new MillRecordsController(service.Object) { ControllerContext = new ControllerContext { HttpContext = context } };
+
+        IActionResult result = await controller.ExportTickets("2041-01-01", null, millId,
+            null, null, null, null, null, CancellationToken.None);
+
+        var file = result.ShouldBeOfType<FileContentResult>();
+        string csv = Encoding.UTF8.GetString(file.FileContents);
+        csv.ShouldContain("AUTOTEST-P8A Farm");
+        csv.ShouldContain("?from=2041-01-01");
+        csv.ShouldContain("2041-01-02T03:04:05");
+        csv.ShouldContain("Authoritative mill records");
+        csv.ShouldContain("\"'=1+1\"");
+        csv.ShouldContain(",15.25,");
+        file.ContentType.ShouldBe("text/csv; charset=utf-8");
+        service.Verify(x => x.RecordExportAsync("WeighbridgeRegister", "?from=2041-01-01", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Test]
     public void ControllerRequiresAuthenticatedUser() => typeof(MillRecordsController)
         .GetCustomAttributes(typeof(AuthorizeAttribute), true).ShouldNotBeEmpty();

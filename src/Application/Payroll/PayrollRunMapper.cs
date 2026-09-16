@@ -4,6 +4,13 @@ namespace Cane360.Application.Payroll;
 
 internal static class PayrollRunMapper
 {
+    public static PayrollRunDto MapSummary(PayrollRun run, PayrollPeriod period, IUser user) =>
+        new(run.Id, run.PayrollPeriodId, period.DisplayName, period.Status.ToString(),
+            run.Status.ToString(), run.Version, run.LatestCalculationVersion,
+            run.SubmittedCalculationVersion, run.CreatedAt, run.SubmittedAt, run.ApprovedAt,
+            run.RejectedAt, run.RejectionReason, run.CancelledAt, run.CancellationReason,
+            null, null, user.CorrelationId ?? string.Empty);
+
     public static async Task<PayrollRunDto> MapAsync(IPayrollRepository repository, PayrollRun run, PayrollPeriod period, IUser user, CancellationToken cancellationToken)
     {
         var calculation = run.LatestCalculationVersion == 0 ? null : await repository.GetCalculationAsync(run.TenantId, run.FarmId, run.Id, run.LatestCalculationVersion, cancellationToken);

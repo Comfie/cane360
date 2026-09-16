@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { DesktopNavigation, MobileHeader, MobileNavigation } from './Navigation';
+import { LoadingState } from './LoadingState';
 
 const SIDEBAR_STORAGE_KEY = 'cane360SidebarCollapsed';
 
@@ -23,7 +24,7 @@ export function Layout() {
       <div className="app-frame">
         <MobileHeader />
         <main id="main-content" className="page-content">
-          <Outlet />
+          <Suspense fallback={<LoadingState label="Loading workspace" />}><Outlet /></Suspense>
         </main>
         <MobileNavigation />
       </div>

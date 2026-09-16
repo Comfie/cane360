@@ -74,7 +74,13 @@ try
 
     app.UseSerilogRequestLogging(options =>
     {
-        options.MessageTemplate = "Cane360 HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+        options.MessageTemplate = "Cane360 HTTP {RequestMethod} {EndpointRoute} responded {StatusCode} in {Elapsed:0.0000} ms; reference {CorrelationId}";
+        options.EnrichDiagnosticContext = static (diagnosticContext, httpContext) =>
+        {
+            diagnosticContext.Set("EndpointRoute",
+                (httpContext.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? "unmatched");
+            diagnosticContext.Set("CorrelationId", httpContext.TraceIdentifier);
+        };
         options.GetLevel = static (httpContext, elapsed, exception) =>
             RequestLogLevel.Select(httpContext.Response.StatusCode, elapsed, exception);
     });

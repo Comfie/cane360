@@ -31,6 +31,7 @@ public sealed class PostgreSqlPayrollRunsBehavioralAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task Phase6BBehaviorCreatesOpenRunAndCalculatesDailyHectareStandardLineWithExactRoundingAndReconciliation()
     {
         Scenario scenario = await SeedAsync([
@@ -218,6 +219,7 @@ public sealed class PostgreSqlPayrollRunsBehavioralAcceptanceTests
     }
 
     [Test]
+    [Category("MvpGoldenPathAcceptance")]
     public async Task Phase6BBehaviorMultipleAdvancesRecoverDeterministicallyAndPartiallyWithoutNegativeNetAndReconcileOutstandingBalance()
     {
         Scenario scenario = await SeedAsync([new EvidenceSpec(PayBasis.Daily, 50m, null, 2)], [new AdvanceSpec(40m, -2), new AdvanceSpec(40m, -1)]);

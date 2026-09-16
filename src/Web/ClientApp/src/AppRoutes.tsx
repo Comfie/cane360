@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy } from 'react';
 import { protectedNavigation } from './navigation';
 import { Dashboard } from './components/pages/Dashboard';
 import { FarmPage } from './components/pages/FarmPage';
@@ -8,12 +9,13 @@ import { ModulePage } from './components/pages/ModulePage';
 import { ActivitiesPage } from './components/pages/ActivitiesPage';
 import { LabourPage } from './components/pages/LabourPage';
 import { InventoryPage } from './components/pages/InventoryPage';
-import { PayrollPage } from './components/pages/PayrollPage';
-import { FinancePage } from './components/pages/FinancePage';
 import { Layout } from './components/Layout';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
 import { RegisterPage } from './components/api-authorization/RegisterPage';
+
+const PayrollPage = lazy(() => import('./components/pages/PayrollPage').then((module) => ({ default: module.PayrollPage })));
+const FinancePage = lazy(() => import('./components/pages/FinancePage').then((module) => ({ default: module.FinancePage })));
 
 export function AppRoutes() {
   return (

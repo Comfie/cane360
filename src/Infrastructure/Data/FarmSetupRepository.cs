@@ -8,6 +8,38 @@ namespace Cane360.Infrastructure.Data;
 
 public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSetupRepository
 {
+    public async Task<Tenant?> GetTenantPeopleContextForUserAsync(string userId,
+        bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Tenant> query = context.Tenants
+            .AsSingleQuery()
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Store)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons)
+                .ThenInclude(person => person.RoleAssignments)
+            .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+        return await (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Tenant?> GetTenantReferenceContextForUserAsync(string userId,
+        bool trackChanges, CancellationToken cancellationToken)
+    {
+        IQueryable<Tenant> query = context.Tenants
+            .AsSingleQuery()
+            .Include(tenant => tenant.GrowerProfile)
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.HarvestResult)
+            .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+        return await (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<Tenant?> GetTenantForUserAsync(
         string userId,
         bool trackChanges,

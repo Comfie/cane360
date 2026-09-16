@@ -17,16 +17,16 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         Ok(await finance.GetSessionAsync(cancellationToken));
 
     [HttpGet("transactions", Name = "GetFinanceTransactions")]
-    public async Task<ActionResult<IReadOnlyList<OperationalTransactionDto>>> GetTransactions(
+    public async Task<ActionResult<OperationalTransactionPageDto>> GetTransactions(
         [FromQuery] string? from, [FromQuery] string? to, [FromQuery] string? type,
         [FromQuery] string? category, [FromQuery] string? status, [FromQuery] string? search,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         if (!TryOptionalDate(from, out DateOnly? fromDate) || !TryOptionalDate(to, out DateOnly? toDate))
             return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
                 { ["date"] = ["Dates must use yyyy-MM-dd."] }));
-        return Ok(await finance.GetTransactionsAsync(new(fromDate, toDate, type, category, status,
-            search), cancellationToken));
+        return Ok(await finance.GetTransactionPageAsync(new(fromDate, toDate, type, category, status,
+            search), page, pageSize, cancellationToken));
     }
 
     [HttpGet("transactions/{transactionId:guid}", Name = "GetFinanceTransaction")]

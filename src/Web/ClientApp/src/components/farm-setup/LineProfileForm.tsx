@@ -5,12 +5,14 @@ import { FieldLineProfilesClient, ReplaceFieldLineProfileRequest } from '../../w
 import { DatePicker } from '../DatePicker';
 import { getApiError } from './farmSetupApi';
 import type { FieldLineProfileDto } from '../../web-api-client';
+import { useDialogFocus } from '../useDialogFocus';
 
 const lineProfilesClient = new FieldLineProfilesClient();
 
 export function LineProfileForm({ fieldId }: { fieldId: string }) {
   const [profile, setProfile] = useState<FieldLineProfileDto | null>(null);
   const [editing, setEditing] = useState(false);
+  const dialogRef = useDialogFocus<HTMLDialogElement>(() => setEditing(false), editing);
   const [error, setError] = useState('');
   useEffect(() => {
     let current = true;
@@ -27,7 +29,7 @@ export function LineProfileForm({ fieldId }: { fieldId: string }) {
       <div><Ruler size={15} /><span>{profile ? `${profile.estimatedLineCount} lines · ${profile.standardLineLengthMetres} m standard length` : 'Standard-line context not configured'}</span></div>
       <button type="button" className="text-action" onClick={() => setEditing(true)}>{profile ? 'Replace profile' : 'Set line profile'}</button>
     </section>
-    {editing && <dialog open className="line-profile-dialog" aria-labelledby="line-profile-title" onCancel={(event) => { event.preventDefault(); setEditing(false); }}>
+    {editing && <dialog open className="line-profile-dialog" ref={dialogRef} aria-modal="true" aria-labelledby="line-profile-title" onCancel={(event) => { event.preventDefault(); setEditing(false); }}>
       <article>
         <header>
           <div><span className="eyebrow">Field setup</span><h2 id="line-profile-title">{profile ? 'Replace line profile' : 'Set line profile'}</h2></div>

@@ -9,6 +9,7 @@ import type {
 } from '../../web-api-client';
 import { getApiError } from '../apiError';
 import { DatePicker } from '../DatePicker';
+import { useDialogFocus } from '../useDialogFocus';
 import {
   createApplicationRule,
   createFieldReceipt,
@@ -87,7 +88,8 @@ function AccountabilityChain({ rows }: { rows: InputAccountabilityDto[] }) {
 }
 
 function WorkflowDialog({ title, eyebrow, children, onClose }: { title: string; eyebrow: string; children: ReactNode; onClose: () => void }) {
-  return <dialog open className="activity-dialog inventory-dialog"><article><header><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div><button className="dialog-close" onClick={onClose} aria-label="Close">×</button></header>{children}</article></dialog>;
+  const dialogRef = useDialogFocus<HTMLDialogElement>(onClose);
+  return <dialog open ref={dialogRef} aria-modal="true" aria-label={title} className="activity-dialog inventory-dialog"><article><header><div><span className="eyebrow">{eyebrow}</span><h2>{title}</h2></div><button className="dialog-close" onClick={onClose} aria-label="Close">×</button></header>{children}</article></dialog>;
 }
 
 interface InputWorkflowFormProps {
