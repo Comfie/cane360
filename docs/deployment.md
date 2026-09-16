@@ -19,8 +19,10 @@ dotnet ef migrations list \
   --startup-project src/Web
 ```
 
-Review the reported environment, server, database, and pending migration count.
-Do not apply a migration until those details identify the intended database.
+Review the reported environment, provider, and pending migration count. Confirm
+the intended target from the operator's local configuration without copying its
+server or database details into logs. Do not apply a migration until the
+operator has independently identified the intended database.
 Never run destructive tests or `EnsureDeleted` against Railway.
 
 ## 2. Deploy the API to Railway
@@ -42,14 +44,18 @@ Configure these service variables in Railway:
 Railway injects `PORT`, and the application binds to it. Do not create a manual
 `PORT` variable unless Railway support directs you to do so.
 
-The deployment health check is `/api/Health`. It deliberately returns a failure
+The deployment health check is `/api/Health/ready`. It deliberately returns a failure
 when the API cannot reach PostgreSQL, preventing Railway from activating an
 unhealthy deployment. After the deployment succeeds, generate a public Railway
 domain for the API and confirm:
 
 ```text
-https://<railway-api-domain>/api/Health
+https://<railway-api-domain>/api/Health/ready
 ```
+
+`/api/Health/live` checks the API process without querying PostgreSQL. Railway's
+deployment check is not a continuous uptime monitor; configure external checks
+as described in the [observability and support runbook](operations/observability-support-runbook.md).
 
 Do not include `/api` when recording the API origin for Vercel.
 
@@ -95,3 +101,8 @@ API redeployment can require users to sign in again. Persisting and sharing
 those keys should be a separate hardening change before enabling multiple API
 replicas; it may require either Railway volume configuration or an approved
 production package.
+
+Before pilot onboarding, complete and evidence the controls in the
+[backup and recovery runbook](operations/backup-recovery-runbook.md), including
+scheduled backups, PITR, an independent logical backup, and an isolated restore
+rehearsal.

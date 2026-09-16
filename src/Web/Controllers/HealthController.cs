@@ -14,9 +14,34 @@ public sealed class HealthController(IDatabaseHealthCheck healthCheck) : Control
     [EndpointDescription("Reports whether the API can connect to PostgreSQL.")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken)
+    public Task<IActionResult> Get(CancellationToken cancellationToken) =>
+        GetReady(cancellationToken);
+
+    [AllowAnonymous]
+    [HttpGet("live")]
+    [EndpointSummary("Liveness check")]
+    [EndpointDescription("Reports whether the API process is available without checking dependencies.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetLive() => Ok(new { status = "healthy" });
+
+    [AllowAnonymous]
+    [HttpGet("ready")]
+    [EndpointSummary("Readiness check")]
+    [EndpointDescription("Reports whether the API can connect to PostgreSQL.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<IActionResult> GetReady(CancellationToken cancellationToken)
     {
-        var canConnect = await healthCheck.CanConnectAsync(cancellationToken);
+        bool canConnect;
+
+        try
+        {
+            canConnect = await healthCheck.CanConnectAsync(cancellationToken);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            canConnect = false;
+        }
 
         return canConnect
             ? Ok(new { status = "healthy" })

@@ -10,15 +10,12 @@ public sealed class DatabaseStatusReporter(
 {
     public async Task<int> ReportAsync(CancellationToken cancellationToken = default)
     {
-        var connection = context.Database.GetDbConnection();
         var provider = context.Database.ProviderName ?? "Unknown";
 
         logger.LogInformation(
-            "Database target: Environment={Environment}, Provider={Provider}, Server={Server}, Database={Database}",
+            "Database status check started for Environment={Environment}, Provider={Provider}.",
             environment.EnvironmentName,
-            provider,
-            connection.DataSource,
-            connection.Database);
+            provider);
 
         try
         {
