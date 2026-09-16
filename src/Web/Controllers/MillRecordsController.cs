@@ -98,7 +98,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         if (!TryEvidence(request, out byte[] content)) return EvidenceError();
         await using var stream = new MemoryStream(content, false);
         return Ok(await records.UploadTicketEvidenceAsync(ticketId, new(stream, request.FileName,
-            request.ContentType, content.LongLength), cancellationToken));
+            request.ContentType, content.LongLength, request.DocumentCategoryId), cancellationToken));
     }
 
     [HttpGet("statements", Name = "GetGrowerStatements")]
@@ -157,7 +157,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         if (!TryEvidence(request, out byte[] content)) return EvidenceError();
         await using var stream = new MemoryStream(content, false);
         return Ok(await records.UploadStatementEvidenceAsync(statementId, new(stream,
-            request.FileName, request.ContentType, content.LongLength), cancellationToken));
+            request.FileName, request.ContentType, content.LongLength,
+            request.DocumentCategoryId), cancellationToken));
     }
 
     [HttpGet("evidence/{evidenceId:guid}", Name = "DownloadMillRecordEvidence")]

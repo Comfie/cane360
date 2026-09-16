@@ -278,6 +278,11 @@ public sealed class MillRecordsRepository(ApplicationDbContext context) : IMillR
         .SingleOrDefaultAsync(x => x.TenantId == tenantId && x.FarmId == farmId &&
             x.Id == evidenceId, cancellationToken);
 
+    public Task<DocumentCategory?> GetDocumentCategoryAsync(Guid tenantId, Guid categoryId,
+        CancellationToken cancellationToken) => context.DocumentCategories.AsNoTracking()
+        .SingleOrDefaultAsync(x => x.TenantId == tenantId && x.Id == categoryId,
+            cancellationToken);
+
     public void Add(Mill mill) => context.Mills.Add(mill);
     public void Add(WeighbridgeTicket ticket) => context.WeighbridgeTickets.Add(ticket);
     public void Add(GrowerStatement statement) => context.GrowerStatements.Add(statement);

@@ -111,6 +111,23 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(Workspace), result);
     }
 
+    [HttpGet("units")]
+    public async Task<ActionResult<IReadOnlyList<UnitOfMeasureDto>>> Units(
+        CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new GetUnitsOfMeasureQuery(), cancellationToken));
+
+    [HttpPost("units/{unitId:guid}/archive")]
+    public async Task<ActionResult<UnitOfMeasureDto>> ArchiveUnit(Guid unitId,
+        VersionedInventoryRequest request, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new ArchiveUnitOfMeasureCommand(unitId, request.ExpectedVersion),
+            cancellationToken));
+
+    [HttpPut("units/{unitId:guid}")]
+    public async Task<ActionResult<UnitOfMeasureDto>> RenameUnit(Guid unitId,
+        RenameUnitOfMeasureRequest request, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new RenameUnitOfMeasureCommand(unitId,
+            request.Name, request.ExpectedVersion), cancellationToken));
+
     [HttpPost("items")]
     public async Task<ActionResult<InventoryItemDto>> CreateItem(
         CreateInventoryItemRequest request, CancellationToken cancellationToken)

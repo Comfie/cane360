@@ -487,6 +487,16 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             throw Validation(nameof(input.Content), "Evidence must contain between 1 byte and 20 MB.");
         if (ticketId.HasValue) await RequireTicketAsync(context, ticketId.Value, false, cancellationToken);
         if (statementId.HasValue) await RequireStatementAsync(context, statementId.Value, false, cancellationToken);
+        DocumentCategory? category = null;
+        if (input.DocumentCategoryId.HasValue)
+        {
+            category = await records.GetDocumentCategoryAsync(context.Tenant.Id,
+                input.DocumentCategoryId.Value, cancellationToken)
+                ?? throw new NotFoundException(input.DocumentCategoryId.Value.ToString(),
+                    "Active document category");
+            if (!category.Active)
+                throw Validation(nameof(input.DocumentCategoryId), "Select an active document category.");
+        }
         StoredEvidence stored = await storage.SaveAsync(input.Content, input.FileName, cancellationToken);
         if (stored.SizeBytes != input.Length)
             throw Validation(nameof(input.Content), "The uploaded evidence length did not match the request.");
@@ -497,6 +507,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             : EvidenceDocument.ForStatement(context.Tenant.Id, context.Farm.Id, statementId!.Value,
                 input.FileName, input.ContentType, stored.SizeBytes, stored.StorageKey,
                 context.UserId, clock.GetUtcNow());
+        if (category is not null) evidence.Classify(category);
         records.Add(evidence);
         Audit(context, evidence.Id, statementId.HasValue ? "StatementUploaded" : "TicketEvidenceAttached",
             null, "Private source evidence stored and linked to its authoritative record.",
@@ -715,7 +726,8 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     private static MillDto Map(Mill mill) => new(mill.Id, mill.Code, mill.Name, mill.Location,
         mill.Active, mill.CreatedAt, mill.Version);
     private static EvidenceDocumentDto Map(EvidenceDocument evidence) => new(evidence.Id,
-        evidence.OriginalFileName, evidence.ContentType, evidence.SizeBytes, evidence.UploadedAt);
+        evidence.OriginalFileName, evidence.ContentType, evidence.SizeBytes, evidence.UploadedAt,
+        evidence.DocumentCategoryId, evidence.DocumentCategoryCodeSnapshot);
     private static T Apply<T>(Func<T> action, string field)
     { try { return action(); } catch (InvalidOperationException exception) { throw Validation(field, exception.Message); } catch (ArgumentException exception) { throw Validation(field, exception.Message); } }
     private static void Apply(Action action, string field)

@@ -35,6 +35,8 @@ public interface IInventoryRepository
     Task<IReadOnlyList<StockMovement>> GetReceiptMovementsAsync(Guid receiptId, CancellationToken cancellationToken);
     Task<bool> HasLaterPositionMovementsAsync(IReadOnlyCollection<StockMovement> originals, CancellationToken cancellationToken);
     Task<IReadOnlyList<InventoryApplicationRule>> GetRulesAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
+    Task<InventoryApplicationRule?> GetRuleAsync(Guid tenantId, Guid farmId, Guid ruleId,
+        bool trackChanges, CancellationToken cancellationToken);
     Task<InventoryApplicationRule?> GetEffectiveRuleAsync(Guid tenantId, Guid farmId, Guid itemId, Guid activityTypeId, DateOnly date, CancellationToken cancellationToken);
     Task<(decimal Quantity, decimal ValueUsd)> GetItemStockSnapshotAsync(Guid tenantId, Guid farmId, Guid itemId, CancellationToken cancellationToken);
     Task<IReadOnlyList<InputRequest>> GetInputRequestsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);

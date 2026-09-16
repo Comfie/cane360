@@ -23,6 +23,11 @@ internal sealed class EvidenceDocumentConfiguration : IEntityTypeConfiguration<E
         builder.Property(x => x.ContentType).HasMaxLength(120).IsRequired();
         builder.Property(x => x.StorageKey).HasMaxLength(180).IsRequired();
         builder.Property(x => x.UploadedByUserId).HasMaxLength(450).IsRequired();
+        builder.Property(x => x.DocumentCategoryCodeSnapshot).HasMaxLength(24);
+        builder.HasOne<DocumentCategory>().WithMany()
+            .HasForeignKey(x => new { x.DocumentCategoryId, x.TenantId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Farm>().WithMany().HasForeignKey(x => new { x.FarmId, x.TenantId })
             .HasPrincipalKey(x => new { x.Id, x.TenantId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<WeighbridgeTicket>().WithMany()

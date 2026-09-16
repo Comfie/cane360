@@ -13,6 +13,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IFinanceService, Cane360.Application.Finance.FinanceService>();
         builder.Services.AddScoped<IPayrollCostProjectionService, Cane360.Application.Finance.PayrollCostProjectionService>();
         builder.Services.AddScoped<IMillRecordsService, Cane360.Application.MillRecords.MillRecordsService>();
+        builder.Services.AddScoped<Cane360.Application.Administration.AdministrationService>();
 
         builder.Services.AddMediatR(cfg => {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());

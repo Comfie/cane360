@@ -43,6 +43,18 @@ public sealed class UnitOfMeasure : BaseAuditableEntity
         Version++;
     }
 
+    public void Rename(string name, long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Status != InventoryRecordStatus.Active)
+            throw new InvalidOperationException("Archived units cannot be edited.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        if (name.Trim().Length > 80)
+            throw new InvalidOperationException("Unit name cannot exceed 80 characters.");
+        Name = name.Trim();
+        Version++;
+    }
+
     private void RequireVersion(long expectedVersion)
     {
         if (Version != expectedVersion) throw new InvalidOperationException("This unit changed after it was loaded.");

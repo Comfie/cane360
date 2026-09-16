@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<GrowerProfile> GrowerProfiles => Set<GrowerProfile>();
     public DbSet<TenantMembership> TenantMemberships => Set<TenantMembership>();
     public DbSet<Farm> Farms => Set<Farm>();
+    public DbSet<FarmSetting> FarmSettings => Set<FarmSetting>();
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<Field> Fields => Set<Field>();
     public DbSet<CropVariety> CropVarieties => Set<CropVariety>();
@@ -103,6 +104,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<GrowerStatement> GrowerStatements => Set<GrowerStatement>();
     public DbSet<StatementTicketMatch> StatementTicketMatches => Set<StatementTicketMatch>();
     public DbSet<EvidenceDocument> EvidenceDocuments => Set<EvidenceDocument>();
+    public DbSet<DocumentCategory> DocumentCategories => Set<DocumentCategory>();
     public DbSet<MillRecordAuditEventLink> MillRecordAuditEventLinks => Set<MillRecordAuditEventLink>();
     public DbSet<MillRecordExport> MillRecordExports => Set<MillRecordExport>();
 

@@ -212,7 +212,7 @@ function ActivityTypeForm({ types, onSaved, onError }: ActivityTypeFormProps) {
       setSaving(false); onError('Select Planned, Unplanned, or both.'); return;
     }
     try {
-      const type = await activityTypesClient.activityTypes(new CreateActivityTypeRequest({
+      const type = await activityTypesClient.activityTypesPOST(new CreateActivityTypeRequest({
         code: String(data.get('code')).trim(),
         name: String(data.get('name')).trim(),
         supportsPlanned,

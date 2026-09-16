@@ -7,6 +7,7 @@ import {
   CorrectStatementRequest,
   CorrectTicketRequest,
   EvidenceUploadRequest,
+  AdministrationClient,
   MillRecordsClient,
   MillRequest,
   RecordMillRecordRequest,
@@ -14,6 +15,7 @@ import {
   StatementRequest,
   TicketRequest,
   type CandidateTicketDto,
+  type DocumentCategoryDto,
   type GrowerStatementDto,
   type MillDto,
   type MillRecordsSessionDto,
@@ -26,6 +28,7 @@ import { financeLabel, newFinanceKey, usd } from './financeView';
 import { amountReconciliation, canCorrectMillEvidence, matchWarning, tonnes } from './millRecordsView';
 
 const api = new MillRecordsClient();
+const administration = new AdministrationClient();
 const today = new Date().toISOString().slice(0, 10);
 type View = 'tickets' | 'statements' | 'mills';
 type TicketEditor = { ticket: WeighbridgeTicketDto | null; correction: boolean };
@@ -39,6 +42,7 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   const [mills, setMills] = useState<MillDto[]>([]);
   const [tickets, setTickets] = useState<WeighbridgeTicketDto[]>([]);
   const [statements, setStatements] = useState<GrowerStatementDto[]>([]);
+  const [documentCategories, setDocumentCategories] = useState<DocumentCategoryDto[]>([]);
   const [view, setView] = useState<View>('tickets');
   const [filters, setFilterValues] = useState({ from: '', to: '', millId: '', fieldId: '', cropCycleId: '', status: '', matchStatus: '', search: '' });
   const [ticketPage, setTicketPage] = useState(1);
@@ -85,6 +89,13 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   }, [filters, ticketPage, statementPage, view]);
   const refresh = useRef(load);
   useEffect(() => { refresh.current = load; }, [load]);
+  useEffect(() => {
+    let current = true;
+    administration.documentCategoriesAll().then((items) => {
+      if (current) setDocumentCategories(items.filter((item) => item.active));
+    }).catch((error) => { if (current) onError(getApiError(error)); });
+    return () => { current = false; };
+  }, [onError]);
   const invalidateLoad = useCallback(() => { loadGeneration.current++; }, []);
 
   useEffect(() => { let current = true; load().catch((error) => { if (current) onError(getApiError(error)); })
@@ -153,7 +164,7 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
     {view === 'tickets' && <section className="mill-register record-panel">
       <header className="mill-summary"><span><small>Recorded net tonnes · all filtered tickets</small><strong>{ticketTotals.recordedNetTonnes.toLocaleString(undefined, { maximumFractionDigits: 3 })} t</strong></span><span><small>Current tickets</small><strong>{ticketTotals.totalCount}</strong></span><span><small>Unmatched</small><strong>{ticketTotals.unmatchedCount}</strong></span></header>
       <div className="mill-table-head"><span>Date / ticket</span><span>Mill / field</span><span>Weights</span><span>Evidence / match</span><span>State / actions</span></div>
-      {currentTickets.length ? currentTickets.map((ticket) => <TicketRow key={ticket.id} ticket={ticket} role={session?.role ?? ''} pending={pending} onEdit={(correction) => setTicketEditor({ ticket, correction })} onMutate={mutate} />) : <Empty label="No weighbridge tickets match these filters." />}
+      {currentTickets.length ? currentTickets.map((ticket) => <TicketRow key={ticket.id} ticket={ticket} role={session?.role ?? ''} pending={pending} categories={documentCategories} onEdit={(correction) => setTicketEditor({ ticket, correction })} onMutate={mutate} />) : <Empty label="No weighbridge tickets match these filters." />}
       <nav className="payroll-pagination" aria-label="Ticket pages">
         <button disabled={refreshing || ticketPage <= 1 || pending !== ''} onClick={() => setTicketPage((page) => page - 1)}>Previous tickets</button>
         <span aria-live="polite">Page {ticketPage} of {Math.max(1, Math.ceil(ticketTotals.totalCount / 50))}</span>
@@ -163,7 +174,7 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
 
     {view === 'statements' && <div className="statement-layout">
       <section className="statement-list record-panel">{currentStatements.length ? currentStatements.map((statement) => <button key={statement.id} className="statement-card" aria-current={statement.id === selectedStatementId} onClick={() => setSelectedStatementId(statement.id)}><span><strong>{statement.statementReference}</strong><small>{statement.millCode} · {statement.periodStart} to {statement.periodEnd}</small></span><span><b>{statement.totalTonnes.toLocaleString()} t</b><em className={`status-pill status-${statement.reconciliation.status.toLowerCase()}`}>{financeLabel(statement.reconciliation.status)}</em></span></button>) : <Empty label="No grower statements match these filters." />}<nav className="payroll-pagination" aria-label="Statement pages"><button disabled={refreshing || statementPage <= 1 || pending !== ''} onClick={() => setStatementPage((page) => page - 1)}>Previous statements</button><span aria-live="polite">Page {statementPage} of {Math.max(1, Math.ceil(statementTotal / 50))}</span><button disabled={refreshing || statementPage * 50 >= statementTotal || pending !== ''} onClick={() => setStatementPage((page) => page + 1)}>Next statements</button></nav></section>
-      {selectedStatement && <StatementDetail statement={selectedStatement} candidates={candidates} role={session?.role ?? ''} pending={pending} onEdit={(correction) => setStatementEditor({ statement: selectedStatement, correction })} onMutate={mutate} />}
+      {selectedStatement && <StatementDetail statement={selectedStatement} candidates={candidates} role={session?.role ?? ''} pending={pending} categories={documentCategories} onEdit={(correction) => setStatementEditor({ statement: selectedStatement, correction })} onMutate={mutate} />}
     </div>}
 
     {view === 'mills' && <section className="mill-reference-list record-panel">{mills.map((mill) => <article key={mill.id}><span><strong>{mill.code}</strong><small>{mill.name}{mill.location ? ` · ${mill.location}` : ''}</small></span><em className={`status-pill status-${mill.active ? 'active' : 'inactive'}`}>{mill.active ? 'Active' : 'Inactive'}</em><button className="secondary" onClick={() => setMillEditor(mill)}>Edit</button>{mill.active && <button className="text-action" disabled={pending !== ''} onClick={() => mutate(`mill-${mill.id}`, () => api.deactivateMill(mill.id, new RecordMillRecordRequest({ expectedVersion: mill.version, idempotencyKey: newFinanceKey('mill-deactivate') })), 'Mill deactivated; historical evidence remains visible.')}>Deactivate</button>}</article>)}</section>}
@@ -174,20 +185,20 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   </div>;
 }
 
-function TicketRow({ ticket, role, pending, onEdit, onMutate }: { ticket: WeighbridgeTicketDto; role: string; pending: string; onEdit: (correction: boolean) => void; onMutate: (key: string, action: () => Promise<unknown>, message: string) => Promise<boolean>; }) {
+function TicketRow({ ticket, role, pending, categories, onEdit, onMutate }: { ticket: WeighbridgeTicketDto; role: string; pending: string; categories: DocumentCategoryDto[]; onEdit: (correction: boolean) => void; onMutate: (key: string, action: () => Promise<unknown>, message: string) => Promise<boolean>; }) {
   return <article className="mill-ticket-row">
     <span><strong>{ticket.ticketReference}</strong><small>{ticket.ticketDate}{ticket.correctsTicketId ? ' · correction' : ''}</small></span>
     <span><strong>{ticket.millCode} · {ticket.millName}</strong><small>{ticket.fieldName || 'Field not assigned'}{ticket.cropCycleLabel ? ` · ${ticket.cropCycleLabel}` : ''}</small></span>
     <span className="ticket-weights"><b>{tonnes(ticket.netTonnes)} net</b><small>{ticket.grossTonnes} gross{ticket.tareTonnes == null ? ' · tare unavailable' : ` − ${ticket.tareTonnes} tare`}</small>{ticket.recordedHarvestTonnes != null && <small>{ticket.recordedHarvestTonnes} t crop-cycle harvest result · unchanged</small>}</span>
     <span><small>{ticket.evidence.length ? `${ticket.evidence.length} evidence file${ticket.evidence.length === 1 ? '' : 's'}` : 'No attached evidence'}</small><small>{ticket.matchedStatementIds.length ? `${ticket.matchedStatementIds.length} statement match${ticket.matchedStatementIds.length === 1 ? '' : 'es'}` : 'Unmatched'}{ticket.matchedToAnotherStatement ? ' · review reuse' : ''}</small>{ticket.evidence.map((evidence) => <a key={evidence.id} href={`/api/finance/mill-records/evidence/${evidence.id}`}>{evidence.originalFileName}</a>)}</span>
-    <span className="mill-row-actions"><em className={`status-pill status-${ticket.status.toLowerCase()}`}>{ticket.status}</em>{ticket.status === 'Draft' && <><button className="secondary" onClick={() => onEdit(false)}>Edit</button><button disabled={pending !== ''} onClick={() => onMutate(`record-${ticket.id}`, () => api.recordWeighbridgeTicket(ticket.id, new RecordMillRecordRequest({ expectedVersion: ticket.version, idempotencyKey: newFinanceKey('ticket-record') })), 'Ticket recorded as authoritative mill evidence.')}>Record</button></>}{canCorrectMillEvidence(role, ticket.status) && <button className="secondary" onClick={() => onEdit(true)}>Correct</button>}<EvidenceUploadButton label="Attach" disabled={pending !== ''} onFile={(file) => onMutate(`evidence-${ticket.id}`, async () => api.uploadWeighbridgeTicketEvidence(ticket.id, await evidenceRequest(file)), 'Ticket evidence attached.')} /></span>
+    <span className="mill-row-actions"><em className={`status-pill status-${ticket.status.toLowerCase()}`}>{ticket.status}</em>{ticket.status === 'Draft' && <><button className="secondary" onClick={() => onEdit(false)}>Edit</button><button disabled={pending !== ''} onClick={() => onMutate(`record-${ticket.id}`, () => api.recordWeighbridgeTicket(ticket.id, new RecordMillRecordRequest({ expectedVersion: ticket.version, idempotencyKey: newFinanceKey('ticket-record') })), 'Ticket recorded as authoritative mill evidence.')}>Record</button></>}{canCorrectMillEvidence(role, ticket.status) && <button className="secondary" onClick={() => onEdit(true)}>Correct</button>}<EvidenceUploadButton label="Attach" disabled={pending !== ''} categories={categories} onFile={(file, categoryId) => onMutate(`evidence-${ticket.id}`, async () => api.uploadWeighbridgeTicketEvidence(ticket.id, await evidenceRequest(file, categoryId)), 'Ticket evidence attached.')} /></span>
   </article>;
 }
 
-function StatementDetail({ statement, candidates, role, pending, onEdit, onMutate }: { statement: GrowerStatementDto; candidates: CandidateTicketDto[]; role: string; pending: string; onEdit: (correction: boolean) => void; onMutate: (key: string, action: () => Promise<unknown>, message: string) => Promise<boolean>; }) {
+function StatementDetail({ statement, candidates, role, pending, categories, onEdit, onMutate }: { statement: GrowerStatementDto; candidates: CandidateTicketDto[]; role: string; pending: string; categories: DocumentCategoryDto[]; onEdit: (correction: boolean) => void; onMutate: (key: string, action: () => Promise<unknown>, message: string) => Promise<boolean>; }) {
   const reconciliation = statement.reconciliation;
   return <section className="statement-detail record-panel">
-    <header><div><small>{statement.millName} · {statement.periodStart} to {statement.periodEnd}</small><h2>{statement.statementReference}</h2></div><div className="mill-row-actions">{statement.status === 'Draft' && <><button className="secondary" onClick={() => onEdit(false)}>Edit</button><button disabled={pending !== '' || statement.evidence.length === 0} onClick={() => onMutate(`record-${statement.id}`, () => api.recordGrowerStatement(statement.id, new RecordMillRecordRequest({ expectedVersion: statement.version, idempotencyKey: newFinanceKey('statement-record') })), 'Statement recorded; reconciliation is server-derived.')}>Record statement</button></>}{statement.status === 'Recorded' && role === 'Grower' && <button className="secondary" onClick={() => onEdit(true)}>Correct</button>}<EvidenceUploadButton label={statement.evidence.length ? 'Add evidence' : 'Upload original'} disabled={pending !== ''} onFile={(file) => onMutate(`statement-evidence-${statement.id}`, async () => api.uploadGrowerStatementEvidence(statement.id, await evidenceRequest(file)), 'Statement evidence uploaded privately.')} /></div></header>
+    <header><div><small>{statement.millName} · {statement.periodStart} to {statement.periodEnd}</small><h2>{statement.statementReference}</h2></div><div className="mill-row-actions">{statement.status === 'Draft' && <><button className="secondary" onClick={() => onEdit(false)}>Edit</button><button disabled={pending !== '' || statement.evidence.length === 0} onClick={() => onMutate(`record-${statement.id}`, () => api.recordGrowerStatement(statement.id, new RecordMillRecordRequest({ expectedVersion: statement.version, idempotencyKey: newFinanceKey('statement-record') })), 'Statement recorded; reconciliation is server-derived.')}>Record statement</button></>}{statement.status === 'Recorded' && role === 'Grower' && <button className="secondary" onClick={() => onEdit(true)}>Correct</button>}<EvidenceUploadButton label={statement.evidence.length ? 'Add evidence' : 'Upload original'} disabled={pending !== ''} categories={categories} onFile={(file, categoryId) => onMutate(`statement-evidence-${statement.id}`, async () => api.uploadGrowerStatementEvidence(statement.id, await evidenceRequest(file, categoryId)), 'Statement evidence uploaded privately.')} /></div></header>
     <div className="reconciliation-strip"><span><small>Statement</small><strong>{tonnes(statement.totalTonnes)}</strong></span><span><small>Matched tickets</small><strong>{tonnes(reconciliation.matchedTicketTonnes)}</strong></span><span><small>Variance</small><strong>{tonnes(reconciliation.tonnesVariance)}</strong></span><span><small>Statement amount</small><strong>{usd(statement.totalAmountUsd)}</strong></span><span><small>Matched amount</small><strong>{amountReconciliation(reconciliation.matchedAmountUsd, reconciliation.amountStatus, usd)}</strong></span></div>
     <div className="statement-status-line"><em className={`status-pill status-${reconciliation.status.toLowerCase()}`}>{financeLabel(reconciliation.status)}</em>{matchWarning(reconciliation.hasCrossStatementTicketReuse) && <strong className="variance-warning">{matchWarning(true)}</strong>}</div>
     <div className="evidence-list">{statement.evidence.map((evidence) => <a key={evidence.id} href={`/api/finance/mill-records/evidence/${evidence.id}`}><FileDown size={14} /> {evidence.originalFileName}</a>)}</div>
@@ -215,8 +226,8 @@ function StatementForm({ editor, mills, pending, onSaved }: { editor: StatementE
 
 function MillForm({ mill, pending, onSaved }: { mill: MillDto | null; pending: string; onSaved: (action: () => Promise<unknown>, message: string) => Promise<void>; }) { const submit = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); const request = new MillRequest({ code: String(data.get('code')).trim(), name: String(data.get('name')).trim(), location: String(data.get('location')).trim() || undefined, expectedVersion: mill?.version ?? 0 }); await onSaved(() => mill ? api.updateMill(mill.id, request) : api.createMill(request), mill ? 'Mill reference updated.' : 'Mill reference created.'); }; return <form className="mill-form" onSubmit={submit}><label>Code<input name="code" maxLength={40} defaultValue={mill?.code} required /></label><label>Name<input name="name" maxLength={160} defaultValue={mill?.name} required /></label><label className="is-wide">Location or description<textarea name="location" maxLength={500} defaultValue={mill?.location} /></label><footer className="form-actions"><span>Codes are normalized and unique within this farm.</span><button disabled={pending !== ''}>Save mill</button></footer></form>; }
 
-function EvidenceUploadButton({ label, disabled, onFile }: { label: string; disabled: boolean; onFile: (file: File) => void }) { return <label className="evidence-upload secondary"><FilePlus2 size={14} /> {label}<input type="file" accept="image/*,application/pdf,text/csv" disabled={disabled} onChange={(event) => { const file = event.target.files?.[0]; if (file) onFile(file); event.target.value = ''; }} /></label>; }
-async function evidenceRequest(file: File): Promise<EvidenceUploadRequest> { const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(reader.error); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); return new EvidenceUploadRequest({ fileName: file.name, contentType: file.type || 'application/octet-stream', contentBase64: dataUrl.slice(dataUrl.indexOf(',') + 1) }); }
+function EvidenceUploadButton({ label, disabled, categories, onFile }: { label: string; disabled: boolean; categories: DocumentCategoryDto[]; onFile: (file: File, categoryId?: string) => void }) { const [categoryId, setCategoryId] = useState(''); return <span className="evidence-upload-group">{categories.length > 0 && <select aria-label="Document category" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}><option value="">Unclassified</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>}<label className="evidence-upload secondary"><FilePlus2 size={14} /> {label}<input type="file" accept="image/*,application/pdf,text/csv" disabled={disabled} onChange={(event) => { const file = event.target.files?.[0]; if (file) onFile(file, categoryId || undefined); event.target.value = ''; }} /></label></span>; }
+async function evidenceRequest(file: File, categoryId?: string): Promise<EvidenceUploadRequest> { const dataUrl = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onerror = () => reject(reader.error); reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(file); }); return new EvidenceUploadRequest({ fileName: file.name, contentType: file.type || 'application/octet-stream', contentBase64: dataUrl.slice(dataUrl.indexOf(',') + 1), documentCategoryId: categoryId }); }
 function Editor({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLElement>(onClose); return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialogRef} className="modal-card finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><Scale size={19} /><h2>{title}</h2></div><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18} /></button></header>{children}</section></div>; }
 function Empty({ label }: { label: string }) { return <div className="finance-empty"><Warehouse size={26} /><strong>{label}</strong><span>Adjust filters or capture a new record.</span></div>; }
 function exportUrl(view: View, filters: Record<string, string>) { const path = view === 'statements' ? 'statements/export' : 'tickets/export'; const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value)); return `/api/finance/mill-records/${path}?${params}`; }

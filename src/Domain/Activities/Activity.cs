@@ -90,7 +90,8 @@ public sealed class Activity : BaseAuditableEntity
         DateTimeOffset enteredAt,
         string enteredByUserId,
         string? lateEntryReason,
-        long expectedVersion)
+        long expectedVersion,
+        int lateEntryReasonAfterDays = 2)
     {
         RequireVersion(expectedVersion);
         EnsureActualEditable();
@@ -113,9 +114,11 @@ public sealed class Activity : BaseAuditableEntity
 
         ValidateQuantity(actualQuantity, fieldReportingHectares, lineProfile);
         var delayDays = CalendarDayDelay(actualAt, enteredAt);
-        if (delayDays > 2 && string.IsNullOrWhiteSpace(lateEntryReason))
+        if (lateEntryReasonAfterDays is < 0 or > 30)
+            throw new InvalidOperationException("Late-entry threshold is outside the supported range.");
+        if (delayDays > lateEntryReasonAfterDays && string.IsNullOrWhiteSpace(lateEntryReason))
         {
-            throw new InvalidOperationException("A late-entry reason is required when work is entered more than two calendar days later.");
+            throw new InvalidOperationException($"A late-entry reason is required when work is entered more than {lateEntryReasonAfterDays} calendar days later.");
         }
 
         ActualAt = actualAt;
