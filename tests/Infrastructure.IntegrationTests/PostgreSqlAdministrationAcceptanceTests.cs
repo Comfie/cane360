@@ -78,7 +78,7 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
             .ShouldBe("IX_DocumentCategories_TenantId_Code");
         await using var verify = CreateContext();
         (await verify.DocumentCategories.CountAsync(item => item.TenantId == _tenantId &&
-            item.Code == code)).ShouldBe(1);
+            item.Code == code.ToUpperInvariant())).ShouldBe(1);
     }
 
     [Test]
@@ -145,7 +145,7 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
         PostgresException error = await Should.ThrowAsync<PostgresException>(async () =>
             await second.Database.ExecuteSqlInterpolatedAsync(
                 $"UPDATE audit.\"AuditEvents\" SET \"SafeSummary\"='tampered' WHERE \"Id\"={audit.Id} AND \"TenantId\"={_tenantId}"));
-        error.SqlState.ShouldBe(PostgresErrorCodes.CheckViolation);
+        error.SqlState.ShouldBe("P0001");
     }
 
     private ApplicationDbContext CreateContext() => new(

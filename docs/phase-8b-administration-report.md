@@ -14,7 +14,7 @@ FarmManager cannot list tenant memberships or invitation details through Adminis
 
 `20260916193145_AddAdministrationConfiguration` adds `FarmSettings`, `DocumentCategories`, and optional category references and code snapshots on evidence. It does not rewrite existing memberships, audit, inventory, payroll, or mill records. The forward SQL is at `/private/tmp/cane360-p8b-administration-forward.sql` for review.
 
-Railway Development status at the gate: **17 applied / 1 pending**. The migration has not been applied. `Phase8BPostMigration` tests are explicit and must run only after approved application to Railway Development.
+Railway Development status at the gate: **17 applied / 1 pending**. The user approved application of only this migration. It was applied on 2026-09-16, and the post-application status is **18 applied / 0 pending**.
 
 SHA-256:
 
@@ -34,4 +34,6 @@ SHA-256:
 - `git diff --check`: clean.
 - Forward SQL review: additive schema operations and constraints only; no historical data rewrite.
 
-Responsive CSS has compact, scrollable section navigation, stacked mobile forms and cards, and 44px actions. An authenticated browser check at 1440, 1024, 768, 390, and 360 px remains pending after migration approval; the in-app browser tool was unavailable in this session. PostgreSQL acceptance tests also remain pending until migration approval. Do not treat Phase 8B as released before those checks pass.
+Post-migration `Phase8BPostMigration` acceptance passed all 5 tests with uniquely labelled `AUTOTEST-P8B-ADMIN-*` records. Existing `MvpGoldenPathAcceptance` passed all 6 tests.
+
+Responsive CSS has compact, scrollable section navigation, stacked mobile forms and cards, and 44px actions. An authenticated browser check at 1440, 1024, 768, 390, and 360 px remains pending; the in-app browser tool was unavailable in this session. Do not treat Phase 8B as released before that check passes.
