@@ -47,7 +47,7 @@ public sealed class AdministrationServiceTests
     {
         Tenant tenant = TenantWithFarm();
         var person = tenant.ActiveFarm!.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
-        tenant.AddFarmManagerMembership("manager", person.Id);
+        tenant.AddMembership("manager", person.Id, TenantSecurityRoles.FarmManager);
         var reads = new Mock<IAdministrationReadRepository>();
         AdministrationService service = Service(tenant, "manager", reads);
 
@@ -83,7 +83,7 @@ public sealed class AdministrationServiceTests
     {
         Tenant tenant = TenantWithFarm();
         var person = tenant.ActiveFarm!.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
-        tenant.AddFarmManagerMembership("manager", person.Id);
+        tenant.AddMembership("manager", person.Id, TenantSecurityRoles.FarmManager);
         AdministrationService service = Service(tenant, "manager", new Mock<IAdministrationReadRepository>());
 
         Should.Throw<ForbiddenAccessException>(async () =>
@@ -97,7 +97,7 @@ public sealed class AdministrationServiceTests
         Tenant tenant = TenantWithFarm();
         Guid ownerId = tenant.Memberships.Single().Id;
 
-        Should.Throw<InvalidOperationException>(() => tenant.DisableFarmManagerMembership(ownerId));
+        Should.Throw<InvalidOperationException>(() => tenant.DisableMembership(ownerId));
         tenant.Memberships.Single().Status.ShouldBe(RecordStatus.Active);
     }
 

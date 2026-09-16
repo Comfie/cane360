@@ -32,7 +32,8 @@ public sealed class RedeemManagerInvitationCommandHandler(
             throw InventoryAccess.Failure(nameof(command.Token), "The invitation no longer targets the active primary FarmManager.");
 
         InventoryAccess.ApplyDomainAction(nameof(command.Token), () => invitation.Redeem(now, userId));
-        InventoryAccess.ApplyDomainAction(nameof(command.Token), () => tenant.AddFarmManagerMembership(userId, manager.Id));
+        InventoryAccess.ApplyDomainAction(nameof(command.Token), () =>
+            tenant.AddMembership(userId, manager.Id, Cane360.Domain.Farms.TenantSecurityRoles.FarmManager));
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,
             "Redeemed", now, null, "Invitation redeemed and FarmManager tenant membership activated.");
         await inventoryRepository.SaveChangesAsync(cancellationToken);

@@ -267,7 +267,7 @@ public sealed class PostgreSqlOperationalFinanceAcceptanceTests
             Person workerPerson = farm.AddPerson("Synthetic worker", null, new DateOnly(2038, 1, 1));
             farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2038, 1, 1));
             farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2038, 1, 1));
-            tenant.AddFarmManagerMembership(managerId!, manager.Id);
+            tenant.AddMembership(managerId!, manager.Id, TenantSecurityRoles.FarmManager);
             worker = WorkerProfile.Create(Guid.NewGuid(), tenant.Id, farm.Id, workerPerson.Id,
                 EmploymentType.Seasonal, new DateOnly(2038, 1, 1), [1], new byte[12],
                 new byte[16], "test-v1", new byte[32], "••••••12");

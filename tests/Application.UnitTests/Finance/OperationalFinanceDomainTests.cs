@@ -260,7 +260,7 @@ public sealed class OperationalFinanceDomainTests
         var person = farm.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
         farm.AssignRole(person, Cane360.Domain.Activities.PersonRole.FarmManager, true,
             new DateOnly(2026, 1, 1));
-        tenant.AddFarmManagerMembership("manager", person.Id);
+        tenant.AddMembership("manager", person.Id, TenantSecurityRoles.FarmManager);
         tenant.Memberships.Single(x => x.UserId == "manager").SecurityRole.ShouldBe(TenantSecurityRoles.FarmManager);
     }
 

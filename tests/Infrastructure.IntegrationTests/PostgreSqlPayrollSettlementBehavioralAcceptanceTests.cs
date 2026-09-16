@@ -104,7 +104,7 @@ public sealed class PostgreSqlPayrollSettlementBehavioralAcceptanceTests
     {
         var suffix = Guid.NewGuid().ToString("N"); var growerId = $"p6c-grower-{suffix}"; var managerId = $"p6c-manager-{suffix}"; var label = $"AUTOTEST-P6C-{DateTimeOffset.UtcNow:yyyyMMddHHmmss}-{suffix}";
         var tenant = Tenant.CreateForGrower(growerId, label, null); var farm = tenant.CreateFarm($"P6C{suffix}"[..20], label, "Synthetic address", "Railway Development", "Synthetic", 10m, "Synthetic");
-        var manager = farm.AddPerson("Synthetic manager", null, new DateOnly(2037, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2037, 1, 1)); tenant.AddFarmManagerMembership(managerId, manager.Id); var workerPerson = farm.AddPerson("Synthetic worker", null, new DateOnly(2037, 1, 1));
+        var manager = farm.AddPerson("Synthetic manager", null, new DateOnly(2037, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2037, 1, 1)); tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager); var workerPerson = farm.AddPerson("Synthetic worker", null, new DateOnly(2037, 1, 1));
         var worker = WorkerProfile.Create(Guid.NewGuid(), tenant.Id, farm.Id, workerPerson.Id, EmploymentType.Permanent, new DateOnly(2037, 1, 1), [1], new byte[12], new byte[16], "test-v1", new byte[32], "••••••12");
         var now = DateTimeOffset.UtcNow;
         var period = PayrollPeriod.Create(tenant.Id, farm.Id, 2037, 1, now, managerId, manager.Id);

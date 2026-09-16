@@ -69,7 +69,7 @@ public sealed class PayrollSettlementServiceTests
         {
             var tenant = Tenant.CreateForGrower("grower", "Grower", null);
             var farm = tenant.CreateFarm("P6C", "Settlement farm", "Address", "Location", "Lease", 10m, "Furrow");
-            var manager = farm.AddPerson("Manager", null, new DateOnly(2037, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2037, 1, 1)); tenant.AddFarmManagerMembership("manager", manager.Id);
+            var manager = farm.AddPerson("Manager", null, new DateOnly(2037, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2037, 1, 1)); tenant.AddMembership("manager", manager.Id, TenantSecurityRoles.FarmManager);
             var workerPerson = farm.AddPerson("Worker", null, new DateOnly(2037, 1, 1));
             var worker = WorkerProfile.Create(Guid.NewGuid(), tenant.Id, farm.Id, workerPerson.Id,
                 EmploymentType.Permanent, new DateOnly(2037, 1, 1), [1], new byte[12], new byte[16], "test-v1", new byte[32], "••••••12");

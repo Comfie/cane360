@@ -90,7 +90,7 @@ public sealed class PayrollAuthorizationTests
     private static Tenant TenantWithManager(out Farm farm)
     {
         var tenant = Tenant.CreateForGrower("grower-user", "Grower", null); farm = tenant.CreateFarm("PAY", "Payroll farm", "Address", "Location", "Lease", 10m, "Furrow");
-        var manager = farm.AddPerson("Manager", null, new DateOnly(2026, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1)); tenant.AddFarmManagerMembership("manager-user", manager.Id); return tenant;
+        var manager = farm.AddPerson("Manager", null, new DateOnly(2026, 1, 1)); farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1)); tenant.AddMembership("manager-user", manager.Id, TenantSecurityRoles.FarmManager); return tenant;
     }
 
     private static Mock<IFarmSetupRepository> FarmRepository(Tenant tenant, string userId)

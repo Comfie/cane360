@@ -205,7 +205,7 @@ public sealed class StockIssuePostingTests
         var farm = tenant.CreateFarm("FARM", "Farm", "Address", "Location", "Lease", 20m, "Furrow");
         var manager = farm.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
         farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
-        tenant.AddFarmManagerMembership("manager-user", manager.Id);
+        tenant.AddMembership("manager-user", manager.Id, TenantSecurityRoles.FarmManager);
         var supervisor = farm.AddPerson("Supervisor", null, new DateOnly(2026, 1, 1));
         farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var storekeeper = farm.AddPerson("Storekeeper", null, new DateOnly(2026, 1, 1));

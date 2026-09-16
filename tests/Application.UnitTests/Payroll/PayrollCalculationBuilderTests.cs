@@ -133,7 +133,7 @@ public sealed class PayrollCalculationBuilderTests
             var supervisor = farm.AddPerson("Supervisor", null, new DateOnly(2036, 1, 1));
             farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2036, 1, 1));
             farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2036, 1, 1));
-            tenant.AddFarmManagerMembership("manager", manager.Id);
+            tenant.AddMembership("manager", manager.Id, TenantSecurityRoles.FarmManager);
             var field = farm.AddField("A1", "North", 10m, null, ReportingAreaSource.Declared, "Furrow", null);
             var cycle = field.CreateCropCycleDraft(CropCycleType.PlantCane, null, variety, variety.Name,
                 new DateOnly(2036, 1, 1), new DateOnly(2036, 12, 1), new DateOnly(2037, 1, 31), 100m, Now, "manager");

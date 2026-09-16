@@ -45,7 +45,7 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
             managerId = $"p8b-manager-{Guid.NewGuid():N}";
             Person manager = farm.AddPerson("Synthetic FarmManager", null, new DateOnly(2026, 1, 1));
             farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
-            tenant.AddFarmManagerMembership(managerId, manager.Id);
+            tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager);
         }
         _tenantId = tenant.Id;
         _farmId = farm.Id;

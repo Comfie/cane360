@@ -271,7 +271,7 @@ public sealed class AdministrationService(
             throw new ForbiddenAccessException();
         TenantMembership target = tenant.Memberships.SingleOrDefault(item => item.Id == membershipId)
             ?? throw new NotFoundException(membershipId.ToString(), "Tenant membership");
-        try { tenant.DisableFarmManagerMembership(target.Id); }
+        try { tenant.DisableMembership(target.Id); }
         catch (InvalidOperationException exception) { throw new ConflictException(exception.Message); }
         inventory.Add(AuditEvent.Create(tenant.Id, farm.Id, "TenantMembership", target.Id,
             "Disabled", userId, actor.SecurityRole, actor.PersonId, clock.GetUtcNow(),

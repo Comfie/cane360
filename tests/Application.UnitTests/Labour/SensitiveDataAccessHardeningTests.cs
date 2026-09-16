@@ -19,7 +19,7 @@ public sealed class SensitiveDataAccessHardeningTests
         Farm farm = tenant.CreateFarm("P8A", "AUTOTEST-P8A Farm", "Synthetic", "Synthetic",
             "Other", 10m, "Synthetic");
         var manager = farm.AddPerson("AUTOTEST-P8A manager", null, new DateOnly(2041, 1, 1));
-        tenant.AddFarmManagerMembership(managerId, manager.Id);
+        tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager);
         var farms = new Mock<IFarmSetupRepository>(MockBehavior.Strict);
         farms.Setup(x => x.GetTenantForUserAsync(managerId, false, CancellationToken.None))
             .ReturnsAsync(tenant);

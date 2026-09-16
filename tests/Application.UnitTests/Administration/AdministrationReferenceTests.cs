@@ -89,7 +89,7 @@ public sealed class AdministrationReferenceTests
         tenant.CreateFarm("FARM", "Farm", "Address", "Location", "Owned", 10, "None");
 
         Should.Throw<InvalidOperationException>(() =>
-            tenant.AddFarmManagerMembership("manager", Guid.NewGuid()));
+            tenant.AddMembership("manager", Guid.NewGuid(), TenantSecurityRoles.FarmManager));
     }
 
     [Test]
@@ -99,7 +99,7 @@ public sealed class AdministrationReferenceTests
         Farm farm = tenant.CreateFarm("FARM", "Farm", "Address", "Location", "Owned", 10, "None");
         Person person = farm.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
 
-        TenantMembership membership = tenant.AddFarmManagerMembership("manager-user", person.Id);
+        TenantMembership membership = tenant.AddMembership("manager-user", person.Id, TenantSecurityRoles.FarmManager);
 
         membership.UserId.ShouldBe("manager-user");
         membership.PersonId.ShouldBe(person.Id);

@@ -241,7 +241,7 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
         var type = tenant.AddActivityType($"A{Guid.NewGuid():N}"[..20], "Synthetic accountability", true, true, ActivityQuantityBasis.Hectares);
         var farm = tenant.CreateFarm($"F{Guid.NewGuid():N}"[..20], label, "Synthetic address", "Railway", "Synthetic", 10m, "Synthetic");
         var manager = farm.AddPerson("Synthetic manager", null, new DateOnly(2026, 1, 1));
-        farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1)); tenant.AddFarmManagerMembership(managerId, manager.Id);
+        farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1)); tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager);
         var supervisor = farm.AddPerson("Synthetic supervisor", null, new DateOnly(2026, 1, 1)); farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
         var storekeeper = farm.AddPerson("Synthetic storekeeper", null, new DateOnly(2026, 1, 1)); farm.AssignRole(storekeeper, PersonRole.Storekeeper, false, new DateOnly(2026, 1, 1));
         var recipient = farm.AddPerson("Synthetic recipient", null, new DateOnly(2026, 1, 1));

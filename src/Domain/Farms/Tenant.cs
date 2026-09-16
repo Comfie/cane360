@@ -99,27 +99,30 @@ public sealed class Tenant : BaseAuditableEntity
         return activityType;
     }
 
-    public TenantMembership AddFarmManagerMembership(string userId, Guid personId)
+    public TenantMembership AddMembership(string userId, Guid personId, string securityRole)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+        if (!TenantSecurityRoles.IsInvitable(securityRole))
+            throw new InvalidOperationException("Only FarmManager or Supervisor memberships can be added.");
         if (_memberships.Any(membership => membership.Status == RecordStatus.Active &&
             (membership.UserId == userId || membership.PersonId == personId)))
-        {
-            throw new InvalidOperationException("This user or manager person already has an active tenant membership.");
-        }
-        var farm = ActiveFarm ?? throw new InvalidOperationException("A FarmManager membership requires an active farm.");
+            throw new InvalidOperationException("This user or person already has an active tenant membership.");
+        if (securityRole == TenantSecurityRoles.FarmManager && _memberships.Any(membership =>
+            membership.Status == RecordStatus.Active && membership.SecurityRole == TenantSecurityRoles.FarmManager))
+            throw new InvalidOperationException("This tenant already has an active FarmManager membership.");
+        var farm = ActiveFarm ?? throw new InvalidOperationException("A membership requires an active farm.");
         if (farm.Persons.All(person => person.Id != personId))
-            throw new InvalidOperationException("The FarmManager person must belong to this tenant's active farm.");
-        var membership = TenantMembership.CreateFarmManager(Id, farm.Id, userId.Trim(), personId);
+            throw new InvalidOperationException("The linked person must belong to this tenant's active farm.");
+        var membership = TenantMembership.Create(Id, userId.Trim(), securityRole, farm.Id, personId);
         _memberships.Add(membership);
         return membership;
     }
 
-    public TenantMembership DisableFarmManagerMembership(Guid membershipId)
+    public TenantMembership DisableMembership(Guid membershipId)
     {
         TenantMembership membership = _memberships.SingleOrDefault(item => item.Id == membershipId)
             ?? throw new InvalidOperationException("Membership does not belong to this tenant.");
-        membership.DisableManager();
+        membership.Disable();
         return membership;
     }
 }

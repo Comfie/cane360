@@ -328,7 +328,7 @@ public sealed class PostgreSqlPayrollRunsBehavioralAcceptanceTests
         var workerPerson = farm.AddPerson("Synthetic P6B worker", null, new DateOnly(2036, 1, 1));
         farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2036, 1, 1));
         farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2036, 1, 1));
-        tenant.AddFarmManagerMembership(managerId, manager.Id);
+        tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager);
         var field = farm.AddField("P6B", "Synthetic field", 10m, null, ReportingAreaSource.Declared, "Synthetic", null);
         var cycle = field.CreateCropCycleDraft(CropCycleType.PlantCane, null, variety, variety.Name, new DateOnly(2036, 1, 1), new DateOnly(2036, 12, 1), new DateOnly(2037, 1, 31), 100m, DateTimeOffset.UtcNow, managerId);
         field.ActivateCropCycle(cycle, DateTimeOffset.UtcNow, managerId);

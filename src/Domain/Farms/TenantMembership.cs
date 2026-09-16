@@ -24,13 +24,13 @@ public sealed class TenantMembership : BaseAuditableEntity
     internal static TenantMembership CreateGrower(Guid tenantId, string userId) =>
         new(tenantId, userId, TenantSecurityRoles.Grower, null, null);
 
-    internal static TenantMembership CreateFarmManager(Guid tenantId, Guid farmId, string userId, Guid personId) =>
-        new(tenantId, userId, TenantSecurityRoles.FarmManager, farmId, personId);
+    internal static TenantMembership Create(Guid tenantId, string userId, string securityRole, Guid farmId, Guid personId) =>
+        new(tenantId, userId, securityRole, farmId, personId);
 
-    internal void DisableManager()
+    internal void Disable()
     {
-        if (SecurityRole != TenantSecurityRoles.FarmManager || Status != RecordStatus.Active)
-            throw new InvalidOperationException("Only an active FarmManager membership may be disabled.");
+        if (SecurityRole == TenantSecurityRoles.Grower || Status != RecordStatus.Active)
+            throw new InvalidOperationException("Only an active non-Grower membership may be disabled.");
         Status = RecordStatus.Archived;
     }
 }

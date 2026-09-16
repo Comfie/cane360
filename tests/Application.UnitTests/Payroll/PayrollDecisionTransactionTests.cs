@@ -20,7 +20,7 @@ public sealed class PayrollDecisionTransactionTests
         var farm = tenant.CreateFarm("P6B", "Payroll farm", "Address", "Location", "Lease", 10m, "Furrow");
         var manager = farm.AddPerson("Manager", null, new DateOnly(2036, 1, 1));
         farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2036, 1, 1));
-        tenant.AddFarmManagerMembership("manager", manager.Id);
+        tenant.AddMembership("manager", manager.Id, TenantSecurityRoles.FarmManager);
         var period = PayrollPeriod.Create(tenant.Id, farm.Id, 2036, 8, Now, "manager", manager.Id);
         period.Open(Now, "manager", manager.Id, period.Version);
         var run = PayrollRun.Create(tenant.Id, farm.Id, period.Id, Now, "manager", manager.Id);
