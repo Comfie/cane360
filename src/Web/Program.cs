@@ -3,9 +3,11 @@ using Cane360.Web.Infrastructure;
 using Cane360.Web.Services;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Sinks.SystemConsole.Themes;
 
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(new RailwayJsonFormatter())
+Log.Logger = ConfigureConsole(new LoggerConfiguration(),
+        string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            Environments.Development, StringComparison.OrdinalIgnoreCase))
     .CreateBootstrapLogger();
 
 try
@@ -26,12 +28,13 @@ try
             reloadOnChange: true);
     }
 
-    builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfiguration
-        .ReadFrom.Configuration(builder.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .Enrich.WithProperty("Application", "Cane360")
-        .WriteTo.Console(new RailwayJsonFormatter()));
+    builder.Services.AddSerilog((services, loggerConfiguration) => ConfigureConsole(
+        loggerConfiguration
+            .ReadFrom.Configuration(builder.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext()
+            .Enrich.WithProperty("Application", "Cane360"),
+        builder.Environment.IsDevelopment()));
 
     string? portValue = Environment.GetEnvironmentVariable("PORT");
 
@@ -110,3 +113,11 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+static LoggerConfiguration ConfigureConsole(LoggerConfiguration configuration, bool isDevelopment) =>
+    isDevelopment
+        ? configuration.WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+            theme: AnsiConsoleTheme.Code,
+            applyThemeToRedirectedOutput: true)
+        : configuration.WriteTo.Console(new RailwayJsonFormatter());
