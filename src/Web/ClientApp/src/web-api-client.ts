@@ -11785,6 +11785,66 @@ export class PayrollClient {
     }
 }
 
+export class SessionClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    session2(): Promise<SessionSummaryDto> {
+        let url_ = this.baseUrl + "/api/session";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSession2(_response);
+        });
+    }
+
+    protected processSession2(response: Response): Promise<SessionSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SessionSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SessionSummaryDto>(null as any);
+    }
+}
+
 export class UsersClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -17771,6 +17831,7 @@ export interface ICreateInventoryLotRequest {
 export class CreateManagerInvitationRequest implements ICreateManagerInvitationRequest {
     personId!: string;
     expiresInHours!: number;
+    role!: string;
 
     [key: string]: any;
 
@@ -17791,6 +17852,7 @@ export class CreateManagerInvitationRequest implements ICreateManagerInvitationR
             }
             this.personId = _data["personId"];
             this.expiresInHours = _data["expiresInHours"];
+            this.role = _data["role"];
         }
     }
 
@@ -17809,6 +17871,7 @@ export class CreateManagerInvitationRequest implements ICreateManagerInvitationR
         }
         data["personId"] = this.personId;
         data["expiresInHours"] = this.expiresInHours;
+        data["role"] = this.role;
         return data;
     }
 }
@@ -17816,6 +17879,7 @@ export class CreateManagerInvitationRequest implements ICreateManagerInvitationR
 export interface ICreateManagerInvitationRequest {
     personId: string;
     expiresInHours: number;
+    role: string;
 
     [key: string]: any;
 }
@@ -24911,7 +24975,6 @@ export interface IPayrollPersonOptionDto {
 
 export class PayrollPreflightDto implements IPayrollPreflightDto {
     payrollPeriodId!: string;
-    monthlyProrationNotice!: string;
     evidence!: PreflightEvidenceDto[];
     eligibleCount!: number;
     blockedCount!: number;
@@ -24946,7 +25009,6 @@ export class PayrollPreflightDto implements IPayrollPreflightDto {
                     this[property] = _data[property];
             }
             this.payrollPeriodId = _data["payrollPeriodId"];
-            this.monthlyProrationNotice = _data["monthlyProrationNotice"];
             if (Array.isArray(_data["evidence"])) {
                 this.evidence = [] as any;
                 for (let item of _data["evidence"])
@@ -24986,7 +25048,6 @@ export class PayrollPreflightDto implements IPayrollPreflightDto {
                 data[property] = this[property];
         }
         data["payrollPeriodId"] = this.payrollPeriodId;
-        data["monthlyProrationNotice"] = this.monthlyProrationNotice;
         if (Array.isArray(this.evidence)) {
             data["evidence"] = [];
             for (let item of this.evidence)
@@ -25015,7 +25076,6 @@ export class PayrollPreflightDto implements IPayrollPreflightDto {
 
 export interface IPayrollPreflightDto {
     payrollPeriodId: string;
-    monthlyProrationNotice: string;
     evidence: PreflightEvidenceDto[];
     eligibleCount: number;
     blockedCount: number;
@@ -27571,6 +27631,66 @@ export interface IRunSettlementDto {
     isClosed: boolean;
     canClose: boolean;
     workers: WorkerSettlementDto[];
+
+    [key: string]: any;
+}
+
+export class SessionSummaryDto implements ISessionSummaryDto {
+    hasTenant!: boolean;
+    role!: string | undefined;
+    tenantCode!: string | undefined;
+    farmName!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ISessionSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.hasTenant = _data["hasTenant"];
+            this.role = _data["role"];
+            this.tenantCode = _data["tenantCode"];
+            this.farmName = _data["farmName"];
+        }
+    }
+
+    static fromJS(data: any): SessionSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SessionSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["hasTenant"] = this.hasTenant;
+        data["role"] = this.role;
+        data["tenantCode"] = this.tenantCode;
+        data["farmName"] = this.farmName;
+        return data;
+    }
+}
+
+export interface ISessionSummaryDto {
+    hasTenant: boolean;
+    role: string | undefined;
+    tenantCode: string | undefined;
+    farmName: string | undefined;
 
     [key: string]: any;
 }
