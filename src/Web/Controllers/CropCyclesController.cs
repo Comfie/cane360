@@ -19,8 +19,10 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CropCycleCollectionDto>> Get(
         Guid fieldId,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetCropCyclesQuery(fieldId), cancellationToken));
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetCropCyclesQuery(fieldId), cancellationToken));
+    }
 
     [HttpPost]
     [EndpointSummary("Create crop-cycle draft")]
@@ -34,7 +36,7 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
         CreateCropCycleRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new CreateCropCycleCommand(
+        CropCycleDetailsDto result = await sender.Send(new CreateCropCycleCommand(
             fieldId,
             request.CycleType,
             request.RatoonNumber,
@@ -55,37 +57,54 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
     public async Task<ActionResult<CropCycleDetailsDto>> GetById(
         Guid fieldId,
         Guid cropCycleId,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetCropCycleDetailsQuery(fieldId, cropCycleId), cancellationToken));
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetCropCycleDetailsQuery(fieldId, cropCycleId), cancellationToken));
+    }
 
     [HttpPost("{cropCycleId:guid}/transitions/activate")]
     public Task<ActionResult<CropCycleDetailsDto>> Activate(
-        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken) =>
-        Send(new ActivateCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
+        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken)
+    {
+        return Send(new ActivateCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
+    }
 
     [HttpPost("{cropCycleId:guid}/transitions/cancel")]
     public Task<ActionResult<CropCycleDetailsDto>> Cancel(
-        Guid fieldId, Guid cropCycleId, CancelCropCycleRequest request, CancellationToken cancellationToken) =>
-        Send(new CancelCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion, request.Reason), cancellationToken);
+        Guid fieldId, Guid cropCycleId, CancelCropCycleRequest request, CancellationToken cancellationToken)
+    {
+        return Send(new CancelCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion, request.Reason),
+            cancellationToken);
+    }
 
     [HttpPost("{cropCycleId:guid}/transitions/ready-for-harvest")]
     public Task<ActionResult<CropCycleDetailsDto>> ReadyForHarvest(
-        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken) =>
-        Send(new MarkCropCycleReadyForHarvestCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
+        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken)
+    {
+        return Send(new MarkCropCycleReadyForHarvestCommand(fieldId, cropCycleId, request.ExpectedVersion),
+            cancellationToken);
+    }
 
     [HttpPost("{cropCycleId:guid}/transitions/harvest")]
     public Task<ActionResult<CropCycleDetailsDto>> Harvest(
-        Guid fieldId, Guid cropCycleId, HarvestCropCycleRequest request, CancellationToken cancellationToken) =>
-        Send(new HarvestCropCycleCommand(
-            fieldId, cropCycleId, request.ExpectedVersion, request.HarvestDate, request.ActualTonnes), cancellationToken);
+        Guid fieldId, Guid cropCycleId, HarvestCropCycleRequest request, CancellationToken cancellationToken)
+    {
+        return Send(new HarvestCropCycleCommand(
+                fieldId, cropCycleId, request.ExpectedVersion, request.HarvestDate, request.ActualTonnes),
+            cancellationToken);
+    }
 
     [HttpPost("{cropCycleId:guid}/transitions/close")]
     public Task<ActionResult<CropCycleDetailsDto>> Close(
-        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken) =>
-        Send(new CloseCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
+        Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken)
+    {
+        return Send(new CloseCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
+    }
 
     private async Task<ActionResult<CropCycleDetailsDto>> Send(
         IRequest<CropCycleDetailsDto> command,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(command, cancellationToken));
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(command, cancellationToken));
+    }
 }

@@ -9,6 +9,7 @@ import {
   InventoryClient,
   PostStockReceiptRequest,
   ReverseStockReceiptRequest,
+  UpdateSupplierRequest,
   VersionedInventoryRequest,
   CreateStockCountRequest,
 } from '../../web-api-client';
@@ -19,6 +20,7 @@ import type {
   ICreateStockReceiptLineRequest,
   ICreateSupplierRequest,
   ICreateUnitOfMeasureRequest,
+  IUpdateSupplierRequest,
   StockAdjustmentDto,
   StockCountDto,
 } from '../../web-api-client';
@@ -45,7 +47,19 @@ export function createItem(values: ICreateInventoryItemRequest) {
 }
 
 export function createSupplier(values: ICreateSupplierRequest) {
-  return inventoryClient.suppliers(new CreateSupplierRequest(values));
+  return inventoryClient.suppliersPOST(new CreateSupplierRequest(values));
+}
+
+export function updateSupplier(supplierId: string, values: IUpdateSupplierRequest) {
+  return inventoryClient.suppliersPUT(supplierId, new UpdateSupplierRequest(values));
+}
+
+export function archiveSupplier(supplierId: string, expectedVersion: number) {
+  return inventoryClient.archive4(supplierId, new VersionedInventoryRequest({ expectedVersion }));
+}
+
+export function unarchiveSupplier(supplierId: string, expectedVersion: number) {
+  return inventoryClient.unarchive(supplierId, new VersionedInventoryRequest({ expectedVersion }));
 }
 
 export function createLot(values: ICreateInventoryLotRequest) {
@@ -73,14 +87,14 @@ export function decideOpeningBalance(receiptId: string, expectedVersion: number,
 }
 
 export function postReceipt(receiptId: string, expectedVersion: number) {
-  return inventoryClient.post3(receiptId, new PostStockReceiptRequest({
+  return inventoryClient.postStockReceipt(receiptId, new PostStockReceiptRequest({
     expectedVersion,
     idempotencyKey: operationKey('receipt-post'),
   }));
 }
 
 export function reverseReceipt(receiptId: string, expectedVersion: number, reason: string) {
-  return inventoryClient.reverse3(receiptId, new ReverseStockReceiptRequest({
+  return inventoryClient.reverseStockReceipt(receiptId, new ReverseStockReceiptRequest({
     expectedVersion,
     reason,
     idempotencyKey: operationKey('receipt-reversal'),

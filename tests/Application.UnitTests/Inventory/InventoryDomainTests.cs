@@ -7,6 +7,39 @@ namespace Cane360.Application.UnitTests.Inventory;
 public class InventoryDomainTests
 {
     [Test]
+    public void SupplierCanBeUpdated()
+    {
+        var supplier = Supplier.Create(Guid.NewGuid(), Guid.NewGuid(), "sup-1", "Original Name", "Original contact");
+
+        supplier.Update("sup-2", "Renamed Supplier", "New contact", supplier.Version);
+
+        supplier.Code.ShouldBe("SUP-2");
+        supplier.Name.ShouldBe("Renamed Supplier");
+        supplier.Contact.ShouldBe("New contact");
+    }
+
+    [Test]
+    public void ArchivedSupplierCannotBeUpdated()
+    {
+        var supplier = Supplier.Create(Guid.NewGuid(), Guid.NewGuid(), "sup-1", "Original Name", null);
+        supplier.Archive(supplier.Version);
+
+        Should.Throw<InvalidOperationException>(() =>
+            supplier.Update("sup-1", "New Name", null, supplier.Version));
+    }
+
+    [Test]
+    public void ArchivedSupplierCanBeUnarchived()
+    {
+        var supplier = Supplier.Create(Guid.NewGuid(), Guid.NewGuid(), "sup-1", "Original Name", null);
+        supplier.Archive(supplier.Version);
+
+        supplier.Unarchive(supplier.Version);
+
+        supplier.Status.ShouldBe(InventoryRecordStatus.Active);
+    }
+
+    [Test]
     public void ReceiptLinesPreserveStockUnitAndValueSnapshots()
     {
         var tenantId = Guid.NewGuid();

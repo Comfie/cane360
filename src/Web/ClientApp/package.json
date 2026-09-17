@@ -37,7 +37,7 @@
     "preview": "vite preview",
     "lint": "eslint ./src/",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/styles.test.js src/navigation.test.ts src/components/apiError.test.ts src/components/mutationGuard.test.ts src/components/crop-cycles/cropCycleView.test.ts src/components/activities/activityView.test.ts src/components/labour/labourView.test.ts src/components/inventory/inventoryView.test.ts src/components/inventory/inputControlView.test.ts src/components/payroll/payrollView.test.ts src/components/finance/financeView.test.ts src/components/finance/millRecordsView.test.ts src/components/api-authorization/activationView.test.ts",
+    "test": "node --test src/styles.test.js src/navigation.test.ts src/components/apiError.test.ts src/components/mutationGuard.test.ts src/components/crop-cycles/cropCycleView.test.ts src/components/activities/activityView.test.ts src/components/labour/labourView.test.ts src/components/inventory/inventoryView.test.ts src/components/inventory/inputControlView.test.ts src/components/inventory/inventoryApi.test.ts src/components/inventory/inputControlApi.test.ts src/components/payroll/payrollView.test.ts src/components/finance/financeView.test.ts src/components/finance/millRecordsView.test.ts src/components/api-authorization/activationView.test.ts",
     "generate-api": "nswag run /runtime:Net100 && node scripts/normalize-generated-client.cjs"
   }
 }

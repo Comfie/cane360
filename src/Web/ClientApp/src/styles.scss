@@ -212,8 +212,8 @@
 .input-request-inline,
 .input-rule-form { align-items: end; display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 12px 0; }
 .activity-inputs-panel .input-request-inline { margin: 0; }
-#root .input-request-inline > label { margin: 0; }
-#root .input-request-inline > label > :is(input, select) { margin: var(--space-1) 0 0; }
+#root :is(.input-request-inline, .input-rule-form) > label { margin: 0; }
+#root :is(.input-request-inline, .input-rule-form) > label > :is(input, select, .date-picker) { margin: var(--space-1) 0 0; }
 #root .input-request-inline > button { align-self: end; width: auto; margin: 0; }
 .input-request-inline { grid-template-columns: 2fr 1fr auto; }
 .input-controls-workspace { display: grid; gap: 14px; }
@@ -264,6 +264,10 @@
 .person-roles span { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-2); border-radius: 999px; background: var(--surface-subtle); color: var(--cane-700); font-size: var(--type-xs); font-weight: 700; }
 .personnel-edit { display: inline-grid; width: 2.25rem; min-width: 2.25rem; height: 2.25rem; min-height: 2.25rem; margin: 0; padding: 0; place-items: center; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--cane-700); }
 .personnel-edit:hover { border-color: var(--border); background: var(--surface-subtle); }
+.row-icon-button { display: inline-grid; width: 2.25rem; min-width: 2.25rem; height: 2.25rem; min-height: 2.25rem; margin: 0; padding: 0; place-items: center; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--cane-700); }
+.row-icon-button:hover:not(:disabled) { border-color: var(--border); background: var(--surface-subtle); }
+.row-icon-button:disabled { opacity: 0.5; }
+.row-icon-button-danger { color: var(--error-700); }
 .personnel-dialog { width: min(46rem, calc(100vw - 2rem)); }
 .farm-profile-dialog { width: min(54rem, calc(100vw - 2rem)); }
 .personnel-form { display: grid; gap: var(--space-5); margin: 0; padding: var(--space-5); }

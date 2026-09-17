@@ -16,8 +16,10 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
     [EndpointDescription("Returns the authenticated grower's farm, fields, and current crop cycles.")]
     [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<FarmSetupDto>> Get(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetFarmSetupQuery(), cancellationToken));
+    public async Task<ActionResult<FarmSetupDto>> Get(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetFarmSetupQuery(), cancellationToken));
+    }
 
     [HttpPost("farm")]
     [EndpointSummary("Create grower farm")]
@@ -27,8 +29,9 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<FarmSetupDto>> CreateFarm(
         CreateGrowerFarmRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new CreateGrowerFarmCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new CreateGrowerFarmCommand(
             request.GrowerDisplayName,
             request.GrowerPhone,
             request.FarmCode,
@@ -38,6 +41,7 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.Tenure,
             request.DeclaredHectares,
             request.IrrigationContext), cancellationToken));
+    }
 
     [HttpPut("farm")]
     [EndpointSummary("Update grower farm")]
@@ -48,8 +52,9 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FarmSetupDto>> UpdateFarm(
         UpdateFarmInformationRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new UpdateFarmInformationCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new UpdateFarmInformationCommand(
             request.GrowerDisplayName,
             request.GrowerPhone,
             request.FarmCode,
@@ -59,6 +64,7 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.Tenure,
             request.DeclaredHectares,
             request.IrrigationContext), cancellationToken));
+    }
 
     [HttpPost("fields")]
     [EndpointSummary("Create field")]
@@ -69,8 +75,9 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<FarmSetupDto>> CreateField(
         CreateFieldRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new CreateFieldCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new CreateFieldCommand(
             request.Code,
             request.Name,
             request.DeclaredHectares,
@@ -78,5 +85,5 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.ReportingAreaSource,
             request.IrrigationMethod,
             request.SoilNotes), cancellationToken));
-
+    }
 }

@@ -1,6 +1,6 @@
 import { createElement, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
-import { Archive, Boxes, ClipboardCheck, PackagePlus, Plus, ReceiptText, RotateCcw, Scale, ShieldCheck, Truck, X } from 'lucide-react';
+import { Archive, Boxes, ClipboardCheck, PackagePlus, Pencil, Plus, Power, PowerOff, ReceiptText, RotateCcw, Scale, ShieldCheck, Truck, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type {
   InventoryItemDto,
@@ -9,6 +9,7 @@ import type {
   StockCountDto,
   StockMovementDto,
   StockReceiptDto,
+  SupplierDto,
   UnitOfMeasureDto,
 } from '../../web-api-client';
 import { getApiError } from '../apiError';
@@ -18,6 +19,7 @@ import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
 import { InputControlsWorkspace } from '../inventory/InputControlsWorkspace';
 import {
+  archiveSupplier,
   createItem,
   createLot,
   createReceipt,
@@ -33,6 +35,8 @@ import {
   reviewStockCount,
   startStockCount,
   submitOpeningBalance,
+  unarchiveSupplier,
+  updateSupplier,
 } from '../inventory/inventoryApi';
 import {
   duplicateReceiptReference,
@@ -48,6 +52,7 @@ export function InventoryPage() {
   const [workspace, setWorkspace] = useState<InventoryWorkspaceDto | null>(null);
   const [tab, setTab] = useState<'stock' | 'receipts' | 'ledger' | 'catalogue' | 'inputs' | 'counts' | 'adjustments'>('stock');
   const [dialog, setDialog] = useState('');
+  const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [counts, setCounts] = useState<StockCountDto[]>([]);
@@ -88,7 +93,7 @@ export function InventoryPage() {
     {tab === 'stock' && <StockRegister workspace={workspace} />}
     {tab === 'receipts' && <ReceiptRegister receipts={workspace.receipts} onChanged={reload} onError={setError} />}
     {tab === 'ledger' && <MovementLedger movements={workspace.recentMovements} />}
-    {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} />}
+    {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} onEditSupplier={(supplier) => { setEditingSupplier(supplier); setDialog('supplier'); }} onSupplierChanged={reload} onError={setError} />}
     {tab === 'inputs' && <InputControlsWorkspace onError={setError} />}
     {tab === 'counts' && <CountRegister counts={counts} onChanged={reload} onError={setError} onOpen={() => setDialog('count')} />}
     {tab === 'adjustments' && <AdjustmentRegister adjustments={adjustments} />}
@@ -96,7 +101,7 @@ export function InventoryPage() {
     {dialog === 'receipt' && <InventoryDialog title="Record stock receipt" onClose={() => setDialog('')}><ReceiptForm workspace={workspace} onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'unit' && <InventoryDialog title="Add stock unit" onClose={() => setDialog('')}><UnitForm onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'item' && <InventoryDialog title="Add inventory item" onClose={() => setDialog('')}><ItemForm units={workspace.units} onSaved={changed} onError={setError} /></InventoryDialog>}
-    {dialog === 'supplier' && <InventoryDialog title="Add supplier" onClose={() => setDialog('')}><SupplierForm onSaved={changed} onError={setError} /></InventoryDialog>}
+    {dialog === 'supplier' && <InventoryDialog title={editingSupplier ? 'Edit supplier' : 'Add supplier'} onClose={() => { setDialog(''); setEditingSupplier(null); }}><SupplierForm supplier={editingSupplier} onSaved={async () => { setEditingSupplier(null); await changed(); }} onError={setError} /></InventoryDialog>}
     {dialog === 'lot' && <InventoryDialog title="Add item lot" onClose={() => setDialog('')}><LotForm items={workspace.items} onSaved={changed} onError={setError} /></InventoryDialog>}
     {dialog === 'count' && <InventoryDialog title="Start a full-store count" onClose={() => setDialog('')}><CountForm onSaved={changed} onError={setError} /></InventoryDialog>}
   </div>;
@@ -196,16 +201,37 @@ function MovementLedger({ movements }: { movements: StockMovementDto[] }) {
   </section>;
 }
 
-function Catalogue({ workspace, onOpen }: { workspace: InventoryWorkspaceDto; onOpen: (dialog: string) => void }) {
+function Catalogue({ workspace, onOpen, onEditSupplier, onSupplierChanged, onError }: { workspace: InventoryWorkspaceDto; onOpen: (dialog: string) => void; onEditSupplier: (supplier: SupplierDto) => void; onSupplierChanged: () => Promise<void>; onError: (message: string) => void }) {
   return <div className="catalogue-grid">
     <CatalogueSection icon={Boxes} title="Inventory items" action="Add item" onAdd={() => onOpen('item')}><div className="catalogue-list">{workspace.items.map((item) => <article key={item.id}><span><strong>{item.code} · {item.name}</strong><small>{inventoryLabel(item.category)} · stock unit {item.stockUnitCode}</small></span><em>{inventoryLabel(item.lotTrackingPolicy)} lots</em></article>)}</div></CatalogueSection>
     <CatalogueSection icon={Scale} title="Stock units" action="Add unit" onAdd={() => onOpen('unit')}><div className="catalogue-list">{workspace.units.map((unit) => <article key={unit.id}><span><strong>{unit.code} · {unit.name}</strong><small>{unit.dimension} · {unit.decimalPlaces} decimal places</small></span></article>)}</div></CatalogueSection>
-    <CatalogueSection icon={Truck} title="Suppliers" action="Add supplier" onAdd={() => onOpen('supplier')}><div className="catalogue-list">{workspace.suppliers.map((supplier) => <article key={supplier.id}><span><strong>{supplier.code} · {supplier.name}</strong><small>{supplier.contact || 'No contact recorded'}</small></span></article>)}</div></CatalogueSection>
+    <SupplierCatalogueSection suppliers={workspace.suppliers} onAdd={() => onOpen('supplier')} onEdit={onEditSupplier} onChanged={onSupplierChanged} onError={onError} />
     <CatalogueSection icon={ClipboardCheck} title="Lots and expiry" action="Add lot" onAdd={() => onOpen('lot')}><div className="catalogue-list">{workspace.lots.map((lot) => { const item = workspace.items.find((candidate) => candidate.id === lot.inventoryItemId); return <article key={lot.id}><span><strong>{lot.code}</strong><small>{item?.name || 'Item'} · {lot.expiryDate ? `expires ${formatDate(lot.expiryDate)}` : 'no expiry date'}</small></span></article>; })}</div></CatalogueSection>
   </div>;
 }
 
 function CatalogueSection({ icon, title, action, onAdd, children }: { icon: LucideIcon; title: string; action: string; onAdd: () => void; children: ReactNode }) { return <section className="catalogue-section record-panel"><header><div>{createElement(icon, { size: 18 })}<h2>{title}</h2></div><button type="button" className="text-action" onClick={onAdd}><Plus size={15} /> {action}</button></header>{children}</section>; }
+
+function SupplierCatalogueSection({ suppliers, onAdd, onEdit, onChanged, onError }: { suppliers: SupplierDto[]; onAdd: () => void; onEdit: (supplier: SupplierDto) => void; onChanged: () => Promise<void>; onError: (message: string) => void }) {
+  const [working, setWorking] = useState('');
+  const toggleStatus = async (supplier: SupplierDto) => {
+    setWorking(supplier.id); onError('');
+    try {
+      if (supplier.status === 'Active') await archiveSupplier(supplier.id, supplier.version);
+      else await unarchiveSupplier(supplier.id, supplier.version);
+      await onChanged();
+    } catch (requestError) { onError(getApiError(requestError)); }
+    finally { setWorking(''); }
+  };
+  return <section className="catalogue-section record-panel"><header><div><Truck size={18} /><h2>Suppliers</h2></div><button type="button" className="text-action" onClick={onAdd}><Plus size={15} /> Add supplier</button></header><div className="catalogue-list">{suppliers.map((supplier) => <article key={supplier.id}>
+    <span><strong>{supplier.code} · {supplier.name}</strong><small>{supplier.contact || 'No contact recorded'}</small></span>
+    <div className="row-actions">
+      <em className={`status-pill status-${supplier.status === 'Active' ? 'active' : 'inactive'}`}>{supplier.status === 'Active' ? 'Active' : 'Archived'}</em>
+      <button type="button" className="row-icon-button" onClick={() => onEdit(supplier)} aria-label={`Edit ${supplier.name}`} title={`Edit ${supplier.name}`}><Pencil size={15} /></button>
+      <button type="button" className={supplier.status === 'Active' ? 'row-icon-button row-icon-button-danger' : 'row-icon-button'} disabled={working !== ''} onClick={() => toggleStatus(supplier)} aria-label={`${supplier.status === 'Active' ? 'Archive' : 'Reactivate'} ${supplier.name}`} title={`${supplier.status === 'Active' ? 'Archive' : 'Reactivate'} ${supplier.name}`}>{supplier.status === 'Active' ? <PowerOff size={15} /> : <Power size={15} />}</button>
+    </div>
+  </article>)}</div></section>;
+}
 
 interface ReceiptLineState { key: number; inventoryItemId: string; inventoryLotId: string; quantity: string; unitCostUsd: string; }
 
@@ -239,7 +265,7 @@ function ReceiptForm({ workspace, onSaved, onError }: { workspace: InventoryWork
 }
 
 function UnitForm({ onSaved, onError }: { onSaved: () => void; onError: (message: string) => void }) { return <SimpleForm submit={(data) => createUnit({ code: value(data, 'code'), name: value(data, 'name'), dimension: value(data, 'dimension'), decimalPlaces: numberValue(data, 'decimalPlaces') })} onSaved={onSaved} onError={onError} action="Add unit"><label>Code<input name="code" maxLength={20} required /></label><label>Name<input name="name" maxLength={80} required /></label><label>Dimension<input name="dimension" maxLength={40} placeholder="Mass, Volume, Count" required /></label><label>Decimal places<input name="decimalPlaces" type="number" min="0" max="6" defaultValue="3" required /></label></SimpleForm>; }
-function SupplierForm({ onSaved, onError }: { onSaved: () => void; onError: (message: string) => void }) { return <SimpleForm submit={(data) => createSupplier({ code: value(data, 'code'), name: value(data, 'name'), contact: optionalValue(data, 'contact') })} onSaved={onSaved} onError={onError} action="Add supplier"><label>Code<input name="code" maxLength={30} required /></label><label>Name<input name="name" maxLength={120} required /></label><label className="is-wide">Contact<input name="contact" maxLength={240} /></label></SimpleForm>; }
+function SupplierForm({ supplier, onSaved, onError }: { supplier?: SupplierDto | null; onSaved: () => void; onError: (message: string) => void }) { return <SimpleForm submit={(data) => supplier ? updateSupplier(supplier.id, { code: value(data, 'code'), name: value(data, 'name'), contact: optionalValue(data, 'contact'), expectedVersion: supplier.version }) : createSupplier({ code: value(data, 'code'), name: value(data, 'name'), contact: optionalValue(data, 'contact') })} onSaved={onSaved} onError={onError} action={supplier ? 'Save changes' : 'Add supplier'}><label>Code<input name="code" maxLength={30} required defaultValue={supplier?.code} /></label><label>Name<input name="name" maxLength={120} required defaultValue={supplier?.name} /></label><label className="is-wide">Contact<input name="contact" maxLength={240} defaultValue={supplier?.contact ?? ''} /></label></SimpleForm>; }
 function ItemForm({ units, onSaved, onError }: { units: UnitOfMeasureDto[]; onSaved: () => void; onError: (message: string) => void }) { const [lotPolicy, setLotPolicy] = useState('Optional'); const [expiryPolicy, setExpiryPolicy] = useState('Optional'); return <SimpleForm submit={(data) => createItem({ code: value(data, 'code'), name: value(data, 'name'), category: value(data, 'category'), stockUnitId: value(data, 'stockUnitId'), reorderLevel: optionalNumberValue(data, 'reorderLevel'), lotTrackingPolicy: value(data, 'lotTrackingPolicy'), expiryPolicy: value(data, 'expiryPolicy') })} onSaved={onSaved} onError={onError} action="Add item"><label>Code<input name="code" maxLength={30} required /></label><label>Name<input name="name" maxLength={120} required /></label><label>Category<select name="category">{itemCategories.map((value) => <option key={value} value={value}>{inventoryLabel(value)}</option>)}</select></label><label>Stock unit<select name="stockUnitId" required defaultValue=""><option value="">Select unit</option>{units.filter((unit) => unit.status === 'Active').map((unit) => <option key={unit.id} value={unit.id}>{unit.code} · {unit.name}</option>)}</select></label><label>Reorder level<input name="reorderLevel" type="number" min="0" step="0.000001" /></label><label>Lot tracking<select name="lotTrackingPolicy" value={lotPolicy} onChange={(event) => { const value = event.target.value; setLotPolicy(value); if (value === 'None') setExpiryPolicy('None'); else if (expiryPolicy === 'None') setExpiryPolicy('Optional'); }}>{lotPolicies.map((value) => <option key={value}>{value}</option>)}</select></label><label>Expiry policy<select name="expiryPolicy" value={expiryPolicy} disabled={lotPolicy === 'None'} onChange={(event) => setExpiryPolicy(event.target.value)}>{lotPolicies.map((value) => <option key={value}>{value}</option>)}</select>{lotPolicy === 'None' && <input type="hidden" name="expiryPolicy" value="None" />}</label></SimpleForm>; }
 function LotForm({ items, onSaved, onError }: { items: InventoryItemDto[]; onSaved: () => void; onError: (message: string) => void }) { return <SimpleForm submit={(data) => createLot({ inventoryItemId: value(data, 'inventoryItemId'), code: value(data, 'code'), expiryDate: optionalValue(data, 'expiryDate') })} onSaved={onSaved} onError={onError} action="Add lot"><label>Inventory item<select name="inventoryItemId" required defaultValue=""><option value="">Select lot-tracked item</option>{items.filter((item) => item.status === 'Active' && item.lotTrackingPolicy !== 'None').map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label><label>Lot / batch code<input name="code" maxLength={60} required /></label><label>Expiry date <small>As configured by item</small><DatePicker name="expiryDate" /></label></SimpleForm>; }
 

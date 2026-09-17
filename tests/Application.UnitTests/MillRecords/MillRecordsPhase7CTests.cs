@@ -36,6 +36,22 @@ public sealed class MillRecordsPhase7CTests
     }
 
     [Test]
+    public void DeactivatedMillCanBeReactivated()
+    {
+        Mill mill = Mill.Create(TenantId, FarmId, "tri", "Triangle", null, "grower", Now);
+        mill.Deactivate(mill.Version);
+        mill.Reactivate(mill.Version);
+        mill.Active.ShouldBeTrue();
+    }
+
+    [Test]
+    public void ReactivatingAnAlreadyActiveMillThrows()
+    {
+        Mill mill = Mill.Create(TenantId, FarmId, "tri", "Triangle", null, "grower", Now);
+        Should.Throw<InvalidOperationException>(() => mill.Reactivate(mill.Version));
+    }
+
+    [Test]
     public void TicketCanBeCreatedWithoutCropCycle()
     {
         WeighbridgeTicket ticket = Ticket();

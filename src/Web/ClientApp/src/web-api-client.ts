@@ -5367,7 +5367,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    submit(requestId: string, body: PostStockReceiptRequest): Promise<void> {
+    submitInputRequest(requestId: string, body: PostStockReceiptRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/submit";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5385,11 +5385,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit(_response);
+            return this.processSubmitInputRequest(_response);
         });
     }
 
-    protected processSubmit(response: Response): Promise<void> {
+    protected processSubmitInputRequest(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5419,7 +5419,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decision(requestId: string, body: DecideInputRequestRequest): Promise<void> {
+    decideInputRequest(requestId: string, body: DecideInputRequestRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/decision";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5437,11 +5437,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision(_response);
+            return this.processDecideInputRequest(_response);
         });
     }
 
-    protected processDecision(response: Response): Promise<void> {
+    protected processDecideInputRequest(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5471,7 +5471,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    cancel2(requestId: string, body: CancelInputRequestRequest): Promise<void> {
+    cancelInputRequest(requestId: string, body: CancelInputRequestRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/cancel";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5489,11 +5489,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel2(_response);
+            return this.processCancelInputRequest(_response);
         });
     }
 
-    protected processCancel2(response: Response): Promise<void> {
+    protected processCancelInputRequest(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5577,7 +5577,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    post(issueId: string, body: PostStockReceiptRequest): Promise<void> {
+    postStockIssue(issueId: string, body: PostStockReceiptRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/issues/{issueId}/post";
         if (issueId === undefined || issueId === null)
             throw new globalThis.Error("The parameter 'issueId' must be defined.");
@@ -5595,11 +5595,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPost(_response);
+            return this.processPostStockIssue(_response);
         });
     }
 
-    protected processPost(response: Response): Promise<void> {
+    protected processPostStockIssue(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5681,7 +5681,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    reverse(issueId: string, body: ReverseStockIssueRequest): Promise<void> {
+    reverseStockIssue(issueId: string, body: ReverseStockIssueRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/issues/{issueId}/reverse";
         if (issueId === undefined || issueId === null)
             throw new globalThis.Error("The parameter 'issueId' must be defined.");
@@ -5699,11 +5699,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverse(_response);
+            return this.processReverseStockIssue(_response);
         });
     }
 
-    protected processReverse(response: Response): Promise<void> {
+    protected processReverseStockIssue(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5999,7 +5999,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    post2(stockReturnId: string, body: PostStockReturnRequest): Promise<void> {
+    postStockReturn(stockReturnId: string, body: PostStockReturnRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/post";
         if (stockReturnId === undefined || stockReturnId === null)
             throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
@@ -6017,11 +6017,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPost2(_response);
+            return this.processPostStockReturn(_response);
         });
     }
 
-    protected processPost2(response: Response): Promise<void> {
+    protected processPostStockReturn(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6051,7 +6051,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    reverse2(stockReturnId: string, body: ReverseStockReturnRequest): Promise<void> {
+    reverseStockReturn(stockReturnId: string, body: ReverseStockReturnRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/reverse";
         if (stockReturnId === undefined || stockReturnId === null)
             throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
@@ -6069,11 +6069,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverse2(_response);
+            return this.processReverseStockReturn(_response);
         });
     }
 
-    protected processReverse2(response: Response): Promise<void> {
+    protected processReverseStockReturn(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6157,7 +6157,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    submit2(lossId: string, body: VersionedInventoryRequest): Promise<void> {
+    submitInventoryLoss(lossId: string, body: VersionedInventoryRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/submit";
         if (lossId === undefined || lossId === null)
             throw new globalThis.Error("The parameter 'lossId' must be defined.");
@@ -6175,11 +6175,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit2(_response);
+            return this.processSubmitInventoryLoss(_response);
         });
     }
 
-    protected processSubmit2(response: Response): Promise<void> {
+    protected processSubmitInventoryLoss(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6209,7 +6209,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decision2(lossId: string, body: DecideInventoryLossRequest): Promise<void> {
+    decideInventoryLoss(lossId: string, body: DecideInventoryLossRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/decision";
         if (lossId === undefined || lossId === null)
             throw new globalThis.Error("The parameter 'lossId' must be defined.");
@@ -6227,11 +6227,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision2(_response);
+            return this.processDecideInventoryLoss(_response);
         });
     }
 
-    protected processDecision2(response: Response): Promise<void> {
+    protected processDecideInventoryLoss(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6315,7 +6315,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decision3(correctionId: string, body: DecideFieldAccountabilityCorrectionRequest): Promise<void> {
+    decideFieldAccountabilityCorrection(correctionId: string, body: DecideFieldAccountabilityCorrectionRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/corrections/{correctionId}/decision";
         if (correctionId === undefined || correctionId === null)
             throw new globalThis.Error("The parameter 'correctionId' must be defined.");
@@ -6333,11 +6333,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision3(_response);
+            return this.processDecideFieldAccountabilityCorrection(_response);
         });
     }
 
-    protected processDecision3(response: Response): Promise<void> {
+    protected processDecideFieldAccountabilityCorrection(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7387,7 +7387,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    cancel3(countId: string, body: CancelStockCountRequest): Promise<StockCountDto> {
+    cancel2(countId: string, body: CancelStockCountRequest): Promise<StockCountDto> {
         let url_ = this.baseUrl + "/api/inventory/counts/{countId}/cancel";
         if (countId === undefined || countId === null)
             throw new globalThis.Error("The parameter 'countId' must be defined.");
@@ -7406,11 +7406,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel3(_response);
+            return this.processCancel2(_response);
         });
     }
 
-    protected processCancel3(response: Response): Promise<StockCountDto> {
+    protected processCancel2(response: Response): Promise<StockCountDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7443,7 +7443,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    submit3(adjustmentId: string, body: VersionedInventoryRequest): Promise<StockAdjustmentDto> {
+    submit(adjustmentId: string, body: VersionedInventoryRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/submit";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7462,11 +7462,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit3(_response);
+            return this.processSubmit(_response);
         });
     }
 
-    protected processSubmit3(response: Response): Promise<StockAdjustmentDto> {
+    protected processSubmit(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7499,7 +7499,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    decision4(adjustmentId: string, body: DecideStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    decision(adjustmentId: string, body: DecideStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/decision";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7518,11 +7518,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision4(_response);
+            return this.processDecision(_response);
         });
     }
 
-    protected processDecision4(response: Response): Promise<StockAdjustmentDto> {
+    protected processDecision(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7555,7 +7555,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    post3(adjustmentId: string, body: PostStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    postStockAdjustment(adjustmentId: string, body: PostStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/post";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7574,11 +7574,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPost3(_response);
+            return this.processPostStockAdjustment(_response);
         });
     }
 
-    protected processPost3(response: Response): Promise<StockAdjustmentDto> {
+    protected processPostStockAdjustment(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7611,7 +7611,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    reverse3(adjustmentId: string, body: ReverseStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    reverseStockAdjustment(adjustmentId: string, body: ReverseStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/reverse";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7630,11 +7630,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverse3(_response);
+            return this.processReverseStockAdjustment(_response);
         });
     }
 
-    protected processReverse3(response: Response): Promise<StockAdjustmentDto> {
+    protected processReverseStockAdjustment(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7941,7 +7941,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    suppliers(body: CreateSupplierRequest): Promise<SupplierDto> {
+    suppliersPOST(body: CreateSupplierRequest): Promise<SupplierDto> {
         let url_ = this.baseUrl + "/api/inventory/suppliers";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -7957,11 +7957,179 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSuppliers(_response);
+            return this.processSuppliersPOST(_response);
         });
     }
 
-    protected processSuppliers(response: Response): Promise<SupplierDto> {
+    protected processSuppliersPOST(response: Response): Promise<SupplierDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SupplierDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SupplierDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    suppliersPUT(supplierId: string, body: UpdateSupplierRequest): Promise<SupplierDto> {
+        let url_ = this.baseUrl + "/api/inventory/suppliers/{supplierId}";
+        if (supplierId === undefined || supplierId === null)
+            throw new globalThis.Error("The parameter 'supplierId' must be defined.");
+        url_ = url_.replace("{supplierId}", encodeURIComponent("" + supplierId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSuppliersPUT(_response);
+        });
+    }
+
+    protected processSuppliersPUT(response: Response): Promise<SupplierDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SupplierDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SupplierDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    archive4(supplierId: string, body: VersionedInventoryRequest): Promise<SupplierDto> {
+        let url_ = this.baseUrl + "/api/inventory/suppliers/{supplierId}/archive";
+        if (supplierId === undefined || supplierId === null)
+            throw new globalThis.Error("The parameter 'supplierId' must be defined.");
+        url_ = url_.replace("{supplierId}", encodeURIComponent("" + supplierId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchive4(_response);
+        });
+    }
+
+    protected processArchive4(response: Response): Promise<SupplierDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SupplierDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SupplierDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    unarchive(supplierId: string, body: VersionedInventoryRequest): Promise<SupplierDto> {
+        let url_ = this.baseUrl + "/api/inventory/suppliers/{supplierId}/unarchive";
+        if (supplierId === undefined || supplierId === null)
+            throw new globalThis.Error("The parameter 'supplierId' must be defined.");
+        url_ = url_.replace("{supplierId}", encodeURIComponent("" + supplierId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUnarchive(_response);
+        });
+    }
+
+    protected processUnarchive(response: Response): Promise<SupplierDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8212,7 +8380,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    post4(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
+    postStockReceipt(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/post";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -8231,11 +8399,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPost4(_response);
+            return this.processPostStockReceipt(_response);
         });
     }
 
-    protected processPost4(response: Response): Promise<StockReceiptDto> {
+    protected processPostStockReceipt(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8268,7 +8436,7 @@ export class InventoryClient {
     /**
      * @return OK
      */
-    reverse4(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
+    reverseStockReceipt(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/reverse";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -8287,11 +8455,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverse4(_response);
+            return this.processReverseStockReceipt(_response);
         });
     }
 
-    protected processReverse4(response: Response): Promise<StockReceiptDto> {
+    protected processReverseStockReceipt(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8578,6 +8746,62 @@ export class MillRecordsClient {
     }
 
     protected processDeactivateMill(response: Response): Promise<MillDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MillDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MillDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    reactivateMill(millId: string, body: RecordMillRecordRequest): Promise<MillDto> {
+        let url_ = this.baseUrl + "/api/finance/mill-records/mills/{millId}/reactivate";
+        if (millId === undefined || millId === null)
+            throw new globalThis.Error("The parameter 'millId' must be defined.");
+        url_ = url_.replace("{millId}", encodeURIComponent("" + millId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReactivateMill(_response);
+        });
+    }
+
+    protected processReactivateMill(response: Response): Promise<MillDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10105,7 +10329,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    cancel4(periodId: string, body: CancelPayrollPeriodRequest): Promise<PayrollPeriodDto> {
+    cancelPayrollPeriod(periodId: string, body: CancelPayrollPeriodRequest): Promise<PayrollPeriodDto> {
         let url_ = this.baseUrl + "/api/payroll/periods/{periodId}/cancel";
         if (periodId === undefined || periodId === null)
             throw new globalThis.Error("The parameter 'periodId' must be defined.");
@@ -10124,11 +10348,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel4(_response);
+            return this.processCancelPayrollPeriod(_response);
         });
     }
 
-    protected processCancel4(response: Response): Promise<PayrollPeriodDto> {
+    protected processCancelPayrollPeriod(response: Response): Promise<PayrollPeriodDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10508,7 +10732,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    cancel5(advanceId: string, body: CancelWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    cancelWorkerAdvance(advanceId: string, body: CancelWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/cancel";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10527,11 +10751,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel5(_response);
+            return this.processCancelWorkerAdvance(_response);
         });
     }
 
-    protected processCancel5(response: Response): Promise<WorkerAdvanceDto> {
+    protected processCancelWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10564,7 +10788,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    submit4(advanceId: string, body: VersionedPayrollRequest): Promise<WorkerAdvanceDto> {
+    submitWorkerAdvance(advanceId: string, body: VersionedPayrollRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/submit";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10583,11 +10807,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit4(_response);
+            return this.processSubmitWorkerAdvance(_response);
         });
     }
 
-    protected processSubmit4(response: Response): Promise<WorkerAdvanceDto> {
+    protected processSubmitWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10620,7 +10844,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    decision5(advanceId: string, body: DecideWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    decideWorkerAdvance(advanceId: string, body: DecideWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/decision";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10639,11 +10863,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision5(_response);
+            return this.processDecideWorkerAdvance(_response);
         });
     }
 
-    protected processDecision5(response: Response): Promise<WorkerAdvanceDto> {
+    protected processDecideWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11062,7 +11286,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    submit5(runId: string, body: SubmitPayrollRunRequest): Promise<PayrollRunDto> {
+    submitPayrollRun(runId: string, body: SubmitPayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/submit";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11081,11 +11305,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit5(_response);
+            return this.processSubmitPayrollRun(_response);
         });
     }
 
-    protected processSubmit5(response: Response): Promise<PayrollRunDto> {
+    protected processSubmitPayrollRun(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11118,7 +11342,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    decision6(runId: string, body: DecidePayrollRunRequest): Promise<PayrollRunDto> {
+    decidePayrollRun(runId: string, body: DecidePayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/decision";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11137,11 +11361,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision6(_response);
+            return this.processDecidePayrollRun(_response);
         });
     }
 
-    protected processDecision6(response: Response): Promise<PayrollRunDto> {
+    protected processDecidePayrollRun(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11174,7 +11398,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    cancel6(runId: string, body: CancelPayrollRunRequest): Promise<PayrollRunDto> {
+    cancelPayrollRun(runId: string, body: CancelPayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/cancel";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11193,11 +11417,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel6(_response);
+            return this.processCancelPayrollRun(_response);
         });
     }
 
-    protected processCancel6(response: Response): Promise<PayrollRunDto> {
+    protected processCancelPayrollRun(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11562,7 +11786,7 @@ export class PayrollClient {
     /**
      * @return OK
      */
-    close2(runId: string, body: ClosePayrollSettlementRequest): Promise<RunSettlementDto> {
+    closePayrollSettlement(runId: string, body: ClosePayrollSettlementRequest): Promise<RunSettlementDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/close";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11581,11 +11805,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processClose2(_response);
+            return this.processClosePayrollSettlement(_response);
         });
     }
 
-    protected processClose2(response: Response): Promise<RunSettlementDto> {
+    protected processClosePayrollSettlement(response: Response): Promise<RunSettlementDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12362,7 +12586,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    archive4(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
+    archive5(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/archive";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -12381,11 +12605,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive4(_response);
+            return this.processArchive5(_response);
         });
     }
 
-    protected processArchive4(response: Response): Promise<WorkerDetailsDto> {
+    protected processArchive5(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -29790,6 +30014,66 @@ export interface IUpdatePersonRequest {
     role: string;
     isPrimaryManager: boolean;
     roleEffectiveFrom: Date;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class UpdateSupplierRequest implements IUpdateSupplierRequest {
+    code!: string;
+    name!: string;
+    contact!: string | undefined;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateSupplierRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.contact = _data["contact"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateSupplierRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateSupplierRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["contact"] = this.contact;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IUpdateSupplierRequest {
+    code: string;
+    name: string;
+    contact: string | undefined;
     expectedVersion: number;
 
     [key: string]: any;

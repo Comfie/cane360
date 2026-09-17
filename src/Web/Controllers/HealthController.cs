@@ -14,15 +14,20 @@ public sealed class HealthController(IDatabaseHealthCheck healthCheck) : Control
     [EndpointDescription("Reports whether the API can connect to PostgreSQL.")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public Task<IActionResult> Get(CancellationToken cancellationToken) =>
-        GetReady(cancellationToken);
+    public Task<IActionResult> Get(CancellationToken cancellationToken)
+    {
+        return GetReady(cancellationToken);
+    }
 
     [AllowAnonymous]
     [HttpGet("live")]
     [EndpointSummary("Liveness check")]
     [EndpointDescription("Reports whether the API process is available without checking dependencies.")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult GetLive() => Ok(new { status = "healthy" });
+    public IActionResult GetLive()
+    {
+        return Ok(new { status = "healthy" });
+    }
 
     [AllowAnonymous]
     [HttpGet("ready")]

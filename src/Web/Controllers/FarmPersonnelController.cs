@@ -14,8 +14,10 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
     [HttpGet]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<PersonnelRegisterDto>> Get(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetPersonnelQuery(), cancellationToken));
+    public async Task<ActionResult<PersonnelRegisterDto>> Get(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetPersonnelQuery(), cancellationToken));
+    }
 
     [HttpPost]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status201Created)]
@@ -25,7 +27,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
         CreatePersonRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new CreatePersonCommand(
+        PersonnelRegisterDto result = await sender.Send(new CreatePersonCommand(
             request.DisplayName,
             request.Phone,
             request.ActiveFrom,
@@ -42,8 +44,9 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
     public async Task<ActionResult<PersonnelRegisterDto>> Update(
         Guid personId,
         UpdatePersonRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new UpdatePersonCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new UpdatePersonCommand(
             personId,
             request.DisplayName,
             request.Phone,
@@ -51,6 +54,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
             request.IsPrimaryManager,
             request.RoleEffectiveFrom,
             request.ExpectedVersion), cancellationToken));
+    }
 
     [HttpPost("{personId:guid}/deactivate")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
@@ -60,9 +64,11 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
     public async Task<ActionResult<PersonnelRegisterDto>> Deactivate(
         Guid personId,
         DeactivatePersonRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new DeactivatePersonCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new DeactivatePersonCommand(
             personId, request.ExpectedVersion, request.ActiveTo), cancellationToken));
+    }
 
     [HttpPost("{personId:guid}/roles/{assignmentId:guid}/end")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
@@ -73,7 +79,9 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
         Guid personId,
         Guid assignmentId,
         EndPersonRoleRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new EndPersonRoleCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new EndPersonRoleCommand(
             personId, assignmentId, request.ExpectedVersion, request.EffectiveTo), cancellationToken));
+    }
 }

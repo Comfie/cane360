@@ -12,6 +12,7 @@ public interface IMillRecordsService
     Task<MillDto> CreateMillAsync(MillInput input, CancellationToken cancellationToken);
     Task<MillDto> UpdateMillAsync(Guid millId, MillInput input, CancellationToken cancellationToken);
     Task<MillDto> DeactivateMillAsync(Guid millId, VersionedInput input, CancellationToken cancellationToken);
+    Task<MillDto> ReactivateMillAsync(Guid millId, VersionedInput input, CancellationToken cancellationToken);
     Task<IReadOnlyList<WeighbridgeTicketDto>> GetTicketsAsync(TicketFilter filter, CancellationToken cancellationToken);
     Task<WeighbridgeTicketDto> GetTicketAsync(Guid ticketId, CancellationToken cancellationToken);
     Task<WeighbridgeTicketDto> CreateTicketAsync(TicketInput input, CancellationToken cancellationToken);

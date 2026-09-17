@@ -1,5 +1,4 @@
 using Cane360.Application.Activities;
-using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Activities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -25,9 +24,11 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
         [FromQuery] DateOnly? toDate,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 25,
-        CancellationToken cancellationToken = default) =>
-        Ok(await sender.Send(new GetActivitiesQuery(
+        CancellationToken cancellationToken = default)
+    {
+        return Ok(await sender.Send(new GetActivitiesQuery(
             fieldId, cropCycleId, activityTypeId, status, fromDate, toDate, page, pageSize), cancellationToken));
+    }
 
     [HttpPost]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status201Created)]
@@ -38,7 +39,7 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
         CreateActivityRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new CreateActivityCommand(
+        ActivityDetailsDto result = await sender.Send(new CreateActivityCommand(
             request.FieldId,
             request.CropCycleId,
             request.ActivityTypeId,
@@ -54,8 +55,10 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ActivityDetailsDto>> GetById(
         Guid activityId,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetActivityDetailsQuery(activityId), cancellationToken));
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetActivityDetailsQuery(activityId), cancellationToken));
+    }
 
     [HttpPut("{activityId:guid}/actual-work")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
@@ -67,7 +70,7 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
         RecordActualWorkRequest request,
         CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseOffsetTimestamp(request.ActualAt, out var actualAt))
+        if (!TransportValueParser.TryParseOffsetTimestamp(request.ActualAt, out DateTimeOffset actualAt))
         {
             return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
             {
@@ -91,74 +94,99 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
     public async Task<ActionResult<ActivityDetailsDto>> AddSourceReference(
         Guid activityId,
         AddSourceReferenceRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new AddSourceReferenceCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new AddSourceReferenceCommand(
             activityId,
             request.ExpectedVersion,
             request.SourceSheetReference,
             request.CapturedDate), cancellationToken));
+    }
 
     [HttpPost("{activityId:guid}/transitions/planned")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> Planned(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "Planned", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> Planned(Guid activityId, TransitionActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "Planned", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/cancelled")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> Cancelled(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "Cancelled", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> Cancelled(Guid activityId, TransitionActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "Cancelled", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/in-progress")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> InProgress(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "InProgress", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> InProgress(Guid activityId, TransitionActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "InProgress", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/awaiting-verification")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> AwaitingVerification(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "AwaitingVerification", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> AwaitingVerification(Guid activityId,
+        TransitionActivityRequest request, CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "AwaitingVerification", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/manager-confirmation")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> ManagerConfirmation(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "ManagerConfirmation", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> ManagerConfirmation(Guid activityId,
+        TransitionActivityRequest request, CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "ManagerConfirmation", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/completed")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> Completed(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "Completed", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> Completed(Guid activityId, TransitionActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "Completed", request, cancellationToken);
+    }
 
     [HttpPost("{activityId:guid}/transitions/closed")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public Task<ActionResult<ActivityDetailsDto>> Closed(Guid activityId, TransitionActivityRequest request, CancellationToken cancellationToken) =>
-        Transition(activityId, "Closed", request, cancellationToken);
+    public Task<ActionResult<ActivityDetailsDto>> Closed(Guid activityId, TransitionActivityRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Transition(activityId, "Closed", request, cancellationToken);
+    }
 
     private async Task<ActionResult<ActivityDetailsDto>> Transition(
         Guid activityId,
         string targetStatus,
         TransitionActivityRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new TransitionActivityCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new TransitionActivityCommand(
             activityId, targetStatus, request.ExpectedVersion, request.Reason), cancellationToken));
+    }
 }

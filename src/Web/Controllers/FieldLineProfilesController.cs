@@ -19,7 +19,7 @@ public sealed class FieldLineProfilesController(ISender sender) : ControllerBase
         Guid fieldId,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new GetFieldLineProfileQuery(fieldId), cancellationToken);
+        FieldLineProfileDto? result = await sender.Send(new GetFieldLineProfileQuery(fieldId), cancellationToken);
         return result is null ? NoContent() : Ok(result);
     }
 
@@ -31,12 +31,14 @@ public sealed class FieldLineProfilesController(ISender sender) : ControllerBase
     public async Task<ActionResult<FieldLineProfileDto>> Replace(
         Guid fieldId,
         ReplaceFieldLineProfileRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new ReplaceFieldLineProfileCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new ReplaceFieldLineProfileCommand(
             fieldId,
             request.StandardLineLengthMetres,
             request.EstimatedLineCount,
             request.NumberingScheme,
             request.EffectiveFrom,
             request.ExpectedVersion), cancellationToken));
+    }
 }

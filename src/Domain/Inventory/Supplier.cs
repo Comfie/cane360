@@ -37,6 +37,27 @@ public sealed class Supplier : BaseAuditableEntity
         Version++;
     }
 
+    public void Unarchive(long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Status == InventoryRecordStatus.Active) return;
+        Status = InventoryRecordStatus.Active;
+        Version++;
+    }
+
+    public void Update(string code, string name, string? contact, long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Status != InventoryRecordStatus.Active)
+            throw new InvalidOperationException("Archived suppliers cannot be edited.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(code);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        Code = NormalizeCode(code);
+        Name = name.Trim();
+        Contact = string.IsNullOrWhiteSpace(contact) ? null : contact.Trim();
+        Version++;
+    }
+
     private void RequireVersion(long expectedVersion)
     {
         if (Version != expectedVersion) throw new InvalidOperationException("This supplier changed after it was loaded.");

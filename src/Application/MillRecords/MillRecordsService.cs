@@ -92,6 +92,19 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         return Map(mill);
     }
 
+    public async Task<MillDto> ReactivateMillAsync(Guid millId, VersionedInput input,
+        CancellationToken cancellationToken)
+    {
+        Context context = await ContextAsync(true, cancellationToken);
+        RequireOperator(context);
+        Mill mill = await RequireMillAsync(context, millId, true, cancellationToken);
+        Apply(() => mill.Reactivate(input.ExpectedVersion), nameof(input.ExpectedVersion));
+        Audit(context, mill.Id, "MillReactivated", null, "Mill reference reactivated.",
+            audit => MillRecordAuditEventLink.ForMill(audit.Id, context.Tenant.Id, context.Farm.Id, mill.Id));
+        await records.SaveChangesAsync(cancellationToken);
+        return Map(mill);
+    }
+
     public async Task<IReadOnlyList<WeighbridgeTicketDto>> GetTicketsAsync(TicketFilter filter,
         CancellationToken cancellationToken)
     {

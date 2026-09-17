@@ -53,6 +53,14 @@ public sealed class Mill : BaseEntity
         Version++;
     }
 
+    public void Reactivate(long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (Active) throw new InvalidOperationException("The mill is already active.");
+        Active = true;
+        Version++;
+    }
+
     public static string NormalizeCode(string value) => value.Trim().ToUpperInvariant();
 
     private void RequireVersion(long expectedVersion)

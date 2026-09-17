@@ -3,6 +3,7 @@ using Cane360.Web.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Cane360.Web.Controllers;
 
@@ -20,20 +21,16 @@ public sealed class UsersController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var user = new ApplicationUser
-        {
-            UserName = request.Email,
-            Email = request.Email
-        };
+        ApplicationUser user = new() { UserName = request.Email, Email = request.Email };
 
-        var result = await userManager.CreateAsync(user, request.Password);
+        IdentityResult result = await userManager.CreateAsync(user, request.Password);
 
         if (result.Succeeded)
         {
             return Ok();
         }
 
-        var errors = result.Errors
+        Dictionary<string, string[]> errors = result.Errors
             .GroupBy(error => error.Code)
             .ToDictionary(
                 group => group.Key,
@@ -41,8 +38,7 @@ public sealed class UsersController(
 
         return BadRequest(new ValidationProblemDetails(errors)
         {
-            Status = StatusCodes.Status400BadRequest,
-            Title = "Registration failed."
+            Status = StatusCodes.Status400BadRequest, Title = "Registration failed."
         });
     }
 
@@ -57,12 +53,12 @@ public sealed class UsersController(
         [FromQuery] bool? useSessionCookies,
         LoginRequest request)
     {
-        var isPersistent = useCookies && useSessionCookies != true;
-        var result = await signInManager.PasswordSignInAsync(
+        bool isPersistent = useCookies && useSessionCookies != true;
+        SignInResult result = await signInManager.PasswordSignInAsync(
             request.Email,
             request.Password,
             isPersistent,
-            lockoutOnFailure: true);
+            true);
 
         return result.Succeeded ? Ok() : Unauthorized();
     }
@@ -87,14 +83,14 @@ public sealed class UsersController(
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Info()
     {
-        var user = await userManager.GetUserAsync(User);
+        ApplicationUser? user = await userManager.GetUserAsync(User);
 
         if (user?.Email is null)
         {
             return Unauthorized();
         }
 
-        var isEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);
+        bool isEmailConfirmed = await userManager.IsEmailConfirmedAsync(user);
         return Ok(new UserInfoResponse(user.Email, isEmailConfirmed));
     }
 }

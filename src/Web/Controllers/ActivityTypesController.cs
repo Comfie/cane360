@@ -14,8 +14,10 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<ActivityTypeDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<IReadOnlyList<ActivityTypeDto>>> Get(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetActivityTypesQuery(), cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<ActivityTypeDto>>> Get(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetActivityTypesQuery(), cancellationToken));
+    }
 
     [HttpPost]
     [ProducesResponseType<ActivityTypeDto>(StatusCodes.Status201Created)]
@@ -25,7 +27,7 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
         CreateActivityTypeRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new CreateActivityTypeCommand(
+        ActivityTypeDto result = await sender.Send(new CreateActivityTypeCommand(
             request.Code,
             request.Name,
             request.SupportsPlanned,
@@ -42,13 +44,17 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
     public async Task<ActionResult<ActivityTypeDto>> Archive(
         Guid activityTypeId,
         VersionedRequest request,
-        CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new ArchiveActivityTypeCommand(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new ArchiveActivityTypeCommand(
             activityTypeId, request.ExpectedVersion), cancellationToken));
+    }
 
     [HttpPut("{activityTypeId:guid}")]
     public async Task<ActionResult<ActivityTypeDto>> Rename(Guid activityTypeId,
-        RenameActivityTypeRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new RenameActivityTypeCommand(activityTypeId,
+        RenameActivityTypeRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new RenameActivityTypeCommand(activityTypeId,
             request.Name, request.ExpectedVersion), cancellationToken));
+    }
 }

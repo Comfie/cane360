@@ -13,8 +13,10 @@ public sealed class CropVarietiesController(ISender sender) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<IReadOnlyList<CropVarietyDto>>(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<CropVarietyDto>>> Get(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetCropVarietiesQuery(), cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<CropVarietyDto>>> Get(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetCropVarietiesQuery(), cancellationToken));
+    }
 
     [HttpPost]
     [ProducesResponseType<CropVarietyDto>(StatusCodes.Status201Created)]
@@ -23,7 +25,8 @@ public sealed class CropVarietiesController(ISender sender) : ControllerBase
         CreateCropVarietyRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await sender.Send(new CreateCropVarietyCommand(request.Code, request.Name), cancellationToken);
+        CropVarietyDto result =
+            await sender.Send(new CreateCropVarietyCommand(request.Code, request.Name), cancellationToken);
         return Created(string.Empty, result);
     }
 }
