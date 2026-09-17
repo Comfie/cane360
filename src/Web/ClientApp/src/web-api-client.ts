@@ -968,7 +968,7 @@ export class ActivityTypesClient {
     }
 
     /**
-     * @return Created
+     * @return OK
      */
     createActivityTypes(body: CreateActivityTypeRequest): Promise<ActivityTypeDto> {
         let url_ = this.baseUrl + "/api/activity-types";
@@ -993,12 +993,12 @@ export class ActivityTypesClient {
     protected processCreateActivityTypes(response: Response): Promise<ActivityTypeDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = ActivityTypeDto.fromJS(resultData201);
-            return result201;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ActivityTypeDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -3073,7 +3073,7 @@ export class FarmPersonnelClient {
     }
 
     /**
-     * @return Created
+     * @return OK
      */
     createFarmPersonnel(body: CreatePersonRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel";
@@ -3098,12 +3098,12 @@ export class FarmPersonnelClient {
     protected processCreateFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = PersonnelRegisterDto.fromJS(resultData201);
-            return result201;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PersonnelRegisterDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -10292,7 +10292,7 @@ export class PayrollClient {
     }
 
     /**
-     * @return OK
+     * @return Created
      */
     createAdvancePayroll(body: CreateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances";
@@ -10317,12 +10317,12 @@ export class PayrollClient {
     protected processCreateAdvancePayroll(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WorkerAdvanceDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = WorkerAdvanceDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {

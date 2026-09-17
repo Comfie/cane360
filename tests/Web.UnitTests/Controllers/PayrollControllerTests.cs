@@ -1,4 +1,5 @@
 using Cane360.Application.Payroll;
+using Cane360.Application.Common.Interfaces;
 using Cane360.Domain.Payroll;
 using Cane360.Web.Controllers;
 using Cane360.Web.Models.Payroll;
@@ -23,6 +24,63 @@ public sealed class PayrollControllerTests
         var result = await controller.CreateAdvance(new CreateWorkerAdvanceRequest(Guid.NewGuid(), 10m, "Transport", "27/08/2026", Guid.NewGuid(), 3, null), CancellationToken.None);
         result.Result.ShouldBeOfType<BadRequestObjectResult>();
         sender.Verify(service => service.Send(It.IsAny<CreateWorkerAdvanceCommand>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task CreatePeriodReturnsDtoWithoutListLocation()
+    {
+        var sender = new Mock<ISender>();
+        var expected = new PayrollPeriodDto(Guid.NewGuid(), 2026, 9,
+            new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 30), "September 2026",
+            "Draft", null, null, 1);
+        sender.Setup(value => value.Send(It.IsAny<CreatePayrollPeriodCommand>(),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+
+        var result = await new PayrollController(sender.Object).CreatePeriod(
+            new CreatePayrollPeriodRequest(2026, 9), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
+    public async Task CreateAdvancePointsToExistingSingleAdvanceRoute()
+    {
+        var sender = new Mock<ISender>();
+        var expected = Advance(Guid.NewGuid());
+        sender.Setup(value => value.Send(It.IsAny<CreateWorkerAdvanceCommand>(),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+
+        var result = await new PayrollController(sender.Object).CreateAdvance(
+            new CreateWorkerAdvanceRequest(expected.WorkerId, 30m, "Transport",
+                "2026-08-27", expected.RecoveryStartPayrollPeriodId, 3, null),
+            CancellationToken.None);
+
+        var created = result.Result.ShouldBeOfType<CreatedAtActionResult>();
+        created.ActionName.ShouldBe(nameof(PayrollController.Advance));
+        created.RouteValues!["advanceId"].ShouldBe(expected.Id);
+        created.Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
+    public async Task RecordPaymentReturnsPaymentWithoutWorkerSettlementLocation()
+    {
+        var sender = new Mock<ISender>();
+        var settlement = new Mock<IPayrollSettlementService>();
+        var runId = Guid.NewGuid();
+        var lineId = Guid.NewGuid();
+        var expected = new PayrollPaymentDto(Guid.NewGuid(), runId, Guid.NewGuid(),
+            2, lineId, Guid.NewGuid(), "Cash", 30m, new DateOnly(2026, 9, 17),
+            "Recorded", null, null, null, "grower", null, DateTimeOffset.UtcNow,
+            0m, 30m, null, []);
+        settlement.Setup(value => value.RecordPaymentAsync(runId,
+            It.IsAny<RecordPayrollPaymentInput>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+
+        var result = await new PayrollController(sender.Object, settlement.Object).RecordPayment(
+            runId, new RecordPayrollPaymentRequest(2, lineId, "Cash", 30m,
+                "2026-09-17", null, null, null, null, "payment-key"), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
     }
 
     [Test]

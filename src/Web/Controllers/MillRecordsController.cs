@@ -30,7 +30,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     {
         MillDto result = await records.CreateMillAsync(new(request.Code, request.Name,
             request.Location), cancellationToken);
-        return CreatedAtAction(nameof(GetMills), result);
+        return Ok(result);
     }
 
     [HttpPut("mills/{millId:guid}", Name = "UpdateMill")]

@@ -59,7 +59,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
         var count = await sender.Send(new CreateStockCountCommand(eventDate, request.Notes ?? string.Empty, request.CountingPersons), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), count);
+        return Ok(count);
     }
 
     [HttpPost("counts/{countId:guid}/start")]
@@ -87,7 +87,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
         var adjustment = await sender.Send(new CreateStockAdjustmentCommand(request.StockCountLineId, request.InventoryItemId, request.InventoryLotId, request.AdjustmentType, request.SignedQuantity, request.ExplicitUnitValueUsd, request.Reason, eventDate), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), adjustment);
+        return Ok(adjustment);
     }
 
     [HttpPost("adjustments/{adjustmentId:guid}/submit", Name = "SubmitAdjustmentInventory")]
@@ -112,7 +112,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new CreateUnitOfMeasureCommand(
             request.Code, request.Name, request.Dimension, request.DecimalPlaces), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), result);
+        return Ok(result);
     }
 
     [HttpGet("units", Name = "GetUnitsInventory")]
@@ -139,7 +139,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         var result = await sender.Send(new CreateInventoryItemCommand(
             request.Code, request.Name, request.Category, request.StockUnitId, request.ReorderLevel,
             request.LotTrackingPolicy, request.ExpiryPolicy), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), result);
+        return Ok(result);
     }
 
     [HttpPost("suppliers")]
@@ -148,7 +148,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new CreateSupplierCommand(
             request.Code, request.Name, request.Contact), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), result);
+        return Ok(result);
     }
 
     [HttpPost("lots")]
@@ -162,7 +162,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         }
         var result = await sender.Send(new CreateInventoryLotCommand(
             request.InventoryItemId, request.Code, expiryDate), cancellationToken);
-        return CreatedAtAction(nameof(Workspace), result);
+        return Ok(result);
     }
 
     [HttpPost("receipts")]

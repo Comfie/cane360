@@ -19,7 +19,7 @@ public sealed class PayrollController(ISender sender, IPayrollSettlementService?
     [HttpGet("periods", Name = "GetPeriodsPayroll")]
     public async Task<ActionResult<IReadOnlyList<PayrollPeriodDto>>> Periods(CancellationToken cancellationToken) => Ok(await sender.Send(new GetPayrollPeriodsQuery(), cancellationToken));
     [HttpPost("periods", Name = "CreatePeriodPayroll")]
-    public async Task<ActionResult<PayrollPeriodDto>> CreatePeriod(CreatePayrollPeriodRequest request, CancellationToken cancellationToken) { var result = await sender.Send(new CreatePayrollPeriodCommand(request.Year, request.Month), cancellationToken); return CreatedAtAction(nameof(Periods), result); }
+    public async Task<ActionResult<PayrollPeriodDto>> CreatePeriod(CreatePayrollPeriodRequest request, CancellationToken cancellationToken) { var result = await sender.Send(new CreatePayrollPeriodCommand(request.Year, request.Month), cancellationToken); return Ok(result); }
     [HttpPost("periods/{periodId:guid}/open")]
     public async Task<ActionResult<PayrollPeriodDto>> OpenPeriod(Guid periodId, VersionedPayrollRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new OpenPayrollPeriodCommand(periodId, request.ExpectedVersion), cancellationToken));
     [HttpPost("periods/{periodId:guid}/cancel", Name = "CancelPeriodPayroll")]
@@ -33,10 +33,11 @@ public sealed class PayrollController(ISender sender, IPayrollSettlementService?
     [HttpPost("advances/schedule-preview")]
     public async Task<ActionResult<AdvanceSchedulePreviewDto>> PreviewAdvanceSchedule(PreviewAdvanceScheduleRequest request, CancellationToken cancellationToken) => Ok(await sender.Send(new PreviewAdvanceScheduleQuery(request.AmountUsd, request.RecoveryStartPayrollPeriodId, request.InstallmentCount), cancellationToken));
     [HttpPost("advances", Name = "CreateAdvancePayroll")]
+    [ProducesResponseType<WorkerAdvanceDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<WorkerAdvanceDto>> CreateAdvance(CreateWorkerAdvanceRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.RequestedEventDate, out var eventDate)) return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]> { [nameof(request.RequestedEventDate)] = ["Date must use yyyy-MM-dd."] }));
-        var result = await sender.Send(new CreateWorkerAdvanceCommand(request.WorkerId, request.AmountUsd, request.Reason, eventDate, request.RecoveryStartPayrollPeriodId, request.InstallmentCount, request.InstallmentPeriodIds ?? []), cancellationToken); return CreatedAtAction(nameof(Advances), result);
+        var result = await sender.Send(new CreateWorkerAdvanceCommand(request.WorkerId, request.AmountUsd, request.Reason, eventDate, request.RecoveryStartPayrollPeriodId, request.InstallmentCount, request.InstallmentPeriodIds ?? []), cancellationToken); return CreatedAtAction(nameof(Advance), new { advanceId = result.Id }, result);
     }
     [HttpPut("advances/{advanceId:guid}", Name = "UpdateWorkerAdvance")]
     public async Task<ActionResult<WorkerAdvanceDto>> UpdateAdvance(Guid advanceId, UpdateWorkerAdvanceRequest request, CancellationToken cancellationToken)
@@ -84,7 +85,7 @@ public sealed class PayrollController(ISender sender, IPayrollSettlementService?
     {
         if (!TransportValueParser.TryParseDateOnly(request.PaymentDate, out var paymentDate)) return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]> { [nameof(request.PaymentDate)] = ["Date must use yyyy-MM-dd."] }));
         var result = await SettlementService.RecordPaymentAsync(runId, new(request.CalculationVersion, request.PayrollWorkerLineId, request.Method, request.AmountUsd, paymentDate, request.Provider, request.RecipientNumber, request.TransactionReference, request.ExternalStatus, request.IdempotencyKey), cancellationToken);
-        return CreatedAtAction(nameof(WorkerSettlement), new { runId, workerLineId = request.PayrollWorkerLineId, calculationVersion = request.CalculationVersion }, result);
+        return Ok(result);
     }
 
     [HttpPost("payments/{paymentId:guid}/acknowledgement")]

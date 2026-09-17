@@ -20,7 +20,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
     [HttpPost("rules", Name = "CreateRuleInputControls")]
     public async Task<ActionResult<InventoryApplicationRuleDto>> CreateRule(
         CreateInventoryApplicationRuleRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInventoryApplicationRuleCommand(
+        Ok(await sender.Send(new CreateInventoryApplicationRuleCommand(
             request.InventoryItemId, request.ActivityTypeId, request.EffectiveFrom, request.EffectiveTo,
             request.CoverageBasis, request.RatePerCoverageUnit,
             request.LowerTolerancePercent, request.UpperTolerancePercent), cancellationToken));
@@ -28,7 +28,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
     [HttpPost("requests")]
     public async Task<ActionResult<Guid>> CreateRequest(
         CreateInputRequestRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInputRequestCommand(
+        Ok(await sender.Send(new CreateInputRequestCommand(
             request.ActivityId, request.Lines.Select(line => new CreateInputRequestLineCommand(
                 line.InventoryItemId, line.RequestedQuantity)).ToArray()), cancellationToken));
 
@@ -73,7 +73,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
     [HttpPost("issues")]
     public async Task<ActionResult<Guid>> CreateIssue(
         CreateStockIssueRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateStockIssueCommand(
+        Ok(await sender.Send(new CreateStockIssueCommand(
             request.InputRequestId, request.IssueDate, request.IssuerPersonId,
             request.RecipientPersonId, request.LateEntryReason,
             request.Lines.Select(line => new CreateStockIssueLineCommand(
@@ -108,14 +108,14 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
 
     [HttpPost("field-receipts")]
     public async Task<ActionResult<Guid>> CreateFieldReceipt(CreateFieldReceiptRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateFieldReceiptCommand(request.StockIssueId,
+        Ok(await sender.Send(new CreateFieldReceiptCommand(request.StockIssueId,
             request.FieldId, request.CropCycleId, request.ActivityId, request.RecipientPersonId,
             request.ReceivedAt, request.LateEntryReason, request.Lines.Select(x =>
                 new CreateFieldReceiptLineCommand(x.StockIssueLineId, x.Quantity)).ToArray()), cancellationToken));
 
     [HttpPost("applications")]
     public async Task<ActionResult<Guid>> CreateApplication(CreateInputApplicationRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInputApplicationCommand(request.ActivityId,
+        Ok(await sender.Send(new CreateInputApplicationCommand(request.ActivityId,
             request.AppliedAt, request.CoverageBasis, request.VerifiedCoverage, request.Lines.Select(x =>
                 new CreateInputApplicationLineCommand(x.FieldReceiptLineId, x.StockIssueLineId, x.AppliedQuantity)).ToArray()), cancellationToken));
 
@@ -135,7 +135,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
 
     [HttpPost("returns")]
     public async Task<ActionResult<Guid>> CreateReturn(CreateStockReturnRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateStockReturnCommand(request.ActivityId,
+        Ok(await sender.Send(new CreateStockReturnCommand(request.ActivityId,
             request.ReturnDate, request.SenderPersonId, request.ReceiverPersonId, request.Lines.Select(x =>
                 new CreateStockReturnLineCommand(x.StockIssueLineId, x.Quantity)).ToArray()), cancellationToken));
 
@@ -156,7 +156,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
 
     [HttpPost("losses")]
     public async Task<ActionResult<Guid>> CreateLoss(CreateInventoryLossRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInventoryLossCommand(request.ActivityId,
+        Ok(await sender.Send(new CreateInventoryLossCommand(request.ActivityId,
             request.StockIssueLineId, request.Quantity, request.LossType, request.Reason), cancellationToken));
 
     [HttpPost("losses/{lossId:guid}/submit", Name = "SubmitLossInputControls")]
@@ -177,7 +177,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
     [HttpPost("corrections", Name = "CreateFieldAccountabilityCorrectionInputControls")]
     public async Task<ActionResult<Guid>> CreateFieldAccountabilityCorrection(
         CreateFieldAccountabilityCorrectionRequest request, CancellationToken cancellationToken) =>
-        CreatedAtAction(nameof(Workspace), await sender.Send(new CreateFieldAccountabilityCorrectionCommand(
+        Ok(await sender.Send(new CreateFieldAccountabilityCorrectionCommand(
             request.FieldReceiptId, request.InputApplicationId, request.StockReturnId, request.InventoryLossId,
             request.SourceVersion, request.Reason, request.IdempotencyKey), cancellationToken));
 

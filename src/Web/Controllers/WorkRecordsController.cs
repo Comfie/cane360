@@ -46,7 +46,7 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
 
         var result = await sender.Send(new CreateWorkRecordCommand(request.WorkerId, workDate,
             request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken);
-        return CreatedAtAction(nameof(Get), new { workDate = result.WorkDate, workerId = result.WorkerId }, result);
+        return Ok(result);
     }
 
     [HttpPost("{workRecordId:guid}/supervisor-verification")]

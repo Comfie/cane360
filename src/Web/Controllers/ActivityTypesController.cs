@@ -18,7 +18,7 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
         Ok(await sender.Send(new GetActivityTypesQuery(), cancellationToken));
 
     [HttpPost(Name = "CreateActivityTypes")]
-    [ProducesResponseType<ActivityTypeDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ActivityTypeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ActivityTypeDto>> Create(
@@ -31,7 +31,7 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
             request.SupportsPlanned,
             request.SupportsUnplanned,
             request.QuantityBasis), cancellationToken);
-        return CreatedAtAction(nameof(Get), new { }, result);
+        return Ok(result);
     }
 
     [HttpPost("{activityTypeId:guid}/archive", Name = "ArchiveActivityTypes")]

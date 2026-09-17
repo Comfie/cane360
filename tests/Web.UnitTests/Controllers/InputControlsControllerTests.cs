@@ -30,9 +30,10 @@ public sealed class InputControlsControllerTests
             It.IsAny<CancellationToken>())).ReturnsAsync(Guid.NewGuid());
         var controller = new InputControlsController(sender.Object);
 
-        await controller.CreateFieldReceipt(new CreateFieldReceiptRequest(issueId, fieldId, cycleId, activityId,
+        var result = await controller.CreateFieldReceipt(new CreateFieldReceiptRequest(issueId, fieldId, cycleId, activityId,
             recipientId, receivedAt, null, [new CreateFieldReceiptLineRequest(lineId, 2.5m)]), CancellationToken.None);
 
+        result.Result.ShouldBeOfType<OkObjectResult>();
         sender.VerifyAll();
     }
 

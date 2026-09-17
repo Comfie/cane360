@@ -18,7 +18,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
         Ok(await sender.Send(new GetPersonnelQuery(), cancellationToken));
 
     [HttpPost(Name = "CreateFarmPersonnel")]
-    [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PersonnelRegisterDto>> Create(
@@ -31,7 +31,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
             request.ActiveFrom,
             request.Roles,
             request.IsPrimaryManager), cancellationToken);
-        return CreatedAtAction(nameof(Get), new { }, result);
+        return Ok(result);
     }
 
     [HttpPut("{personId:guid}")]
