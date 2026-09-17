@@ -14,6 +14,7 @@ internal sealed class ManagerInvitationConfiguration : IEntityTypeConfiguration<
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
         builder.HasAlternateKey(entity => new { entity.Id, entity.TenantId, entity.FarmId });
+        builder.Property(entity => entity.SecurityRole).HasMaxLength(40).IsRequired().HasDefaultValue("FarmManager");
         builder.Property(entity => entity.TokenHash).HasMaxLength(64).IsRequired();
         builder.Property(entity => entity.CreatedByUserId).HasMaxLength(450).IsRequired();
         builder.Property(entity => entity.RevokedByUserId).HasMaxLength(450);

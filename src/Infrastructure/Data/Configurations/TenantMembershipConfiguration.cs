@@ -13,7 +13,8 @@ internal sealed class TenantMembershipConfiguration : IEntityTypeConfiguration<T
     {
         builder.ToTable("TenantMemberships", "identity", table =>
             table.HasCheckConstraint("CK_TenantMemberships_RolePerson",
-                "(\"SecurityRole\" = 'Grower' AND \"FarmId\" IS NULL AND \"PersonId\" IS NULL) OR (\"SecurityRole\" = 'FarmManager' AND \"FarmId\" IS NOT NULL AND \"PersonId\" IS NOT NULL)"));
+                "(\"SecurityRole\" = 'Grower' AND \"FarmId\" IS NULL AND \"PersonId\" IS NULL) OR " +
+                "(\"SecurityRole\" IN ('FarmManager', 'Supervisor') AND \"FarmId\" IS NOT NULL AND \"PersonId\" IS NOT NULL)"));
         builder.HasKey(membership => membership.Id);
         builder.Property(membership => membership.Id).ValueGeneratedNever();
         builder.Property(membership => membership.UserId).HasMaxLength(450).IsRequired();
