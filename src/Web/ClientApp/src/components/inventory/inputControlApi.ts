@@ -134,5 +134,5 @@ export const submitInventoryLoss = (id: string, expectedVersion: number) => inpu
 export const decideInventoryLoss = (id: string, expectedVersion: number, outcome: IDecideInventoryLossRequest['outcome'], reason: IDecideInventoryLossRequest['reason']) => inputControlsClient.decision2(
   id, new DecideInventoryLossRequest({ expectedVersion, outcome, reason, idempotencyKey: operationKey('loss-decision') }));
 
-export const createManagerInvitation = (personId: ICreateManagerInvitationRequest['personId'], expiresInHours: ICreateManagerInvitationRequest['expiresInHours']) => inputControlsClient.managerInvitations(
-  new CreateManagerInvitationRequest({ personId, expiresInHours }));
+export const createManagerInvitation = (personId: ICreateManagerInvitationRequest['personId'], expiresInHours: ICreateManagerInvitationRequest['expiresInHours'], role: ICreateManagerInvitationRequest['role'] = 'FarmManager') => inputControlsClient.managerInvitations(
+  new CreateManagerInvitationRequest({ personId, expiresInHours, role }));

@@ -204,16 +204,18 @@ export function MobileNavigation() {
 
       <nav className="mobile-bottom-navigation" aria-label="Primary navigation">
         {primaryItems.map((item) => <NavigationLink key={item.id} item={item} compact />)}
-        <button
-          type="button"
-          className={`navigation-link is-compact${moreIsActive || isOpen ? ' is-active' : ''}`}
-          onClick={() => setIsOpen(true)}
-          aria-expanded={isOpen}
-          aria-controls="mobile-menu"
-        >
-          <MoreHorizontal size={20} aria-hidden="true" />
-          <span>More</span>
-        </button>
+        {secondaryItems.length > 0 && (
+          <button
+            type="button"
+            className={`navigation-link is-compact${moreIsActive || isOpen ? ' is-active' : ''}`}
+            onClick={() => setIsOpen(true)}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
+          >
+            <MoreHorizontal size={20} aria-hidden="true" />
+            <span>More</span>
+          </button>
+        )}
       </nav>
     </>
   );

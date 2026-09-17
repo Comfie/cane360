@@ -1,3 +1,5 @@
+import { protectedNavigation } from '../../navigation.ts';
+
 export function postLoginDestination(session: { hasTenant: boolean }, requestedUrl?: string): string {
   if (!session.hasTenant) return '/activate';
   if (typeof requestedUrl === 'string' && requestedUrl.startsWith('/') && !requestedUrl.startsWith('//')) {
@@ -6,7 +8,7 @@ export function postLoginDestination(session: { hasTenant: boolean }, requestedU
   return '/';
 }
 
-const fullNavigation = ['dashboard', 'farm', 'fields', 'activities', 'labour', 'inventory', 'finance', 'reports', 'administration'] as const;
+const fullNavigation: readonly string[] = protectedNavigation.map((item) => item.id);
 
 export function roleNavigationIds(role: string | null): readonly string[] {
   if (role === 'Grower' || role === 'FarmManager') return fullNavigation;
