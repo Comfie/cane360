@@ -30,7 +30,7 @@ export function CropCycleOverviewPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    cropCyclesClient.cropCyclesGET2(fieldId, cropCycleId)
+    cropCyclesClient.cropCycles(fieldId, cropCycleId)
       .then(setDetails)
       .catch((requestError) => setError(getApiError(requestError)))
       .finally(() => setIsLoading(false));

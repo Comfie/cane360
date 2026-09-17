@@ -49,10 +49,10 @@ export function AdministrationPage() {
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
-    const nextSession = await administration.session();
+    const nextSession = await administration.getSessionAdministration();
     const [nextOverview, nextUsers, nextTypes, nextUnits] = await Promise.all([
       administration.overview(), nextSession.role === 'Grower' ? administration.users() : Promise.resolve([]),
-      activities.activityTypesAll(), inventory.unitsAll(),
+      activities.getActivityTypes(), inventory.getUnitsInventory(),
     ]);
     setSession(nextSession);
     setOverview(nextOverview);
@@ -63,9 +63,9 @@ export function AdministrationPage() {
 
   useEffect(() => {
     let active = true;
-    administration.session().then((currentSession) => Promise.all([Promise.resolve(currentSession),
+    administration.getSessionAdministration().then((currentSession) => Promise.all([Promise.resolve(currentSession),
       administration.overview(), currentSession.role === 'Grower' ? administration.users() : Promise.resolve([]),
-      activities.activityTypesAll(), inventory.unitsAll()]))
+      activities.getActivityTypes(), inventory.getUnitsInventory()]))
       .then(([nextSession, nextOverview, nextUsers, nextTypes, nextUnits]) => {
         if (!active) return;
         setSession(nextSession);
@@ -256,7 +256,7 @@ function ActivityTypes({ types, onChange }: { types: ActivityTypeDto[]; onChange
   const [basis, setBasis] = useState('None');
   const create = async (event: FormEvent) => {
     event.preventDefault();
-    await onChange(() => activities.activityTypesPOST(new CreateActivityTypeRequest({
+    await onChange(() => activities.createActivityTypes(new CreateActivityTypeRequest({
       code, name, supportsPlanned: planned, supportsUnplanned: unplanned, quantityBasis: basis,
     })));
     setCode(''); setName('');
@@ -276,7 +276,7 @@ function ActivityTypes({ types, onChange }: { types: ActivityTypeDto[]; onChange
       <div><span>Planned: {type.supportsPlanned ? 'Yes' : 'No'}</span><span>Unplanned: {type.supportsUnplanned ? 'Yes' : 'No'}</span><span>{type.status}</span></div>
       {editing === type.id && <form className="administration-form" onSubmit={async (event) => {
         event.preventDefault();
-        await onChange(() => activities.activityTypesPUT(type.id,
+        await onChange(() => activities.activityTypes(type.id,
           new RenameActivityTypeRequest({ name: editName, expectedVersion: type.version })));
         setEditing(null);
       }}><label>Name<input required maxLength={100} value={editName}
@@ -285,7 +285,7 @@ function ActivityTypes({ types, onChange }: { types: ActivityTypeDto[]; onChange
       {type.status === 'Active' && editing !== type.id && <button type="button"
         onClick={() => { setEditing(type.id); setEditName(type.name); }}>Edit name</button>}
       {type.status === 'Active' && <button type="button" onClick={() => onChange(() =>
-        activities.archive(type.id, new VersionedRequest({ expectedVersion: type.version })))}>Archive</button>}
+        activities.archiveActivityTypes(type.id, new VersionedRequest({ expectedVersion: type.version })))}>Archive</button>}
     </article>)}</div>
   </section>;
 }
@@ -297,7 +297,7 @@ function Units({ units, onChange }: { units: UnitOfMeasureDto[]; onChange: (acti
   const [dimension, setDimension] = useState(''); const [places, setPlaces] = useState(2);
   const create = async (event: FormEvent) => {
     event.preventDefault();
-    await onChange(() => inventory.unitsPOST(new CreateUnitOfMeasureRequest({ code, name, dimension, decimalPlaces: places })));
+    await onChange(() => inventory.createUnitInventory(new CreateUnitOfMeasureRequest({ code, name, dimension, decimalPlaces: places })));
     setCode(''); setName(''); setDimension('');
   };
   return <section className="record-panel"><h2>Units of Measure</h2>
@@ -313,7 +313,7 @@ function Units({ units, onChange }: { units: UnitOfMeasureDto[]; onChange: (acti
       <span>{unit.status}</span>
       {editing === unit.id && <form className="administration-form" onSubmit={async (event) => {
         event.preventDefault();
-        await onChange(() => inventory.unitsPUT(unit.id,
+        await onChange(() => inventory.units(unit.id,
           new RenameUnitOfMeasureRequest({ name: editName, expectedVersion: unit.version })));
         setEditing(null);
       }}><label>Name<input required maxLength={80} value={editName}
@@ -322,7 +322,7 @@ function Units({ units, onChange }: { units: UnitOfMeasureDto[]; onChange: (acti
       {unit.status === 'Active' && editing !== unit.id && <button type="button"
         onClick={() => { setEditing(unit.id); setEditName(unit.name); }}>Edit name</button>}
       {unit.status === 'Active' && <button type="button" onClick={() => onChange(() =>
-        inventory.archive3(unit.id, new VersionedInventoryRequest({ expectedVersion: unit.version })))}>Archive</button>}
+        inventory.archiveUnitInventory(unit.id, new VersionedInventoryRequest({ expectedVersion: unit.version })))}>Archive</button>}
     </article>)}</div>
   </section>;
 }
@@ -341,13 +341,13 @@ function Rules({ types, onChange }: { types: ActivityTypeDto[];
   const [upper, setUpper] = useState(0);
   const [error, setError] = useState('');
   const load = useCallback(async () => {
-    const [nextRules, nextItems] = await Promise.all([administration.rulesAll(), administration.ruleItems()]);
+    const [nextRules, nextItems] = await Promise.all([administration.getRulesAdministration(), administration.ruleItems()]);
     setRules(nextRules); setItems(nextItems);
     setItemId((current) => current || nextItems[0]?.id || '');
   }, []);
   useEffect(() => {
     let active = true;
-    Promise.all([administration.rulesAll(), administration.ruleItems()])
+    Promise.all([administration.getRulesAdministration(), administration.ruleItems()])
       .then(([nextRules, nextItems]) => {
         if (!active) return;
         setRules(nextRules); setItems(nextItems); setItemId(nextItems[0]?.id || '');
@@ -359,7 +359,7 @@ function Rules({ types, onChange }: { types: ActivityTypeDto[];
     event.preventDefault();
     try {
       setError('');
-      await onChange(() => inputControls.rules(new CreateInventoryApplicationRuleRequest({
+      await onChange(() => inputControls.createRuleInputControls(new CreateInventoryApplicationRuleRequest({
         inventoryItemId: itemId, activityTypeId: typeId, effectiveFrom: new Date(`${from}T00:00:00Z`),
         effectiveTo: to ? new Date(`${to}T00:00:00Z`) : undefined,
         coverageBasis: basis, ratePerCoverageUnit: rate,
@@ -393,7 +393,7 @@ function Rules({ types, onChange }: { types: ActivityTypeDto[];
       <div><span>−{rule.lowerTolerancePercent}% / +{rule.upperTolerancePercent}%</span>
         <span>{rule.effectiveFrom.toLocaleDateString()} – {rule.effectiveTo?.toLocaleDateString() || 'open'}</span></div>
       {!rule.effectiveTo && <EndDateAction label="End rule" onEnd={async (date) => {
-        await onChange(() => administration.end(rule.id,
+        await onChange(() => administration.endRuleAdministration(rule.id,
           new EndEffectiveRuleRequest({ effectiveTo: date, expectedVersion: rule.version })));
         await load();
       }} />}
@@ -408,16 +408,16 @@ function FarmSettings({ onChange }: { onChange: (action: () => Promise<unknown>)
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [error, setError] = useState('');
-  const load = useCallback(async () => setSettings(await administration.settingsAll()), []);
+  const load = useCallback(async () => setSettings(await administration.getSettingsAdministration()), []);
   useEffect(() => {
     let active = true;
-    administration.settingsAll().then((items) => { if (active) setSettings(items); })
+    administration.getSettingsAdministration().then((items) => { if (active) setSettings(items); })
       .catch((cause) => { if (active) setError(getApiError(cause)); });
     return () => { active = false; };
   }, []);
   const create = async (event: FormEvent) => {
     event.preventDefault();
-    await onChange(() => administration.settings(new CreateFarmSettingRequest({
+    await onChange(() => administration.createSettingAdministration(new CreateFarmSettingRequest({
       key: 'ActivityLateEntryReasonDays', value: days,
       effectiveFrom: new Date(`${from}T00:00:00Z`),
       effectiveTo: to ? new Date(`${to}T00:00:00Z`) : undefined,
@@ -438,7 +438,7 @@ function FarmSettings({ onChange }: { onChange: (action: () => Promise<unknown>)
       <strong>{setting.label}: {setting.value} days</strong>
       <span>{setting.effectiveFrom.toLocaleDateString()} – {setting.effectiveTo?.toLocaleDateString() || 'open'}</span>
       {!setting.effectiveTo && <EndDateAction label="End setting" onEnd={async (date) => {
-        await onChange(() => administration.end2(setting.id,
+        await onChange(() => administration.endSettingAdministration(setting.id,
           new EndEffectiveRuleRequest({ effectiveTo: date, expectedVersion: setting.version })));
         await load();
       }} />}
@@ -466,16 +466,16 @@ function DocumentCategories({ onChange }: { onChange: (action: () => Promise<unk
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [error, setError] = useState('');
-  const load = useCallback(async () => setCategories(await administration.documentCategoriesAll()), []);
+  const load = useCallback(async () => setCategories(await administration.getCategoriesAdministration()), []);
   useEffect(() => {
     let active = true;
-    administration.documentCategoriesAll().then((items) => { if (active) setCategories(items); })
+    administration.getCategoriesAdministration().then((items) => { if (active) setCategories(items); })
       .catch((cause) => { if (active) setError(getApiError(cause)); });
     return () => { active = false; };
   }, []);
   const create = async (event: FormEvent) => {
     event.preventDefault();
-    await onChange(() => administration.documentCategoriesPOST(new CreateDocumentCategoryRequest({
+    await onChange(() => administration.createCategoryAdministration(new CreateDocumentCategoryRequest({
       code, name, description: description || undefined,
     })));
     await load();
@@ -495,7 +495,7 @@ function DocumentCategories({ onChange }: { onChange: (action: () => Promise<unk
       <span>{category.active ? 'Active' : 'Archived'}</span>
       {editing === category.id && <form className="administration-form" onSubmit={async (event) => {
         event.preventDefault();
-        await onChange(() => administration.documentCategoriesPUT(category.id,
+        await onChange(() => administration.documentCategories(category.id,
           new UpdateDocumentCategoryRequest({ name: editName,
             description: editDescription || undefined, expectedVersion: category.version })));
         await load(); setEditing(null);
@@ -509,7 +509,7 @@ function DocumentCategories({ onChange }: { onChange: (action: () => Promise<unk
         setEditDescription(category.description || '');
       }}>Edit</button>}
       {category.active && <button type="button" onClick={async () => {
-        await onChange(() => administration.archive2(category.id,
+        await onChange(() => administration.archiveCategoryAdministration(category.id,
           new ArchiveDocumentCategoryRequest({ expectedVersion: category.version })));
         await load();
       }}>Archive</button>}

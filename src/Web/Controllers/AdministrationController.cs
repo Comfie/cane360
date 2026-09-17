@@ -22,12 +22,12 @@ public sealed class AdministrationController(AdministrationService administratio
         CancellationToken cancellationToken) =>
         Ok(await administration.ManagerAccessAsync(cancellationToken));
 
-    [HttpGet("rules")]
+    [HttpGet("rules", Name = "GetRulesAdministration")]
     public async Task<ActionResult<IReadOnlyList<AdministrationRuleDto>>> Rules(
         CancellationToken cancellationToken) =>
         Ok(await administration.RulesAsync(cancellationToken));
 
-    [HttpPost("rules/{ruleId:guid}/end")]
+    [HttpPost("rules/{ruleId:guid}/end", Name = "EndRuleAdministration")]
     public async Task<ActionResult<AdministrationRuleDto>> EndRule(Guid ruleId,
         EndEffectiveRuleRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.EndRuleAsync(ruleId, request.EffectiveTo,
@@ -38,29 +38,29 @@ public sealed class AdministrationController(AdministrationService administratio
         CancellationToken cancellationToken) =>
         Ok(await administration.RuleItemsAsync(cancellationToken));
 
-    [HttpGet("settings")]
+    [HttpGet("settings", Name = "GetSettingsAdministration")]
     public async Task<ActionResult<IReadOnlyList<FarmSettingDto>>> Settings(
         CancellationToken cancellationToken) =>
         Ok(await administration.SettingsAsync(cancellationToken));
 
-    [HttpPost("settings")]
+    [HttpPost("settings", Name = "CreateSettingAdministration")]
     public async Task<ActionResult<FarmSettingDto>> CreateSetting(
         CreateFarmSettingRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.CreateSettingAsync(request.Key, request.Value,
             request.EffectiveFrom, request.EffectiveTo, cancellationToken));
 
-    [HttpPost("settings/{settingId:guid}/end")]
+    [HttpPost("settings/{settingId:guid}/end", Name = "EndSettingAdministration")]
     public async Task<ActionResult<FarmSettingDto>> EndSetting(Guid settingId,
         EndEffectiveRuleRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.EndSettingAsync(settingId, request.EffectiveTo,
             request.ExpectedVersion, cancellationToken));
 
-    [HttpGet("document-categories")]
+    [HttpGet("document-categories", Name = "GetCategoriesAdministration")]
     public async Task<ActionResult<IReadOnlyList<DocumentCategoryDto>>> Categories(
         CancellationToken cancellationToken) =>
         Ok(await administration.CategoriesAsync(cancellationToken));
 
-    [HttpPost("document-categories")]
+    [HttpPost("document-categories", Name = "CreateCategoryAdministration")]
     public async Task<ActionResult<DocumentCategoryDto>> CreateCategory(
         CreateDocumentCategoryRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.CreateCategoryAsync(request.Code, request.Name,
@@ -72,13 +72,13 @@ public sealed class AdministrationController(AdministrationService administratio
         Ok(await administration.UpdateCategoryAsync(categoryId, request.Name,
             request.Description, request.ExpectedVersion, cancellationToken));
 
-    [HttpPost("document-categories/{categoryId:guid}/archive")]
+    [HttpPost("document-categories/{categoryId:guid}/archive", Name = "ArchiveCategoryAdministration")]
     public async Task<ActionResult<DocumentCategoryDto>> ArchiveCategory(Guid categoryId,
         ArchiveDocumentCategoryRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.ArchiveCategoryAsync(categoryId,
             request.ExpectedVersion, cancellationToken));
 
-    [HttpGet("session")]
+    [HttpGet("session", Name = "GetSessionAdministration")]
     public async Task<ActionResult<AdministrationSessionDto>> Session(
         CancellationToken cancellationToken) =>
         Ok(await administration.SessionAsync(cancellationToken));
@@ -106,7 +106,7 @@ public sealed class AdministrationController(AdministrationService administratio
         [FromQuery] AdministrationAuditRequest request, CancellationToken cancellationToken) =>
         Ok(await administration.AuditAsync(ToFilter(request), cancellationToken));
 
-    [HttpGet("audit/{eventId:guid}")]
+    [HttpGet("audit/{eventId:guid}", Name = "GetAdministrationAuditDetail")]
     public async Task<ActionResult<AdministrationAuditDto>> AuditDetail(
         Guid eventId, CancellationToken cancellationToken) =>
         Ok(await administration.AuditDetailAsync(eventId, cancellationToken));

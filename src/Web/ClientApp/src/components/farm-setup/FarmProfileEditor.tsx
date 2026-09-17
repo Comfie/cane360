@@ -27,7 +27,7 @@ export function FarmProfileEditor({ setup, onClose, onSaved }: FarmProfileEditor
     setError('');
     setSaving(true);
     try {
-      onSaved(await farmSetupClient.farmPUT(new UpdateFarmInformationRequest({
+      onSaved(await farmSetupClient.updateFarmFarmSetup(new UpdateFarmInformationRequest({
         growerDisplayName: String(data.get('growerDisplayName')).trim(),
         growerPhone: optionalValue(data.get('growerPhone')),
         farmCode: String(data.get('farmCode')).trim(),

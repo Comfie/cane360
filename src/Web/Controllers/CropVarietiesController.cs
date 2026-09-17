@@ -11,12 +11,12 @@ namespace Cane360.Web.Controllers;
 [Route("api/[controller]")]
 public sealed class CropVarietiesController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetCropVarieties")]
     [ProducesResponseType<IReadOnlyList<CropVarietyDto>>(StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<CropVarietyDto>>> Get(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetCropVarietiesQuery(), cancellationToken));
 
-    [HttpPost]
+    [HttpPost(Name = "CreateCropVarieties")]
     [ProducesResponseType<CropVarietyDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CropVarietyDto>> Create(

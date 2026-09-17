@@ -98,6 +98,12 @@ cd src/Web/ClientApp
 npm run generate-api
 ```
 
+Client generation and the Vercel build check for generated method names ending in
+digits. Give the corresponding controller action an explicit HTTP route `Name`
+when a route collision causes one. For a legitimate digit-ending name such as
+`sha256`, add its exact `ClientClass.methodName` entry to
+`src/Web/ClientApp/scripts/client-method-digit-allowlist.json`.
+
 ## Authentication API
 
 ASP.NET Core Identity is exposed through `UsersController`:

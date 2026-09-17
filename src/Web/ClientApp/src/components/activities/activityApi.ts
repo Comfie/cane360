@@ -25,7 +25,7 @@ export function localDate(date: string): Date {
 }
 
 export function createActivity(values: CreateActivityValues) {
-  return activitiesClient.activitiesPOST(new CreateActivityRequest({
+  return activitiesClient.createActivities(new CreateActivityRequest({
     ...values,
     plannedDate: values.plannedDate ? localDate(values.plannedDate) : undefined,
   }));
@@ -45,7 +45,7 @@ export function transitionActivity(activityId: string, action: string, expectedV
   if (action === 'Planned') return activitiesClient.planned(activityId, request);
   if (action === 'InProgress') return activitiesClient.inProgress(activityId, request);
   if (action === 'AwaitingVerification') return activitiesClient.awaitingVerification(activityId, request);
-  if (action === 'ManagerConfirmation') return activitiesClient.managerConfirmation(activityId, request);
+  if (action === 'ManagerConfirmation') return activitiesClient.confirmActivityManagerTransition(activityId, request);
   if (action === 'Completed') return activitiesClient.completed(activityId, request);
   if (action === 'Closed') return activitiesClient.closed(activityId, request);
   if (action === 'Cancelled') return activitiesClient.cancelled(activityId, request);

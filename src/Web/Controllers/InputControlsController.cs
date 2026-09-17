@@ -17,7 +17,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         [FromQuery] Guid? activityId, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetInputControlWorkspaceQuery(activityId), cancellationToken));
 
-    [HttpPost("rules")]
+    [HttpPost("rules", Name = "CreateRuleInputControls")]
     public async Task<ActionResult<InventoryApplicationRuleDto>> CreateRule(
         CreateInventoryApplicationRuleRequest request, CancellationToken cancellationToken) =>
         CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInventoryApplicationRuleCommand(
@@ -32,7 +32,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
             request.ActivityId, request.Lines.Select(line => new CreateInputRequestLineCommand(
                 line.InventoryItemId, line.RequestedQuantity)).ToArray()), cancellationToken));
 
-    [HttpPut("requests/{requestId:guid}/lines/{lineId:guid}")]
+    [HttpPut("requests/{requestId:guid}/lines/{lineId:guid}", Name = "EditInputRequestLine")]
     public async Task<IActionResult> EditRequestLine(Guid requestId, Guid lineId,
         EditInputRequestLineRequest request, CancellationToken cancellationToken)
     {
@@ -41,7 +41,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("requests/{requestId:guid}/submit")]
+    [HttpPost("requests/{requestId:guid}/submit", Name = "SubmitRequestInputControls")]
     public async Task<IActionResult> SubmitRequest(Guid requestId,
         PostStockReceiptRequest request, CancellationToken cancellationToken)
     {
@@ -50,7 +50,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("requests/{requestId:guid}/decision")]
+    [HttpPost("requests/{requestId:guid}/decision", Name = "DecideRequestInputControls")]
     public async Task<IActionResult> DecideRequest(Guid requestId,
         DecideInputRequestRequest request, CancellationToken cancellationToken)
     {
@@ -61,7 +61,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("requests/{requestId:guid}/cancel")]
+    [HttpPost("requests/{requestId:guid}/cancel", Name = "CancelRequestInputControls")]
     public async Task<IActionResult> CancelRequest(Guid requestId,
         CancelInputRequestRequest request, CancellationToken cancellationToken)
     {
@@ -79,7 +79,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
             request.Lines.Select(line => new CreateStockIssueLineCommand(
                 line.InputRequestLineId, line.InventoryLotId, line.Quantity)).ToArray()), cancellationToken));
 
-    [HttpPost("issues/{issueId:guid}/post")]
+    [HttpPost("issues/{issueId:guid}/post", Name = "PostIssueInputControls")]
     public async Task<IActionResult> PostIssue(Guid issueId,
         PostStockReceiptRequest request, CancellationToken cancellationToken)
     {
@@ -97,7 +97,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("issues/{issueId:guid}/reverse")]
+    [HttpPost("issues/{issueId:guid}/reverse", Name = "ReverseIssueInputControls")]
     public async Task<IActionResult> ReverseIssue(Guid issueId,
         ReverseStockIssueRequest request, CancellationToken cancellationToken)
     {
@@ -139,14 +139,14 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
             request.ReturnDate, request.SenderPersonId, request.ReceiverPersonId, request.Lines.Select(x =>
                 new CreateStockReturnLineCommand(x.StockIssueLineId, x.Quantity)).ToArray()), cancellationToken));
 
-    [HttpPost("returns/{stockReturnId:guid}/post")]
+    [HttpPost("returns/{stockReturnId:guid}/post", Name = "PostReturnInputControls")]
     public async Task<IActionResult> PostReturn(Guid stockReturnId, PostStockReturnRequest request, CancellationToken cancellationToken)
     {
         await sender.Send(new PostStockReturnCommand(stockReturnId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken);
         return NoContent();
     }
 
-    [HttpPost("returns/{stockReturnId:guid}/reverse")]
+    [HttpPost("returns/{stockReturnId:guid}/reverse", Name = "ReverseReturnInputControls")]
     public async Task<IActionResult> ReverseReturn(Guid stockReturnId, ReverseStockReturnRequest request, CancellationToken cancellationToken)
     {
         await sender.Send(new ReverseStockReturnCommand(stockReturnId, request.ExpectedVersion,
@@ -159,14 +159,14 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         CreatedAtAction(nameof(Workspace), await sender.Send(new CreateInventoryLossCommand(request.ActivityId,
             request.StockIssueLineId, request.Quantity, request.LossType, request.Reason), cancellationToken));
 
-    [HttpPost("losses/{lossId:guid}/submit")]
+    [HttpPost("losses/{lossId:guid}/submit", Name = "SubmitLossInputControls")]
     public async Task<IActionResult> SubmitLoss(Guid lossId, VersionedInventoryRequest request, CancellationToken cancellationToken)
     {
         await sender.Send(new SubmitInventoryLossCommand(lossId, request.ExpectedVersion), cancellationToken);
         return NoContent();
     }
 
-    [HttpPost("losses/{lossId:guid}/decision")]
+    [HttpPost("losses/{lossId:guid}/decision", Name = "DecideLossInputControls")]
     public async Task<IActionResult> DecideLoss(Guid lossId, DecideInventoryLossRequest request, CancellationToken cancellationToken)
     {
         await sender.Send(new DecideInventoryLossCommand(lossId, request.ExpectedVersion, request.Outcome,
@@ -174,14 +174,14 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("corrections")]
+    [HttpPost("corrections", Name = "CreateFieldAccountabilityCorrectionInputControls")]
     public async Task<ActionResult<Guid>> CreateFieldAccountabilityCorrection(
         CreateFieldAccountabilityCorrectionRequest request, CancellationToken cancellationToken) =>
         CreatedAtAction(nameof(Workspace), await sender.Send(new CreateFieldAccountabilityCorrectionCommand(
             request.FieldReceiptId, request.InputApplicationId, request.StockReturnId, request.InventoryLossId,
             request.SourceVersion, request.Reason, request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("corrections/{correctionId:guid}/decision")]
+    [HttpPost("corrections/{correctionId:guid}/decision", Name = "DecideFieldAccountabilityCorrectionInputControls")]
     public async Task<IActionResult> DecideFieldAccountabilityCorrection(Guid correctionId,
         DecideFieldAccountabilityCorrectionRequest request, CancellationToken cancellationToken)
     {

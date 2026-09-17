@@ -25,11 +25,11 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         [FromQuery] Guid? itemId, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockMovementsQuery(itemId), cancellationToken));
 
-    [HttpGet("counts")]
+    [HttpGet("counts", Name = "GetCountsInventory")]
     public async Task<ActionResult<IReadOnlyList<StockCountDto>>> Counts(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockCountsQuery(), cancellationToken));
 
-    [HttpGet("adjustments")]
+    [HttpGet("adjustments", Name = "GetAdjustmentsInventory")]
     public async Task<ActionResult<IReadOnlyList<StockAdjustmentDto>>> Adjustments(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockAdjustmentsQuery(), cancellationToken));
 
@@ -50,7 +50,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         return File(Encoding.UTF8.GetBytes(export.Content), "text/csv; charset=utf-8", export.FileName);
     }
 
-    [HttpPost("counts")]
+    [HttpPost("counts", Name = "CreateCountInventory")]
     public async Task<ActionResult<StockCountDto>> CreateCount(CreateStockCountRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
@@ -62,7 +62,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     public async Task<ActionResult<StockCountDto>> StartCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new StartStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("counts/{countId:guid}/lines/{lineId:guid}")]
+    [HttpPost("counts/{countId:guid}/lines/{lineId:guid}", Name = "EnterStockCountLine")]
     public async Task<ActionResult<StockCountDto>> EnterCountLine(Guid countId, Guid lineId, EnterStockCountLineRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new EnterStockCountLineCommand(countId, lineId, request.CountedQuantity, request.Notes, request.ExpectedVersion), cancellationToken));
 
@@ -74,11 +74,11 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     public async Task<ActionResult<StockCountDto>> ReviewCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReviewStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("counts/{countId:guid}/cancel")]
+    [HttpPost("counts/{countId:guid}/cancel", Name = "CancelCountInventory")]
     public async Task<ActionResult<StockCountDto>> CancelCount(Guid countId, CancelStockCountRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new CancelStockCountCommand(countId, request.ExpectedVersion, request.Reason), cancellationToken));
 
-    [HttpPost("adjustments")]
+    [HttpPost("adjustments", Name = "CreateAdjustmentInventory")]
     public async Task<ActionResult<StockAdjustmentDto>> CreateAdjustment(CreateStockAdjustmentRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
@@ -86,23 +86,23 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(Workspace), adjustment);
     }
 
-    [HttpPost("adjustments/{adjustmentId:guid}/submit")]
+    [HttpPost("adjustments/{adjustmentId:guid}/submit", Name = "SubmitAdjustmentInventory")]
     public async Task<ActionResult<StockAdjustmentDto>> SubmitAdjustment(Guid adjustmentId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new SubmitStockAdjustmentCommand(adjustmentId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("adjustments/{adjustmentId:guid}/decision")]
+    [HttpPost("adjustments/{adjustmentId:guid}/decision", Name = "DecideAdjustmentInventory")]
     public async Task<ActionResult<StockAdjustmentDto>> DecideAdjustment(Guid adjustmentId, DecideStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new DecideStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.Outcome, request.Reason, request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("adjustments/{adjustmentId:guid}/post")]
+    [HttpPost("adjustments/{adjustmentId:guid}/post", Name = "PostAdjustmentInventory")]
     public async Task<ActionResult<StockAdjustmentDto>> PostAdjustment(Guid adjustmentId, PostStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new PostStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("adjustments/{adjustmentId:guid}/reverse")]
+    [HttpPost("adjustments/{adjustmentId:guid}/reverse", Name = "ReverseAdjustmentInventory")]
     public async Task<ActionResult<StockAdjustmentDto>> ReverseAdjustment(Guid adjustmentId, ReverseStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReverseStockAdjustmentCommand(adjustmentId, request.Reason, request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("units")]
+    [HttpPost("units", Name = "CreateUnitInventory")]
     public async Task<ActionResult<UnitOfMeasureDto>> CreateUnit(
         CreateUnitOfMeasureRequest request, CancellationToken cancellationToken)
     {
@@ -111,12 +111,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(Workspace), result);
     }
 
-    [HttpGet("units")]
+    [HttpGet("units", Name = "GetUnitsInventory")]
     public async Task<ActionResult<IReadOnlyList<UnitOfMeasureDto>>> Units(
         CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetUnitsOfMeasureQuery(), cancellationToken));
 
-    [HttpPost("units/{unitId:guid}/archive")]
+    [HttpPost("units/{unitId:guid}/archive", Name = "ArchiveUnitInventory")]
     public async Task<ActionResult<UnitOfMeasureDto>> ArchiveUnit(Guid unitId,
         VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ArchiveUnitOfMeasureCommand(unitId, request.ExpectedVersion),
@@ -195,13 +195,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
             receiptId, request.ExpectedVersion, request.Outcome, request.Reason,
             request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("receipts/{receiptId:guid}/post")]
+    [HttpPost("receipts/{receiptId:guid}/post", Name = "PostReceiptInventory")]
     public async Task<ActionResult<StockReceiptDto>> PostReceipt(
         Guid receiptId, PostStockReceiptRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new PostStockReceiptCommand(
             receiptId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken));
 
-    [HttpPost("receipts/{receiptId:guid}/reverse")]
+    [HttpPost("receipts/{receiptId:guid}/reverse", Name = "ReverseReceiptInventory")]
     public async Task<ActionResult<StockReceiptDto>> ReverseReceipt(
         Guid receiptId, ReverseStockReceiptRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReverseStockReceiptCommand(

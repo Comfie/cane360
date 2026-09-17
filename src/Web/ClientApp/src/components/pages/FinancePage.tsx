@@ -60,7 +60,7 @@ export function FinancePage() {
     let current = true;
     Promise.all([financeApi.getFinanceTransactions(undefined, undefined, undefined, undefined, undefined, undefined, 1, 50), farmApi.farmSetup(), financeApi.getFinanceSession()])
       .then(async ([nextTransactions, setup, session]) => {
-        const collections = await Promise.all((setup.farm?.fields ?? []).map((field) => cyclesApi.cropCyclesGET(field.id)));
+        const collections = await Promise.all((setup.farm?.fields ?? []).map((field) => cyclesApi.getCropCycles(field.id)));
         if (!current) return;
         setTransactions(nextTransactions.items); setTransactionTotals(nextTransactions); setFarm(setup); setRole(session.securityRole);
         setCycles(collections.flatMap((collection) => collection.cropCycles.map((cycle) => ({

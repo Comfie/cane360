@@ -33,7 +33,7 @@ export function FieldsPage() {
       return () => { isCurrent = false; };
     }
 
-    Promise.all(fieldKey.split(',').map((fieldId) => cropCyclesClient.cropCyclesGET(fieldId)))
+    Promise.all(fieldKey.split(',').map((fieldId) => cropCyclesClient.getCropCycles(fieldId)))
       .then((collections) => { if (isCurrent) setCycleCollections(collections); })
       .catch((requestError) => { if (isCurrent) setError(getApiError(requestError)); })
       .finally(() => { if (isCurrent) setLoadedFieldKey(fieldKey); });
@@ -59,7 +59,7 @@ export function FieldsPage() {
 
   const reloadFieldCycles = async (fieldId: string) => {
     try {
-      const collection = await cropCyclesClient.cropCyclesGET(fieldId);
+      const collection = await cropCyclesClient.getCropCycles(fieldId);
       setCycleCollections((current) => [...current.filter((item) => item.field.id !== fieldId), collection]);
     } catch (requestError) {
       setError(getApiError(requestError));

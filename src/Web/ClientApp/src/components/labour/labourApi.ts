@@ -27,7 +27,7 @@ type WorkScopeValues = Pick<IWorkScopeRequest, 'type' | 'startLine' | 'endLine' 
 type CreateWorkRecordValues = Omit<ICreateWorkRecordRequest, 'scope'> & { scope?: WorkScopeValues };
 
 export function createWorker(values: CreateWorkerValues) {
-  return workersClient.workersPOST(new CreateWorkerRequest({
+  return workersClient.createWorkers(new CreateWorkerRequest({
     personId: undefined,
     displayName: values.displayName,
     phone: values.phone,
@@ -47,10 +47,10 @@ export function createRate(workerId: string, values: CreateRateValues) {
   }));
 }
 
-export function getAttendance(date: string) { return attendanceClient.attendanceGET(dateOnly(date)); }
+export function getAttendance(date: string) { return attendanceClient.getAttendance(dateOnly(date)); }
 
 export function saveAttendance(date: string, lateReason: string | undefined, entries: readonly AttendanceEntryValues[]) {
-  return attendanceClient.attendancePUT(new RecordAttendanceRequest({
+  return attendanceClient.recordAttendance(new RecordAttendanceRequest({
     workDate: dateOnly(date),
     lateEntryReason: lateReason,
     entries: entries.map((entry) => new AttendanceEntryRequest({
@@ -63,7 +63,7 @@ export function saveAttendance(date: string, lateReason: string | undefined, ent
 }
 
 export function createWorkRecord(values: CreateWorkRecordValues) {
-  return workRecordsClient.workRecords(new CreateWorkRecordRequest({
+  return workRecordsClient.createWorkRecords(new CreateWorkRecordRequest({
     workerId: values.workerId,
     payBasis: values.payBasis,
     activityIds: values.activityIds,
@@ -84,5 +84,5 @@ export function verifyWork(workRecordId: string, supervisorPersonId: string, exp
 }
 
 export function confirmWork(workRecordId: string, expectedVersion: number) {
-  return workRecordsClient.managerConfirmation2(workRecordId, new ConfirmWorkRecordRequest({ expectedVersion }));
+  return workRecordsClient.confirmWorkRecords(workRecordId, new ConfirmWorkRecordRequest({ expectedVersion }));
 }

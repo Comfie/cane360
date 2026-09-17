@@ -45,7 +45,7 @@ export function ActivitiesPage() {
 
   const reload = async () => {
     try {
-      const result = await activitiesClient.activitiesGET(
+      const result = await activitiesClient.getActivities(
         undefined, undefined, undefined, undefined, undefined, undefined, 1, 100);
       setActivities(result.items);
     } catch (requestError) { setError(getApiError(requestError)); }
@@ -53,7 +53,7 @@ export function ActivitiesPage() {
 
   useEffect(() => {
     let current = true;
-    Promise.all([activitiesClient.activitiesGET(undefined, undefined, undefined, undefined, undefined, undefined, 1, 100), activityTypesClient.activityTypesAll(), personnelClient.farmPersonnelGET()])
+    Promise.all([activitiesClient.getActivities(undefined, undefined, undefined, undefined, undefined, undefined, 1, 100), activityTypesClient.getActivityTypes(), personnelClient.getFarmPersonnel()])
       .then(([activityResult, typeResult, personnelResult]) => {
         if (!current) return;
         setActivities(activityResult.items); setTypes(typeResult); setPersonnel(personnelResult);
@@ -77,7 +77,7 @@ export function ActivitiesPage() {
   if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent />;
 
   const openDetails = async (id: string) => {
-    try { setSelected(await activitiesClient.activitiesGET2(id)); }
+    try { setSelected(await activitiesClient.activities(id)); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
 
@@ -212,7 +212,7 @@ function ActivityTypeForm({ types, onSaved, onError }: ActivityTypeFormProps) {
       setSaving(false); onError('Select Planned, Unplanned, or both.'); return;
     }
     try {
-      const type = await activityTypesClient.activityTypesPOST(new CreateActivityTypeRequest({
+      const type = await activityTypesClient.createActivityTypes(new CreateActivityTypeRequest({
         code: String(data.get('code')).trim(),
         name: String(data.get('name')).trim(),
         supportsPlanned,

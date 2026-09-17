@@ -37,7 +37,7 @@ interface StockReceiptValues {
 }
 
 export function createUnit(values: ICreateUnitOfMeasureRequest) {
-  return inventoryClient.unitsPOST(new CreateUnitOfMeasureRequest(values));
+  return inventoryClient.createUnitInventory(new CreateUnitOfMeasureRequest(values));
 }
 
 export function createItem(values: ICreateInventoryItemRequest) {
@@ -73,25 +73,25 @@ export function decideOpeningBalance(receiptId: string, expectedVersion: number,
 }
 
 export function postReceipt(receiptId: string, expectedVersion: number) {
-  return inventoryClient.post3(receiptId, new PostStockReceiptRequest({
+  return inventoryClient.postAdjustmentInventory(receiptId, new PostStockReceiptRequest({
     expectedVersion,
     idempotencyKey: operationKey('receipt-post'),
   }));
 }
 
 export function reverseReceipt(receiptId: string, expectedVersion: number, reason: string) {
-  return inventoryClient.reverse3(receiptId, new ReverseStockReceiptRequest({
+  return inventoryClient.reverseAdjustmentInventory(receiptId, new ReverseStockReceiptRequest({
     expectedVersion,
     reason,
     idempotencyKey: operationKey('receipt-reversal'),
   }));
 }
 
-export function createStockCount(values: ICreateStockCountRequest) { return inventoryClient.counts(new CreateStockCountRequest(values)); }
+export function createStockCount(values: ICreateStockCountRequest) { return inventoryClient.createCountInventory(new CreateStockCountRequest(values)); }
 export function startStockCount(countId: string, expectedVersion: number) { return inventoryClient.start(countId, new VersionedInventoryRequest({ expectedVersion })); }
 export function reviewStockCount(countId: string, expectedVersion: number) { return inventoryClient.review(countId, new VersionedInventoryRequest({ expectedVersion })); }
-export function getStockCounts(): Promise<StockCountDto[]> { return inventoryClient.countsAll(); }
-export function getStockAdjustments(): Promise<StockAdjustmentDto[]> { return inventoryClient.adjustmentsAll(); }
+export function getStockCounts(): Promise<StockCountDto[]> { return inventoryClient.getCountsInventory(); }
+export function getStockAdjustments(): Promise<StockAdjustmentDto[]> { return inventoryClient.getAdjustmentsInventory(); }
 
 export function operationKey(operation: string): string {
   const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;

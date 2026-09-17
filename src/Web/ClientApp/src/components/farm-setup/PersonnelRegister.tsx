@@ -26,7 +26,7 @@ export function PersonnelRegister() {
 
   useEffect(() => {
     let current = true;
-    personnelClient.farmPersonnelGET().then((result) => { if (current) setRegister(result); })
+    personnelClient.getFarmPersonnel().then((result) => { if (current) setRegister(result); })
       .catch((requestError) => { if (current) setError(getApiError(requestError)); });
     return () => { current = false; };
   }, []);
@@ -74,12 +74,12 @@ export function PersonnelRegister() {
         isPrimaryManager: role === 'FarmManager' && isPrimaryManager,
       };
       setRegister(editingPerson
-        ? await personnelClient.farmPersonnelPUT(editingPerson.id, new UpdatePersonRequest({
+        ? await personnelClient.farmPersonnel(editingPerson.id, new UpdatePersonRequest({
           ...request,
           roleEffectiveFrom: new Date(`${roleEffectiveFrom}T00:00:00`),
           expectedVersion: editingPerson.version,
         }))
-        : await personnelClient.farmPersonnelPOST(new CreatePersonRequest({
+        : await personnelClient.createFarmPersonnel(new CreatePersonRequest({
           ...request,
           activeFrom: new Date(`${String(data.get('activeFrom'))}T00:00:00`),
           roles: [role],

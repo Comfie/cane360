@@ -43,11 +43,11 @@ export function LabourPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const reloadWorkers = async () => setWorkers(await workersClient.workersAll());
+  const reloadWorkers = async () => setWorkers(await workersClient.getWorkers());
   const reloadDate = async (nextDate: string = date): Promise<void> => {
     const [register, work, referenceData] = await Promise.all([
       getAttendance(nextDate),
-      workRecordsClient.workRecordsAll(dateOnly(nextDate), undefined, undefined),
+      workRecordsClient.getWorkRecords(dateOnly(nextDate), undefined, undefined),
       workRecordsClient.referenceData(dateOnly(nextDate)),
     ]);
     setAttendance(register); setRecords(work); setReferences(referenceData);
@@ -56,7 +56,7 @@ export function LabourPage() {
   useEffect(() => {
     let current = true;
     const initialDate = harareToday();
-    Promise.all([workersClient.workersAll(), getAttendance(initialDate), workRecordsClient.workRecordsAll(dateOnly(initialDate), undefined, undefined), workRecordsClient.referenceData(dateOnly(initialDate)), activityTypesClient.activityTypesAll()])
+    Promise.all([workersClient.getWorkers(), getAttendance(initialDate), workRecordsClient.getWorkRecords(dateOnly(initialDate), undefined, undefined), workRecordsClient.referenceData(dateOnly(initialDate)), activityTypesClient.getActivityTypes()])
       .then(([workerResult, register, work, referenceData, typeResult]) => {
         if (!current) return;
         setWorkers(workerResult); setAttendance(register); setRecords(work); setReferences(referenceData); setActivityTypes(typeResult);
@@ -72,7 +72,7 @@ export function LabourPage() {
   };
 
   const openWorker = async (workerId: string) => {
-    try { setSelectedWorker(await workersClient.workersGET2(workerId)); }
+    try { setSelectedWorker(await workersClient.getWorkerDetails(workerId)); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
 

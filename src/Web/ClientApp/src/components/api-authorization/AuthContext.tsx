@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = async (): Promise<SessionState> => {
     try {
-      const summary = await sessionClient.session2();
+      const summary = await sessionClient.getCurrentSession();
       const nextSession: SessionState = { hasTenant: summary.hasTenant, role: summary.role ?? null };
       setSession(nextSession);
       return nextSession;

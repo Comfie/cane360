@@ -12,15 +12,15 @@ namespace Cane360.Web.Controllers;
 [Route("api/workers")]
 public sealed class WorkersController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetWorkers")]
     public async Task<ActionResult<IReadOnlyList<WorkerListItemDto>>> Get(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetWorkersQuery(), cancellationToken));
 
-    [HttpGet("{workerId:guid}")]
+    [HttpGet("{workerId:guid}", Name = "GetWorkerDetails")]
     public async Task<ActionResult<WorkerDetailsDto>> GetById(Guid workerId, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
 
-    [HttpPost]
+    [HttpPost(Name = "CreateWorkers")]
     public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveFrom, out var activeFrom))
@@ -33,7 +33,7 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { workerId = result.Worker.Id }, result);
     }
 
-    [HttpPost("{workerId:guid}/archive")]
+    [HttpPost("{workerId:guid}/archive", Name = "ArchiveWorkers")]
     public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveTo, out var activeTo))

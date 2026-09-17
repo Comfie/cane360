@@ -25,7 +25,7 @@ public sealed class WorkerRatesController(ISender sender) : ControllerBase
             request.RateUsd, effectiveFrom, effectiveTo), cancellationToken));
     }
 
-    [HttpPost("{rateId:guid}/end")]
+    [HttpPost("{rateId:guid}/end", Name = "EndWorkerRates")]
     public async Task<ActionResult<WorkerDetailsDto>> End(Guid workerId, Guid rateId, EndWorkerRateRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EffectiveTo, out var effectiveTo))

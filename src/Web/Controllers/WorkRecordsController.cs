@@ -12,7 +12,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/work-records")]
 public sealed class WorkRecordsController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetWorkRecords")]
     public async Task<ActionResult<IReadOnlyList<WorkRecordDto>>> Get(
         [FromQuery] string? workDate, [FromQuery] Guid? workerId, [FromQuery] Guid? activityId,
         CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetLabourReferenceDataQuery(parsedDate), cancellationToken));
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateWorkRecords")]
     public async Task<ActionResult<WorkRecordDto>> Create(CreateWorkRecordRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.WorkDate, out var workDate))
@@ -53,11 +53,11 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
     public async Task<ActionResult<WorkRecordDto>> Verify(Guid workRecordId, VerifyWorkRecordRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new VerifyWorkRecordCommand(workRecordId, request.SupervisorPersonId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("{workRecordId:guid}/manager-confirmation")]
+    [HttpPost("{workRecordId:guid}/manager-confirmation", Name = "ConfirmWorkRecords")]
     public async Task<ActionResult<WorkRecordDto>> Confirm(Guid workRecordId, ConfirmWorkRecordRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ConfirmWorkRecordCommand(workRecordId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("{workRecordId:guid}/corrections")]
+    [HttpPost("{workRecordId:guid}/corrections", Name = "CorrectWorkRecords")]
     public async Task<ActionResult<WorkRecordDto>> Correct(Guid workRecordId, CorrectWorkRecordRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new CorrectWorkRecordCommand(workRecordId, request.ExpectedVersion, request.CorrectionReason,
             request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken));

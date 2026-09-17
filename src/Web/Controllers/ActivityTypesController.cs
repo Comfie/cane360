@@ -11,13 +11,13 @@ namespace Cane360.Web.Controllers;
 [Route("api/activity-types")]
 public sealed class ActivityTypesController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetActivityTypes")]
     [ProducesResponseType<IReadOnlyList<ActivityTypeDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<ActivityTypeDto>>> Get(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetActivityTypesQuery(), cancellationToken));
 
-    [HttpPost]
+    [HttpPost(Name = "CreateActivityTypes")]
     [ProducesResponseType<ActivityTypeDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -34,7 +34,7 @@ public sealed class ActivityTypesController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(Get), new { }, result);
     }
 
-    [HttpPost("{activityTypeId:guid}/archive")]
+    [HttpPost("{activityTypeId:guid}/archive", Name = "ArchiveActivityTypes")]
     [ProducesResponseType<ActivityTypeDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
