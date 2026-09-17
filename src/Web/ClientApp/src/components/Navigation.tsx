@@ -21,6 +21,7 @@ import type { MouseEvent } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { protectedNavigation } from '../navigation.ts';
 import type { NavigationId, NavigationItem } from '../navigation.ts';
+import { roleNavigationIds } from './api-authorization/activationView';
 import { useAuth } from './api-authorization/AuthContext';
 import { ThemeToggle } from './ThemeToggle';
 import { useDialogFocus } from './useDialogFocus';
@@ -82,8 +83,10 @@ interface DesktopNavigationProps {
 }
 
 export function DesktopNavigation({ collapsed, onToggle }: DesktopNavigationProps) {
-  const { accountEmail, logout } = useAuth();
+  const { accountEmail, logout, session } = useAuth();
   const navigate = useNavigate();
+  const allowedIds = roleNavigationIds(session.role);
+  const visibleNavigation = protectedNavigation.filter((item) => allowedIds.includes(item.id));
 
   const handleLogout = async () => {
     await logout();
@@ -112,7 +115,7 @@ export function DesktopNavigation({ collapsed, onToggle }: DesktopNavigationProp
         <strong>Farm setup pending</strong>
       </div>
       <nav className="navigation-list">
-        {protectedNavigation.map((item) => (
+        {visibleNavigation.map((item) => (
           <NavigationLink key={item.id} item={item} iconOnly={collapsed} />
         ))}
       </nav>
@@ -161,8 +164,11 @@ export function MobileNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const dialogRef = useDialogFocus<HTMLElement>(() => setIsOpen(false), isOpen);
   const location = useLocation();
-  const primaryItems = protectedNavigation.slice(0, 3);
-  const secondaryItems = protectedNavigation.slice(3);
+  const { session } = useAuth();
+  const allowedIds = roleNavigationIds(session.role);
+  const visibleNavigation = protectedNavigation.filter((item) => allowedIds.includes(item.id));
+  const primaryItems = visibleNavigation.slice(0, 3);
+  const secondaryItems = visibleNavigation.slice(3);
   const moreIsActive = secondaryItems.some((item) => item.path === location.pathname);
 
   return (

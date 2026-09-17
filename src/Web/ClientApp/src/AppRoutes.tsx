@@ -10,6 +10,7 @@ import { ActivitiesPage } from './components/pages/ActivitiesPage';
 import { LabourPage } from './components/pages/LabourPage';
 import { InventoryPage } from './components/pages/InventoryPage';
 import { Layout } from './components/Layout';
+import { ActivationPage } from './components/api-authorization/ActivationPage';
 import { LoginPage } from './components/api-authorization/LoginPage';
 import { ProtectedRoute } from './components/api-authorization/ProtectedRoute';
 import { RegisterPage } from './components/api-authorization/RegisterPage';
@@ -23,6 +24,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/activate" element={<ProtectedRoute><ActivationPage /></ProtectedRoute>} />
 
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />

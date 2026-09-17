@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '../AuthLayout';
 import { ValidationError } from '../ValidationError';
+import { postLoginDestination } from './activationView';
 import { useAuth } from './AuthContext';
 
 export function LoginPage() {
@@ -20,16 +21,11 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      const session = await login(email, password);
       const requestedUrl = location.state && typeof location.state === 'object' && 'returnUrl' in location.state
-        ? location.state.returnUrl
+        ? (location.state as { returnUrl?: unknown }).returnUrl
         : undefined;
-      const returnUrl = typeof requestedUrl === 'string'
-        && requestedUrl.startsWith('/')
-        && !requestedUrl.startsWith('//')
-        ? requestedUrl
-        : '/';
-      navigate(returnUrl, { replace: true });
+      navigate(postLoginDestination(session, typeof requestedUrl === 'string' ? requestedUrl : undefined), { replace: true });
     } catch {
       setError('The email or password did not match an account. Check both fields and try again.');
     } finally {
