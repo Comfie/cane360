@@ -1,3 +1,6 @@
+using Cane360.Application.Common.Interfaces;
+using Cane360.Application.Inventory;
+using Cane360.Application.Session;
 using Cane360.Domain.Activities;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Farms;
@@ -88,6 +91,93 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
         resolved.Id.ShouldBe(_tenantId);
         (await repository.GetTenantForUserAsync(_supervisorUserId, false, CancellationToken.None))
             .ShouldBeNull();
+    }
+
+    [Test]
+    public async Task SupervisorInvitationRedeemsAndCanBeRepeatedAfterDisable()
+    {
+        string inviteeId = $"p8b-invitee-{Guid.NewGuid():N}";
+        Guid personId;
+        await using (var setup = CreateContext())
+        {
+            Tenant tenant = await new FarmSetupRepository(setup).GetTenantAsync(
+                _tenantId, true, CancellationToken.None) ?? throw new InvalidOperationException();
+            Farm farm = tenant.ActiveFarm!;
+            Person person = farm.AddPerson("Synthetic invited Supervisor", null,
+                new DateOnly(2026, 1, 1));
+            farm.AssignRole(person, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
+            personId = person.Id;
+            setup.Users.Add(User(inviteeId));
+            await setup.SaveChangesAsync();
+        }
+
+        var grower = new TestUser(_userId);
+        var invitee = new TestUser(inviteeId);
+        await using (var beforeActivation = CreateContext())
+        {
+            SessionSummaryDto session = await new GetSessionQueryHandler(
+                new FarmSetupRepository(beforeActivation), invitee).Handle(
+                new GetSessionQuery(), CancellationToken.None);
+            session.HasTenant.ShouldBeFalse();
+        }
+        for (int attempt = 0; attempt < 2; attempt++)
+        {
+            CreatedManagerInvitationDto invitation;
+            await using (var issue = CreateContext())
+            {
+                invitation = await new CreateManagerInvitationCommandHandler(
+                    new FarmSetupRepository(issue), new InventoryRepository(issue),
+                    grower, TimeProvider.System).Handle(
+                    new CreateManagerInvitationCommand(personId, 48, TenantSecurityRoles.Supervisor),
+                    CancellationToken.None);
+            }
+
+            await using (var redeem = CreateContext())
+            {
+                TenantSessionDto activated = await new RedeemManagerInvitationCommandHandler(
+                    new FarmSetupRepository(redeem), new InventoryRepository(redeem),
+                    invitee, TimeProvider.System).Handle(
+                    new RedeemManagerInvitationCommand(invitation.Token), CancellationToken.None);
+                activated.SecurityRole.ShouldBe(TenantSecurityRoles.Supervisor);
+            }
+
+            await using (var verify = CreateContext())
+            {
+                SessionSummaryDto session = await new GetSessionQueryHandler(
+                    new FarmSetupRepository(verify), invitee).Handle(
+                    new GetSessionQuery(), CancellationToken.None);
+                session.HasTenant.ShouldBeTrue();
+                session.Role.ShouldBe(TenantSecurityRoles.Supervisor);
+                (await verify.TenantMemberships.CountAsync(item => item.TenantId == _tenantId &&
+                    item.UserId == inviteeId && item.Status == RecordStatus.Active)).ShouldBe(1);
+            }
+
+            if (attempt == 0)
+            {
+                await using var disable = CreateContext();
+                Tenant tenant = await new FarmSetupRepository(disable).GetTenantAsync(
+                    _tenantId, true, CancellationToken.None) ?? throw new InvalidOperationException();
+                TenantMembership membership = tenant.Memberships.Single(item =>
+                    item.UserId == inviteeId && item.Status == RecordStatus.Active);
+                tenant.DisableMembership(membership.Id);
+                await disable.SaveChangesAsync();
+                SessionSummaryDto disabledSession = await new GetSessionQueryHandler(
+                    new FarmSetupRepository(disable), invitee).Handle(
+                    new GetSessionQuery(), CancellationToken.None);
+                disabledSession.HasTenant.ShouldBeFalse();
+            }
+        }
+
+        await using var final = CreateContext();
+        (await final.TenantMemberships.CountAsync(item => item.TenantId == _tenantId &&
+            item.UserId == inviteeId)).ShouldBe(2);
+    }
+
+    private sealed class TestUser(string id) : IUser
+    {
+        public string? Id { get; } = id;
+        public List<string>? Roles => null;
+        public string? CorrelationId { get; } = $"p8b-invite-{Guid.NewGuid():N}";
     }
 
     [Test]
