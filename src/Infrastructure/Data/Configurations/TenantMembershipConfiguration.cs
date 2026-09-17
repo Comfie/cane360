@@ -20,7 +20,8 @@ internal sealed class TenantMembershipConfiguration : IEntityTypeConfiguration<T
         builder.Property(membership => membership.UserId).HasMaxLength(450).IsRequired();
         builder.Property(membership => membership.SecurityRole).HasMaxLength(40).IsRequired();
         builder.Property(membership => membership.Status).HasConversion<string>().HasMaxLength(24);
-        builder.HasIndex(membership => new { membership.TenantId, membership.UserId }).IsUnique();
+        builder.HasIndex(membership => new { membership.TenantId, membership.UserId }).IsUnique()
+            .HasFilter("\"Status\" = 'Active'");
         builder.HasOne<ApplicationUser>()
             .WithMany()
             .HasForeignKey(membership => membership.UserId)
