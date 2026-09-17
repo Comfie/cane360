@@ -27,8 +27,11 @@ public sealed class GetSessionQueryTests
         tenant.AddMembership("supervisor-user", supervisor.Id, TenantSecurityRoles.Supervisor);
 
         var farms = new Mock<IFarmSetupRepository>();
-        farms.Setup(s => s.GetTenantForUserAsync("supervisor-user", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(tenant);
+        farms.Setup(s => s.GetSessionSummaryForUserAsync("supervisor-user", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TenantSessionSummary(
+                tenant.Memberships.Single(m => m.UserId == "supervisor-user").SecurityRole,
+                tenant.TenantCode,
+                tenant.ActiveFarm!.Name));
         var handler = new GetSessionQueryHandler(farms.Object, User("supervisor-user"));
 
         var result = await handler.Handle(new GetSessionQuery(), CancellationToken.None);
@@ -42,8 +45,8 @@ public sealed class GetSessionQueryTests
     public async Task ReturnsNoTenantForAnUnlinkedAccount()
     {
         var farms = new Mock<IFarmSetupRepository>();
-        farms.Setup(s => s.GetTenantForUserAsync("new-user", It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Tenant?)null);
+        farms.Setup(s => s.GetSessionSummaryForUserAsync("new-user", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TenantSessionSummary?)null);
         var handler = new GetSessionQueryHandler(farms.Object, User("new-user"));
 
         var result = await handler.Handle(new GetSessionQuery(), CancellationToken.None);
