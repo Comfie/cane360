@@ -39,7 +39,7 @@ public sealed class CreateManagerInvitationCommandHandler(
             tenant.Id, farm.Id, person.Id, hash, now.AddHours(command.ExpiresInHours), userId, command.Role);
         inventoryRepository.Add(invitation);
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,
-            "Created", now, null, "Single-use FarmManager invitation created; only its secure hash is retained.");
+            "Created", now, null, $"Single-use {command.Role} invitation created; only its secure hash is retained.");
         await inventoryRepository.SaveChangesAsync(cancellationToken);
         return new(invitation.Id, invitation.PersonId, invitation.ExpiresAt, invitation.Version, token);
     }
