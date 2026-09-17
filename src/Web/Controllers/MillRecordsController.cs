@@ -6,6 +6,7 @@ using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.MillRecords;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -194,6 +195,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
             cancellationToken));
 
     [HttpGet("tickets/export", Name = "ExportWeighbridgeRegister")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportTickets([FromQuery] string? from, [FromQuery] string? to,
         [FromQuery] Guid? millId, [FromQuery] Guid? fieldId, [FromQuery] Guid? cropCycleId,
         [FromQuery] string? status, [FromQuery] string? matchStatus, [FromQuery] string? search,
@@ -213,6 +215,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpGet("statements/export", Name = "ExportStatementReconciliation")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportStatements([FromQuery] string? from, [FromQuery] string? to,
         [FromQuery] Guid? millId, [FromQuery] string? matchStatus, [FromQuery] string? search,
         CancellationToken cancellationToken)

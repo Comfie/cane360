@@ -1,9 +1,11 @@
 using Cane360.Application.Administration;
 using Cane360.Application.Inventory;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Administration;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -112,6 +114,7 @@ public sealed class AdministrationController(AdministrationService administratio
         Ok(await administration.AuditDetailAsync(eventId, cancellationToken));
 
     [HttpGet("audit.csv")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportAudit([FromQuery] AdministrationAuditRequest request,
         CancellationToken cancellationToken)
     {

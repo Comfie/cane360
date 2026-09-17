@@ -1,4 +1,5 @@
 using Cane360.Application.Common.Interfaces;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,7 @@ public static class DependencyInjection
         builder.Services.AddExceptionHandler(options => { });
         builder.Services.AddExceptionHandler<ProblemDetailsExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddApiRateLimiting(builder.Configuration);
 
         builder.Services.AddControllers();
 

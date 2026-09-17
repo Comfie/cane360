@@ -1,9 +1,11 @@
 using Cane360.Application.Inventory;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Inventory;
 using MediatR;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -34,6 +36,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         Ok(await sender.Send(new GetStockAdjustmentsQuery(), cancellationToken));
 
     [HttpGet("leakage-report")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<ActionResult<LeakageReportDto>> LeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));
@@ -42,6 +45,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpGet("leakage-report.csv")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportLeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));

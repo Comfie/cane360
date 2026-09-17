@@ -40,6 +40,14 @@ Configure these service variables in Railway:
 - `ASPNETCORE_FORWARDEDHEADERS_ENABLED`: `true`, so ASP.NET Core respects the
   HTTPS scheme forwarded by Railway's TLS-terminating proxy.
 
+This forwarded-header setting does not establish a trusted client IP for
+security partitioning. The API therefore applies one shared fixed-window limit
+to anonymous `/api/users/*` requests. Export limits use the authenticated user
+ID. The shared user limit protects against requests spread across accounts but
+can also delay legitimate users during a burst. A future per-IP limit requires
+verified trusted proxy addresses or an edge-enforced policy; do not key it from
+an unverified forwarded header.
+
 `ASPNETCORE_ENVIRONMENT` is already set to `Production` in the runtime image.
 Railway injects `PORT`, and the application binds to it. Do not create a manual
 `PORT` variable unless Railway support directs you to do so.

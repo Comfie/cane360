@@ -4,6 +4,7 @@ using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Finance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -150,6 +151,7 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         finance.CreateBudgetRevisionAsync(budgetId, new(request.Name, request.Notes), cancellationToken));
 
     [HttpGet("crop-cycles/{cropCycleId:guid}/budget-variance", Name = "GetFinanceBudgetVariance")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<ActionResult<BudgetVarianceReportDto>> GetBudgetVariance(Guid cropCycleId,
         CancellationToken cancellationToken) => Ok(await finance.GetBudgetVarianceAsync(cropCycleId,
             cancellationToken));

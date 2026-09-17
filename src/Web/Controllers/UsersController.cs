@@ -1,14 +1,17 @@
 using System.Diagnostics;
+using Cane360.Web.Infrastructure;
 using Cane360.Infrastructure.Identity;
 using Cane360.Web.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting(ApiRateLimitOptions.UsersPolicy)]
 public sealed class UsersController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager) : ControllerBase
