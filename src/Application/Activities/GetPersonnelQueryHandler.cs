@@ -9,7 +9,7 @@ public sealed class GetPersonnelQueryHandler(IFarmSetupRepository repository, IU
 {
     public async Task<PersonnelRegisterDto> Handle(GetPersonnelQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         return Map(ActivityAccess.RequireFarm(tenant));
     }
 

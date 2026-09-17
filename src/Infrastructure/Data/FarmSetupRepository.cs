@@ -62,38 +62,27 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
         bool trackChanges,
         CancellationToken cancellationToken)
     {
-        IQueryable<Tenant> query = context.Tenants
-            .AsSplitQuery()
-            .Include(tenant => tenant.GrowerProfile)
-            .Include(tenant => tenant.Memberships)
-            .Include(tenant => tenant.CropVarieties)
-            .Include(tenant => tenant.ActivityTypes)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Store)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Persons)
-                    .ThenInclude(person => person.RoleAssignments)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Fields)
-                    .ThenInclude(field => field.LineProfiles)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Fields)
-                    .ThenInclude(field => field.CropCycles)
-                        .ThenInclude(cycle => cycle.HarvestResult)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Fields)
-                    .ThenInclude(field => field.CropCycles)
-                        .ThenInclude(cycle => cycle.StatusChanges)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Fields)
-                    .ThenInclude(field => field.CropCycles)
-                        .ThenInclude(cycle => cycle.Activities)
-                            .ThenInclude(activity => activity.StatusChanges)
-            .Include(tenant => tenant.Farms)
-                .ThenInclude(farm => farm.Fields)
-                    .ThenInclude(field => field.CropCycles)
-                        .ThenInclude(cycle => cycle.Activities)
-                            .ThenInclude(activity => activity.EvidenceLinks)
+        IQueryable<Tenant> query = OperationalTenantGraph()
+            .Where(tenant => tenant.Memberships.Any(membership =>
+                membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+
+        if (!trackChanges)
+        {
+            query = query.AsNoTracking();
+        }
+
+        return await query.SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Tenant?> GetTenantForOperationalUserAsync(
+        string userId,
+        bool trackChanges,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<Tenant> query = OperationalTenantGraph()
             .Where(tenant => tenant.Memberships.Any(membership =>
                 membership.UserId == userId &&
                 membership.Status == RecordStatus.Active &&
@@ -108,6 +97,64 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
 
         return await query.SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<TenantSessionSummary?> GetSessionSummaryForUserAsync(
+        string userId,
+        CancellationToken cancellationToken) =>
+        await context.TenantMemberships
+            .AsNoTracking()
+            .Where(membership =>
+                membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager ||
+                 membership.SecurityRole == TenantSecurityRoles.Supervisor))
+            .Select(membership => new TenantSessionSummary(
+                membership.SecurityRole,
+                context.Tenants
+                    .Where(tenant => tenant.Id == membership.TenantId)
+                    .Select(tenant => tenant.TenantCode)
+                    .FirstOrDefault(),
+                context.Farms
+                    .Where(farm => farm.TenantId == membership.TenantId &&
+                        farm.Status == RecordStatus.Active)
+                    .Select(farm => farm.Name)
+                    .FirstOrDefault()))
+            .SingleOrDefaultAsync(cancellationToken);
+
+    /// <summary>The operational tenant aggregate shared by every operational tenant resolution.</summary>
+    private IQueryable<Tenant> OperationalTenantGraph() => context.Tenants
+        .AsSplitQuery()
+        .Include(tenant => tenant.GrowerProfile)
+        .Include(tenant => tenant.Memberships)
+        .Include(tenant => tenant.CropVarieties)
+        .Include(tenant => tenant.ActivityTypes)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Store)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Persons)
+                .ThenInclude(person => person.RoleAssignments)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.LineProfiles)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.CropCycles)
+                    .ThenInclude(cycle => cycle.HarvestResult)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.CropCycles)
+                    .ThenInclude(cycle => cycle.StatusChanges)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.CropCycles)
+                    .ThenInclude(cycle => cycle.Activities)
+                        .ThenInclude(activity => activity.StatusChanges)
+        .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+                .ThenInclude(field => field.CropCycles)
+                    .ThenInclude(cycle => cycle.Activities)
+                        .ThenInclude(activity => activity.EvidenceLinks);
 
     public async Task<Tenant?> GetTenantAsync(Guid tenantId, bool trackChanges, CancellationToken cancellationToken)
     {

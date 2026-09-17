@@ -9,7 +9,7 @@ public sealed class GetActivityTypesQueryHandler(IFarmSetupRepository repository
 {
     public async Task<IReadOnlyList<ActivityTypeDto>> Handle(GetActivityTypesQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         return tenant.ActivityTypes.OrderBy(type => type.Name).Select(Map).ToArray();
     }
 

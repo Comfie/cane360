@@ -11,7 +11,7 @@ public sealed class GetActivityDetailsQueryHandler(
 {
     public async Task<ActivityDetailsDto> Handle(GetActivityDetailsQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
         var records = await labourRepository.GetWorkRecordsAsync(
             tenant.Id, farm.Id, null, null, request.ActivityId, false, cancellationToken);

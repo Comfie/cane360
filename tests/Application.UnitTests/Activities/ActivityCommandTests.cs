@@ -162,6 +162,8 @@ public class ActivityCommandTests
         var repository = new Mock<IFarmSetupRepository>();
         repository.Setup(store => store.GetTenantForUserAsync(
             "user-1", It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(tenant);
+        repository.Setup(store => store.GetTenantForOperationalUserAsync(
+            "user-1", It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync(tenant);
         return repository;
     }
 

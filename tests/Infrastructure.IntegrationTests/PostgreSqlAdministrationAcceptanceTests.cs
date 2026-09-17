@@ -82,9 +82,12 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
     {
         await using var context = CreateContext();
         var repository = new FarmSetupRepository(context);
-        Tenant? resolved = await repository.GetTenantForUserAsync(_supervisorUserId, false, CancellationToken.None);
+        Tenant? resolved = await repository.GetTenantForOperationalUserAsync(
+            _supervisorUserId, false, CancellationToken.None);
         resolved.ShouldNotBeNull();
         resolved.Id.ShouldBe(_tenantId);
+        (await repository.GetTenantForUserAsync(_supervisorUserId, false, CancellationToken.None))
+            .ShouldBeNull();
     }
 
     [Test]

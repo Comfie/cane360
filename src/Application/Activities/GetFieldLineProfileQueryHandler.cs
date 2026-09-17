@@ -9,7 +9,7 @@ public sealed class GetFieldLineProfileQueryHandler(IFarmSetupRepository reposit
 {
     public async Task<FieldLineProfileDto?> Handle(GetFieldLineProfileQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         var field = ActivityAccess.RequireField(ActivityAccess.RequireFarm(tenant), request.FieldId);
         return field.CurrentLineProfile is null ? null : Map(field.CurrentLineProfile);
     }

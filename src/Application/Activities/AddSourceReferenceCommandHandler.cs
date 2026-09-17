@@ -11,7 +11,7 @@ public sealed class AddSourceReferenceCommandHandler(
 {
     public async Task<ActivityDetailsDto> Handle(AddSourceReferenceCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, true, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
         var activity = ActivityAccess.RequireActivity(tenant, request.ActivityId);
         ActivityAccess.RequireVersion(activity, request.ExpectedVersion);

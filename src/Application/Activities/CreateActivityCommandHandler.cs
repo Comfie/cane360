@@ -11,7 +11,7 @@ public sealed class CreateActivityCommandHandler(
 {
     public async Task<ActivityDetailsDto> Handle(CreateActivityCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, true, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
         var field = ActivityAccess.RequireField(farm, request.FieldId);
         var cycle = ActivityAccess.RequireOperationalCycle(field, request.CropCycleId);

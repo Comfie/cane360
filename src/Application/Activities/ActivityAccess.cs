@@ -10,6 +10,10 @@ internal static class ActivityAccess
 {
     public static string RequireUserId(IUser user) => user.Id ?? throw new UnauthorizedAccessException();
 
+    /// <summary>
+    /// Grower or FarmManager only. Use for activity-type, personnel, and line-profile configuration
+    /// and for activity approval transitions, none of which a Supervisor may perform.
+    /// </summary>
     public static async Task<Tenant> RequireTenantAsync(
         IFarmSetupRepository repository,
         IUser user,
@@ -19,6 +23,21 @@ internal static class ActivityAccess
         var userId = RequireUserId(user);
         return await repository.GetTenantForUserAsync(userId, trackChanges, cancellationToken)
             ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
+    }
+
+    /// <summary>
+    /// Grower, FarmManager, or Supervisor. This is the approved Supervisor MVP surface: capturing
+    /// and reading assigned field/activity records. It must never back configuration or approvals.
+    /// </summary>
+    public static async Task<Tenant> RequireCaptureTenantAsync(
+        IFarmSetupRepository repository,
+        IUser user,
+        bool trackChanges,
+        CancellationToken cancellationToken)
+    {
+        var userId = RequireUserId(user);
+        return await repository.GetTenantForOperationalUserAsync(userId, trackChanges, cancellationToken)
+            ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
     }
 
     public static Farm RequireFarm(Tenant tenant) =>

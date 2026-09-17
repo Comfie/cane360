@@ -8,7 +8,7 @@ public sealed class GetActivitiesQueryHandler(IFarmSetupRepository repository, I
 {
     public async Task<ActivityCollectionDto> Handle(GetActivitiesQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireTenantAsync(repository, user, false, cancellationToken);
+        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
         IEnumerable<Activity> query = farm.Fields.SelectMany(field => field.CropCycles).SelectMany(cycle => cycle.Activities);
         if (request.FieldId.HasValue) query = query.Where(activity => activity.FieldId == request.FieldId);
