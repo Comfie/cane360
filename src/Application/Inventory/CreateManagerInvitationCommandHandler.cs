@@ -15,19 +15,28 @@ public sealed class CreateManagerInvitationCommandHandler(
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
         InventoryAccess.RequireGrower(tenant, userId);
+        if (!Cane360.Domain.Farms.TenantSecurityRoles.IsInvitable(command.Role))
+            throw InventoryAccess.Failure(nameof(command.Role), "Invitations may only grant FarmManager or Supervisor.");
         if (command.ExpiresInHours is < 1 or > 168)
             throw InventoryAccess.Failure(nameof(command.ExpiresInHours), "Invitation lifetime must be between 1 and 168 hours.");
-        var manager = InventoryAccess.RequireActivePerson(farm, command.PersonId, "Farm manager");
+        var person = InventoryAccess.RequireActivePerson(farm, command.PersonId,
+            command.Role == Cane360.Domain.Farms.TenantSecurityRoles.FarmManager ? "Farm manager" : "Supervisor");
         var today = InventoryAccess.HarareDate(timeProvider.GetUtcNow());
-        if (!manager.RoleAssignments.Any(role => role.Role == PersonRole.FarmManager && role.IsPrimary && role.IsEffective(today)))
-            throw InventoryAccess.Failure(nameof(command.PersonId), "Invitations are limited to the active primary FarmManager person.");
+        bool holdsRole = command.Role == Cane360.Domain.Farms.TenantSecurityRoles.FarmManager
+            ? person.RoleAssignments.Any(role => role.Role == PersonRole.FarmManager && role.IsPrimary && role.IsEffective(today))
+            : person.RoleAssignments.Any(role => role.Role == PersonRole.Supervisor && role.IsEffective(today));
+        if (!holdsRole)
+            throw InventoryAccess.Failure(nameof(command.PersonId),
+                command.Role == Cane360.Domain.Farms.TenantSecurityRoles.FarmManager
+                    ? "Invitations are limited to the active primary FarmManager person."
+                    : "The selected person must have an effective Supervisor role.");
 
         var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         var now = timeProvider.GetUtcNow();
         var invitation = Cane360.Domain.Farms.ManagerInvitation.Create(
-            tenant.Id, farm.Id, manager.Id, hash, now.AddHours(command.ExpiresInHours), userId, Cane360.Domain.Farms.TenantSecurityRoles.FarmManager);
+            tenant.Id, farm.Id, person.Id, hash, now.AddHours(command.ExpiresInHours), userId, command.Role);
         inventoryRepository.Add(invitation);
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,
             "Created", now, null, "Single-use FarmManager invitation created; only its secure hash is retained.");

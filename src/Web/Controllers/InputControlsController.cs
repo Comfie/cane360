@@ -196,7 +196,7 @@ public sealed class InputControlsController(ISender sender) : ControllerBase
     public async Task<ActionResult<CreatedManagerInvitationDto>> CreateInvitation(
         CreateManagerInvitationRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new CreateManagerInvitationCommand(
-            request.PersonId, request.ExpiresInHours), cancellationToken));
+            request.PersonId, request.ExpiresInHours, request.Role), cancellationToken));
 
     [HttpPost("manager-invitations/{invitationId:guid}/revoke")]
     public async Task<IActionResult> RevokeInvitation(Guid invitationId,
