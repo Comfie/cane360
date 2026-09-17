@@ -1,4 +1,5 @@
 using Cane360.Application.Common.Exceptions;
+using Cane360.Application.Common.Behaviours;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Payroll;
 using Cane360.Domain.Activities;
@@ -18,9 +19,14 @@ public sealed class PayrollAuthorizationTests
     public async Task FarmManagerAdvanceApprovalReturnsForbiddenBeforeRepositoryMutation()
     {
         var tenant = TenantWithManager(out _); var farms = FarmRepository(tenant, "manager-user"); var payroll = new Mock<IPayrollRepository>(); var labour = new Mock<ILabourRepository>();
-        var handler = new DecideWorkerAdvanceCommandHandler(farms.Object, labour.Object, payroll.Object, User("manager-user").Object, new FixedTimeProvider(Now));
+        var user = User("manager-user");
+        var handler = new DecideWorkerAdvanceCommandHandler(farms.Object, labour.Object, payroll.Object, user.Object, new FixedTimeProvider(Now));
+        var authorization = new AuthorizationBehaviour<DecideWorkerAdvanceCommand, WorkerAdvanceDto>(
+            user.Object, new Mock<IIdentityService>().Object, farms.Object);
+        var request = new DecideWorkerAdvanceCommand(Guid.NewGuid(), 2, true, null, "manager-key");
 
-        await Should.ThrowAsync<ForbiddenAccessException>(() => handler.Handle(new DecideWorkerAdvanceCommand(Guid.NewGuid(), 2, true, null, "manager-key"), CancellationToken.None));
+        await Should.ThrowAsync<ForbiddenAccessException>(() => authorization.Handle(request,
+            (CancellationToken token) => handler.Handle(request, token), CancellationToken.None));
 
         payroll.Verify(repository => repository.Add(It.IsAny<AdvanceApproval>()), Times.Never);
         payroll.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -30,8 +36,13 @@ public sealed class PayrollAuthorizationTests
     public async Task FarmManagerPayrollApprovalReturnsForbiddenBeforeRepositoryMutation()
     {
         var tenant = TenantWithManager(out _); var farms = FarmRepository(tenant, "manager-user"); var payroll = new Mock<IPayrollRepository>(); var labour = new Mock<ILabourRepository>();
-        var handler = new DecidePayrollRunCommandHandler(farms.Object, labour.Object, payroll.Object, User("manager-user").Object, new FixedTimeProvider(Now));
-        await Should.ThrowAsync<ForbiddenAccessException>(() => handler.Handle(new DecidePayrollRunCommand(Guid.NewGuid(), 2, 1, true, null, "manager-payroll-key"), CancellationToken.None));
+        var user = User("manager-user");
+        var handler = new DecidePayrollRunCommandHandler(farms.Object, labour.Object, payroll.Object, user.Object, new FixedTimeProvider(Now));
+        var authorization = new AuthorizationBehaviour<DecidePayrollRunCommand, PayrollRunDto>(
+            user.Object, new Mock<IIdentityService>().Object, farms.Object);
+        var request = new DecidePayrollRunCommand(Guid.NewGuid(), 2, 1, true, null, "manager-payroll-key");
+        await Should.ThrowAsync<ForbiddenAccessException>(() => authorization.Handle(request,
+            (CancellationToken token) => handler.Handle(request, token), CancellationToken.None));
         payroll.Verify(repository => repository.Add(It.IsAny<PayrollApproval>()), Times.Never); payroll.Verify(repository => repository.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -94,7 +105,7 @@ public sealed class PayrollAuthorizationTests
     }
 
     private static Mock<IFarmSetupRepository> FarmRepository(Tenant tenant, string userId)
-    { var repository = new Mock<IFarmSetupRepository>(); repository.Setup(value => value.GetTenantForUserAsync(userId, false, It.IsAny<CancellationToken>())).ReturnsAsync(tenant); return repository; }
+    { var repository = new Mock<IFarmSetupRepository>(); repository.Setup(value => value.GetTenantForUserAsync(userId, false, It.IsAny<CancellationToken>())).ReturnsAsync(tenant); repository.Setup(value => value.GetActiveTenantSecurityRoleForUserAsync(userId, It.IsAny<CancellationToken>())).ReturnsAsync(TenantSecurityRoles.FarmManager); return repository; }
 
     private static Mock<IPayrollRepository> PayrollRepository(Tenant tenant, Farm farm, WorkerAdvance advance, out List<AdvanceApproval> approvals, out List<AdvanceIssue> issues)
     {

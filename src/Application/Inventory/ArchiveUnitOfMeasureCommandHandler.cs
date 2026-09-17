@@ -11,7 +11,7 @@ public sealed class ArchiveUnitOfMeasureCommandHandler(
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farms, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
+
         var unit = await inventory.GetUnitAsync(tenant.Id, request.UnitId, true, cancellationToken)
             ?? throw new NotFoundException(request.UnitId.ToString(), "Unit of measure");
         if (unit.Version != request.ExpectedVersion)

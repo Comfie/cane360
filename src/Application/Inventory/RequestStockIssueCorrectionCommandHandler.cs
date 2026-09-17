@@ -11,7 +11,7 @@ public sealed class RequestStockIssueCorrectionCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrowerOrManager(tenant, userId);
+
         var issue = await inventoryRepository.GetStockIssueAsync(tenant.Id, farm.Id,
             command.StockIssueId, true, cancellationToken)
             ?? throw new NotFoundException(command.StockIssueId.ToString(), "Stock issue");

@@ -8,7 +8,7 @@ public sealed class EnterStockCountLineCommandHandler(IFarmSetupRepository farmR
 {
     public async Task<StockCountDto> Handle(EnterStockCountLineCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var count = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, command.StockCountId, true, cancellationToken) ?? throw new NotFoundException(command.StockCountId.ToString(), "Stock count");
         if (count.Status != StockCountStatus.InProgress) throw new ConflictException("Count lines are editable only while the count is in progress.");
         var line = count.Lines.SingleOrDefault(line => line.Id == command.StockCountLineId) ?? throw new NotFoundException(command.StockCountLineId.ToString(), "Stock count line");

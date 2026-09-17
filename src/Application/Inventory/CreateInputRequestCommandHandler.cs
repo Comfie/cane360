@@ -12,7 +12,7 @@ public sealed class CreateInputRequestCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrowerOrManager(tenant, userId);
+
         var context = InventoryAccess.RequireOperationalActivity(farm, request.ActivityId);
         var operationalDate = InventoryAccess.OperationalDate(context.Activity);
         if (request.Lines.Count == 0) throw InventoryAccess.Failure(nameof(request.Lines), "Add at least one input item.");

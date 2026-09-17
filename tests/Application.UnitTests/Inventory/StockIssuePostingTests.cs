@@ -1,8 +1,10 @@
+using Cane360.Application.Common.Behaviours;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Inventory;
 using Cane360.Domain.Activities;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
+using MediatR;
 using Moq;
 using NUnit.Framework;
 using Shouldly;
@@ -120,14 +122,24 @@ public sealed class StockIssuePostingTests
         var farmRepository = new Mock<IFarmSetupRepository>();
         farmRepository.Setup(value => value.GetTenantForUserAsync(
             "manager-user", false, It.IsAny<CancellationToken>())).ReturnsAsync(setup.Tenant);
+        farmRepository.Setup(value => value.GetActiveTenantSecurityRoleForUserAsync(
+            "manager-user", It.IsAny<CancellationToken>())).ReturnsAsync(TenantSecurityRoles.FarmManager);
         var user = new Mock<IUser>();
         user.Setup(value => value.Id).Returns("manager-user");
         var handler = new ReverseStockIssueCommandHandler(farmRepository.Object,
             new Mock<IInventoryRepository>().Object, user.Object, new FixedTimeProvider(Now));
+        var authorization = new AuthorizationBehaviour<ReverseStockIssueCommand, Unit>(
+            user.Object, new Mock<IIdentityService>().Object, farmRepository.Object);
+        var request = new ReverseStockIssueCommand(setup.Issue.Id, setup.Issue.Version,
+            "Not authorised", "manager-reversal");
 
-        await Should.ThrowAsync<Cane360.Application.Common.Exceptions.ForbiddenAccessException>(() => handler.Handle(
-            new ReverseStockIssueCommand(setup.Issue.Id, setup.Issue.Version,
-                "Not authorised", "manager-reversal"), CancellationToken.None));
+        await Should.ThrowAsync<Cane360.Application.Common.Exceptions.ForbiddenAccessException>(() =>
+            authorization.Handle(request, async (CancellationToken token) =>
+            {
+                await handler.Handle(request, token);
+                return Unit.Value;
+            },
+                CancellationToken.None));
     }
 
     [Test]

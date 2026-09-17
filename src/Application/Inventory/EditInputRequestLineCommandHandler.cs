@@ -10,7 +10,7 @@ public sealed class EditInputRequestLineCommandHandler(
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
+
         var inputRequest = await inventoryRepository.GetInputRequestAsync(tenant.Id, farm.Id,
             request.InputRequestId, true, cancellationToken)
             ?? throw new NotFoundException(request.InputRequestId.ToString(), "Input request");

@@ -7,7 +7,7 @@ public sealed class CreateStockReturnCommandHandler(IFarmSetupRepository farmRep
 {
     public async Task<Guid> Handle(CreateStockReturnCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var context = InventoryAccess.RequireOperationalActivity(farm, command.ActivityId);
         var issueLines = new List<StockIssueLine>();
         foreach (var line in command.Lines)

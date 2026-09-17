@@ -25,26 +25,6 @@ internal static class InventoryAccess
         tenant.Memberships.Single(membership =>
             membership.UserId == userId && membership.Status == RecordStatus.Active).SecurityRole;
 
-    public static void RequireGrower(Tenant tenant, string userId)
-    {
-        if (SecurityRole(tenant, userId) != TenantSecurityRoles.Grower)
-        {
-            throw new ForbiddenAccessException();
-        }
-    }
-
-    public static void RequireGrowerOrManager(Tenant tenant, string userId)
-    {
-        if (SecurityRole(tenant, userId) is not (TenantSecurityRoles.Grower or TenantSecurityRoles.FarmManager))
-            throw new ForbiddenAccessException();
-    }
-
-    public static void RequireFarmManager(Tenant tenant, string userId)
-    {
-        if (SecurityRole(tenant, userId) != TenantSecurityRoles.FarmManager)
-            throw new ForbiddenAccessException();
-    }
-
     public static (Field Field, CropCycle Cycle, Activity Activity) RequireOperationalActivity(
         Farm farm, Guid activityId)
     {

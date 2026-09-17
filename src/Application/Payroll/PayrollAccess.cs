@@ -19,7 +19,6 @@ internal static class PayrollAccess
     public static Guid? OperationalPerson(Tenant tenant, string userId) => tenant.Memberships.Single(x => x.UserId == userId).PersonId;
     public static string Role(Tenant tenant, string userId) => tenant.Memberships.Single(x => x.UserId == userId).SecurityRole;
     public static void RequireGrower(Tenant tenant, string userId) { if (Role(tenant, userId) != TenantSecurityRoles.Grower) throw new ForbiddenAccessException(); }
-    public static void RequireFarmManager(Tenant tenant, string userId) { if (Role(tenant, userId) != TenantSecurityRoles.FarmManager) throw new ForbiddenAccessException(); }
     public static PayrollPeriod RequirePeriod(PayrollPeriod? period, Guid id) => period ?? throw new NotFoundException(id.ToString(), "Payroll period");
     public static WorkerAdvance RequireAdvance(WorkerAdvance? advance, Guid id) => advance ?? throw new NotFoundException(id.ToString(), "Worker advance");
     public static PayrollRun RequireRun(PayrollRun? run, Guid id) => run ?? throw new NotFoundException(id.ToString(), "Payroll run");

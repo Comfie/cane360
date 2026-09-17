@@ -13,7 +13,7 @@ public sealed class CreateInventoryApplicationRuleCommandHandler(
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
+
         var item = await inventoryRepository.GetItemAsync(tenant.Id, farm.Id, request.InventoryItemId, false, cancellationToken)
             ?? throw new NotFoundException(request.InventoryItemId.ToString(), "Inventory item");
         if (!tenant.ActivityTypes.Any(type => type.Id == request.ActivityTypeId))

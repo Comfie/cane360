@@ -8,7 +8,7 @@ public sealed class CancelStockCountCommandHandler(IFarmSetupRepository farmRepo
 {
     public async Task<StockCountDto> Handle(CancelStockCountCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var candidate = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, command.StockCountId, false, cancellationToken) ?? throw new NotFoundException(command.StockCountId.ToString(), "Stock count");
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken); await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.LockStockCountAsync(tenant.Id, farm.Id, candidate.Id, cancellationToken);
         var count = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, candidate.Id, true, cancellationToken) ?? throw new NotFoundException(candidate.Id.ToString(), "Stock count");

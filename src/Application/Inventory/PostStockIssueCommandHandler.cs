@@ -25,7 +25,7 @@ public sealed class PostStockIssueCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrowerOrManager(tenant, userId);
+
         var candidate = await inventoryRepository.GetStockIssueAsync(
             tenant.Id, farm.Id, command.StockIssueId, false, cancellationToken)
             ?? throw new NotFoundException(command.StockIssueId.ToString(), "Stock issue");

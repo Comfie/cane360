@@ -14,7 +14,7 @@ public sealed class CreateManagerInvitationCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrower(tenant, userId);
+
         if (!TenantSecurityRoles.IsInvitable(command.Role))
             throw InventoryAccess.Failure(nameof(command.Role), "Invitations may only grant FarmManager or Supervisor.");
         if (command.ExpiresInHours is < 1 or > 168)

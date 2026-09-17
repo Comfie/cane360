@@ -17,7 +17,7 @@ public sealed class DecideOpeningBalanceCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrower(tenant, userId);
+
         var receipt = await inventoryRepository.GetReceiptAsync(
             tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
             ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
