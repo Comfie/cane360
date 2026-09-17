@@ -14,6 +14,7 @@ import {
   type DocumentCategoryDto, type FarmSettingDto,
   type AdministrationCapabilityDto,
 } from '../../web-api-client';
+import { invitationRoleOptions } from '../api-authorization/activationView';
 import { getApiError } from '../apiError';
 import { DatePicker } from '../DatePicker';
 import { LoadingState } from '../LoadingState';
@@ -148,8 +149,8 @@ function Users({ users, session, onDisable }: { users: AdministrationUserDto[];
         <small>{member.email} · {member.role}</small></div>
       <div><span>{member.personName ? `Linked person: ${member.personName}` : 'No operational person'}</span>
         <span>{member.status === 'Archived' ? 'Disabled' : member.status}</span></div>
-      {session.role === 'Grower' && member.role === 'FarmManager' && member.status === 'Active' &&
-        <button type="button" onClick={() => onDisable(member.membershipId)}>Disable manager</button>}
+      {session.role === 'Grower' && member.role !== 'Grower' && member.status === 'Active' &&
+        <button type="button" onClick={() => onDisable(member.membershipId)}>Disable access</button>}
     </article>)}</div>
     {session.role === 'Grower' && <ManagerInvitations />}
   </section>;
@@ -157,38 +158,50 @@ function Users({ users, session, onDisable }: { users: AdministrationUserDto[];
 
 function ManagerInvitations() {
   const [access, setAccess] = useState<AdministrationManagerAccessDto | null>(null);
+  const [role, setRole] = useState(invitationRoleOptions()[0].value);
   const [personId, setPersonId] = useState('');
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
+  const candidatesForRole = (result: AdministrationManagerAccessDto, forRole: string) =>
+    result.candidates.filter((candidate) => candidate.role === forRole);
   const reload = useCallback(async () => {
     const result = await administration.managerAccess();
     setAccess(result);
-    setPersonId((current) => current || result.candidates[0]?.personId || '');
-  }, []);
+    setPersonId((current) => current || candidatesForRole(result, role)[0]?.personId || '');
+  }, [role]);
   useEffect(() => {
     let active = true;
+    const initialRole = invitationRoleOptions()[0].value;
     administration.managerAccess().then((result) => {
-      if (active) { setAccess(result); setPersonId(result.candidates[0]?.personId || ''); }
+      if (active) { setAccess(result); setPersonId(candidatesForRole(result, initialRole)[0]?.personId || ''); }
     }).catch((cause) => { if (active) setError(getApiError(cause)); });
     return () => { active = false; };
   }, []);
+  const changeRole = (nextRole: string) => {
+    setRole(nextRole);
+    setPersonId(access ? candidatesForRole(access, nextRole)[0]?.personId || '' : '');
+  };
   const invite = async (event: FormEvent) => {
     event.preventDefault();
     try {
       setError('');
       const created = await inputControls.managerInvitations(
-        new CreateManagerInvitationRequest({ personId, expiresInHours: 48 }));
+        new CreateManagerInvitationRequest({ personId, expiresInHours: 48, role }));
       setToken(created.token);
       await reload();
     } catch (cause) { setError(getApiError(cause)); }
   };
   if (!access) return <ValidationError message={error} />;
+  const candidates = candidatesForRole(access, role);
   return <div className="administration-access">
-    <h3>FarmManager invitation</h3><ValidationError message={error} />
-    <p>Only the active primary FarmManager person can receive a single-use invitation.</p>
+    <h3>Access invitation</h3><ValidationError message={error} />
+    <p>An active person holding the chosen role can receive a single-use invitation.</p>
     <form className="administration-form" onSubmit={invite}>
+      <label>Role<select required value={role} onChange={(event) => changeRole(event.target.value)}>
+        {invitationRoleOptions().map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select></label>
       <label>Operational person<select required value={personId} onChange={(event) => setPersonId(event.target.value)}>
-        {access.candidates.map((candidate) => <option key={candidate.personId} value={candidate.personId}>{candidate.name}</option>)}
+        {candidates.map((candidate) => <option key={candidate.personId} value={candidate.personId}>{candidate.name}</option>)}
       </select></label>
       <button type="submit" disabled={!personId}>Create invitation</button>
     </form>
@@ -197,7 +210,7 @@ function ManagerInvitations() {
     <div className="administration-list">{access.invitations.map((invitation) => <article key={invitation.id}>
       <div><strong>{invitation.redeemedAt ? 'Redeemed' : invitation.revokedAt ? 'Revoked' :
         invitation.expiresAt < new Date() ? 'Expired' : 'Open invitation'}</strong>
-        <small>Expires {invitation.expiresAt.toLocaleString()}</small></div>
+        <small>{invitation.role} · Expires {invitation.expiresAt.toLocaleString()}</small></div>
       {!invitation.redeemedAt && !invitation.revokedAt && invitation.expiresAt > new Date() &&
         <button type="button" onClick={async () => {
           try { setError(''); await inputControls.revoke(invitation.id,

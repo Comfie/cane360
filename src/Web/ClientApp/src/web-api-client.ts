@@ -13725,6 +13725,7 @@ export interface IAdministrationManagerAccessDto {
 export class AdministrationManagerCandidateDto implements IAdministrationManagerCandidateDto {
     personId!: string;
     name!: string;
+    role!: string;
 
     [key: string]: any;
 
@@ -13745,6 +13746,7 @@ export class AdministrationManagerCandidateDto implements IAdministrationManager
             }
             this.personId = _data["personId"];
             this.name = _data["name"];
+            this.role = _data["role"];
         }
     }
 
@@ -13763,6 +13765,7 @@ export class AdministrationManagerCandidateDto implements IAdministrationManager
         }
         data["personId"] = this.personId;
         data["name"] = this.name;
+        data["role"] = this.role;
         return data;
     }
 }
@@ -13770,6 +13773,7 @@ export class AdministrationManagerCandidateDto implements IAdministrationManager
 export interface IAdministrationManagerCandidateDto {
     personId: string;
     name: string;
+    role: string;
 
     [key: string]: any;
 }
@@ -23399,6 +23403,7 @@ export class ManagerInvitationDto implements IManagerInvitationDto {
     revokedAt!: Date | undefined;
     redeemedAt!: Date | undefined;
     version!: number;
+    role!: string;
 
     [key: string]: any;
 
@@ -23423,6 +23428,7 @@ export class ManagerInvitationDto implements IManagerInvitationDto {
             this.revokedAt = _data["revokedAt"] ? new Date(_data["revokedAt"].toString()) : undefined as any;
             this.redeemedAt = _data["redeemedAt"] ? new Date(_data["redeemedAt"].toString()) : undefined as any;
             this.version = _data["version"];
+            this.role = _data["role"];
         }
     }
 
@@ -23445,6 +23451,7 @@ export class ManagerInvitationDto implements IManagerInvitationDto {
         data["revokedAt"] = this.revokedAt ? this.revokedAt.toISOString() : undefined as any;
         data["redeemedAt"] = this.redeemedAt ? this.redeemedAt.toISOString() : undefined as any;
         data["version"] = this.version;
+        data["role"] = this.role;
         return data;
     }
 }
@@ -23456,6 +23463,7 @@ export interface IManagerInvitationDto {
     revokedAt: Date | undefined;
     redeemedAt: Date | undefined;
     version: number;
+    role: string;
 
     [key: string]: any;
 }

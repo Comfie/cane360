@@ -49,17 +49,24 @@ public sealed class AdministrationService(
         (Tenant tenant, Farm farm, _) = await ContextAsync(true, cancellationToken);
         DateOnly today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(clock.GetUtcNow(),
             TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare")).DateTime);
-        AdministrationManagerCandidateDto[] candidates = farm.Persons
+        var managerCandidates = farm.Persons
             .Where(person => person.Status == RecordStatus.Active &&
                 person.RoleAssignments.Any(role => role.Role == PersonRole.FarmManager &&
                     role.IsPrimary && role.IsEffective(today)))
-            .Select(person => new AdministrationManagerCandidateDto(person.Id, person.DisplayName))
-            .ToArray();
+            .Select(person => new AdministrationManagerCandidateDto(person.Id, person.DisplayName,
+                TenantSecurityRoles.FarmManager));
+        var supervisorCandidates = farm.Persons
+            .Where(person => person.Status == RecordStatus.Active &&
+                person.RoleAssignments.Any(role => role.Role == PersonRole.Supervisor &&
+                    role.IsEffective(today)))
+            .Select(person => new AdministrationManagerCandidateDto(person.Id, person.DisplayName,
+                TenantSecurityRoles.Supervisor));
+        AdministrationManagerCandidateDto[] candidates = managerCandidates.Concat(supervisorCandidates).ToArray();
         var invitations = await inventory.GetManagerInvitationsAsync(tenant.Id, farm.Id,
             false, cancellationToken);
         return new AdministrationManagerAccessDto(candidates,
             invitations.Select(item => new ManagerInvitationDto(item.Id, item.PersonId,
-                item.ExpiresAt, item.RevokedAt, item.RedeemedAt, item.Version)).ToArray());
+                item.ExpiresAt, item.RevokedAt, item.RedeemedAt, item.Version, item.SecurityRole)).ToArray());
     }
 
     public async Task<IReadOnlyList<AdministrationRuleDto>> RulesAsync(
@@ -276,7 +283,7 @@ public sealed class AdministrationService(
         inventory.Add(AuditEvent.Create(tenant.Id, farm.Id, "TenantMembership", target.Id,
             "Disabled", userId, actor.SecurityRole, actor.PersonId, clock.GetUtcNow(),
             user.CorrelationId ?? Guid.NewGuid().ToString("N"), null,
-            "Grower disabled the FarmManager application membership."));
+            $"Grower disabled a {target.SecurityRole} application membership."));
         await farms.SaveChangesAsync(cancellationToken);
     }
 

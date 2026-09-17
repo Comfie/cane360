@@ -92,7 +92,8 @@ public sealed class GetInputControlWorkspaceQueryHandler(
                     role.Role.ToString(), role.IsPrimary, role.EffectiveFrom.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                     role.EffectiveTo?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture))).ToArray())).ToArray(),
             invitations.Select(invitation => new ManagerInvitationDto(invitation.Id, invitation.PersonId,
-                invitation.ExpiresAt, invitation.RevokedAt, invitation.RedeemedAt, invitation.Version)).ToArray(),
+                invitation.ExpiresAt, invitation.RevokedAt, invitation.RedeemedAt, invitation.Version,
+                invitation.SecurityRole)).ToArray(),
             fieldReceipts.Select(receipt => new FieldReceiptDto(receipt.Id, receipt.StockIssueId, receipt.FieldId,
                 receipt.CropCycleId, receipt.ActivityId, receipt.RecipientPersonId, receipt.ReceivedAt,
                 receipt.Status.ToString(), receipt.Version, receipt.Lines.Select(line => new FieldReceiptLineDto(
