@@ -1,6 +1,7 @@
 using Ardalis.GuardClauses;
 using Cane360.Application.Activities;
 using Cane360.Application.Common.Interfaces;
+using Cane360.Application.CropCycles;
 using Cane360.Application.FarmSetup;
 using Cane360.Application.Payroll;
 using Cane360.Domain.Activities;
@@ -100,6 +101,22 @@ public sealed class SupervisorAuthorizationBoundaryTests
 
         result.TotalCount.ShouldBe(1);
         result.Items.Single().Id.ShouldBe(fixture.Activity.Id);
+    }
+
+    [Test]
+    public async Task SupervisorCanReadFarmAndFieldWorkspace()
+    {
+        Fixture fixture = CreateFixture();
+        var setup = new GetFarmSetupQueryHandler(fixture.Repository.Object, User(SupervisorUserId));
+        var cycles = new GetCropCyclesQueryHandler(fixture.Repository.Object, User(SupervisorUserId));
+
+        FarmSetupDto workspace = await setup.Handle(new GetFarmSetupQuery(), CancellationToken.None);
+        CropCycleCollectionDto register = await cycles.Handle(
+            new GetCropCyclesQuery(fixture.Field.Id), CancellationToken.None);
+
+        workspace.IsConfigured.ShouldBeTrue();
+        workspace.Farm!.Fields.Single().Id.ShouldBe(fixture.Field.Id);
+        register.Field.Id.ShouldBe(fixture.Field.Id);
     }
 
     [Test]
@@ -203,6 +220,10 @@ public sealed class SupervisorAuthorizationBoundaryTests
         repository.Setup(store => store.GetTenantForOperationalUserAsync(It.IsAny<string>(),
                 It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string userId, bool _, CancellationToken _) =>
+                Resolves(tenant, userId, includeSupervisor: true) ? tenant : null);
+        repository.Setup(store => store.GetTenantWorkspaceForUserAsync(It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string userId, CancellationToken _) =>
                 Resolves(tenant, userId, includeSupervisor: true) ? tenant : null);
         repository.Setup(store => store.GetFarmSettingsAsync(It.IsAny<Guid>(), It.IsAny<Guid>(),
             It.IsAny<bool>(), It.IsAny<CancellationToken>())).ReturnsAsync([]);

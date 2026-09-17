@@ -21,6 +21,16 @@ internal static class CropCycleAccess
             ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
     }
 
+    public static async Task<Tenant> RequireReadTenantAsync(
+        IFarmSetupRepository repository,
+        IUser user,
+        CancellationToken cancellationToken)
+    {
+        var userId = RequireUserId(user);
+        return await repository.GetTenantForOperationalUserAsync(userId, false, cancellationToken)
+            ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
+    }
+
     public static Field RequireField(Tenant tenant, Guid fieldId)
     {
         var farm = tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm");

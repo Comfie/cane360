@@ -94,7 +94,7 @@ public class CropCycleCommandTests
     {
         var repository = new Mock<IFarmSetupRepository>();
         var user = CurrentUser();
-        repository.Setup(store => store.GetTenantForUserAsync("user-1", false, It.IsAny<CancellationToken>()))
+        repository.Setup(store => store.GetTenantForOperationalUserAsync("user-1", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Tenant?)null);
         var handler = new GetCropCyclesQueryHandler(repository.Object, user.Object);
 

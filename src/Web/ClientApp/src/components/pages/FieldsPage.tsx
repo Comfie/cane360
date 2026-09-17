@@ -13,8 +13,10 @@ import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
 import { LineProfileForm } from '../farm-setup/LineProfileForm';
+import { useAuth } from '../api-authorization/AuthContext';
 
 export function FieldsPage() {
+  const isSupervisor = useAuth().session.role === 'Supervisor';
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
   const [isAddingField, setIsAddingField] = useState(false);
   const [activeCycleField, setActiveCycleField] = useState<string | null>(null);
@@ -53,7 +55,7 @@ export function FieldsPage() {
   }
 
   const fields = setup.farm?.fields ?? [];
-  const showFieldForm = fields.length === 0 || isAddingField;
+  const showFieldForm = !isSupervisor && (fields.length === 0 || isAddingField);
 
   const reloadFieldCycles = async (fieldId: string) => {
     try {
@@ -66,8 +68,8 @@ export function FieldsPage() {
 
   return (
     <div className="page-stack">
-      <PageHeader eyebrow="Crop records" title="Fields and crop cycles" description={`Manage field plans, current crops and chronological history on ${setup.farm?.name}.`}>
-        {!showFieldForm && <button type="button" className="primary-action" onClick={() => setIsAddingField(true)}><Plus size={17} /> Add field</button>}
+      <PageHeader eyebrow="Crop records" title="Fields and crop cycles" description={`${isSupervisor ? 'View' : 'Manage'} field plans, current crops and chronological history on ${setup.farm?.name}.`}>
+        {!isSupervisor && !showFieldForm && <button type="button" className="primary-action" onClick={() => setIsAddingField(true)}><Plus size={17} /> Add field</button>}
       </PageHeader>
 
       <FarmSetupProgress setup={setup} />
@@ -94,12 +96,12 @@ export function FieldsPage() {
           <div className="field-record-list">
             {fields.map((field) => (
               <FieldRecord key={field.id} field={field}>
-                <LineProfileForm fieldId={field.id} />
-                <div className="field-cycle-actions">
+                {!isSupervisor && <LineProfileForm fieldId={field.id} />}
+                {!isSupervisor && <div className="field-cycle-actions">
                   {field.currentCropCycle && <Link className="secondary-action" to={`/fields/${field.id}/crop-cycles/${field.currentCropCycle.id}`}><Eye size={16} /> View current cycle</Link>}
                   {activeCycleField !== field.id && <button type="button" className="secondary-action" onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> Plan crop cycle</button>}
-                </div>
-                {activeCycleField === field.id && (
+                </div>}
+                {!isSupervisor && activeCycleField === field.id && (
                   <CropCycleForm
                     field={field}
                     onSaved={async () => { setActiveCycleField(null); await reloadFieldCycles(field.id); }}
@@ -114,7 +116,7 @@ export function FieldsPage() {
 
       {fields.length > 0 && (areCyclesLoading
         ? <LoadingState label="Loading crop-cycle register" />
-        : <CropCycleRegister collections={cycleCollections} filter={cycleFilter} onFilterChange={setCycleFilter} />)}
+        : <CropCycleRegister collections={cycleCollections} filter={cycleFilter} onFilterChange={setCycleFilter} readOnly={isSupervisor} />)}
     </div>
   );
 }

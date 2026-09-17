@@ -8,8 +8,10 @@ import { useFarmSetup } from '../farm-setup/farmSetupApi';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import { useAuth } from '../api-authorization/AuthContext';
 
 export function Dashboard() {
+  const isSupervisor = useAuth().session.role === 'Supervisor';
   const { setup, error, isLoading } = useFarmSetup();
 
   if (isLoading) return <LoadingState label="Preparing your farm overview" />;
@@ -36,7 +38,7 @@ export function Dashboard() {
 
   return (
     <div className="page-stack">
-      <PageHeader eyebrow="Farm overview" title={`Good day, ${firstName(setup.grower?.displayName)}`} description="Your current farm, field area, and growing crop are shown from persisted Cane360 records." />
+      <PageHeader eyebrow="Farm overview" title={isSupervisor ? 'Farm overview' : `Good day, ${firstName(setup.grower?.displayName)}`} description="Your current farm, field area, and growing crop are shown from persisted Cane360 records." />
 
       <section className="field-context has-farm" aria-label="Current farm context">
         <div className="field-context-copy"><span className="eyebrow">Current working context</span><strong>{farm.name} · {farm.code}</strong><p>{farm.location} · {farm.declaredHectares.toLocaleString()} declared hectares · {fields.length} {fields.length === 1 ? 'field' : 'fields'}</p></div>
@@ -57,7 +59,7 @@ export function Dashboard() {
       <FarmSummary setup={setup} compact />
 
       <section aria-labelledby="dashboard-fields-title">
-        <div className="section-heading"><div><span className="eyebrow">Field context</span><h2 id="dashboard-fields-title">Fields and current crops</h2></div>{fields.length > 0 && <Link className="text-action" to="/fields">Manage fields</Link>}</div>
+        <div className="section-heading"><div><span className="eyebrow">Field context</span><h2 id="dashboard-fields-title">Fields and current crops</h2></div>{fields.length > 0 && <Link className="text-action" to="/fields">{isSupervisor ? 'View fields' : 'Manage fields'}</Link>}</div>
         {fields.length === 0 ? (
           <EmptyState icon={LandPlot} title="Add your first field" description="A field supplies the reporting area and boundary for its current crop cycle." nextStep="Record the field before opening its crop cycle." action={<Link className="primary-action" to="/fields">Add field</Link>} />
         ) : (

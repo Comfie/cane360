@@ -44,18 +44,31 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
     public async Task<Tenant?> GetTenantReferenceContextForUserAsync(string userId,
         bool trackChanges, CancellationToken cancellationToken)
     {
-        IQueryable<Tenant> query = context.Tenants
-            .AsSingleQuery()
-            .Include(tenant => tenant.GrowerProfile)
-            .Include(tenant => tenant.Memberships)
-            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.HarvestResult)
+        IQueryable<Tenant> query = ReferenceTenantGraph()
             .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
                 membership.Status == RecordStatus.Active &&
                 (membership.SecurityRole == TenantSecurityRoles.Grower ||
                  membership.SecurityRole == TenantSecurityRoles.FarmManager)));
         return await (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
     }
+
+    public async Task<Tenant?> GetTenantWorkspaceForUserAsync(string userId,
+        CancellationToken cancellationToken) =>
+        await ReferenceTenantGraph()
+            .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager ||
+                 membership.SecurityRole == TenantSecurityRoles.Supervisor)))
+            .AsNoTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+
+    private IQueryable<Tenant> ReferenceTenantGraph() => context.Tenants
+        .AsSingleQuery()
+        .Include(tenant => tenant.GrowerProfile)
+        .Include(tenant => tenant.Memberships)
+        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.HarvestResult);
 
     public async Task<Tenant?> GetTenantForUserAsync(
         string userId,

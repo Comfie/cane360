@@ -8,8 +8,8 @@ public sealed class GetCropCyclesQueryHandler(
         GetCropCyclesQuery request,
         CancellationToken cancellationToken)
     {
-        var tenant = await CropCycleAccess.RequireTenantAsync(
-            repository, user, false, cancellationToken);
+        var tenant = await CropCycleAccess.RequireReadTenantAsync(
+            repository, user, cancellationToken);
         var field = CropCycleAccess.RequireField(tenant, request.FieldId);
         return CropCycleMapper.MapCollection(field);
     }

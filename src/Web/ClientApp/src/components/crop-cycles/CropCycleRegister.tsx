@@ -16,9 +16,10 @@ interface CropCycleRegisterProps {
   collections: CropCycleCollectionDto[];
   filter: string;
   onFilterChange: (filter: string) => void;
+  readOnly?: boolean;
 }
 
-export function CropCycleRegister({ collections, filter, onFilterChange }: CropCycleRegisterProps) {
+export function CropCycleRegister({ collections, filter, onFilterChange, readOnly = false }: CropCycleRegisterProps) {
   const allCycles = flattenCycleCollections(collections);
   const visibleCycles = filterCycles(allCycles.map((entry) => entry.cropCycle), filter);
   const visibleIds = new Set(visibleCycles.map((cycle) => cycle.id));
@@ -38,14 +39,14 @@ export function CropCycleRegister({ collections, filter, onFilterChange }: CropC
       ) : (
         <div className="cycle-register" role="list">
           {entries.map(({ field, cropCycle }) => (
-            <Link className="cycle-register-row" role="listitem" key={cropCycle.id} to={`/fields/${field.id}/crop-cycles/${cropCycle.id}`}>
+            <div className="cycle-register-row" role="listitem" key={cropCycle.id}>
               <span className={`cycle-status-dot is-${cycleGroup(cropCycle.status)}`} aria-hidden="true"><Sprout size={16} /></span>
               <span className="cycle-register-primary"><strong>{field.code} · {field.name}</strong><small>{cropCycle.variety} · {cropCycle.cycleType === 'Ratoon' ? `Ratoon ${cropCycle.ratoonNumber}` : 'Plant cane'}</small></span>
               <span className={`status-chip is-${cycleGroup(cropCycle.status)}`}>{formatCycleStatus(cropCycle.status)}</span>
               <span className="cycle-register-date"><CalendarDays size={14} aria-hidden="true" /> {formatDate(cropCycle.startDate)}</span>
               <span className="cycle-register-yield"><Wheat size={14} aria-hidden="true" /> {cropCycle.harvestResult ? `${cropCycle.harvestResult.actualTonnes.toLocaleString()} t actual` : `${cropCycle.expectedYieldTonnes.toLocaleString()} t expected`}</span>
-              <ChevronRight className="cycle-register-arrow" size={17} aria-hidden="true" />
-            </Link>
+              {!readOnly && <Link className="cycle-register-arrow" to={`/fields/${field.id}/crop-cycles/${cropCycle.id}`} aria-label={`View ${field.code} crop cycle`}><ChevronRight size={17} aria-hidden="true" /></Link>}
+            </div>
           ))}
         </div>
       )}

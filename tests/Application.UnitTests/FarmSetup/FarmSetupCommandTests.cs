@@ -11,13 +11,13 @@ namespace Cane360.Application.UnitTests.FarmSetup;
 public class FarmSetupCommandTests
 {
     [Test]
-    public async Task FarmSetupReadUsesReferenceContextWithoutOperationalHistory()
+    public async Task FarmSetupReadUsesSupervisorCapableWorkspaceWithoutOperationalHistory()
     {
         Tenant tenant = Tenant.CreateForGrower("user-1", "Tariro Moyo", null);
         tenant.CreateFarm("GREEN-01", "Green Valley", "Synthetic", "Triangle", "Owned",
             120m, "Furrow");
         var repository = new Mock<IFarmSetupRepository>(MockBehavior.Strict);
-        repository.Setup(store => store.GetTenantReferenceContextForUserAsync("user-1", false,
+        repository.Setup(store => store.GetTenantWorkspaceForUserAsync("user-1",
             CancellationToken.None)).ReturnsAsync(tenant);
         var user = new Mock<IUser>();
         user.SetupGet(current => current.Id).Returns("user-1");

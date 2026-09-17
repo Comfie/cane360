@@ -11,6 +11,9 @@ public interface IFarmSetupRepository
     /// <summary>Membership and field/cycle references, without operational history or personnel graphs.</summary>
     Task<Tenant?> GetTenantReferenceContextForUserAsync(string userId, bool trackChanges,
         CancellationToken cancellationToken);
+    /// <summary>Read-only farm and field workspace for Grower, FarmManager, or Supervisor.</summary>
+    Task<Tenant?> GetTenantWorkspaceForUserAsync(string userId,
+        CancellationToken cancellationToken);
     /// <summary>Membership and farm personnel references, without fields or operational history.</summary>
     Task<Tenant?> GetTenantPeopleContextForUserAsync(string userId, bool trackChanges,
         CancellationToken cancellationToken);
