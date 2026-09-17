@@ -98,7 +98,8 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
                 membership.UserId == userId &&
                 membership.Status == RecordStatus.Active &&
                 (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager ||
+                 membership.SecurityRole == TenantSecurityRoles.Supervisor)));
 
         if (!trackChanges)
         {

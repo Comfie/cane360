@@ -23,21 +23,21 @@ public sealed class RedeemManagerInvitationCommandHandler(
         var farm = tenant.ActiveFarm;
         if (farm is null || farm.Id != invitation.FarmId)
             throw new NotFoundException(invitation.FarmId.ToString(), "Invitation farm");
-        var manager = farm.Persons.SingleOrDefault(person => person.Id == invitation.PersonId)
-            ?? throw new NotFoundException(invitation.PersonId.ToString(), "Invitation manager");
+        var person = farm.Persons.SingleOrDefault(candidate => candidate.Id == invitation.PersonId)
+            ?? throw new NotFoundException(invitation.PersonId.ToString(), "Invitation person");
         var now = timeProvider.GetUtcNow();
         var today = InventoryAccess.HarareDate(now);
-        if (!manager.HasEffectiveRole(PersonRole.FarmManager, today) ||
-            !manager.RoleAssignments.Any(role => role.Role == PersonRole.FarmManager && role.IsPrimary && role.IsEffective(today)))
-            throw InventoryAccess.Failure(nameof(command.Token), "The invitation no longer targets the active primary FarmManager.");
+        bool stillHoldsRole = invitation.SecurityRole == Cane360.Domain.Farms.TenantSecurityRoles.FarmManager
+            ? person.RoleAssignments.Any(role => role.Role == PersonRole.FarmManager && role.IsPrimary && role.IsEffective(today))
+            : person.RoleAssignments.Any(role => role.Role == PersonRole.Supervisor && role.IsEffective(today));
+        if (!stillHoldsRole)
+            throw InventoryAccess.Failure(nameof(command.Token), "The invitation no longer targets a person with that role.");
 
         InventoryAccess.ApplyDomainAction(nameof(command.Token), () => invitation.Redeem(now, userId));
-        InventoryAccess.ApplyDomainAction(nameof(command.Token), () =>
-            tenant.AddMembership(userId, manager.Id, Cane360.Domain.Farms.TenantSecurityRoles.FarmManager));
+        InventoryAccess.ApplyDomainAction(nameof(command.Token), () => tenant.AddMembership(userId, person.Id, invitation.SecurityRole));
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,
-            "Redeemed", now, null, "Invitation redeemed and FarmManager tenant membership activated.");
+            "Redeemed", now, null, "Invitation redeemed and tenant membership activated.");
         await inventoryRepository.SaveChangesAsync(cancellationToken);
-        return new TenantSessionDto(tenant.Id, farm.Id,
-            Cane360.Domain.Farms.TenantSecurityRoles.FarmManager, manager.Id, manager.DisplayName);
+        return new TenantSessionDto(tenant.Id, farm.Id, invitation.SecurityRole, person.Id, person.DisplayName);
     }
 }

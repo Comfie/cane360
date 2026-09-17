@@ -21,6 +21,7 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
     private string _connectionString = string.Empty;
     private string _runId = string.Empty;
     private string _userId = string.Empty;
+    private string _supervisorUserId = string.Empty;
     private Guid _tenantId;
     private Guid _farmId;
     private Guid _activityTypeId;
@@ -47,6 +48,10 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
             farm.AssignRole(manager, PersonRole.FarmManager, true, new DateOnly(2026, 1, 1));
             tenant.AddMembership(managerId, manager.Id, TenantSecurityRoles.FarmManager);
         }
+        _supervisorUserId = $"p8b-supervisor-{Guid.NewGuid():N}";
+        Person supervisor = farm.AddPerson("Synthetic Supervisor", null, new DateOnly(2026, 1, 1));
+        farm.AssignRole(supervisor, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
+        tenant.AddMembership(_supervisorUserId, supervisor.Id, TenantSecurityRoles.Supervisor);
         _tenantId = tenant.Id;
         _farmId = farm.Id;
         _activityTypeId = type.Id;
@@ -63,11 +68,23 @@ public sealed class PostgreSqlAdministrationAcceptanceTests
                 .HashPassword(managerUser, browserPassword!);
             context.Users.Add(managerUser);
         }
+        context.Users.Add(User(_supervisorUserId));
         context.Tenants.Add(tenant);
         await context.SaveChangesAsync();
         TestContext.Progress.WriteLine($"Retained synthetic Administration run: {_runId}; tenant: {_tenantId}");
         if (managerId is not null)
             TestContext.Progress.WriteLine($"Browser fixture Grower: {growerUser.Email}; FarmManager: {managerId}@invalid.example");
+        TestContext.Progress.WriteLine($"Synthetic Supervisor: {_supervisorUserId}");
+    }
+
+    [Test]
+    public async Task SupervisorMembershipResolvesThroughOperationalTenantQuery()
+    {
+        await using var context = CreateContext();
+        var repository = new FarmSetupRepository(context);
+        Tenant? resolved = await repository.GetTenantForUserAsync(_supervisorUserId, false, CancellationToken.None);
+        resolved.ShouldNotBeNull();
+        resolved.Id.ShouldBe(_tenantId);
     }
 
     [Test]
