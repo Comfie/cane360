@@ -13,7 +13,7 @@ public sealed class AddSourceReferenceCommandHandler(
     {
         var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
-        var activity = ActivityAccess.RequireActivity(tenant, request.ActivityId);
+        var activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
         ActivityAccess.RequireVersion(activity, request.ExpectedVersion);
         var field = ActivityAccess.RequireField(farm, activity.FieldId);
         ActivityAccess.RequireOperationalCycle(field, activity.CropCycleId);

@@ -20,6 +20,7 @@ public sealed class CreateActivityCommandHandler(
             ?? throw new NotFoundException(request.ActivityTypeId.ToString(), "Active activity type");
         var kind = Enum.Parse<ActivityPlanningKind>(request.Kind, true);
         var effectiveDate = request.PlannedDate ?? ActivityAccess.HarareDate(timeProvider.GetUtcNow());
+        ActivityAccess.RequireAssignedSupervisor(tenant, user, request.SupervisorPersonId);
         ActivityAccess.RequireSupervisor(farm, request.SupervisorPersonId, effectiveDate);
         Activity? activity = null;
         ActivityAccess.ApplyDomainAction(nameof(request.Kind), () => activity = cycle.CreateActivity(

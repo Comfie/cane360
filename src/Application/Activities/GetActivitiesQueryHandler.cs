@@ -11,6 +11,7 @@ public sealed class GetActivitiesQueryHandler(IFarmSetupRepository repository, I
         var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
         IEnumerable<Activity> query = farm.Fields.SelectMany(field => field.CropCycles).SelectMany(cycle => cycle.Activities);
+        query = query.Where(activity => ActivityAccess.CanAccessActivity(tenant, user, activity));
         if (request.FieldId.HasValue) query = query.Where(activity => activity.FieldId == request.FieldId);
         if (request.CropCycleId.HasValue) query = query.Where(activity => activity.CropCycleId == request.CropCycleId);
         if (request.ActivityTypeId.HasValue) query = query.Where(activity => activity.ActivityTypeId == request.ActivityTypeId);

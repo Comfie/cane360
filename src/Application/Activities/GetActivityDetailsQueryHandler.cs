@@ -13,10 +13,11 @@ public sealed class GetActivityDetailsQueryHandler(
     {
         var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
         var farm = ActivityAccess.RequireFarm(tenant);
+        var activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
         var records = await labourRepository.GetWorkRecordsAsync(
             tenant.Id, farm.Id, null, null, request.ActivityId, false, cancellationToken);
         var workers = await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
         return await ActivityMapper.MapDetailsAsync(
-            tenant, ActivityAccess.RequireActivity(tenant, request.ActivityId), identityService, records, workers);
+            tenant, activity, identityService, records, workers);
     }
 }

@@ -135,6 +135,39 @@ public sealed class SupervisorAuthorizationBoundaryTests
             Times.Once);
     }
 
+    [Test]
+    public async Task SupervisorCannotCaptureOrReadAnotherSupervisorsActivity()
+    {
+        Fixture fixture = CreateFixture();
+        Farm farm = fixture.Tenant.ActiveFarm!;
+        Person other = farm.AddPerson("Other Supervisor", null, new DateOnly(2026, 1, 1));
+        farm.AssignRole(other, PersonRole.Supervisor, false, new DateOnly(2026, 1, 1));
+        Activity foreignActivity = fixture.Cycle.CreateActivity(fixture.Tenant.Id, farm.Id,
+            fixture.Field.Id, fixture.Type, ActivityPlanningKind.Planned,
+            new DateOnly(2026, 8, 14), other.Id);
+        var user = User(SupervisorUserId);
+
+        var list = new GetActivitiesQueryHandler(fixture.Repository.Object, user);
+        ActivityCollectionDto visible = await list.Handle(EmptyActivityQuery(), CancellationToken.None);
+        visible.Items.Select(item => item.Id).ShouldNotContain(foreignActivity.Id);
+
+        var create = new CreateActivityCommandHandler(fixture.Repository.Object, user,
+            Identity(), new FixedClock());
+        await Should.ThrowAsync<NotFoundException>(() => create.Handle(
+            new CreateActivityCommand(fixture.Field.Id, fixture.Cycle.Id, fixture.Type.Id,
+                "Unplanned", null, other.Id), CancellationToken.None));
+
+        var record = new RecordActualWorkCommandHandler(fixture.Repository.Object, user,
+            Identity(), new FixedClock());
+        await Should.ThrowAsync<NotFoundException>(() => record.Handle(
+            new RecordActualWorkCommand(foreignActivity.Id, foreignActivity.Version,
+                new DateTimeOffset(2026, 8, 14, 9, 0, 0, TimeSpan.Zero), 1m, null),
+            CancellationToken.None));
+
+        fixture.Repository.Verify(store => store.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     [TestCase(GrowerUserId)]
     [TestCase(ManagerUserId)]
     public async Task GrowerAndFarmManagerKeepTheirActivityAccess(string userId)

@@ -68,6 +68,33 @@ internal static class ActivityAccess
         return activity ?? throw new NotFoundException(activityId.ToString(), "Activity");
     }
 
+    public static bool CanAccessActivity(Tenant tenant, IUser user, Activity activity)
+    {
+        var membership = tenant.Memberships.Single(membership =>
+            membership.UserId == RequireUserId(user) && membership.Status == RecordStatus.Active);
+        return membership.SecurityRole != TenantSecurityRoles.Supervisor ||
+            membership.PersonId == activity.SupervisorPersonId;
+    }
+
+    public static Activity RequireAssignedActivity(Tenant tenant, IUser user, Guid activityId)
+    {
+        var activity = RequireActivity(tenant, activityId);
+        return CanAccessActivity(tenant, user, activity)
+            ? activity
+            : throw new NotFoundException(activityId.ToString(), "Assigned activity");
+    }
+
+    public static void RequireAssignedSupervisor(Tenant tenant, IUser user, Guid supervisorPersonId)
+    {
+        var membership = tenant.Memberships.Single(membership =>
+            membership.UserId == RequireUserId(user) && membership.Status == RecordStatus.Active);
+        if (membership.SecurityRole == TenantSecurityRoles.Supervisor &&
+            membership.PersonId != supervisorPersonId)
+        {
+            throw new NotFoundException(supervisorPersonId.ToString(), "Assigned supervisor");
+        }
+    }
+
     public static Person RequireSupervisor(Farm farm, Guid personId, DateOnly effectiveDate)
     {
         var person = farm.Persons.SingleOrDefault(candidate => candidate.Id == personId)
