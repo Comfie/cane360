@@ -1,13 +1,26 @@
 using Cane360.Application.Activities;
+using Cane360.Application.Finance;
 using Cane360.Web.Controllers;
 using Cane360.Web.Models.Activities;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cane360.Web.UnitTests.Controllers;
 
 public sealed class CreateResponseContractTests
 {
+    [Test]
+    public void FinanceTransactionCreateDocumentsItsCreatedResponse()
+    {
+        var action = typeof(FinanceController).GetMethod(nameof(FinanceController.CreateTransaction))!;
+        var responses = action.GetCustomAttributes(typeof(ProducesResponseTypeAttribute), false)
+            .Cast<ProducesResponseTypeAttribute>();
+
+        responses.Any(response => response.StatusCode == StatusCodes.Status201Created &&
+            response.Type == typeof(OperationalTransactionDto)).ShouldBeTrue();
+    }
+
     [Test]
     public async Task ActivityTypeCreateReturnsDtoWithoutListLocation()
     {

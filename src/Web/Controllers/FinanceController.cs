@@ -39,6 +39,7 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
     }
 
     [HttpPost("transactions", Name = "CreateFinanceTransaction")]
+    [ProducesResponseType<OperationalTransactionDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<OperationalTransactionDto>> CreateTransaction(
         CreateOperationalTransactionRequest request, CancellationToken cancellationToken)
     {

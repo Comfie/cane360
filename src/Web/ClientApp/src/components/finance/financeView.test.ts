@@ -1,9 +1,21 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { FinanceClient, type CreateOperationalTransactionRequest } from '../../web-api-client.ts';
 import { canApproveBudget, canEditBudget, canReviseBudget, canSubmitBudget, financeLabel, perUnit, usd, variancePercent } from './financeView.ts';
 
 const financePageSource = readFileSync(new URL('../pages/FinancePage.tsx', import.meta.url), 'utf8');
+
+test('created finance transaction resolves from a 201 response', async () => {
+  const id = '00000000-0000-0000-0000-000000000001';
+  const client = new FinanceClient('', {
+    fetch: async () => new Response(JSON.stringify({ id }), { status: 201 }),
+  });
+
+  const result = await client.createFinanceTransaction({} as CreateOperationalTransactionRequest);
+
+  assert.equal(result.id, id);
+});
 
 test('missing cost denominators are not displayed as zero dollars', () => {
   assert.equal(perUnit(undefined, 'ha'), 'Not available');
