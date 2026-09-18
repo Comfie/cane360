@@ -1234,10 +1234,8 @@ p {
   align-content: center;
   justify-items: center;
   min-width: 0;
-  padding: var(--space-8) var(--space-4);
-  background:
-    radial-gradient(135% 100% at 50% -25%, color-mix(in srgb, var(--cane-500) 9%, var(--canvas)), transparent 55%),
-    var(--canvas);
+  padding: clamp(var(--space-8), 6vw, var(--space-12)) var(--space-6);
+  background: var(--surface-raised);
 }
 
 .auth-mobile-brand {
@@ -1253,25 +1251,38 @@ p {
 
 .auth-card {
   width: 100%;
-  max-width: 27rem;
+  max-width: 28rem;
   margin: 0 auto;
-  padding: var(--space-8);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-2);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .auth-card > header {
+  margin: 0 0 var(--space-8);
+  padding: 0 0 var(--space-6);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-card > header::before {
+  content: "";
+  display: block;
+  width: 2.25rem;
+  height: 3px;
   margin-bottom: var(--space-6);
+  background: var(--harvest-500);
 }
 
 .auth-card > header h2 {
-  margin: var(--space-3) 0 var(--space-2);
+  margin: 0 0 var(--space-2);
   font-family: var(--font-display);
-  font-size: var(--type-2xl);
+  font-size: clamp(var(--type-2xl), 3vw, 2.25rem);
   line-height: var(--line-tight);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
 }
 
 .auth-card > header p {
@@ -1281,22 +1292,32 @@ p {
   line-height: var(--line-body);
 }
 
-.auth-card form {
+.auth-form {
+  display: grid;
+  gap: var(--space-5);
   margin: 0;
 }
 
-.auth-card label {
+.auth-field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.auth-field label {
   display: block;
-  margin: 0 0 var(--space-2);
+  margin: 0;
   color: var(--text-strong);
   font-size: var(--type-sm);
-  font-weight: 650;
+  font-weight: 600;
 }
 
-.auth-card input {
-  min-height: 2.75rem;
+#root .auth-field input {
+  height: 3.125rem;
+  min-height: 3.125rem;
   margin: 0;
-  border-radius: var(--radius-md);
+  padding-inline: var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   font-size: var(--type-base);
   transition:
@@ -1304,49 +1325,57 @@ p {
     box-shadow var(--duration-fast) var(--ease-standard);
 }
 
-.auth-card input:focus,
-.auth-card input:focus-visible {
+#root .auth-field input:focus,
+#root .auth-field input:focus-visible {
   border-color: var(--cane-500);
   box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-.auth-card small {
+.auth-field small {
   display: block;
-  min-height: 1.35rem;
-  margin: var(--space-2) 0 0;
+  margin: 0;
   color: var(--text-muted);
   font-size: var(--type-xs);
   line-height: var(--line-snug);
 }
 
-.auth-card :is(input, small) + label {
-  margin-top: var(--space-5);
-}
-
-.auth-card form > button[type="submit"] {
+#root .auth-form > button[type="submit"] {
+  height: 3.25rem;
   width: 100%;
-  min-height: 3rem;
-  margin: var(--space-6) 0 0;
-  border-radius: var(--radius-md);
+  min-height: 3.25rem;
+  margin: var(--space-2) 0 0;
+  border: 1px solid var(--cane-800);
+  border-radius: var(--radius-sm);
+  background: var(--cane-800);
+  color: #fff;
   font-weight: 700;
   transition:
     background-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-mid) var(--ease-standard),
-    transform var(--duration-fast) var(--ease-standard);
+    border-color var(--duration-fast) var(--ease-standard);
 }
 
-.auth-card form > button[type="submit"]:hover:not(:disabled) {
-  box-shadow: var(--shadow-2);
-  transform: translateY(-1px);
+#root .auth-form > button[type="submit"]:hover:not(:disabled) {
+  border-color: var(--cane-700);
+  background: var(--cane-700);
 }
 
 .auth-switch {
-  margin: var(--space-6) 0 0;
-  padding-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding-top: var(--space-6);
   border-top: 1px solid var(--border);
   color: var(--text-muted);
   font-size: var(--type-sm);
-  text-align: center;
+  text-align: left;
+}
+
+.auth-switch a {
+  color: var(--pico-primary);
+  font-weight: 650;
+  text-underline-offset: 0.2em;
 }
 
 .toast-region {

@@ -31,7 +31,6 @@ export function AuthLayout({ children, title, description }: AuthLayoutProps) {
         <div className="auth-mobile-brand"><Leaf size={20} aria-hidden="true" /> Cane360</div>
         <article className="auth-card">
           <header>
-            <span className="eyebrow">Secure account access</span>
             <h2>{title}</h2>
             <p>{description}</p>
           </header>

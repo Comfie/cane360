@@ -35,31 +35,35 @@ export function LoginPage() {
 
   return (
     <AuthLayout title="Log in" description="Continue to your farm workspace.">
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <ValidationError title="Unable to log in" message={error} />
 
-        <label htmlFor="email">Email address</label>
-        <input
-          type="email"
-          id="email"
-          autoComplete="username"
-          inputMode="email"
-          value={email}
-          onChange={(event) => { setError(''); setEmail(event.target.value); }}
-          aria-invalid={Boolean(error) || undefined}
-          required
-        />
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            type="email"
+            id="email"
+            autoComplete="username"
+            inputMode="email"
+            value={email}
+            onChange={(event) => { setError(''); setEmail(event.target.value); }}
+            aria-invalid={Boolean(error) || undefined}
+            required
+          />
+        </div>
 
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => { setError(''); setPassword(event.target.value); }}
-          aria-invalid={Boolean(error) || undefined}
-          required
-        />
+        <div className="auth-field">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => { setError(''); setPassword(event.target.value); }}
+            aria-invalid={Boolean(error) || undefined}
+            required
+          />
+        </div>
 
         <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
           {isSubmitting ? 'Logging in…' : 'Log in'}

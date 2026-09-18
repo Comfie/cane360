@@ -47,41 +47,45 @@ export function RegisterPage() {
 
   return (
     <AuthLayout title="Create an account" description="Set up secure access before adding farm records.">
-      <form onSubmit={handleSubmit} noValidate>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <ValidationError title="Unable to create the account" message={error} />
 
-        <label htmlFor="email">Email address</label>
-        <input
-          type="email"
-          id="email"
-          autoComplete="username"
-          inputMode="email"
-          value={email}
-          onChange={(event) => { setError(''); setEmail(event.target.value); }}
-          onBlur={() => setEmailTouched(true)}
-          aria-invalid={emailInvalid || undefined}
-          aria-describedby="email-helper"
-          required
-        />
-        <small id="email-helper" className={emailInvalid ? 'field-error' : ''}>
-          {emailInvalid ? 'Enter a complete email address.' : 'This will be your Cane360 login.'}
-        </small>
+        <div className="auth-field">
+          <label htmlFor="email">Email address</label>
+          <input
+            type="email"
+            id="email"
+            autoComplete="username"
+            inputMode="email"
+            value={email}
+            onChange={(event) => { setError(''); setEmail(event.target.value); }}
+            onBlur={() => setEmailTouched(true)}
+            aria-invalid={emailInvalid || undefined}
+            aria-describedby="email-helper"
+            required
+          />
+          <small id="email-helper" className={emailInvalid ? 'field-error' : ''}>
+            {emailInvalid ? 'Enter a complete email address.' : 'This will be your Cane360 login.'}
+          </small>
+        </div>
 
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) => { setError(''); setPassword(event.target.value); }}
-          onBlur={() => setPasswordTouched(true)}
-          aria-invalid={passwordInvalid || undefined}
-          aria-describedby="password-helper"
-          required
-        />
-        <small id="password-helper" className={passwordInvalid ? 'field-error' : ''}>
-          {passwordInvalid ? `Use at least ${MIN_PASSWORD_LENGTH} characters.` : 'Use a strong password that you do not use elsewhere.'}
-        </small>
+        <div className="auth-field">
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(event) => { setError(''); setPassword(event.target.value); }}
+            onBlur={() => setPasswordTouched(true)}
+            aria-invalid={passwordInvalid || undefined}
+            aria-describedby="password-helper"
+            required
+          />
+          <small id="password-helper" className={passwordInvalid ? 'field-error' : ''}>
+            {passwordInvalid ? `Use at least ${MIN_PASSWORD_LENGTH} characters.` : 'Use a strong password that you do not use elsewhere.'}
+          </small>
+        </div>
 
         <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
           {isSubmitting ? 'Creating account…' : 'Create account'}
