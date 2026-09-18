@@ -96,6 +96,7 @@ try
             RequestLogLevel.Select(httpContext.Response.StatusCode, elapsed, exception);
     });
 
+    // Public API reference is intentional; the audited national-ID reveal endpoint is excluded from ApiExplorer.
     app.MapOpenApi();
     app.MapScalarApiReference();
 
