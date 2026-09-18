@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
-import { CircleDollarSign, FileSearch, Landmark, Plus, RefreshCw, RotateCcw, Send, X } from 'lucide-react';
+import { CircleDollarSign, FileSearch, Landmark, Pencil, Plus, RefreshCw, RotateCcw, Send, X } from 'lucide-react';
 import {
   CreateOperationalTransactionRequest,
   CropCyclesClient,
@@ -16,6 +16,7 @@ import {
   type FarmSetupDto,
   type OperationalTransactionDto,
 } from '../../web-api-client';
+import { ConfirmationDialog } from '../ConfirmationDialog';
 import { DatePicker } from '../DatePicker';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
@@ -44,6 +45,8 @@ export function FinancePage() {
   const [transactionTotals, setTransactionTotals] = useState({ totalCount: 0, postedExpenseUsd: 0, postedIncomeUsd: 0, draftCount: 0 });
   const [editor, setEditor] = useState<OperationalTransactionDto | 'new' | null>(null);
   const [allocating, setAllocating] = useState<OperationalTransactionDto | null>(null);
+  const [posting, setPosting] = useState<OperationalTransactionDto | null>(null);
+  const [reversing, setReversing] = useState<OperationalTransactionDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState('');
   const [error, setError] = useState('');
@@ -82,19 +85,20 @@ export function FinancePage() {
     finally { setPending(''); }
   };
 
-  const post = async (transaction: OperationalTransactionDto) => {
-    if (!globalThis.confirm('Post this transaction? Amount, date, category, source, and allocations become immutable.')) return;
-    await mutate(`post-${transaction.id}`, () => financeApi.postFinanceTransaction(transaction.id,
-      new PostOperationalTransactionRequest({ expectedVersion: transaction.version,
+  const confirmPost = async () => {
+    if (!posting) return;
+    const ok = await mutate(`post-${posting.id}`, () => financeApi.postFinanceTransaction(posting.id,
+      new PostOperationalTransactionRequest({ expectedVersion: posting.version,
         idempotencyKey: newFinanceKey('transaction-post') })), 'Transaction posted and eligible crop cost projected.');
+    if (ok) setPosting(null);
   };
 
-  const reverse = async (transaction: OperationalTransactionDto) => {
-    const reason = globalThis.prompt('Grower reversal reason:')?.trim();
-    if (!reason) return;
-    await mutate(`reverse-${transaction.id}`, () => financeApi.reverseFinanceTransaction(transaction.id,
+  const confirmReverse = async (reason: string) => {
+    if (!reversing) return;
+    const ok = await mutate(`reverse-${reversing.id}`, () => financeApi.reverseFinanceTransaction(reversing.id,
       new ReverseOperationalTransactionRequest({ reason, idempotencyKey: newFinanceKey('transaction-reversal') })),
     'Reversal appended; original facts remain unchanged.');
+    if (ok) setReversing(null);
   };
 
   const loadCost = async (cycleId: string) => {
@@ -134,13 +138,15 @@ export function FinancePage() {
       </form>
       <TransactionRegister transactions={transactions} totals={transactionTotals} page={transactionPage} pending={pending}
         onPage={(page) => loadTransactions(page).catch((error) => setError(getApiError(error)))} onEdit={setEditor}
-        onAllocate={setAllocating} onPost={post} onReverse={reverse} />
+        onAllocate={setAllocating} onPost={setPosting} onReverse={setReversing} />
     </>}
     {tab === 'cost' && <CostWorkspace cycles={cycles} cost={cost} loading={pending === 'cost'} onSelect={loadCost} />}
     {tab === 'budgets' && <BudgetWorkspace cycles={cycles} role={role} onError={setError} onSuccess={setSuccess} />}
     {tab === 'mill-records' && <MillRecordsWorkspace onError={setError} onSuccess={setSuccess} />}
     {editor && <FinanceDialog title={editor === 'new' ? 'Record transaction draft' : 'Edit transaction draft'} onClose={() => setEditor(null)}><TransactionForm transaction={editor === 'new' ? null : editor} onSaved={async () => { setEditor(null); await refresh(); }} onError={setError} /></FinanceDialog>}
     {allocating && <FinanceDialog title="Allocate full transaction amount" onClose={() => setAllocating(null)}><AllocationForm transaction={allocating} farm={farm?.farm ?? null} cycles={cycles} onSaved={async () => { setAllocating(null); await refresh(); }} onError={setError} /></FinanceDialog>}
+    {posting && <ConfirmationDialog title="Post transaction" description={`Post ${usd(posting.amountUsd)} to ${posting.payeeOrPayer}? Amount, date, category, source, and allocations become immutable.`} confirmLabel="Post transaction" isBusy={pending === `post-${posting.id}`} onConfirm={confirmPost} onCancel={() => setPosting(null)} />}
+    {reversing && <ReversalConfirmation transaction={reversing} isBusy={pending === `reverse-${reversing.id}`} onConfirm={confirmReverse} onCancel={() => setReversing(null)} />}
   </div>;
 }
 
@@ -153,7 +159,7 @@ function TransactionRegister({ transactions, totals, page, pending, onPage, onEd
       <span><strong>{transaction.payeeOrPayer}</strong><small>{transaction.allocations.length} allocation{transaction.allocations.length === 1 ? '' : 's'} · v{transaction.version}</small></span>
       <span>{financeLabel(transaction.category)}<small>{transaction.type}</small></span>
       <b className={transaction.type === 'Income' ? 'finance-income' : 'finance-expense'}>{transaction.type === 'Income' ? '+' : '−'}{usd(transaction.amountUsd)}</b>
-      <span className="finance-row-actions"><em className={`status-pill status-${transaction.status.toLowerCase()}`}>{transaction.status}</em>{transaction.status === 'Draft' && <><button onClick={() => onEdit(transaction)}>Edit</button><button onClick={() => onAllocate(transaction)}>Allocate</button><button disabled={!transaction.allocations.length || pending !== ''} onClick={() => onPost(transaction)}><Send size={14} /> Post</button></>}{transaction.status === 'Posted' && <button className="text-action" disabled={pending !== ''} onClick={() => onReverse(transaction)}><RotateCcw size={14} /> Reverse</button>}</span>
+      <span className="finance-row-actions"><em className={`status-pill status-${transaction.status.toLowerCase()}`}>{transaction.status}</em>{transaction.status === 'Draft' && <><button type="button" className="row-icon-button" onClick={() => onEdit(transaction)} aria-label="Edit transaction" title="Edit transaction"><Pencil size={15} /></button><button onClick={() => onAllocate(transaction)}>Allocate</button><button type="button" className="row-icon-button" disabled={!transaction.allocations.length || pending !== ''} onClick={() => onPost(transaction)} aria-label="Post transaction" title="Post transaction"><Send size={15} /></button></>}{transaction.status === 'Posted' && <button className="text-action" disabled={pending !== ''} onClick={() => onReverse(transaction)}><RotateCcw size={14} /> Reverse</button>}</span>
     </article>) : <div className="finance-empty"><Landmark size={26} /><strong>No operational transactions match these filters.</strong><span>Create a draft or widen the date and status filters.</span></div>}
     <nav className="payroll-pagination" aria-label="Transaction pages"><button disabled={page <= 1 || pending !== ''} onClick={() => onPage(page - 1)}>Previous transactions</button><span aria-live="polite">Page {page} of {Math.max(1, Math.ceil(totals.totalCount / 50))}</span><button disabled={page * 50 >= totals.totalCount || pending !== ''} onClick={() => onPage(page + 1)}>Next transactions</button></nav>
   </section>;
@@ -177,11 +183,25 @@ function AllocationForm({ transaction, farm, cycles, onSaved, onError }: { trans
   const total = rows.reduce((sum, row) => sum + Number(row.amountUsd || 0), 0);
   const patchRow = (key: string, patch: Partial<AllocationRow>) => setRows((value) => value.map((row) => row.key === key ? { ...row, ...patch } : row));
   const submit = async (event: FormEvent) => { event.preventDefault(); setSaving(true); onError(''); try { await financeApi.setFinanceTransactionAllocations(transaction.id, new SetTransactionAllocationsRequest({ expectedVersion: transaction.version, allocations: rows.map((row) => new TransactionAllocationRequest({ allocationType: row.allocationType, fieldId: row.fieldId || undefined, cropCycleId: row.cropCycleId || undefined, category: row.category, amountUsd: Number(row.amountUsd) })) })); await onSaved(); } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); } };
-  return <form className="allocation-form" onSubmit={submit}><p className={total === transaction.amountUsd ? 'allocation-reconciled' : 'allocation-unbalanced'}>Allocated {usd(total)} of {usd(transaction.amountUsd)} · {total === transaction.amountUsd ? 'exactly reconciled' : `${usd(Math.abs(transaction.amountUsd - total))} remaining`}</p>{rows.map((row) => <fieldset key={row.key} className="allocation-row"><label>Scope<select value={row.allocationType} onChange={(event) => patchRow(row.key, { allocationType: event.target.value as AllocationRow['allocationType'], fieldId: '', cropCycleId: '' })}><option value="CropCycleDirect">Crop-cycle direct</option><option value="Field">Field only</option><option value="FarmOverhead">Farm overhead</option></select></label>{row.allocationType !== 'FarmOverhead' && <label>Field<select value={row.fieldId} onChange={(event) => patchRow(row.key, { fieldId: event.target.value, cropCycleId: '' })} required><option value="">Select field</option>{farm?.fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>}{row.allocationType === 'CropCycleDirect' && <label>Crop cycle<select value={row.cropCycleId} onChange={(event) => { const cycle = cycles.find((item) => item.id === event.target.value); patchRow(row.key, { cropCycleId: event.target.value, fieldId: cycle?.fieldId || row.fieldId }); }} required><option value="">Select cycle</option>{cycles.filter((cycle) => !row.fieldId || cycle.fieldId === row.fieldId).map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label>}<label>Amount (USD)<input type="number" min="0.01" step="0.01" value={row.amountUsd} onChange={(event) => patchRow(row.key, { amountUsd: event.target.value })} required /></label><button type="button" className="icon-button" aria-label="Remove allocation" disabled={rows.length === 1} onClick={() => setRows((value) => value.filter((item) => item.key !== row.key))}><X size={16} /></button></fieldset>)}<footer className="form-actions"><button type="button" className="secondary" onClick={() => setRows((value) => [...value, { key: newFinanceKey('allocation'), allocationType: 'FarmOverhead', fieldId: '', cropCycleId: '', category: transaction.category, amountUsd: '' }])}><Plus size={15} /> Add allocation</button><button disabled={saving || total !== transaction.amountUsd}>Save exact allocations</button></footer></form>;
+  return <form className="allocation-form" onSubmit={submit}><p className={total === transaction.amountUsd ? 'allocation-reconciled' : 'allocation-unbalanced'}>Allocated {usd(total)} of {usd(transaction.amountUsd)} · {total === transaction.amountUsd ? 'exactly reconciled' : `${usd(Math.abs(transaction.amountUsd - total))} remaining`}</p>{rows.map((row) => <fieldset key={row.key} className="allocation-row"><label>Scope<select value={row.allocationType} onChange={(event) => patchRow(row.key, { allocationType: event.target.value as AllocationRow['allocationType'], fieldId: '', cropCycleId: '' })}><option value="CropCycleDirect">Crop-cycle direct</option><option value="Field">Field only</option><option value="FarmOverhead">Farm overhead</option></select></label>{row.allocationType !== 'FarmOverhead' && <label>Field<select value={row.fieldId} onChange={(event) => patchRow(row.key, { fieldId: event.target.value, cropCycleId: '' })} required><option value="">Select field</option>{farm?.fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>}{row.allocationType === 'CropCycleDirect' && <label>Crop cycle<select value={row.cropCycleId} onChange={(event) => { const cycle = cycles.find((item) => item.id === event.target.value); patchRow(row.key, { cropCycleId: event.target.value, fieldId: cycle?.fieldId || row.fieldId }); }} required><option value="">Select cycle</option>{cycles.filter((cycle) => !row.fieldId || cycle.fieldId === row.fieldId).map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label>}<label className="allocation-amount">Amount (USD)<input type="number" min="0.01" step="0.01" value={row.amountUsd} onChange={(event) => patchRow(row.key, { amountUsd: event.target.value })} required /></label><button type="button" className="icon-button allocation-remove" aria-label="Remove allocation" title="Remove allocation" disabled={rows.length === 1} onClick={() => setRows((value) => value.filter((item) => item.key !== row.key))}><X size={16} /></button></fieldset>)}<footer className="form-actions"><button type="button" className="secondary" onClick={() => setRows((value) => [...value, { key: newFinanceKey('allocation'), allocationType: 'FarmOverhead', fieldId: '', cropCycleId: '', category: transaction.category, amountUsd: '' }])}><Plus size={15} /> Add allocation</button><button disabled={saving || total !== transaction.amountUsd}>Save exact allocations</button></footer></form>;
 }
 
 function CostWorkspace({ cycles, cost, loading, onSelect }: { cycles: FinanceCycleOption[]; cost: CropCycleCostSummaryDto | null; loading: boolean; onSelect: (id: string) => void; }) {
   return <div className="cost-workspace"><section className="cost-selector record-panel"><label>Crop cycle<select onChange={(event) => onSelect(event.target.value)} defaultValue=""><option value="">Choose a crop cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label><p>Totals come only from signed `OperationalCostPosting` rows. Income and unallocated overhead never alter crop cost.</p></section>{loading && <LoadingState label="Tracing cost sources" />}{cost && <><section className="cost-summary record-panel"><header><div><small>{cost.fieldName}</small><h2>{usd(cost.totalCostUsd)}</h2><span>Total controlled crop cost</span></div><div className="cost-unit-rates"><strong>{perUnit(cost.costPerHectareUsd, 'ha')}</strong><small>{cost.reportingHectares == null ? 'Reporting area missing' : `${cost.reportingHectares} reporting ha`}</small><strong>{perUnit(cost.costPerTonneUsd, 't')}</strong><small>{cost.actualHarvestedTonnes == null ? 'Actual harvest missing' : `${cost.actualHarvestedTonnes} actual t`}</small></div></header><div className="cost-breakdown"><span><small>Labour</small><b>{usd(cost.labourUsd)}</b></span><span><small>Applied inputs</small><b>{usd(cost.appliedInputsUsd)}</b></span><span><small>Direct expenses</small><b>{usd(cost.directExpensesUsd)}</b></span><span><small>Approved loss</small><b>{usd(cost.approvedInventoryLossUsd)}</b></span></div></section><section className="cost-trace record-panel"><header><FileSearch size={19} /><div><h2>Authoritative source trace</h2><p>Every amount below binds to one operational source.</p></div></header>{cost.sources.map((source) => <article key={source.id}><span className="trace-node" /><span><strong>{financeLabel(source.category)}</strong><small>{source.sourceType} · {source.sourceId}</small>{source.payrollRunId && <small>Payroll run {source.payrollRunId} · calculation v{source.payrollCalculationVersion} · worker line {source.payrollWorkerLineId} · work record {source.workRecordId}</small>}{source.operationalTransactionId && <small>Transaction {source.operationalTransactionId} · allocation {source.transactionAllocationId}</small>}<small>{source.reversalOfId ? `Reverses posting ${source.reversalOfId}` : source.sourceDescription}</small></span><b className={source.amountUsd < 0 ? 'finance-income' : ''}>{usd(source.amountUsd)}</b></article>)}</section></> }</div>;
+}
+
+function ReversalConfirmation({ transaction, isBusy, onConfirm, onCancel }: { transaction: OperationalTransactionDto; isBusy: boolean; onConfirm: (reason: string) => void | Promise<void>; onCancel: () => void; }) {
+  const form = useRef<HTMLFormElement>(null);
+  const submit = () => {
+    if (!form.current || !form.current.reportValidity()) return;
+    const reason = (new FormData(form.current).get('reason') as string).trim();
+    onConfirm(reason);
+  };
+  return <ConfirmationDialog title="Reverse transaction" description={`Reverse ${usd(transaction.amountUsd)} to ${transaction.payeeOrPayer}? The original transaction remains unchanged; a reversal entry is appended.`} confirmLabel="Reverse transaction" isBusy={isBusy} onConfirm={submit} onCancel={onCancel}>
+    <form ref={form} className="confirmation-form" onSubmit={(event: FormEvent<HTMLFormElement>) => event.preventDefault()}>
+      <label>Grower reversal reason<textarea name="reason" rows={3} maxLength={500} required autoFocus /></label>
+    </form>
+  </ConfirmationDialog>;
 }
 
 function FinanceDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) { const dialogRef = useDialogFocus<HTMLElement>(onClose); return <div className="dialog-backdrop" role="presentation"><section ref={dialogRef} className="inventory-dialog finance-dialog" role="dialog" aria-modal="true" aria-label={title}><header><div><CircleDollarSign size={19} /><h2>{title}</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><X size={18} /></button></header>{children}</section></div>; }
