@@ -28,7 +28,7 @@ export class ActivitiesClient {
      * @param pageSize (optional)
      * @return OK
      */
-    activitiesGET(fieldId: string | undefined, cropCycleId: string | undefined, activityTypeId: string | undefined, status: string | undefined, fromDate: Date | undefined, toDate: Date | undefined, page: number | undefined, pageSize: number | undefined): Promise<ActivityCollectionDto> {
+    getActivities(fieldId: string | undefined, cropCycleId: string | undefined, activityTypeId: string | undefined, status: string | undefined, fromDate: Date | undefined, toDate: Date | undefined, page: number | undefined, pageSize: number | undefined): Promise<ActivityCollectionDto> {
         let url_ = this.baseUrl + "/api/activities?";
         if (fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' cannot be null.");
@@ -72,11 +72,11 @@ export class ActivitiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivitiesGET(_response);
+            return this.processGetActivities(_response);
         });
     }
 
-    protected processActivitiesGET(response: Response): Promise<ActivityCollectionDto> {
+    protected processGetActivities(response: Response): Promise<ActivityCollectionDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -115,7 +115,7 @@ export class ActivitiesClient {
     /**
      * @return Created
      */
-    activitiesPOST(body: CreateActivityRequest): Promise<ActivityDetailsDto> {
+    createActivities(body: CreateActivityRequest): Promise<ActivityDetailsDto> {
         let url_ = this.baseUrl + "/api/activities";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -131,11 +131,11 @@ export class ActivitiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivitiesPOST(_response);
+            return this.processCreateActivities(_response);
         });
     }
 
-    protected processActivitiesPOST(response: Response): Promise<ActivityDetailsDto> {
+    protected processCreateActivities(response: Response): Promise<ActivityDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -181,7 +181,7 @@ export class ActivitiesClient {
     /**
      * @return OK
      */
-    activitiesGET2(activityId: string): Promise<ActivityDetailsDto> {
+    activities(activityId: string): Promise<ActivityDetailsDto> {
         let url_ = this.baseUrl + "/api/activities/{activityId}";
         if (activityId === undefined || activityId === null)
             throw new globalThis.Error("The parameter 'activityId' must be defined.");
@@ -196,11 +196,11 @@ export class ActivitiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivitiesGET2(_response);
+            return this.processActivities(_response);
         });
     }
 
-    protected processActivitiesGET2(response: Response): Promise<ActivityDetailsDto> {
+    protected processActivities(response: Response): Promise<ActivityDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -681,7 +681,7 @@ export class ActivitiesClient {
     /**
      * @return OK
      */
-    managerConfirmation(activityId: string, body: TransitionActivityRequest): Promise<ActivityDetailsDto> {
+    confirmActivityManagerTransition(activityId: string, body: TransitionActivityRequest): Promise<ActivityDetailsDto> {
         let url_ = this.baseUrl + "/api/activities/{activityId}/transitions/manager-confirmation";
         if (activityId === undefined || activityId === null)
             throw new globalThis.Error("The parameter 'activityId' must be defined.");
@@ -700,11 +700,11 @@ export class ActivitiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processManagerConfirmation(_response);
+            return this.processConfirmActivityManagerTransition(_response);
         });
     }
 
-    protected processManagerConfirmation(response: Response): Promise<ActivityDetailsDto> {
+    protected processConfirmActivityManagerTransition(response: Response): Promise<ActivityDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -911,7 +911,7 @@ export class ActivityTypesClient {
     /**
      * @return OK
      */
-    activityTypesAll(): Promise<ActivityTypeDto[]> {
+    getActivityTypes(): Promise<ActivityTypeDto[]> {
         let url_ = this.baseUrl + "/api/activity-types";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -923,11 +923,11 @@ export class ActivityTypesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivityTypesAll(_response);
+            return this.processGetActivityTypes(_response);
         });
     }
 
-    protected processActivityTypesAll(response: Response): Promise<ActivityTypeDto[]> {
+    protected processGetActivityTypes(response: Response): Promise<ActivityTypeDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -968,9 +968,9 @@ export class ActivityTypesClient {
     }
 
     /**
-     * @return Created
+     * @return OK
      */
-    activityTypesPOST(body: CreateActivityTypeRequest): Promise<ActivityTypeDto> {
+    createActivityTypes(body: CreateActivityTypeRequest): Promise<ActivityTypeDto> {
         let url_ = this.baseUrl + "/api/activity-types";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -986,19 +986,19 @@ export class ActivityTypesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivityTypesPOST(_response);
+            return this.processCreateActivityTypes(_response);
         });
     }
 
-    protected processActivityTypesPOST(response: Response): Promise<ActivityTypeDto> {
+    protected processCreateActivityTypes(response: Response): Promise<ActivityTypeDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = ActivityTypeDto.fromJS(resultData201);
-            return result201;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ActivityTypeDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -1029,7 +1029,7 @@ export class ActivityTypesClient {
     /**
      * @return OK
      */
-    archive(activityTypeId: string, body: VersionedRequest): Promise<ActivityTypeDto> {
+    archiveActivityTypes(activityTypeId: string, body: VersionedRequest): Promise<ActivityTypeDto> {
         let url_ = this.baseUrl + "/api/activity-types/{activityTypeId}/archive";
         if (activityTypeId === undefined || activityTypeId === null)
             throw new globalThis.Error("The parameter 'activityTypeId' must be defined.");
@@ -1048,11 +1048,11 @@ export class ActivityTypesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive(_response);
+            return this.processArchiveActivityTypes(_response);
         });
     }
 
-    protected processArchive(response: Response): Promise<ActivityTypeDto> {
+    protected processArchiveActivityTypes(response: Response): Promise<ActivityTypeDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1102,7 +1102,7 @@ export class ActivityTypesClient {
     /**
      * @return OK
      */
-    activityTypesPUT(activityTypeId: string, body: RenameActivityTypeRequest): Promise<ActivityTypeDto> {
+    activityTypes(activityTypeId: string, body: RenameActivityTypeRequest): Promise<ActivityTypeDto> {
         let url_ = this.baseUrl + "/api/activity-types/{activityTypeId}";
         if (activityTypeId === undefined || activityTypeId === null)
             throw new globalThis.Error("The parameter 'activityTypeId' must be defined.");
@@ -1121,11 +1121,11 @@ export class ActivityTypesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processActivityTypesPUT(_response);
+            return this.processActivityTypes(_response);
         });
     }
 
-    protected processActivityTypesPUT(response: Response): Promise<ActivityTypeDto> {
+    protected processActivityTypes(response: Response): Promise<ActivityTypeDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1167,6 +1167,7 @@ export class AdministrationClient {
     }
 
     /**
+     * Get administration overview
      * @return OK
      */
     overview(): Promise<AdministrationOverviewDto> {
@@ -1197,11 +1198,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1216,6 +1223,7 @@ export class AdministrationClient {
     }
 
     /**
+     * Get manager access
      * @return OK
      */
     managerAccess(): Promise<AdministrationManagerAccessDto> {
@@ -1246,11 +1254,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1265,9 +1279,10 @@ export class AdministrationClient {
     }
 
     /**
+     * List application rules
      * @return OK
      */
-    rulesAll(): Promise<AdministrationRuleDto[]> {
+    getRulesAdministration(): Promise<AdministrationRuleDto[]> {
         let url_ = this.baseUrl + "/api/administration/rules";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1279,11 +1294,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRulesAll(_response);
+            return this.processGetRulesAdministration(_response);
         });
     }
 
-    protected processRulesAll(response: Response): Promise<AdministrationRuleDto[]> {
+    protected processGetRulesAdministration(response: Response): Promise<AdministrationRuleDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1302,11 +1317,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1321,9 +1342,10 @@ export class AdministrationClient {
     }
 
     /**
+     * End application rule
      * @return OK
      */
-    end(ruleId: string, body: EndEffectiveRuleRequest): Promise<AdministrationRuleDto> {
+    endRuleAdministration(ruleId: string, body: EndEffectiveRuleRequest): Promise<AdministrationRuleDto> {
         let url_ = this.baseUrl + "/api/administration/rules/{ruleId}/end";
         if (ruleId === undefined || ruleId === null)
             throw new globalThis.Error("The parameter 'ruleId' must be defined.");
@@ -1342,11 +1364,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd(_response);
+            return this.processEndRuleAdministration(_response);
         });
     }
 
-    protected processEnd(response: Response): Promise<AdministrationRuleDto> {
+    protected processEndRuleAdministration(response: Response): Promise<AdministrationRuleDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1358,15 +1380,35 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1377,6 +1419,7 @@ export class AdministrationClient {
     }
 
     /**
+     * List rule inventory items
      * @return OK
      */
     ruleItems(): Promise<InventoryItemDto[]> {
@@ -1414,11 +1457,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1433,9 +1482,10 @@ export class AdministrationClient {
     }
 
     /**
+     * List farm settings
      * @return OK
      */
-    settingsAll(): Promise<FarmSettingDto[]> {
+    getSettingsAdministration(): Promise<FarmSettingDto[]> {
         let url_ = this.baseUrl + "/api/administration/settings";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1447,11 +1497,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSettingsAll(_response);
+            return this.processGetSettingsAdministration(_response);
         });
     }
 
-    protected processSettingsAll(response: Response): Promise<FarmSettingDto[]> {
+    protected processGetSettingsAdministration(response: Response): Promise<FarmSettingDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1470,11 +1520,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1489,9 +1545,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Create farm setting
      * @return OK
      */
-    settings(body: CreateFarmSettingRequest): Promise<FarmSettingDto> {
+    createSettingAdministration(body: CreateFarmSettingRequest): Promise<FarmSettingDto> {
         let url_ = this.baseUrl + "/api/administration/settings";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1507,11 +1564,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSettings(_response);
+            return this.processCreateSettingAdministration(_response);
         });
     }
 
-    protected processSettings(response: Response): Promise<FarmSettingDto> {
+    protected processCreateSettingAdministration(response: Response): Promise<FarmSettingDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1523,15 +1580,28 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1542,9 +1612,10 @@ export class AdministrationClient {
     }
 
     /**
+     * End farm setting
      * @return OK
      */
-    end2(settingId: string, body: EndEffectiveRuleRequest): Promise<FarmSettingDto> {
+    endSettingAdministration(settingId: string, body: EndEffectiveRuleRequest): Promise<FarmSettingDto> {
         let url_ = this.baseUrl + "/api/administration/settings/{settingId}/end";
         if (settingId === undefined || settingId === null)
             throw new globalThis.Error("The parameter 'settingId' must be defined.");
@@ -1563,11 +1634,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd2(_response);
+            return this.processEndSettingAdministration(_response);
         });
     }
 
-    protected processEnd2(response: Response): Promise<FarmSettingDto> {
+    protected processEndSettingAdministration(response: Response): Promise<FarmSettingDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1579,15 +1650,35 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1598,9 +1689,10 @@ export class AdministrationClient {
     }
 
     /**
+     * List document categories
      * @return OK
      */
-    documentCategoriesAll(): Promise<DocumentCategoryDto[]> {
+    getCategoriesAdministration(): Promise<DocumentCategoryDto[]> {
         let url_ = this.baseUrl + "/api/administration/document-categories";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1612,11 +1704,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDocumentCategoriesAll(_response);
+            return this.processGetCategoriesAdministration(_response);
         });
     }
 
-    protected processDocumentCategoriesAll(response: Response): Promise<DocumentCategoryDto[]> {
+    protected processGetCategoriesAdministration(response: Response): Promise<DocumentCategoryDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1635,11 +1727,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1654,9 +1752,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Create document category
      * @return OK
      */
-    documentCategoriesPOST(body: CreateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+    createCategoryAdministration(body: CreateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
         let url_ = this.baseUrl + "/api/administration/document-categories";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1672,11 +1771,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDocumentCategoriesPOST(_response);
+            return this.processCreateCategoryAdministration(_response);
         });
     }
 
-    protected processDocumentCategoriesPOST(response: Response): Promise<DocumentCategoryDto> {
+    protected processCreateCategoryAdministration(response: Response): Promise<DocumentCategoryDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1688,15 +1787,28 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1707,9 +1819,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Update document category
      * @return OK
      */
-    documentCategoriesPUT(categoryId: string, body: UpdateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+    documentCategories(categoryId: string, body: UpdateDocumentCategoryRequest): Promise<DocumentCategoryDto> {
         let url_ = this.baseUrl + "/api/administration/document-categories/{categoryId}";
         if (categoryId === undefined || categoryId === null)
             throw new globalThis.Error("The parameter 'categoryId' must be defined.");
@@ -1728,11 +1841,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDocumentCategoriesPUT(_response);
+            return this.processDocumentCategories(_response);
         });
     }
 
-    protected processDocumentCategoriesPUT(response: Response): Promise<DocumentCategoryDto> {
+    protected processDocumentCategories(response: Response): Promise<DocumentCategoryDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1744,15 +1857,35 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1763,9 +1896,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Archive document category
      * @return OK
      */
-    archive2(categoryId: string, body: ArchiveDocumentCategoryRequest): Promise<DocumentCategoryDto> {
+    archiveCategoryAdministration(categoryId: string, body: ArchiveDocumentCategoryRequest): Promise<DocumentCategoryDto> {
         let url_ = this.baseUrl + "/api/administration/document-categories/{categoryId}/archive";
         if (categoryId === undefined || categoryId === null)
             throw new globalThis.Error("The parameter 'categoryId' must be defined.");
@@ -1784,11 +1918,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive2(_response);
+            return this.processArchiveCategoryAdministration(_response);
         });
     }
 
-    protected processArchive2(response: Response): Promise<DocumentCategoryDto> {
+    protected processArchiveCategoryAdministration(response: Response): Promise<DocumentCategoryDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1800,15 +1934,35 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -1819,9 +1973,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Get administration session
      * @return OK
      */
-    session(): Promise<AdministrationSessionDto> {
+    getSessionAdministration(): Promise<AdministrationSessionDto> {
         let url_ = this.baseUrl + "/api/administration/session";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1833,11 +1988,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSession(_response);
+            return this.processGetSessionAdministration(_response);
         });
     }
 
-    protected processSession(response: Response): Promise<AdministrationSessionDto> {
+    protected processGetSessionAdministration(response: Response): Promise<AdministrationSessionDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1849,11 +2004,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1868,6 +2029,7 @@ export class AdministrationClient {
     }
 
     /**
+     * List administration capabilities
      * @return OK
      */
     roles(): Promise<AdministrationCapabilityDto[]> {
@@ -1905,11 +2067,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1924,6 +2092,7 @@ export class AdministrationClient {
     }
 
     /**
+     * List administration users
      * @return OK
      */
     users(): Promise<AdministrationUserDto[]> {
@@ -1961,11 +2130,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -1980,9 +2155,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Disable manager access
      * @return OK
      */
-    disable(membershipId: string): Promise<void> {
+    disable(membershipId: string): Promise<AdministrationUserDto> {
         let url_ = this.baseUrl + "/api/administration/users/{membershipId}/disable";
         if (membershipId === undefined || membershipId === null)
             throw new globalThis.Error("The parameter 'membershipId' must be defined.");
@@ -1992,6 +2168,7 @@ export class AdministrationClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -2000,34 +2177,58 @@ export class AdministrationClient {
         });
     }
 
-    protected processDisable(response: Response): Promise<void> {
+    protected processDisable(response: Response): Promise<AdministrationUserDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AdministrationUserDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<AdministrationUserDto>(null as any);
     }
 
     /**
+     * Get audit events
      * @param from (optional)
      * @param to (optional)
      * @param action (optional)
@@ -2103,11 +2304,17 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -2122,9 +2329,10 @@ export class AdministrationClient {
     }
 
     /**
+     * Get audit event detail
      * @return OK
      */
-    audit2(eventId: string): Promise<AdministrationAuditDto> {
+    getAdministrationAuditDetail(eventId: string): Promise<AdministrationAuditDto> {
         let url_ = this.baseUrl + "/api/administration/audit/{eventId}";
         if (eventId === undefined || eventId === null)
             throw new globalThis.Error("The parameter 'eventId' must be defined.");
@@ -2139,11 +2347,11 @@ export class AdministrationClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAudit2(_response);
+            return this.processGetAdministrationAuditDetail(_response);
         });
     }
 
-    protected processAudit2(response: Response): Promise<AdministrationAuditDto> {
+    protected processGetAdministrationAuditDetail(response: Response): Promise<AdministrationAuditDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2155,15 +2363,28 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2174,6 +2395,7 @@ export class AdministrationClient {
     }
 
     /**
+     * Export audit events
      * @param from (optional)
      * @param to (optional)
      * @param action (optional)
@@ -2245,15 +2467,28 @@ export class AdministrationClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ProblemDetails.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2278,7 +2513,7 @@ export class AttendanceClient {
      * @param workDate (optional)
      * @return OK
      */
-    attendanceGET(workDate: string | undefined): Promise<AttendanceRegisterDto> {
+    getAttendance(workDate: string | undefined): Promise<AttendanceRegisterDto> {
         let url_ = this.baseUrl + "/api/attendance?";
         if (workDate === null)
             throw new globalThis.Error("The parameter 'workDate' cannot be null.");
@@ -2294,11 +2529,11 @@ export class AttendanceClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAttendanceGET(_response);
+            return this.processGetAttendance(_response);
         });
     }
 
-    protected processAttendanceGET(response: Response): Promise<AttendanceRegisterDto> {
+    protected processGetAttendance(response: Response): Promise<AttendanceRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2331,7 +2566,7 @@ export class AttendanceClient {
     /**
      * @return OK
      */
-    attendancePUT(body: RecordAttendanceRequest): Promise<AttendanceRegisterDto> {
+    recordAttendance(body: RecordAttendanceRequest): Promise<AttendanceRegisterDto> {
         let url_ = this.baseUrl + "/api/attendance";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -2347,11 +2582,11 @@ export class AttendanceClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAttendancePUT(_response);
+            return this.processRecordAttendance(_response);
         });
     }
 
-    protected processAttendancePUT(response: Response): Promise<AttendanceRegisterDto> {
+    protected processRecordAttendance(response: Response): Promise<AttendanceRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2396,7 +2631,7 @@ export class CropCyclesClient {
      * List field crop cycles
      * @return OK
      */
-    cropCyclesGET(fieldId: string): Promise<CropCycleCollectionDto> {
+    getCropCycles(fieldId: string): Promise<CropCycleCollectionDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -2411,11 +2646,11 @@ export class CropCyclesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCropCyclesGET(_response);
+            return this.processGetCropCycles(_response);
         });
     }
 
-    protected processCropCyclesGET(response: Response): Promise<CropCycleCollectionDto> {
+    protected processGetCropCycles(response: Response): Promise<CropCycleCollectionDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2459,7 +2694,7 @@ export class CropCyclesClient {
      * Create crop-cycle draft
      * @return Created
      */
-    cropCyclesPOST(fieldId: string, body: CreateCropCycleRequest): Promise<CropCycleDetailsDto> {
+    createCropCycles(fieldId: string, body: CreateCropCycleRequest): Promise<CropCycleDetailsDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -2478,11 +2713,11 @@ export class CropCyclesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCropCyclesPOST(_response);
+            return this.processCreateCropCycles(_response);
         });
     }
 
-    protected processCropCyclesPOST(response: Response): Promise<CropCycleDetailsDto> {
+    protected processCreateCropCycles(response: Response): Promise<CropCycleDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -2529,7 +2764,7 @@ export class CropCyclesClient {
      * Get crop-cycle overview
      * @return OK
      */
-    cropCyclesGET2(fieldId: string, cropCycleId: string): Promise<CropCycleDetailsDto> {
+    cropCycles(fieldId: string, cropCycleId: string): Promise<CropCycleDetailsDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/{cropCycleId}";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -2547,11 +2782,11 @@ export class CropCyclesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCropCyclesGET2(_response);
+            return this.processCropCycles(_response);
         });
     }
 
-    protected processCropCyclesGET2(response: Response): Promise<CropCycleDetailsDto> {
+    protected processCropCycles(response: Response): Promise<CropCycleDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2653,7 +2888,7 @@ export class CropCyclesClient {
     /**
      * @return OK
      */
-    cancel(fieldId: string, cropCycleId: string, body: CancelCropCycleRequest): Promise<CropCycleDetailsDto> {
+    cancelCropCycles(fieldId: string, cropCycleId: string, body: CancelCropCycleRequest): Promise<CropCycleDetailsDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/{cropCycleId}/transitions/cancel";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -2675,11 +2910,11 @@ export class CropCyclesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel(_response);
+            return this.processCancelCropCycles(_response);
         });
     }
 
-    protected processCancel(response: Response): Promise<CropCycleDetailsDto> {
+    protected processCancelCropCycles(response: Response): Promise<CropCycleDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2830,7 +3065,7 @@ export class CropCyclesClient {
     /**
      * @return OK
      */
-    close(fieldId: string, cropCycleId: string, body: TransitionCropCycleRequest): Promise<CropCycleDetailsDto> {
+    closeCropCycles(fieldId: string, cropCycleId: string, body: TransitionCropCycleRequest): Promise<CropCycleDetailsDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/{cropCycleId}/transitions/close";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -2852,11 +3087,11 @@ export class CropCyclesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processClose(_response);
+            return this.processCloseCropCycles(_response);
         });
     }
 
-    protected processClose(response: Response): Promise<CropCycleDetailsDto> {
+    protected processCloseCropCycles(response: Response): Promise<CropCycleDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2900,7 +3135,7 @@ export class CropVarietiesClient {
     /**
      * @return OK
      */
-    cropVarietiesAll(): Promise<CropVarietyDto[]> {
+    getCropVarieties(): Promise<CropVarietyDto[]> {
         let url_ = this.baseUrl + "/api/CropVarieties";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -2912,11 +3147,11 @@ export class CropVarietiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCropVarietiesAll(_response);
+            return this.processGetCropVarieties(_response);
         });
     }
 
-    protected processCropVarietiesAll(response: Response): Promise<CropVarietyDto[]> {
+    protected processGetCropVarieties(response: Response): Promise<CropVarietyDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2956,7 +3191,7 @@ export class CropVarietiesClient {
     /**
      * @return Created
      */
-    cropVarieties(body: CreateCropVarietyRequest): Promise<CropVarietyDto> {
+    createCropVarieties(body: CreateCropVarietyRequest): Promise<CropVarietyDto> {
         let url_ = this.baseUrl + "/api/CropVarieties";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -2972,11 +3207,11 @@ export class CropVarietiesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCropVarieties(_response);
+            return this.processCreateCropVarieties(_response);
         });
     }
 
-    protected processCropVarieties(response: Response): Promise<CropVarietyDto> {
+    protected processCreateCropVarieties(response: Response): Promise<CropVarietyDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
@@ -3023,7 +3258,7 @@ export class FarmPersonnelClient {
     /**
      * @return OK
      */
-    farmPersonnelGET(): Promise<PersonnelRegisterDto> {
+    getFarmPersonnel(): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3035,11 +3270,11 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFarmPersonnelGET(_response);
+            return this.processGetFarmPersonnel(_response);
         });
     }
 
-    protected processFarmPersonnelGET(response: Response): Promise<PersonnelRegisterDto> {
+    protected processGetFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3073,9 +3308,9 @@ export class FarmPersonnelClient {
     }
 
     /**
-     * @return Created
+     * @return OK
      */
-    farmPersonnelPOST(body: CreatePersonRequest): Promise<PersonnelRegisterDto> {
+    createFarmPersonnel(body: CreatePersonRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3091,19 +3326,19 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFarmPersonnelPOST(_response);
+            return this.processCreateFarmPersonnel(_response);
         });
     }
 
-    protected processFarmPersonnelPOST(response: Response): Promise<PersonnelRegisterDto> {
+    protected processCreateFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 201) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            let result201: any = null;
-            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = PersonnelRegisterDto.fromJS(resultData201);
-            return result201;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PersonnelRegisterDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -3134,7 +3369,7 @@ export class FarmPersonnelClient {
     /**
      * @return OK
      */
-    farmPersonnelPUT(personId: string, body: UpdatePersonRequest): Promise<PersonnelRegisterDto> {
+    farmPersonnel(personId: string, body: UpdatePersonRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel/{personId}";
         if (personId === undefined || personId === null)
             throw new globalThis.Error("The parameter 'personId' must be defined.");
@@ -3153,11 +3388,11 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFarmPersonnelPUT(_response);
+            return this.processFarmPersonnel(_response);
         });
     }
 
-    protected processFarmPersonnelPUT(response: Response): Promise<PersonnelRegisterDto> {
+    protected processFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3207,7 +3442,7 @@ export class FarmPersonnelClient {
     /**
      * @return OK
      */
-    deactivate(personId: string, body: DeactivatePersonRequest): Promise<PersonnelRegisterDto> {
+    deactivateFarmPersonnel(personId: string, body: DeactivatePersonRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel/{personId}/deactivate";
         if (personId === undefined || personId === null)
             throw new globalThis.Error("The parameter 'personId' must be defined.");
@@ -3226,11 +3461,11 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeactivate(_response);
+            return this.processDeactivateFarmPersonnel(_response);
         });
     }
 
-    protected processDeactivate(response: Response): Promise<PersonnelRegisterDto> {
+    protected processDeactivateFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3280,7 +3515,7 @@ export class FarmPersonnelClient {
     /**
      * @return OK
      */
-    end3(personId: string, assignmentId: string, body: EndPersonRoleRequest): Promise<PersonnelRegisterDto> {
+    endRoleFarmPersonnel(personId: string, assignmentId: string, body: EndPersonRoleRequest): Promise<PersonnelRegisterDto> {
         let url_ = this.baseUrl + "/api/farm-personnel/{personId}/roles/{assignmentId}/end";
         if (personId === undefined || personId === null)
             throw new globalThis.Error("The parameter 'personId' must be defined.");
@@ -3302,11 +3537,11 @@ export class FarmPersonnelClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd3(_response);
+            return this.processEndRoleFarmPersonnel(_response);
         });
     }
 
-    protected processEnd3(response: Response): Promise<PersonnelRegisterDto> {
+    protected processEndRoleFarmPersonnel(response: Response): Promise<PersonnelRegisterDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3421,7 +3656,7 @@ export class FarmSetupClient {
      * Create grower farm
      * @return OK
      */
-    farmPOST(body: CreateGrowerFarmRequest): Promise<FarmSetupDto> {
+    createFarmFarmSetup(body: CreateGrowerFarmRequest): Promise<FarmSetupDto> {
         let url_ = this.baseUrl + "/api/FarmSetup/farm";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3437,11 +3672,11 @@ export class FarmSetupClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFarmPOST(_response);
+            return this.processCreateFarmFarmSetup(_response);
         });
     }
 
-    protected processFarmPOST(response: Response): Promise<FarmSetupDto> {
+    protected processCreateFarmFarmSetup(response: Response): Promise<FarmSetupDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3481,7 +3716,7 @@ export class FarmSetupClient {
      * Update grower farm
      * @return OK
      */
-    farmPUT(body: UpdateFarmInformationRequest): Promise<FarmSetupDto> {
+    updateFarmFarmSetup(body: UpdateFarmInformationRequest): Promise<FarmSetupDto> {
         let url_ = this.baseUrl + "/api/FarmSetup/farm";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -3497,11 +3732,11 @@ export class FarmSetupClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processFarmPUT(_response);
+            return this.processUpdateFarmFarmSetup(_response);
         });
     }
 
-    protected processFarmPUT(response: Response): Promise<FarmSetupDto> {
+    protected processUpdateFarmFarmSetup(response: Response): Promise<FarmSetupDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3625,7 +3860,7 @@ export class FieldLineProfilesClient {
     /**
      * @return OK
      */
-    lineProfileGET(fieldId: string): Promise<FieldLineProfileDto> {
+    getFieldLineProfiles(fieldId: string): Promise<FieldLineProfileDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/line-profile";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -3640,11 +3875,11 @@ export class FieldLineProfilesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLineProfileGET(_response);
+            return this.processGetFieldLineProfiles(_response);
         });
     }
 
-    protected processLineProfileGET(response: Response): Promise<FieldLineProfileDto> {
+    protected processGetFieldLineProfiles(response: Response): Promise<FieldLineProfileDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3688,7 +3923,7 @@ export class FieldLineProfilesClient {
     /**
      * @return OK
      */
-    lineProfilePUT(fieldId: string, body: ReplaceFieldLineProfileRequest): Promise<FieldLineProfileDto> {
+    replaceFieldLineProfiles(fieldId: string, body: ReplaceFieldLineProfileRequest): Promise<FieldLineProfileDto> {
         let url_ = this.baseUrl + "/api/fields/{fieldId}/line-profile";
         if (fieldId === undefined || fieldId === null)
             throw new globalThis.Error("The parameter 'fieldId' must be defined.");
@@ -3707,11 +3942,11 @@ export class FieldLineProfilesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLineProfilePUT(_response);
+            return this.processReplaceFieldLineProfiles(_response);
         });
     }
 
-    protected processLineProfilePUT(response: Response): Promise<FieldLineProfileDto> {
+    protected processReplaceFieldLineProfiles(response: Response): Promise<FieldLineProfileDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5205,7 +5440,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    rules(body: CreateInventoryApplicationRuleRequest): Promise<InventoryApplicationRuleDto> {
+    createRuleInputControls(body: CreateInventoryApplicationRuleRequest): Promise<InventoryApplicationRuleDto> {
         let url_ = this.baseUrl + "/api/input-controls/rules";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -5221,11 +5456,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRules(_response);
+            return this.processCreateRuleInputControls(_response);
         });
     }
 
-    protected processRules(response: Response): Promise<InventoryApplicationRuleDto> {
+    protected processCreateRuleInputControls(response: Response): Promise<InventoryApplicationRuleDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5312,7 +5547,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    linesPUT(requestId: string, lineId: string, body: EditInputRequestLineRequest): Promise<void> {
+    editInputRequestLine(requestId: string, lineId: string, body: EditInputRequestLineRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/lines/{lineId}";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5333,11 +5568,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLinesPUT(_response);
+            return this.processEditInputRequestLine(_response);
         });
     }
 
-    protected processLinesPUT(response: Response): Promise<void> {
+    protected processEditInputRequestLine(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5367,7 +5602,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    submitInputRequest(requestId: string, body: PostStockReceiptRequest): Promise<void> {
+    submitRequestInputControls(requestId: string, body: PostStockReceiptRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/submit";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5385,11 +5620,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmitInputRequest(_response);
+            return this.processSubmitRequestInputControls(_response);
         });
     }
 
-    protected processSubmitInputRequest(response: Response): Promise<void> {
+    protected processSubmitRequestInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5419,7 +5654,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decideInputRequest(requestId: string, body: DecideInputRequestRequest): Promise<void> {
+    decideRequestInputControls(requestId: string, body: DecideInputRequestRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/decision";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5437,11 +5672,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecideInputRequest(_response);
+            return this.processDecideRequestInputControls(_response);
         });
     }
 
-    protected processDecideInputRequest(response: Response): Promise<void> {
+    protected processDecideRequestInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5471,7 +5706,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    cancelInputRequest(requestId: string, body: CancelInputRequestRequest): Promise<void> {
+    cancelRequestInputControls(requestId: string, body: CancelInputRequestRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/requests/{requestId}/cancel";
         if (requestId === undefined || requestId === null)
             throw new globalThis.Error("The parameter 'requestId' must be defined.");
@@ -5489,11 +5724,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancelInputRequest(_response);
+            return this.processCancelRequestInputControls(_response);
         });
     }
 
-    protected processCancelInputRequest(response: Response): Promise<void> {
+    protected processCancelRequestInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5577,7 +5812,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    postStockIssue(issueId: string, body: PostStockReceiptRequest): Promise<void> {
+    postIssueInputControls(issueId: string, body: PostStockReceiptRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/issues/{issueId}/post";
         if (issueId === undefined || issueId === null)
             throw new globalThis.Error("The parameter 'issueId' must be defined.");
@@ -5595,11 +5830,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostStockIssue(_response);
+            return this.processPostIssueInputControls(_response);
         });
     }
 
-    protected processPostStockIssue(response: Response): Promise<void> {
+    protected processPostIssueInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5681,7 +5916,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    reverseStockIssue(issueId: string, body: ReverseStockIssueRequest): Promise<void> {
+    reverseIssueInputControls(issueId: string, body: ReverseStockIssueRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/issues/{issueId}/reverse";
         if (issueId === undefined || issueId === null)
             throw new globalThis.Error("The parameter 'issueId' must be defined.");
@@ -5699,11 +5934,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverseStockIssue(_response);
+            return this.processReverseIssueInputControls(_response);
         });
     }
 
-    protected processReverseStockIssue(response: Response): Promise<void> {
+    protected processReverseIssueInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5999,7 +6234,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    postStockReturn(stockReturnId: string, body: PostStockReturnRequest): Promise<void> {
+    postReturnInputControls(stockReturnId: string, body: PostStockReturnRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/post";
         if (stockReturnId === undefined || stockReturnId === null)
             throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
@@ -6017,11 +6252,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostStockReturn(_response);
+            return this.processPostReturnInputControls(_response);
         });
     }
 
-    protected processPostStockReturn(response: Response): Promise<void> {
+    protected processPostReturnInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6051,7 +6286,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    reverseStockReturn(stockReturnId: string, body: ReverseStockReturnRequest): Promise<void> {
+    reverseReturnInputControls(stockReturnId: string, body: ReverseStockReturnRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/returns/{stockReturnId}/reverse";
         if (stockReturnId === undefined || stockReturnId === null)
             throw new globalThis.Error("The parameter 'stockReturnId' must be defined.");
@@ -6069,11 +6304,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverseStockReturn(_response);
+            return this.processReverseReturnInputControls(_response);
         });
     }
 
-    protected processReverseStockReturn(response: Response): Promise<void> {
+    protected processReverseReturnInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6157,7 +6392,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    submitInventoryLoss(lossId: string, body: VersionedInventoryRequest): Promise<void> {
+    submitLossInputControls(lossId: string, body: VersionedInventoryRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/submit";
         if (lossId === undefined || lossId === null)
             throw new globalThis.Error("The parameter 'lossId' must be defined.");
@@ -6175,11 +6410,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmitInventoryLoss(_response);
+            return this.processSubmitLossInputControls(_response);
         });
     }
 
-    protected processSubmitInventoryLoss(response: Response): Promise<void> {
+    protected processSubmitLossInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6209,7 +6444,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decideInventoryLoss(lossId: string, body: DecideInventoryLossRequest): Promise<void> {
+    decideLossInputControls(lossId: string, body: DecideInventoryLossRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/losses/{lossId}/decision";
         if (lossId === undefined || lossId === null)
             throw new globalThis.Error("The parameter 'lossId' must be defined.");
@@ -6227,11 +6462,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecideInventoryLoss(_response);
+            return this.processDecideLossInputControls(_response);
         });
     }
 
-    protected processDecideInventoryLoss(response: Response): Promise<void> {
+    protected processDecideLossInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6261,7 +6496,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    corrections(body: CreateFieldAccountabilityCorrectionRequest): Promise<string> {
+    createFieldAccountabilityCorrectionInputControls(body: CreateFieldAccountabilityCorrectionRequest): Promise<string> {
         let url_ = this.baseUrl + "/api/input-controls/corrections";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6277,11 +6512,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCorrections(_response);
+            return this.processCreateFieldAccountabilityCorrectionInputControls(_response);
         });
     }
 
-    protected processCorrections(response: Response): Promise<string> {
+    protected processCreateFieldAccountabilityCorrectionInputControls(response: Response): Promise<string> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6315,7 +6550,7 @@ export class InputControlsClient {
     /**
      * @return OK
      */
-    decideFieldAccountabilityCorrection(correctionId: string, body: DecideFieldAccountabilityCorrectionRequest): Promise<void> {
+    decideFieldAccountabilityCorrectionInputControls(correctionId: string, body: DecideFieldAccountabilityCorrectionRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/input-controls/corrections/{correctionId}/decision";
         if (correctionId === undefined || correctionId === null)
             throw new globalThis.Error("The parameter 'correctionId' must be defined.");
@@ -6333,11 +6568,11 @@ export class InputControlsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecideFieldAccountabilityCorrection(_response);
+            return this.processDecideFieldAccountabilityCorrectionInputControls(_response);
         });
     }
 
-    protected processDecideFieldAccountabilityCorrection(response: Response): Promise<void> {
+    protected processDecideFieldAccountabilityCorrectionInputControls(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6534,6 +6769,7 @@ export class InventoryClient {
     }
 
     /**
+     * Get inventory workspace
      * @return OK
      */
     inventory(): Promise<InventoryWorkspaceDto> {
@@ -6564,11 +6800,17 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -6583,6 +6825,7 @@ export class InventoryClient {
     }
 
     /**
+     * Get stock receipt
      * @return OK
      */
     receiptsGET(receiptId: string): Promise<StockReceiptDto> {
@@ -6616,15 +6859,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6635,6 +6891,7 @@ export class InventoryClient {
     }
 
     /**
+     * List stock movements
      * @param itemId (optional)
      * @return OK
      */
@@ -6677,11 +6934,17 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -6696,9 +6959,10 @@ export class InventoryClient {
     }
 
     /**
+     * List stock counts
      * @return OK
      */
-    countsAll(): Promise<StockCountDto[]> {
+    getCountsInventory(): Promise<StockCountDto[]> {
         let url_ = this.baseUrl + "/api/inventory/counts";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6710,11 +6974,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCountsAll(_response);
+            return this.processGetCountsInventory(_response);
         });
     }
 
-    protected processCountsAll(response: Response): Promise<StockCountDto[]> {
+    protected processGetCountsInventory(response: Response): Promise<StockCountDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6733,11 +6997,17 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -6752,9 +7022,10 @@ export class InventoryClient {
     }
 
     /**
+     * Create stock count
      * @return OK
      */
-    counts(body: CreateStockCountRequest): Promise<StockCountDto> {
+    createCountInventory(body: CreateStockCountRequest): Promise<StockCountDto> {
         let url_ = this.baseUrl + "/api/inventory/counts";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6770,11 +7041,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCounts(_response);
+            return this.processCreateCountInventory(_response);
         });
     }
 
-    protected processCounts(response: Response): Promise<StockCountDto> {
+    protected processCreateCountInventory(response: Response): Promise<StockCountDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6786,15 +7057,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6805,9 +7089,10 @@ export class InventoryClient {
     }
 
     /**
+     * List stock adjustments
      * @return OK
      */
-    adjustmentsAll(): Promise<StockAdjustmentDto[]> {
+    getAdjustmentsInventory(): Promise<StockAdjustmentDto[]> {
         let url_ = this.baseUrl + "/api/inventory/adjustments";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6819,11 +7104,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdjustmentsAll(_response);
+            return this.processGetAdjustmentsInventory(_response);
         });
     }
 
-    protected processAdjustmentsAll(response: Response): Promise<StockAdjustmentDto[]> {
+    protected processGetAdjustmentsInventory(response: Response): Promise<StockAdjustmentDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6842,11 +7127,17 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -6861,9 +7152,10 @@ export class InventoryClient {
     }
 
     /**
+     * Create stock adjustment
      * @return OK
      */
-    adjustments(body: CreateStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    createAdjustmentInventory(body: CreateStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -6879,11 +7171,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdjustments(_response);
+            return this.processCreateAdjustmentInventory(_response);
         });
     }
 
-    protected processAdjustments(response: Response): Promise<StockAdjustmentDto> {
+    protected processCreateAdjustmentInventory(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -6895,15 +7187,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6914,6 +7219,7 @@ export class InventoryClient {
     }
 
     /**
+     * Get inventory leakage report
      * @param fromDate (optional)
      * @param toDate (optional)
      * @param fieldId (optional)
@@ -7019,15 +7325,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ProblemDetails.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7038,6 +7357,7 @@ export class InventoryClient {
     }
 
     /**
+     * Export inventory leakage report
      * @param fromDate (optional)
      * @param toDate (optional)
      * @param fieldId (optional)
@@ -7139,15 +7459,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            let result429: any = null;
+            let resultData429 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result429 = ProblemDetails.fromJS(resultData429);
+            return throwException("Too Many Requests", status, _responseText, _headers, result429);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7158,6 +7491,7 @@ export class InventoryClient {
     }
 
     /**
+     * Start stock count
      * @return OK
      */
     start(countId: string, body: VersionedInventoryRequest): Promise<StockCountDto> {
@@ -7195,15 +7529,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7214,9 +7568,10 @@ export class InventoryClient {
     }
 
     /**
+     * Enter stock count line
      * @return OK
      */
-    linesPOST(countId: string, lineId: string, body: EnterStockCountLineRequest): Promise<StockCountDto> {
+    enterStockCountLine(countId: string, lineId: string, body: EnterStockCountLineRequest): Promise<StockCountDto> {
         let url_ = this.baseUrl + "/api/inventory/counts/{countId}/lines/{lineId}";
         if (countId === undefined || countId === null)
             throw new globalThis.Error("The parameter 'countId' must be defined.");
@@ -7238,11 +7593,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processLinesPOST(_response);
+            return this.processEnterStockCountLine(_response);
         });
     }
 
-    protected processLinesPOST(response: Response): Promise<StockCountDto> {
+    protected processEnterStockCountLine(response: Response): Promise<StockCountDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7254,15 +7609,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7273,6 +7648,7 @@ export class InventoryClient {
     }
 
     /**
+     * Add unexpected stock count line
      * @return OK
      */
     unexpectedLines(countId: string, body: AddUnexpectedStockCountLineRequest): Promise<StockCountDto> {
@@ -7310,15 +7686,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7329,6 +7725,7 @@ export class InventoryClient {
     }
 
     /**
+     * Review stock count
      * @return OK
      */
     review(countId: string, body: VersionedInventoryRequest): Promise<StockCountDto> {
@@ -7366,15 +7763,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7385,9 +7802,10 @@ export class InventoryClient {
     }
 
     /**
+     * Cancel stock count
      * @return OK
      */
-    cancel2(countId: string, body: CancelStockCountRequest): Promise<StockCountDto> {
+    cancelCountInventory(countId: string, body: CancelStockCountRequest): Promise<StockCountDto> {
         let url_ = this.baseUrl + "/api/inventory/counts/{countId}/cancel";
         if (countId === undefined || countId === null)
             throw new globalThis.Error("The parameter 'countId' must be defined.");
@@ -7406,11 +7824,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancel2(_response);
+            return this.processCancelCountInventory(_response);
         });
     }
 
-    protected processCancel2(response: Response): Promise<StockCountDto> {
+    protected processCancelCountInventory(response: Response): Promise<StockCountDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7422,15 +7840,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7441,9 +7879,10 @@ export class InventoryClient {
     }
 
     /**
+     * Submit stock adjustment
      * @return OK
      */
-    submit(adjustmentId: string, body: VersionedInventoryRequest): Promise<StockAdjustmentDto> {
+    submitAdjustmentInventory(adjustmentId: string, body: VersionedInventoryRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/submit";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7462,11 +7901,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmit(_response);
+            return this.processSubmitAdjustmentInventory(_response);
         });
     }
 
-    protected processSubmit(response: Response): Promise<StockAdjustmentDto> {
+    protected processSubmitAdjustmentInventory(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7478,15 +7917,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7497,9 +7956,10 @@ export class InventoryClient {
     }
 
     /**
+     * Decide stock adjustment
      * @return OK
      */
-    decision(adjustmentId: string, body: DecideStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    decideAdjustmentInventory(adjustmentId: string, body: DecideStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/decision";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7518,11 +7978,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecision(_response);
+            return this.processDecideAdjustmentInventory(_response);
         });
     }
 
-    protected processDecision(response: Response): Promise<StockAdjustmentDto> {
+    protected processDecideAdjustmentInventory(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7534,15 +7994,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7553,9 +8033,10 @@ export class InventoryClient {
     }
 
     /**
+     * Post stock adjustment
      * @return OK
      */
-    postStockAdjustment(adjustmentId: string, body: PostStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    postAdjustmentInventory(adjustmentId: string, body: PostStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/post";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7574,11 +8055,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostStockAdjustment(_response);
+            return this.processPostAdjustmentInventory(_response);
         });
     }
 
-    protected processPostStockAdjustment(response: Response): Promise<StockAdjustmentDto> {
+    protected processPostAdjustmentInventory(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7590,15 +8071,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7609,9 +8110,10 @@ export class InventoryClient {
     }
 
     /**
+     * Reverse stock adjustment
      * @return OK
      */
-    reverseStockAdjustment(adjustmentId: string, body: ReverseStockAdjustmentRequest): Promise<StockAdjustmentDto> {
+    reverseAdjustmentInventory(adjustmentId: string, body: ReverseStockAdjustmentRequest): Promise<StockAdjustmentDto> {
         let url_ = this.baseUrl + "/api/inventory/adjustments/{adjustmentId}/reverse";
         if (adjustmentId === undefined || adjustmentId === null)
             throw new globalThis.Error("The parameter 'adjustmentId' must be defined.");
@@ -7630,11 +8132,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverseStockAdjustment(_response);
+            return this.processReverseAdjustmentInventory(_response);
         });
     }
 
-    protected processReverseStockAdjustment(response: Response): Promise<StockAdjustmentDto> {
+    protected processReverseAdjustmentInventory(response: Response): Promise<StockAdjustmentDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7646,15 +8148,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7665,9 +8187,10 @@ export class InventoryClient {
     }
 
     /**
+     * Create unit of measure
      * @return OK
      */
-    unitsPOST(body: CreateUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
+    createUnitInventory(body: CreateUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
         let url_ = this.baseUrl + "/api/inventory/units";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -7683,11 +8206,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processUnitsPOST(_response);
+            return this.processCreateUnitInventory(_response);
         });
     }
 
-    protected processUnitsPOST(response: Response): Promise<UnitOfMeasureDto> {
+    protected processCreateUnitInventory(response: Response): Promise<UnitOfMeasureDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7699,15 +8222,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7718,9 +8254,10 @@ export class InventoryClient {
     }
 
     /**
+     * List units of measure
      * @return OK
      */
-    unitsAll(): Promise<UnitOfMeasureDto[]> {
+    getUnitsInventory(): Promise<UnitOfMeasureDto[]> {
         let url_ = this.baseUrl + "/api/inventory/units";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -7732,11 +8269,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processUnitsAll(_response);
+            return this.processGetUnitsInventory(_response);
         });
     }
 
-    protected processUnitsAll(response: Response): Promise<UnitOfMeasureDto[]> {
+    protected processGetUnitsInventory(response: Response): Promise<UnitOfMeasureDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7755,11 +8292,17 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -7774,9 +8317,10 @@ export class InventoryClient {
     }
 
     /**
+     * Archive unit of measure
      * @return OK
      */
-    archive3(unitId: string, body: VersionedInventoryRequest): Promise<UnitOfMeasureDto> {
+    archiveUnitInventory(unitId: string, body: VersionedInventoryRequest): Promise<UnitOfMeasureDto> {
         let url_ = this.baseUrl + "/api/inventory/units/{unitId}/archive";
         if (unitId === undefined || unitId === null)
             throw new globalThis.Error("The parameter 'unitId' must be defined.");
@@ -7795,11 +8339,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive3(_response);
+            return this.processArchiveUnitInventory(_response);
         });
     }
 
-    protected processArchive3(response: Response): Promise<UnitOfMeasureDto> {
+    protected processArchiveUnitInventory(response: Response): Promise<UnitOfMeasureDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7811,15 +8355,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7830,9 +8394,10 @@ export class InventoryClient {
     }
 
     /**
+     * Rename unit of measure
      * @return OK
      */
-    unitsPUT(unitId: string, body: RenameUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
+    units(unitId: string, body: RenameUnitOfMeasureRequest): Promise<UnitOfMeasureDto> {
         let url_ = this.baseUrl + "/api/inventory/units/{unitId}";
         if (unitId === undefined || unitId === null)
             throw new globalThis.Error("The parameter 'unitId' must be defined.");
@@ -7851,11 +8416,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processUnitsPUT(_response);
+            return this.processUnits(_response);
         });
     }
 
-    protected processUnitsPUT(response: Response): Promise<UnitOfMeasureDto> {
+    protected processUnits(response: Response): Promise<UnitOfMeasureDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -7867,15 +8432,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7886,6 +8471,7 @@ export class InventoryClient {
     }
 
     /**
+     * Create inventory item
      * @return OK
      */
     items(body: CreateInventoryItemRequest): Promise<InventoryItemDto> {
@@ -7920,15 +8506,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7939,6 +8538,7 @@ export class InventoryClient {
     }
 
     /**
+     * Create supplier
      * @return OK
      */
     suppliersPOST(body: CreateSupplierRequest): Promise<SupplierDto> {
@@ -7973,15 +8573,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7992,6 +8605,7 @@ export class InventoryClient {
     }
 
     /**
+     * Update supplier
      * @return OK
      */
     suppliersPUT(supplierId: string, body: UpdateSupplierRequest): Promise<SupplierDto> {
@@ -8029,15 +8643,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8048,9 +8682,10 @@ export class InventoryClient {
     }
 
     /**
+     * Archive supplier
      * @return OK
      */
-    archive4(supplierId: string, body: VersionedInventoryRequest): Promise<SupplierDto> {
+    archiveSupplierInventory(supplierId: string, body: VersionedInventoryRequest): Promise<SupplierDto> {
         let url_ = this.baseUrl + "/api/inventory/suppliers/{supplierId}/archive";
         if (supplierId === undefined || supplierId === null)
             throw new globalThis.Error("The parameter 'supplierId' must be defined.");
@@ -8069,11 +8704,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive4(_response);
+            return this.processArchiveSupplierInventory(_response);
         });
     }
 
-    protected processArchive4(response: Response): Promise<SupplierDto> {
+    protected processArchiveSupplierInventory(response: Response): Promise<SupplierDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8085,15 +8720,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8104,6 +8759,7 @@ export class InventoryClient {
     }
 
     /**
+     * Unarchive supplier
      * @return OK
      */
     unarchive(supplierId: string, body: VersionedInventoryRequest): Promise<SupplierDto> {
@@ -8141,15 +8797,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8160,6 +8836,7 @@ export class InventoryClient {
     }
 
     /**
+     * Create inventory lot
      * @return OK
      */
     lots(body: CreateInventoryLotRequest): Promise<InventoryLotDto> {
@@ -8194,15 +8871,28 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8213,7 +8903,8 @@ export class InventoryClient {
     }
 
     /**
-     * @return OK
+     * Create stock receipt
+     * @return Created
      */
     receiptsPOST(body: CreateStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts";
@@ -8238,24 +8929,37 @@ export class InventoryClient {
     protected processReceiptsPOST(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = StockReceiptDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = StockReceiptDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8266,6 +8970,7 @@ export class InventoryClient {
     }
 
     /**
+     * Submit opening balance
      * @return OK
      */
     submitOpeningBalance(receiptId: string, body: VersionedInventoryRequest): Promise<StockReceiptDto> {
@@ -8303,15 +9008,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8322,6 +9047,7 @@ export class InventoryClient {
     }
 
     /**
+     * Decide opening balance
      * @return OK
      */
     openingBalanceDecision(receiptId: string, body: DecideOpeningBalanceRequest): Promise<StockReceiptDto> {
@@ -8359,15 +9085,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8378,9 +9124,10 @@ export class InventoryClient {
     }
 
     /**
+     * Post stock receipt
      * @return OK
      */
-    postStockReceipt(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
+    postReceiptInventory(receiptId: string, body: PostStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/post";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -8399,11 +9146,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostStockReceipt(_response);
+            return this.processPostReceiptInventory(_response);
         });
     }
 
-    protected processPostStockReceipt(response: Response): Promise<StockReceiptDto> {
+    protected processPostReceiptInventory(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8415,15 +9162,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -8434,9 +9201,10 @@ export class InventoryClient {
     }
 
     /**
+     * Reverse stock receipt
      * @return OK
      */
-    reverseStockReceipt(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
+    reverseReceiptInventory(receiptId: string, body: ReverseStockReceiptRequest): Promise<StockReceiptDto> {
         let url_ = this.baseUrl + "/api/inventory/receipts/{receiptId}/reverse";
         if (receiptId === undefined || receiptId === null)
             throw new globalThis.Error("The parameter 'receiptId' must be defined.");
@@ -8455,11 +9223,11 @@ export class InventoryClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processReverseStockReceipt(_response);
+            return this.processReverseReceiptInventory(_response);
         });
     }
 
-    protected processReverseStockReceipt(response: Response): Promise<StockReceiptDto> {
+    protected processReverseReceiptInventory(response: Response): Promise<StockReceiptDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -8471,15 +9239,35 @@ export class InventoryClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10113,6 +10901,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll workspace
      * @return OK
      */
     workspace(): Promise<PayrollWorkspaceDto> {
@@ -10143,11 +10932,17 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -10162,9 +10957,10 @@ export class PayrollClient {
     }
 
     /**
+     * List payroll periods
      * @return OK
      */
-    periodsAll(): Promise<PayrollPeriodDto[]> {
+    getPeriodsPayroll(): Promise<PayrollPeriodDto[]> {
         let url_ = this.baseUrl + "/api/payroll/periods";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -10176,11 +10972,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPeriodsAll(_response);
+            return this.processGetPeriodsPayroll(_response);
         });
     }
 
-    protected processPeriodsAll(response: Response): Promise<PayrollPeriodDto[]> {
+    protected processGetPeriodsPayroll(response: Response): Promise<PayrollPeriodDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10199,11 +10995,17 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -10218,9 +11020,10 @@ export class PayrollClient {
     }
 
     /**
+     * Create payroll period
      * @return OK
      */
-    periods(body: CreatePayrollPeriodRequest): Promise<PayrollPeriodDto> {
+    createPeriodPayroll(body: CreatePayrollPeriodRequest): Promise<PayrollPeriodDto> {
         let url_ = this.baseUrl + "/api/payroll/periods";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -10236,11 +11039,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPeriods(_response);
+            return this.processCreatePeriodPayroll(_response);
         });
     }
 
-    protected processPeriods(response: Response): Promise<PayrollPeriodDto> {
+    protected processCreatePeriodPayroll(response: Response): Promise<PayrollPeriodDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10252,15 +11055,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10271,6 +11087,7 @@ export class PayrollClient {
     }
 
     /**
+     * Open payroll period
      * @return OK
      */
     open(periodId: string, body: VersionedPayrollRequest): Promise<PayrollPeriodDto> {
@@ -10308,15 +11125,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10327,9 +11164,10 @@ export class PayrollClient {
     }
 
     /**
+     * Cancel payroll period
      * @return OK
      */
-    cancelPayrollPeriod(periodId: string, body: CancelPayrollPeriodRequest): Promise<PayrollPeriodDto> {
+    cancelPeriodPayroll(periodId: string, body: CancelPayrollPeriodRequest): Promise<PayrollPeriodDto> {
         let url_ = this.baseUrl + "/api/payroll/periods/{periodId}/cancel";
         if (periodId === undefined || periodId === null)
             throw new globalThis.Error("The parameter 'periodId' must be defined.");
@@ -10348,11 +11186,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancelPayrollPeriod(_response);
+            return this.processCancelPeriodPayroll(_response);
         });
     }
 
-    protected processCancelPayrollPeriod(response: Response): Promise<PayrollPeriodDto> {
+    protected processCancelPeriodPayroll(response: Response): Promise<PayrollPeriodDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10364,15 +11202,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10383,6 +11241,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll preflight
      * @param workerId (optional)
      * @param eligible (optional)
      * @param evidenceType (optional)
@@ -10441,15 +11300,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10460,9 +11332,10 @@ export class PayrollClient {
     }
 
     /**
+     * List worker advances
      * @return OK
      */
-    advancesAll(): Promise<WorkerAdvanceDto[]> {
+    getAdvancesPayroll(): Promise<WorkerAdvanceDto[]> {
         let url_ = this.baseUrl + "/api/payroll/advances";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -10474,11 +11347,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdvancesAll(_response);
+            return this.processGetAdvancesPayroll(_response);
         });
     }
 
-    protected processAdvancesAll(response: Response): Promise<WorkerAdvanceDto[]> {
+    protected processGetAdvancesPayroll(response: Response): Promise<WorkerAdvanceDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10497,11 +11370,17 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -10516,9 +11395,10 @@ export class PayrollClient {
     }
 
     /**
-     * @return OK
+     * Create worker advance
+     * @return Created
      */
-    advancesPOST(body: CreateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    createAdvancePayroll(body: CreateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -10534,31 +11414,44 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdvancesPOST(_response);
+            return this.processCreateAdvancePayroll(_response);
         });
     }
 
-    protected processAdvancesPOST(response: Response): Promise<WorkerAdvanceDto> {
+    protected processCreateAdvancePayroll(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WorkerAdvanceDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = WorkerAdvanceDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10569,9 +11462,10 @@ export class PayrollClient {
     }
 
     /**
+     * Get worker advance
      * @return OK
      */
-    advancesGET(advanceId: string): Promise<WorkerAdvanceDto> {
+    getWorkerAdvance(advanceId: string): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10586,11 +11480,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdvancesGET(_response);
+            return this.processGetWorkerAdvance(_response);
         });
     }
 
-    protected processAdvancesGET(response: Response): Promise<WorkerAdvanceDto> {
+    protected processGetWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10602,15 +11496,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10621,9 +11528,10 @@ export class PayrollClient {
     }
 
     /**
+     * Update worker advance
      * @return OK
      */
-    advancesPUT(advanceId: string, body: UpdateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    updateWorkerAdvance(advanceId: string, body: UpdateWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10642,11 +11550,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processAdvancesPUT(_response);
+            return this.processUpdateWorkerAdvance(_response);
         });
     }
 
-    protected processAdvancesPUT(response: Response): Promise<WorkerAdvanceDto> {
+    protected processUpdateWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10658,15 +11566,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10677,6 +11605,7 @@ export class PayrollClient {
     }
 
     /**
+     * Preview advance schedule
      * @return OK
      */
     schedulePreview(body: PreviewAdvanceScheduleRequest): Promise<AdvanceSchedulePreviewDto> {
@@ -10711,11 +11640,17 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -10730,9 +11665,10 @@ export class PayrollClient {
     }
 
     /**
+     * Cancel worker advance
      * @return OK
      */
-    cancelWorkerAdvance(advanceId: string, body: CancelWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    cancelAdvancePayroll(advanceId: string, body: CancelWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/cancel";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10751,11 +11687,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancelWorkerAdvance(_response);
+            return this.processCancelAdvancePayroll(_response);
         });
     }
 
-    protected processCancelWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
+    protected processCancelAdvancePayroll(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10767,15 +11703,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10786,9 +11742,10 @@ export class PayrollClient {
     }
 
     /**
+     * Submit worker advance
      * @return OK
      */
-    submitWorkerAdvance(advanceId: string, body: VersionedPayrollRequest): Promise<WorkerAdvanceDto> {
+    submitAdvancePayroll(advanceId: string, body: VersionedPayrollRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/submit";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10807,11 +11764,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmitWorkerAdvance(_response);
+            return this.processSubmitAdvancePayroll(_response);
         });
     }
 
-    protected processSubmitWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
+    protected processSubmitAdvancePayroll(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10823,15 +11780,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10842,9 +11819,10 @@ export class PayrollClient {
     }
 
     /**
+     * Decide worker advance
      * @return OK
      */
-    decideWorkerAdvance(advanceId: string, body: DecideWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
+    decideAdvancePayroll(advanceId: string, body: DecideWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
         let url_ = this.baseUrl + "/api/payroll/advances/{advanceId}/decision";
         if (advanceId === undefined || advanceId === null)
             throw new globalThis.Error("The parameter 'advanceId' must be defined.");
@@ -10863,11 +11841,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecideWorkerAdvance(_response);
+            return this.processDecideAdvancePayroll(_response);
         });
     }
 
-    protected processDecideWorkerAdvance(response: Response): Promise<WorkerAdvanceDto> {
+    protected processDecideAdvancePayroll(response: Response): Promise<WorkerAdvanceDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10879,15 +11857,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10898,6 +11896,7 @@ export class PayrollClient {
     }
 
     /**
+     * Issue worker advance
      * @return OK
      */
     issue(advanceId: string, body: IssueWorkerAdvanceRequest): Promise<WorkerAdvanceDto> {
@@ -10935,15 +11934,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -10954,9 +11973,10 @@ export class PayrollClient {
     }
 
     /**
+     * List payroll runs
      * @return OK
      */
-    runsAll(): Promise<PayrollRunDto[]> {
+    getRunsPayroll(): Promise<PayrollRunDto[]> {
         let url_ = this.baseUrl + "/api/payroll/runs";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -10968,11 +11988,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRunsAll(_response);
+            return this.processGetRunsPayroll(_response);
         });
     }
 
-    protected processRunsAll(response: Response): Promise<PayrollRunDto[]> {
+    protected processGetRunsPayroll(response: Response): Promise<PayrollRunDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10991,11 +12011,17 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -11010,9 +12036,10 @@ export class PayrollClient {
     }
 
     /**
-     * @return OK
+     * Create payroll run
+     * @return Created
      */
-    runsPOST(body: CreatePayrollRunRequest): Promise<PayrollRunDto> {
+    createRunPayroll(body: CreatePayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -11028,31 +12055,44 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRunsPOST(_response);
+            return this.processCreateRunPayroll(_response);
         });
     }
 
-    protected processRunsPOST(response: Response): Promise<PayrollRunDto> {
+    protected processCreateRunPayroll(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = PayrollRunDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = PayrollRunDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11063,9 +12103,10 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll run
      * @return OK
      */
-    runsGET(runId: string): Promise<PayrollRunDto> {
+    runs(runId: string): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11080,11 +12121,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRunsGET(_response);
+            return this.processRuns(_response);
         });
     }
 
-    protected processRunsGET(response: Response): Promise<PayrollRunDto> {
+    protected processRuns(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11096,15 +12137,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11115,6 +12169,7 @@ export class PayrollClient {
     }
 
     /**
+     * Calculate payroll run
      * @return OK
      */
     calculate(runId: string, body: VersionedPayrollRequest): Promise<PayrollRunDto> {
@@ -11152,15 +12207,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11171,6 +12246,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll calculation
      * @return OK
      */
     calculations(runId: string, calculationVersion: number): Promise<PayrollCalculationDto> {
@@ -11207,15 +12283,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11226,9 +12315,10 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll worker line
      * @return OK
      */
-    workerLines(runId: string, calculationVersion: number, workerId: string): Promise<PayrollWorkerLineDto> {
+    getPayrollWorkerLine(runId: string, calculationVersion: number, workerId: string): Promise<PayrollWorkerLineDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/calculations/{calculationVersion}/worker-lines/{workerId}";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11249,11 +12339,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkerLines(_response);
+            return this.processGetPayrollWorkerLine(_response);
         });
     }
 
-    protected processWorkerLines(response: Response): Promise<PayrollWorkerLineDto> {
+    protected processGetPayrollWorkerLine(response: Response): Promise<PayrollWorkerLineDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11265,15 +12355,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11284,9 +12387,10 @@ export class PayrollClient {
     }
 
     /**
+     * Submit payroll run
      * @return OK
      */
-    submitPayrollRun(runId: string, body: SubmitPayrollRunRequest): Promise<PayrollRunDto> {
+    submitRunPayroll(runId: string, body: SubmitPayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/submit";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11305,11 +12409,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSubmitPayrollRun(_response);
+            return this.processSubmitRunPayroll(_response);
         });
     }
 
-    protected processSubmitPayrollRun(response: Response): Promise<PayrollRunDto> {
+    protected processSubmitRunPayroll(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11321,15 +12425,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11340,9 +12464,10 @@ export class PayrollClient {
     }
 
     /**
+     * Decide payroll run
      * @return OK
      */
-    decidePayrollRun(runId: string, body: DecidePayrollRunRequest): Promise<PayrollRunDto> {
+    decideRunPayroll(runId: string, body: DecidePayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/decision";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11361,11 +12486,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDecidePayrollRun(_response);
+            return this.processDecideRunPayroll(_response);
         });
     }
 
-    protected processDecidePayrollRun(response: Response): Promise<PayrollRunDto> {
+    protected processDecideRunPayroll(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11377,15 +12502,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11396,9 +12541,10 @@ export class PayrollClient {
     }
 
     /**
+     * Cancel payroll run
      * @return OK
      */
-    cancelPayrollRun(runId: string, body: CancelPayrollRunRequest): Promise<PayrollRunDto> {
+    cancelRunPayroll(runId: string, body: CancelPayrollRunRequest): Promise<PayrollRunDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/cancel";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11417,11 +12563,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCancelPayrollRun(_response);
+            return this.processCancelRunPayroll(_response);
         });
     }
 
-    protected processCancelPayrollRun(response: Response): Promise<PayrollRunDto> {
+    protected processCancelRunPayroll(response: Response): Promise<PayrollRunDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11433,15 +12579,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11452,6 +12618,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get approved payroll source chain
      * @return OK
      */
     approvedSourceChain(runId: string): Promise<PayrollRunDto> {
@@ -11485,15 +12652,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11504,6 +12684,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get payroll settlement
      * @return OK
      */
     settlement(runId: string): Promise<RunSettlementDto> {
@@ -11537,15 +12718,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11556,10 +12750,11 @@ export class PayrollClient {
     }
 
     /**
+     * Get worker settlement
      * @param calculationVersion (optional)
      * @return OK
      */
-    workersGET(runId: string, workerLineId: string, calculationVersion: number | undefined): Promise<WorkerSettlementDto> {
+    workers(runId: string, workerLineId: string, calculationVersion: number | undefined): Promise<WorkerSettlementDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/workers/{workerLineId}?";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11581,11 +12776,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkersGET(_response);
+            return this.processWorkers(_response);
         });
     }
 
-    protected processWorkersGET(response: Response): Promise<WorkerSettlementDto> {
+    protected processWorkers(response: Response): Promise<WorkerSettlementDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11597,15 +12792,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11616,6 +12824,7 @@ export class PayrollClient {
     }
 
     /**
+     * Record payroll payment
      * @return OK
      */
     payments(runId: string, body: RecordPayrollPaymentRequest): Promise<PayrollPaymentDto> {
@@ -11653,15 +12862,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11672,6 +12901,7 @@ export class PayrollClient {
     }
 
     /**
+     * Acknowledge payroll payment
      * @return OK
      */
     acknowledgement(paymentId: string, body: RecordPaymentAcknowledgementRequest): Promise<PayrollPaymentDto> {
@@ -11709,15 +12939,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11728,6 +12978,7 @@ export class PayrollClient {
     }
 
     /**
+     * Reverse payroll payment
      * @return OK
      */
     reversal(paymentId: string, body: ReversePayrollPaymentRequest): Promise<PayrollPaymentDto> {
@@ -11765,15 +13016,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11784,9 +13055,10 @@ export class PayrollClient {
     }
 
     /**
+     * Close payroll settlement
      * @return OK
      */
-    closePayrollSettlement(runId: string, body: ClosePayrollSettlementRequest): Promise<RunSettlementDto> {
+    closeSettlementPayroll(runId: string, body: ClosePayrollSettlementRequest): Promise<RunSettlementDto> {
         let url_ = this.baseUrl + "/api/payroll/runs/{runId}/settlement/close";
         if (runId === undefined || runId === null)
             throw new globalThis.Error("The parameter 'runId' must be defined.");
@@ -11805,11 +13077,11 @@ export class PayrollClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processClosePayrollSettlement(_response);
+            return this.processCloseSettlementPayroll(_response);
         });
     }
 
-    protected processClosePayrollSettlement(response: Response): Promise<RunSettlementDto> {
+    protected processCloseSettlementPayroll(response: Response): Promise<RunSettlementDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -11821,15 +13093,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11840,6 +13132,7 @@ export class PayrollClient {
     }
 
     /**
+     * Reopen payroll settlement
      * @return OK
      */
     reopen(runId: string, body: ReopenPayrollSettlementRequest): Promise<RunSettlementDto> {
@@ -11877,15 +13170,35 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11896,6 +13209,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get operational payslip
      * @return OK
      */
     payslip(runId: string, calculationVersion: number, workerLineId: string): Promise<OperationalPayslipDto> {
@@ -11935,15 +13249,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -11954,6 +13281,7 @@ export class PayrollClient {
     }
 
     /**
+     * Get cash payment register
      * @return OK
      */
     cashRegister(runId: string, calculationVersion: number): Promise<CashPaymentRegisterDto> {
@@ -11990,15 +13318,28 @@ export class PayrollClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -12022,7 +13363,7 @@ export class SessionClient {
     /**
      * @return OK
      */
-    session2(): Promise<SessionSummaryDto> {
+    getCurrentSession(): Promise<SessionSummaryDto> {
         let url_ = this.baseUrl + "/api/session";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -12034,11 +13375,11 @@ export class SessionClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processSession2(_response);
+            return this.processGetCurrentSession(_response);
         });
     }
 
-    protected processSession2(response: Response): Promise<SessionSummaryDto> {
+    protected processGetCurrentSession(response: Response): Promise<SessionSummaryDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12297,6 +13638,7 @@ export class WorkerRatesClient {
     }
 
     /**
+     * Create worker rate
      * @return OK
      */
     rates(workerId: string, body: CreateWorkerRateRequest): Promise<WorkerDetailsDto> {
@@ -12334,15 +13676,35 @@ export class WorkerRatesClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -12353,9 +13715,10 @@ export class WorkerRatesClient {
     }
 
     /**
+     * End worker rate
      * @return OK
      */
-    end4(workerId: string, rateId: string, body: EndWorkerRateRequest): Promise<WorkerDetailsDto> {
+    endWorkerRates(workerId: string, rateId: string, body: EndWorkerRateRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/rates/{rateId}/end";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -12377,11 +13740,11 @@ export class WorkerRatesClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processEnd4(_response);
+            return this.processEndWorkerRates(_response);
         });
     }
 
-    protected processEnd4(response: Response): Promise<WorkerDetailsDto> {
+    protected processEndWorkerRates(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12393,15 +13756,35 @@ export class WorkerRatesClient {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
-            return throwException("Unauthorized", status, _responseText, _headers);
+            let result401: any = null;
+            let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result401 = ProblemDetails.fromJS(resultData401);
+            return throwException("Unauthorized", status, _responseText, _headers, result401);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -12425,7 +13808,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    workersAll(): Promise<WorkerListItemDto[]> {
+    getWorkers(): Promise<WorkerListItemDto[]> {
         let url_ = this.baseUrl + "/api/workers";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -12437,11 +13820,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkersAll(_response);
+            return this.processGetWorkers(_response);
         });
     }
 
-    protected processWorkersAll(response: Response): Promise<WorkerListItemDto[]> {
+    protected processGetWorkers(response: Response): Promise<WorkerListItemDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12481,7 +13864,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    workersPOST(body: CreateWorkerRequest): Promise<WorkerDetailsDto> {
+    createWorkers(body: CreateWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -12497,11 +13880,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkersPOST(_response);
+            return this.processCreateWorkers(_response);
         });
     }
 
-    protected processWorkersPOST(response: Response): Promise<WorkerDetailsDto> {
+    protected processCreateWorkers(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12534,7 +13917,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    workersGET2(workerId: string): Promise<WorkerDetailsDto> {
+    getWorkerDetails(workerId: string): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -12549,11 +13932,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkersGET2(_response);
+            return this.processGetWorkerDetails(_response);
         });
     }
 
-    protected processWorkersGET2(response: Response): Promise<WorkerDetailsDto> {
+    protected processGetWorkerDetails(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12586,7 +13969,7 @@ export class WorkersClient {
     /**
      * @return OK
      */
-    archive5(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
+    archiveWorkers(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/archive";
         if (workerId === undefined || workerId === null)
             throw new globalThis.Error("The parameter 'workerId' must be defined.");
@@ -12605,11 +13988,11 @@ export class WorkersClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchive5(_response);
+            return this.processArchiveWorkers(_response);
         });
     }
 
-    protected processArchive5(response: Response): Promise<WorkerDetailsDto> {
+    protected processArchiveWorkers(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12656,7 +14039,7 @@ export class WorkRecordsClient {
      * @param activityId (optional)
      * @return OK
      */
-    workRecordsAll(workDate: string | undefined, workerId: string | undefined, activityId: string | undefined): Promise<WorkRecordDto[]> {
+    getWorkRecords(workDate: string | undefined, workerId: string | undefined, activityId: string | undefined): Promise<WorkRecordDto[]> {
         let url_ = this.baseUrl + "/api/work-records?";
         if (workDate === null)
             throw new globalThis.Error("The parameter 'workDate' cannot be null.");
@@ -12680,11 +14063,11 @@ export class WorkRecordsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkRecordsAll(_response);
+            return this.processGetWorkRecords(_response);
         });
     }
 
-    protected processWorkRecordsAll(response: Response): Promise<WorkRecordDto[]> {
+    protected processGetWorkRecords(response: Response): Promise<WorkRecordDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12724,7 +14107,7 @@ export class WorkRecordsClient {
     /**
      * @return OK
      */
-    workRecords(body: CreateWorkRecordRequest): Promise<WorkRecordDto> {
+    createWorkRecords(body: CreateWorkRecordRequest): Promise<WorkRecordDto> {
         let url_ = this.baseUrl + "/api/work-records";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -12740,11 +14123,11 @@ export class WorkRecordsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processWorkRecords(_response);
+            return this.processCreateWorkRecords(_response);
         });
     }
 
-    protected processWorkRecords(response: Response): Promise<WorkRecordDto> {
+    protected processCreateWorkRecords(response: Response): Promise<WorkRecordDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12887,7 +14270,7 @@ export class WorkRecordsClient {
     /**
      * @return OK
      */
-    managerConfirmation2(workRecordId: string, body: ConfirmWorkRecordRequest): Promise<WorkRecordDto> {
+    confirmWorkRecords(workRecordId: string, body: ConfirmWorkRecordRequest): Promise<WorkRecordDto> {
         let url_ = this.baseUrl + "/api/work-records/{workRecordId}/manager-confirmation";
         if (workRecordId === undefined || workRecordId === null)
             throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
@@ -12906,11 +14289,11 @@ export class WorkRecordsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processManagerConfirmation2(_response);
+            return this.processConfirmWorkRecords(_response);
         });
     }
 
-    protected processManagerConfirmation2(response: Response): Promise<WorkRecordDto> {
+    protected processConfirmWorkRecords(response: Response): Promise<WorkRecordDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -12943,7 +14326,7 @@ export class WorkRecordsClient {
     /**
      * @return OK
      */
-    corrections2(workRecordId: string, body: CorrectWorkRecordRequest): Promise<WorkRecordDto> {
+    correctWorkRecords(workRecordId: string, body: CorrectWorkRecordRequest): Promise<WorkRecordDto> {
         let url_ = this.baseUrl + "/api/work-records/{workRecordId}/corrections";
         if (workRecordId === undefined || workRecordId === null)
             throw new globalThis.Error("The parameter 'workRecordId' must be defined.");
@@ -12962,11 +14345,11 @@ export class WorkRecordsClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processCorrections2(_response);
+            return this.processCorrectWorkRecords(_response);
         });
     }
 
-    protected processCorrections2(response: Response): Promise<WorkRecordDto> {
+    protected processCorrectWorkRecords(response: Response): Promise<WorkRecordDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

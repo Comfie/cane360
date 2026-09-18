@@ -10,13 +10,16 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
 {
     private readonly IUser _user;
     private readonly IIdentityService _identityService;
+    private readonly IFarmSetupRepository _farms;
 
     public AuthorizationBehaviour(
         IUser user,
-        IIdentityService identityService)
+        IIdentityService identityService,
+        IFarmSetupRepository farms)
     {
         _user = user;
         _identityService = identityService;
+        _farms = farms;
     }
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
@@ -29,6 +32,25 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
             if (_user.Id == null)
             {
                 throw new UnauthorizedAccessException();
+            }
+
+            var authorizeAttributesWithTenantRoles = authorizeAttributes
+                .Where(attribute => !string.IsNullOrWhiteSpace(attribute.TenantRoles));
+            if (authorizeAttributesWithTenantRoles.Any())
+            {
+                string? role = await _farms.GetActiveTenantSecurityRoleForUserAsync(
+                    _user.Id, cancellationToken);
+                if (role is null)
+                {
+                    throw new NotFoundException(_user.Id, "Active grower or farm-manager membership");
+                }
+
+                if (!authorizeAttributesWithTenantRoles.Any(attribute => attribute.TenantRoles
+                    .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .Contains(role, StringComparer.Ordinal)))
+                {
+                    throw new ForbiddenAccessException();
+                }
             }
 
             // Role-based authorization

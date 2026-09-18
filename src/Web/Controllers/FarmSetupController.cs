@@ -21,7 +21,7 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetFarmSetupQuery(), cancellationToken));
     }
 
-    [HttpPost("farm")]
+    [HttpPost("farm", Name = "CreateFarmFarmSetup")]
     [EndpointSummary("Create grower farm")]
     [EndpointDescription("Creates the grower tenant, profile, active farm, membership, and default store.")]
     [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]
@@ -43,7 +43,7 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.IrrigationContext), cancellationToken));
     }
 
-    [HttpPut("farm")]
+    [HttpPut("farm", Name = "UpdateFarmFarmSetup")]
     [EndpointSummary("Update grower farm")]
     [EndpointDescription("Updates the authenticated grower's profile and active farm details.")]
     [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]

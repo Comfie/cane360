@@ -98,6 +98,21 @@ public class LabourControllersTests
         sender.Verify(service => service.Send(It.IsAny<ConfirmWorkRecordCommand>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Test]
+    public async Task WorkRecordCreateReturnsDtoWithoutFilteredListLocation()
+    {
+        var sender = new Mock<ISender>();
+        var expected = WorkRecord(Guid.NewGuid());
+        sender.Setup(value => value.Send(It.IsAny<CreateWorkRecordCommand>(),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+
+        var result = await new WorkRecordsController(sender.Object).Create(
+            new CreateWorkRecordRequest(expected.WorkerId, "2026-08-18", "Daily", [],
+                null, null, null), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
     private static WorkRecordDto WorkRecord(Guid id) => new(
         id, Guid.NewGuid(), "Worker", Guid.NewGuid(), Guid.NewGuid(), "Field", new DateOnly(2026, 8, 18),
         "Daily", 12m, null, null, "Draft", [Guid.NewGuid()], ["Weeding"], [], null,

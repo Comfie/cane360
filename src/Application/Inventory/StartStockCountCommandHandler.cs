@@ -30,7 +30,7 @@ public sealed class StartStockCountCommandHandler(IFarmSetupRepository farmRepos
 
     private async Task<StockCountDto> StartOnceAsync(StartStockCountCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var candidate = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, command.StockCountId, false, cancellationToken) ?? throw new NotFoundException(command.StockCountId.ToString(), "Stock count");
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken);

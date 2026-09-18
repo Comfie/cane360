@@ -11,25 +11,20 @@ namespace Cane360.Web.Controllers;
 [Route("api/workers")]
 public sealed class WorkersController(ISender sender) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<WorkerListItemDto>>> Get(CancellationToken cancellationToken)
-    {
-        return Ok(await sender.Send(new GetWorkersQuery(), cancellationToken));
-    }
+    [HttpGet(Name = "GetWorkers")]
+    public async Task<ActionResult<IReadOnlyList<WorkerListItemDto>>> Get(CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new GetWorkersQuery(), cancellationToken));
 
-    [HttpGet("{workerId:guid}")]
-    public async Task<ActionResult<WorkerDetailsDto>> GetById(Guid workerId, CancellationToken cancellationToken)
-    {
-        return Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
-    }
+    [HttpGet("{workerId:guid}", Name = "GetWorkerDetails")]
+    public async Task<ActionResult<WorkerDetailsDto>> GetById(Guid workerId, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
 
-    [HttpPost]
-    public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request,
-        CancellationToken cancellationToken)
+    [HttpPost(Name = "CreateWorkers")]
+    public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveFrom, out DateOnly activeFrom))
         {
-            return BadRequest(DateError(nameof(request.ActiveFrom)));
+            return this.DateValidationError(nameof(request.ActiveFrom));
         }
 
         WorkerDetailsDto result = await sender.Send(new CreateWorkerCommand(request.PersonId, request.DisplayName,
@@ -37,13 +32,12 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { workerId = result.Worker.Id }, result);
     }
 
-    [HttpPost("{workerId:guid}/archive")]
-    public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request,
-        CancellationToken cancellationToken)
+    [HttpPost("{workerId:guid}/archive", Name = "ArchiveWorkers")]
+    public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveTo, out DateOnly activeTo))
         {
-            return BadRequest(DateError(nameof(request.ActiveTo)));
+            return this.DateValidationError(nameof(request.ActiveTo));
         }
 
         return Ok(await sender.Send(new ArchiveWorkerCommand(workerId, activeTo, request.ExpectedVersion),
@@ -58,11 +52,5 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         RevealedNationalIdDto result = await sender.Send(new RevealWorkerNationalIdCommand(workerId, request.Reason),
             cancellationToken);
         return Ok(new { result.WorkerId, result.NationalId });
-    }
-
-    private static ValidationProblemDetails DateError(string propertyName)
-    {
-        return new ValidationProblemDetails(
-            new Dictionary<string, string[]> { [propertyName] = ["Date must use yyyy-MM-dd."] });
     }
 }

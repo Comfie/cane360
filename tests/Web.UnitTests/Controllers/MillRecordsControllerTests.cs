@@ -49,6 +49,21 @@ public sealed class MillRecordsControllerTests
         .GetCustomAttributes(typeof(AuthorizeAttribute), true).ShouldNotBeEmpty();
 
     [Test]
+    public async Task MillCreateReturnsDtoWithoutListLocation()
+    {
+        var service = new Mock<IMillRecordsService>();
+        var expected = new MillDto(Guid.NewGuid(), "M-1", "Mill One", null,
+            true, DateTimeOffset.UtcNow, 1);
+        service.Setup(value => value.CreateMillAsync(It.IsAny<MillInput>(),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+
+        var result = await new MillRecordsController(service.Object).CreateMill(
+            new MillRequest("M-1", "Mill One", null, 0), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
     public async Task InvalidTicketDateIsRejectedBeforeDispatch()
     {
         var service = new Mock<IMillRecordsService>();

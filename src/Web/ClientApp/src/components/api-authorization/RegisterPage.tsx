@@ -39,7 +39,7 @@ export function RegisterPage() {
       await register(email, password);
       navigate('/login', { replace: true });
     } catch {
-      setError('The account could not be created. The email may already be registered or the password may not meet the security rules.');
+      setError('The account could not be created. Check the email and password, then try again.');
     } finally {
       setIsSubmitting(false);
     }

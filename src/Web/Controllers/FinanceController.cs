@@ -3,6 +3,7 @@ using Cane360.Application.Finance;
 using Cane360.Web.Models.Finance;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -24,15 +25,8 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         if (!TryOptionalDate(from, out DateOnly? fromDate) || !TryOptionalDate(to, out DateOnly? toDate))
-        {
-            return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
-            {
-                ["date"] = ["Dates must use yyyy-MM-dd."]
-            }));
-        }
-
-        return Ok(await finance.GetTransactionPageAsync(new FinanceTransactionFilter(fromDate, toDate, type, category,
-            status,
+            return this.DateValidationError("date", multipleDates: true);
+        return Ok(await finance.GetTransactionPageAsync(new(fromDate, toDate, type, category, status,
             search), page, pageSize, cancellationToken));
     }
 
@@ -49,11 +43,8 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         CreateOperationalTransactionRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
-        {
-            return DateError(nameof(request.EventDate));
-        }
-
-        OperationalTransactionDto result = await finance.CreateAsync(new CreateOperationalTransactionInput(request.Type,
+            return this.DateValidationError(nameof(request.EventDate));
+        OperationalTransactionDto result = await finance.CreateAsync(new(request.Type,
             request.Category, eventDate, request.PayeeOrPayer, request.AmountUsd,
             request.SourceReference, request.Notes), cancellationToken);
         return CreatedAtAction(nameof(GetTransaction), new { transactionId = result.Id }, result);
@@ -64,12 +55,8 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         UpdateOperationalTransactionRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
-        {
-            return DateError(nameof(request.EventDate));
-        }
-
-        return Ok(await finance.UpdateAsync(transactionId, new UpdateOperationalTransactionInput(request.Type,
-            request.Category,
+            return this.DateValidationError(nameof(request.EventDate));
+        return Ok(await finance.UpdateAsync(transactionId, new(request.Type, request.Category,
             eventDate, request.PayeeOrPayer, request.AmountUsd, request.SourceReference,
             request.Notes, request.ExpectedVersion), cancellationToken));
     }
@@ -213,6 +200,7 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
     }
 
     [HttpGet("crop-cycles/{cropCycleId:guid}/budget-variance", Name = "GetFinanceBudgetVariance")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<ActionResult<BudgetVarianceReportDto>> GetBudgetVariance(Guid cropCycleId,
         CancellationToken cancellationToken)
     {
@@ -237,19 +225,7 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         return true;
     }
 
-    private BadRequestObjectResult DateError(string propertyName)
-    {
-        return BadRequest(
-            new ValidationProblemDetails(new Dictionary<string, string[]>
-            {
-                [propertyName] = ["Date must use yyyy-MM-dd."]
-            }));
-    }
-
-    private static BudgetLineInput LineInput(BudgetLineRequest request)
-    {
-        return new BudgetLineInput(request.Category,
-            request.Description, request.AmountUsd, request.Quantity, request.Unit,
-            request.UnitRateUsd, request.Notes, request.ExpectedRowVersion);
-    }
+    private static BudgetLineInput LineInput(BudgetLineRequest request) => new(request.Category,
+        request.Description, request.AmountUsd, request.Quantity, request.Unit,
+        request.UnitRateUsd, request.Notes, request.ExpectedRowVersion);
 }

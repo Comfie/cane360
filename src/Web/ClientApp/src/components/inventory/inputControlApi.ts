@@ -79,16 +79,16 @@ interface StockReturnValues {
 
 export const loadInputControls = (activityId: string | undefined) => inputControlsClient.inputControls(activityId);
 
-export const createApplicationRule = (values: ICreateInventoryApplicationRuleRequest) => inputControlsClient.rules(
+export const createApplicationRule = (values: ICreateInventoryApplicationRuleRequest) => inputControlsClient.createRuleInputControls(
   new CreateInventoryApplicationRuleRequest(values));
 
 export const createInputRequest = (activityId: string, lines: readonly ICreateInputRequestLineRequest[]) => inputControlsClient.requests(
   new CreateInputRequestRequest({ activityId, lines: lines.map((line) => new CreateInputRequestLineRequest(line)) }));
 
-export const submitInputRequest = (requestId: string, expectedVersion: number) => inputControlsClient.submitInputRequest(
+export const submitInputRequest = (requestId: string, expectedVersion: number) => inputControlsClient.submitRequestInputControls(
   requestId, new PostStockReceiptRequest({ expectedVersion, idempotencyKey: operationKey('request-submit') }));
 
-export const decideInputRequest = (requestId: string, expectedVersion: number, outcome: IDecideInputRequestRequest['outcome'], reason: string | undefined) => inputControlsClient.decideInputRequest(
+export const decideInputRequest = (requestId: string, expectedVersion: number, outcome: IDecideInputRequestRequest['outcome'], reason: string | undefined) => inputControlsClient.decideRequestInputControls(
   requestId, new DecideInputRequestRequest({ expectedVersion, outcome, reason, idempotencyKey: operationKey('request-decision') }));
 
 export const createStockIssue = (values: StockIssueValues) => inputControlsClient.issues(new CreateStockIssueRequest({
@@ -96,13 +96,13 @@ export const createStockIssue = (values: StockIssueValues) => inputControlsClien
   lines: values.lines.map((line) => new CreateStockIssueLineRequest(line)),
 }));
 
-export const postStockIssue = (issueId: string, expectedVersion: number) => inputControlsClient.postStockIssue(
+export const postStockIssue = (issueId: string, expectedVersion: number) => inputControlsClient.postIssueInputControls(
   issueId, new PostStockReceiptRequest({ expectedVersion, idempotencyKey: operationKey('issue-post') }));
 
 export const requestIssueCorrection = (issueId: string, expectedVersion: number, reason: string) => inputControlsClient.correction(
   issueId, new RequestStockIssueCorrectionRequest({ expectedVersion, reason }));
 
-export const reverseStockIssue = (issueId: string, expectedVersion: number, reason: string) => inputControlsClient.reverseStockIssue(
+export const reverseStockIssue = (issueId: string, expectedVersion: number, reason: string) => inputControlsClient.reverseIssueInputControls(
   issueId, new ReverseStockIssueRequest({ expectedVersion, reason, idempotencyKey: operationKey('issue-reversal') }));
 
 export const createFieldReceipt = (values: FieldReceiptValues) => inputControlsClient.fieldReceipts(new CreateFieldReceiptRequest({
@@ -123,15 +123,15 @@ export const createStockReturn = (values: StockReturnValues) => inputControlsCli
   ...values, lines: values.lines.map((line) => new CreateStockReturnLineRequest(line)),
 }));
 
-export const postStockReturn = (id: string, expectedVersion: number) => inputControlsClient.postStockReturn(
+export const postStockReturn = (id: string, expectedVersion: number) => inputControlsClient.postReturnInputControls(
   id, new PostStockReturnRequest({ expectedVersion, idempotencyKey: operationKey('return-post') }));
 
 export const createInventoryLoss = (values: ICreateInventoryLossRequest) => inputControlsClient.losses(new CreateInventoryLossRequest(values));
 
-export const submitInventoryLoss = (id: string, expectedVersion: number) => inputControlsClient.submitInventoryLoss(
+export const submitInventoryLoss = (id: string, expectedVersion: number) => inputControlsClient.submitLossInputControls(
   id, new VersionedInventoryRequest({ expectedVersion }));
 
-export const decideInventoryLoss = (id: string, expectedVersion: number, outcome: IDecideInventoryLossRequest['outcome'], reason: IDecideInventoryLossRequest['reason']) => inputControlsClient.decideInventoryLoss(
+export const decideInventoryLoss = (id: string, expectedVersion: number, outcome: IDecideInventoryLossRequest['outcome'], reason: IDecideInventoryLossRequest['reason']) => inputControlsClient.decideLossInputControls(
   id, new DecideInventoryLossRequest({ expectedVersion, outcome, reason, idempotencyKey: operationKey('loss-decision') }));
 
 export const createManagerInvitation = (personId: ICreateManagerInvitationRequest['personId'], expiresInHours: ICreateManagerInvitationRequest['expiresInHours'], role: ICreateManagerInvitationRequest['role'] = 'FarmManager') => inputControlsClient.managerInvitations(

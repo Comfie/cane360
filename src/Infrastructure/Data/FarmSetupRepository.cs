@@ -9,6 +9,16 @@ namespace Cane360.Infrastructure.Data;
 
 public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSetupRepository
 {
+    public Task<string?> GetActiveTenantSecurityRoleForUserAsync(string userId,
+        CancellationToken cancellationToken) =>
+        context.TenantMemberships
+            .Where(membership => membership.UserId == userId &&
+                membership.Status == RecordStatus.Active &&
+                (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                 membership.SecurityRole == TenantSecurityRoles.FarmManager))
+            .Select(membership => membership.SecurityRole)
+            .SingleOrDefaultAsync(cancellationToken);
+
     public async Task<Tenant?> GetTenantAdministrationContextForUserAsync(string userId,
         bool trackChanges, CancellationToken cancellationToken)
     {

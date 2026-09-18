@@ -11,7 +11,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/fields/{fieldId:guid}/line-profile")]
 public sealed class FieldLineProfilesController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetFieldLineProfiles")]
     [ProducesResponseType<FieldLineProfileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -23,7 +23,7 @@ public sealed class FieldLineProfilesController(ISender sender) : ControllerBase
         return result is null ? NoContent() : Ok(result);
     }
 
-    [HttpPut]
+    [HttpPut(Name = "ReplaceFieldLineProfiles")]
     [ProducesResponseType<FieldLineProfileDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -8,7 +8,7 @@ public sealed class CreateStockAdjustmentCommandHandler(IFarmSetupRepository far
 {
     public async Task<StockAdjustmentDto> Handle(CreateStockAdjustmentCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         if (!Enum.TryParse<StockAdjustmentType>(command.AdjustmentType, true, out var type)) throw InventoryAccess.Failure(nameof(command.AdjustmentType), "Unknown stock adjustment type.");
         StockCountLine? countLine = null; StockCount? count = null; StockPosition position; InventoryItem item; InventoryLot? lot; UnitOfMeasure unit; decimal signedQuantity;
         if (command.StockCountLineId.HasValue)

@@ -13,7 +13,7 @@ public sealed class CreateStockIssueCommandHandler(
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
+
         var request = await inventoryRepository.GetInputRequestAsync(
             tenant.Id, farm.Id, command.InputRequestId, false, cancellationToken)
             ?? throw new NotFoundException(command.InputRequestId.ToString(), "Approved input request");

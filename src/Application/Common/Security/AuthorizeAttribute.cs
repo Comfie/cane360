@@ -17,6 +17,11 @@ public class AuthorizeAttribute : Attribute
     public string Roles { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the active tenant membership roles allowed to handle this request.
+    /// </summary>
+    public string TenantRoles { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the policy name that determines access to the resource.
     /// </summary>
     public string Policy { get; set; } = string.Empty;

@@ -51,7 +51,7 @@ test('personnel creation and editing use a modal, with the primary-manager switc
   assert.match(component, /role === 'FarmManager' && <label className="toggle-control personnel-primary-toggle">/);
   assert.match(component, /checked=\{isPrimaryManager\}/);
   assert.match(component, /setIsPrimaryManager\(false\)/);
-  assert.match(component, /farmPersonnelPUT\(editingPerson\.id, new UpdatePersonRequest/);
+  assert.match(component, /farmPersonnel\(editingPerson\.id, new UpdatePersonRequest/);
   assert.match(component, /onClick=\{\(\) => openEditPerson\(person\)\}/);
   assert.match(component, /aria-label=\{`Edit \$\{person\.displayName\}`\}/);
   assert.match(styles, /\.personnel-primary-toggle \{[^}]*grid-column: 1 \/ -1;/);
@@ -65,7 +65,7 @@ test('farm information is edited in a modal with a compact summary action', asyn
 
   assert.match(summary, /aria-label="Edit farm information"/);
   assert.match(editor, /<dialog open className="activity-dialog farm-profile-dialog"/);
-  assert.match(editor, /farmSetupClient\.farmPUT\(new UpdateFarmInformationRequest/);
+  assert.match(editor, /farmSetupClient\.updateFarmFarmSetup\(new UpdateFarmInformationRequest/);
   assert.match(styles, /\.farm-summary-edit \{[^}]*width: 2\.25rem;/);
   assert.match(styles, /\.farm-profile-dialog \{[^}]*width: min\(54rem/);
 });

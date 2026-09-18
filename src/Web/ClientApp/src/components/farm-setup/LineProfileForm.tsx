@@ -16,12 +16,12 @@ export function LineProfileForm({ fieldId }: { fieldId: string }) {
   const [error, setError] = useState('');
   useEffect(() => {
     let current = true;
-    lineProfilesClient.lineProfileGET(fieldId).then((result) => { if (current) setProfile(result); }).catch(() => {});
+    lineProfilesClient.getFieldLineProfiles(fieldId).then((result) => { if (current) setProfile(result); }).catch(() => {});
     return () => { current = false; };
   }, [fieldId]);
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const data = new FormData(event.currentTarget); setError('');
-    try { setProfile(await lineProfilesClient.lineProfilePUT(fieldId, new ReplaceFieldLineProfileRequest({ standardLineLengthMetres: Number(data.get('length')), estimatedLineCount: Number(data.get('count')), numberingScheme: String(data.get('scheme')).trim(), effectiveFrom: new Date(`${String(data.get('effectiveFrom'))}T00:00:00`), expectedVersion: profile?.version }))); setEditing(false); }
+    try { setProfile(await lineProfilesClient.replaceFieldLineProfiles(fieldId, new ReplaceFieldLineProfileRequest({ standardLineLengthMetres: Number(data.get('length')), estimatedLineCount: Number(data.get('count')), numberingScheme: String(data.get('scheme')).trim(), effectiveFrom: new Date(`${String(data.get('effectiveFrom'))}T00:00:00`), expectedVersion: profile?.version }))); setEditing(false); }
     catch (requestError) { setError(getApiError(requestError)); }
   };
   return <>

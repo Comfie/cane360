@@ -15,7 +15,7 @@ public sealed class CreateFieldAccountabilityCorrectionCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireFarmManager(tenant, userId);
+
         if (new[] { command.FieldReceiptId, command.InputApplicationId, command.StockReturnId, command.InventoryLossId }.Count(x => x.HasValue) != 1)
             throw InventoryAccess.Failure(nameof(command), "A correction must identify exactly one original field-accountability record.");
         if (string.IsNullOrWhiteSpace(command.Reason) || string.IsNullOrWhiteSpace(command.IdempotencyKey))

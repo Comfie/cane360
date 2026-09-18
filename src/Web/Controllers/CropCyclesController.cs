@@ -11,7 +11,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/fields/{fieldId:guid}/crop-cycles")]
 public sealed class CropCyclesController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetCropCycles")]
     [EndpointSummary("List field crop cycles")]
     [EndpointDescription("Returns current and historical crop cycles for a field in the authenticated tenant.")]
     [ProducesResponseType<CropCycleCollectionDto>(StatusCodes.Status200OK)]
@@ -24,7 +24,7 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetCropCyclesQuery(fieldId), cancellationToken));
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateCropCycles")]
     [EndpointSummary("Create crop-cycle draft")]
     [EndpointDescription("Creates a plant-cane or ratoon crop-cycle draft for a field.")]
     [ProducesResponseType<CropCycleDetailsDto>(StatusCodes.Status201Created)]
@@ -69,7 +69,7 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
         return Send(new ActivateCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
     }
 
-    [HttpPost("{cropCycleId:guid}/transitions/cancel")]
+    [HttpPost("{cropCycleId:guid}/transitions/cancel", Name = "CancelCropCycles")]
     public Task<ActionResult<CropCycleDetailsDto>> Cancel(
         Guid fieldId, Guid cropCycleId, CancelCropCycleRequest request, CancellationToken cancellationToken)
     {
@@ -94,7 +94,7 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
             cancellationToken);
     }
 
-    [HttpPost("{cropCycleId:guid}/transitions/close")]
+    [HttpPost("{cropCycleId:guid}/transitions/close", Name = "CloseCropCycles")]
     public Task<ActionResult<CropCycleDetailsDto>> Close(
         Guid fieldId, Guid cropCycleId, TransitionCropCycleRequest request, CancellationToken cancellationToken)
     {

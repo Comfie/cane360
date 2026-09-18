@@ -91,7 +91,7 @@ export function MillRecordsWorkspace({ onError, onSuccess }: {
   useEffect(() => { refresh.current = load; }, [load]);
   useEffect(() => {
     let current = true;
-    administration.documentCategoriesAll().then((items) => {
+    administration.getCategoriesAdministration().then((items) => {
       if (current) setDocumentCategories(items.filter((item) => item.active));
     }).catch((error) => { if (current) onError(getApiError(error)); });
     return () => { current = false; };

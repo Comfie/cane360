@@ -10,9 +10,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/session")]
 public sealed class SessionController(ISender sender) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<SessionSummaryDto>> Get(CancellationToken cancellationToken)
-    {
-        return Ok(await sender.Send(new GetSessionQuery(), cancellationToken));
-    }
+    [HttpGet(Name = "GetCurrentSession")]
+    public async Task<ActionResult<SessionSummaryDto>> Get(CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new GetSessionQuery(), cancellationToken));
 }

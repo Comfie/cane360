@@ -53,4 +53,18 @@ public class InventoryControllerTests
 
         result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
     }
+
+    [Test]
+    public async Task UnitCreateReturnsDtoWithoutWorkspaceLocation()
+    {
+        var sender = new Mock<ISender>();
+        var expected = new UnitOfMeasureDto(Guid.NewGuid(), "kg", "Kilogram", "Mass", 3, "Active", 1);
+        sender.Setup(value => value.Send(It.IsAny<CreateUnitOfMeasureCommand>(),
+            It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+
+        var result = await new InventoryController(sender.Object).CreateUnit(
+            new CreateUnitOfMeasureRequest("kg", "Kilogram", "Mass", 3), CancellationToken.None);
+
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
 }

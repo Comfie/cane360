@@ -11,9 +11,8 @@ namespace Cane360.Web.Controllers;
 [Route("api/attendance")]
 public sealed class AttendanceController(ISender sender) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<AttendanceRegisterDto>> Get([FromQuery] string workDate,
-        CancellationToken cancellationToken)
+    [HttpGet(Name = "GetAttendance")]
+    public async Task<ActionResult<AttendanceRegisterDto>> Get([FromQuery] string workDate, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(workDate, out DateOnly parsedDate))
         {
@@ -23,9 +22,8 @@ public sealed class AttendanceController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetAttendanceRegisterQuery(parsedDate), cancellationToken));
     }
 
-    [HttpPut]
-    public async Task<ActionResult<AttendanceRegisterDto>> Record(RecordAttendanceRequest request,
-        CancellationToken cancellationToken)
+    [HttpPut(Name = "RecordAttendance")]
+    public async Task<ActionResult<AttendanceRegisterDto>> Record(RecordAttendanceRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.WorkDate, out DateOnly workDate))
         {

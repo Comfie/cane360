@@ -52,7 +52,7 @@ public sealed class PostStockReceiptCommandHandler(
         if (receipt.IsPostingRetry(request.IdempotencyKey)) return InventoryMapper.Receipt(tenant, farm, receipt);
         if (receipt.ReceiptType == StockReceiptType.OpeningBalance)
         {
-            InventoryAccess.RequireGrower(tenant, userId);
+
             if (await inventoryRepository.GetOpeningApprovalAsync(
                     receipt.Id, receipt.Version - 1, cancellationToken) is null)
             {

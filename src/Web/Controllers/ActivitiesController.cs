@@ -11,7 +11,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/activities")]
 public sealed class ActivitiesController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetActivities")]
     [ProducesResponseType<ActivityCollectionDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -30,7 +30,7 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
             fieldId, cropCycleId, activityTypeId, status, fromDate, toDate, page, pageSize), cancellationToken));
     }
 
-    [HttpPost]
+    [HttpPost(Name = "CreateActivities")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -147,7 +147,7 @@ public sealed class ActivitiesController(ISender sender) : ControllerBase
         return Transition(activityId, "AwaitingVerification", request, cancellationToken);
     }
 
-    [HttpPost("{activityId:guid}/transitions/manager-confirmation")]
+    [HttpPost("{activityId:guid}/transitions/manager-confirmation", Name = "ConfirmActivityManagerTransition")]
     [ProducesResponseType<ActivityDetailsDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

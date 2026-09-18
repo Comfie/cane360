@@ -8,7 +8,7 @@ public sealed class CreateInputApplicationCommandHandler(
 {
     public async Task<Guid> Handle(CreateInputApplicationCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var context = InventoryAccess.RequireOperationalActivity(farm, command.ActivityId); var now = timeProvider.GetUtcNow();
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
         await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, command.ActivityId, cancellationToken);

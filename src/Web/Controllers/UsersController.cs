@@ -1,18 +1,24 @@
+using System.Diagnostics;
+using Cane360.Web.Infrastructure;
 using Cane360.Infrastructure.Identity;
 using Cane360.Web.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting(ApiRateLimitOptions.UsersPolicy)]
 public sealed class UsersController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager) : ControllerBase
 {
+    private static readonly TimeSpan MinimumRegistrationDuration = TimeSpan.FromMilliseconds(300);
+
     [AllowAnonymous]
     [HttpPost("register")]
     [EndpointSummary("Register")]
@@ -21,16 +27,31 @@ public sealed class UsersController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        ApplicationUser user = new() { UserName = request.Email, Email = request.Email };
+        var timer = Stopwatch.StartNew();
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email
+        };
 
         IdentityResult result = await userManager.CreateAsync(user, request.Password);
 
-        if (result.Succeeded)
+        var visibleErrors = result.Errors
+            .Where(error => error.Code is not ("DuplicateUserName" or "DuplicateEmail"))
+            .ToArray();
+
+        if (result.Succeeded || (visibleErrors.Length == 0 && result.Errors.Any()))
         {
+            var remaining = MinimumRegistrationDuration - timer.Elapsed;
+            if (remaining > TimeSpan.Zero)
+            {
+                await Task.Delay(remaining, HttpContext.RequestAborted);
+            }
+
             return Ok();
         }
 
-        Dictionary<string, string[]> errors = result.Errors
+        var errors = visibleErrors
             .GroupBy(error => error.Code)
             .ToDictionary(
                 group => group.Key,

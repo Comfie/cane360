@@ -5,7 +5,7 @@ public sealed class PostStockReturnCommandHandler(IFarmSetupRepository farmRepos
 {
     public async Task Handle(PostStockReturnCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var candidate = await inventoryRepository.GetStockReturnAsync(tenant.Id, farm.Id, command.StockReturnId, false, cancellationToken) ?? throw new NotFoundException(command.StockReturnId.ToString(), "Stock return");
         var context = InventoryAccess.RequireOperationalActivity(farm, candidate.ActivityId); var now = timeProvider.GetUtcNow();
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken); await inventoryRepository.LockActivityAsync(tenant.Id, farm.Id, candidate.ActivityId, cancellationToken); await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.LockStockIssueLinesAsync(candidate.Lines.Select(x => x.StockIssueLineId).Distinct().Order().ToArray(), cancellationToken); await inventoryRepository.LockStockPositionsAsync(candidate.Lines.Select(x => x.StockPositionId).Distinct().Order().ToArray(), cancellationToken);

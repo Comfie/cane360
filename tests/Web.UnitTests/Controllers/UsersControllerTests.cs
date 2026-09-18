@@ -62,6 +62,40 @@ public class UsersControllerTests
     }
 
     [Test]
+    public async Task RegisterReturnsSameOkForExistingEmail()
+    {
+        _userManager
+            .Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), "StrongPassword1!"))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError
+            {
+                Code = "DuplicateUserName",
+                Description = "The account already exists."
+            }));
+
+        var result = await _controller.Register(
+            new RegisterRequest("user@example.com", "StrongPassword1!"));
+
+        result.ShouldBeOfType<OkResult>();
+    }
+
+    [Test]
+    public async Task RegisterStillReportsPasswordErrorWithoutDuplicateCode()
+    {
+        _userManager
+            .Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), "weak"))
+            .ReturnsAsync(IdentityResult.Failed(
+                new IdentityError { Code = "DuplicateUserName", Description = "The account exists." },
+                new IdentityError { Code = "PasswordTooShort", Description = "Password is too short." }));
+
+        var result = await _controller.Register(new RegisterRequest("user@example.com", "weak"));
+
+        var problem = result.ShouldBeOfType<BadRequestObjectResult>().Value
+            .ShouldBeOfType<ValidationProblemDetails>();
+        problem.Errors["PasswordTooShort"].ShouldBe(["Password is too short."]);
+        problem.Errors.ShouldNotContainKey("DuplicateUserName");
+    }
+
+    [Test]
     public async Task LoginReturnsUnauthorizedForInvalidCredentials()
     {
         _signInManager

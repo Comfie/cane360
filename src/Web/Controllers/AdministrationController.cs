@@ -1,9 +1,11 @@
 using System.Text;
 using Cane360.Application.Administration;
 using Cane360.Application.Inventory;
+using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -13,6 +15,11 @@ namespace Cane360.Web.Controllers;
 public sealed class AdministrationController(AdministrationService administration) : ControllerBase
 {
     [HttpGet("overview")]
+    [EndpointSummary("Get administration overview")]
+    [EndpointDescription("Returns administration overview for the authenticated farm.")]
+    [ProducesResponseType<AdministrationOverviewDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AdministrationOverviewDto>> Overview(
         CancellationToken cancellationToken)
     {
@@ -20,20 +27,37 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpGet("manager-access")]
+    [EndpointSummary("Get manager access")]
+    [EndpointDescription("Returns manager access for the authenticated farm.")]
+    [ProducesResponseType<AdministrationManagerAccessDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AdministrationManagerAccessDto>> ManagerAccess(
         CancellationToken cancellationToken)
     {
         return Ok(await administration.ManagerAccessAsync(cancellationToken));
     }
 
-    [HttpGet("rules")]
+    [HttpGet("rules", Name = "GetRulesAdministration")]
+    [EndpointSummary("List application rules")]
+    [EndpointDescription("Returns application rules for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<AdministrationRuleDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<AdministrationRuleDto>>> Rules(
         CancellationToken cancellationToken)
     {
         return Ok(await administration.RulesAsync(cancellationToken));
     }
 
-    [HttpPost("rules/{ruleId:guid}/end")]
+    [HttpPost("rules/{ruleId:guid}/end", Name = "EndRuleAdministration")]
+    [EndpointSummary("End application rule")]
+    [EndpointDescription("Ends application rule for the authenticated farm.")]
+    [ProducesResponseType<AdministrationRuleDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AdministrationRuleDto>> EndRule(Guid ruleId,
         EndEffectiveRuleRequest request, CancellationToken cancellationToken)
     {
@@ -42,20 +66,36 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpGet("rule-items")]
+    [EndpointSummary("List rule inventory items")]
+    [EndpointDescription("Returns rule inventory items for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<InventoryItemDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<InventoryItemDto>>> RuleItems(
         CancellationToken cancellationToken)
     {
         return Ok(await administration.RuleItemsAsync(cancellationToken));
     }
 
-    [HttpGet("settings")]
+    [HttpGet("settings", Name = "GetSettingsAdministration")]
+    [EndpointSummary("List farm settings")]
+    [EndpointDescription("Returns farm settings for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<FarmSettingDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<FarmSettingDto>>> Settings(
         CancellationToken cancellationToken)
     {
         return Ok(await administration.SettingsAsync(cancellationToken));
     }
 
-    [HttpPost("settings")]
+    [HttpPost("settings", Name = "CreateSettingAdministration")]
+    [EndpointSummary("Create farm setting")]
+    [EndpointDescription("Creates farm setting for the authenticated farm.")]
+    [ProducesResponseType<FarmSettingDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<FarmSettingDto>> CreateSetting(
         CreateFarmSettingRequest request, CancellationToken cancellationToken)
     {
@@ -63,7 +103,14 @@ public sealed class AdministrationController(AdministrationService administratio
             request.EffectiveFrom, request.EffectiveTo, cancellationToken));
     }
 
-    [HttpPost("settings/{settingId:guid}/end")]
+    [HttpPost("settings/{settingId:guid}/end", Name = "EndSettingAdministration")]
+    [EndpointSummary("End farm setting")]
+    [EndpointDescription("Ends farm setting for the authenticated farm.")]
+    [ProducesResponseType<FarmSettingDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<FarmSettingDto>> EndSetting(Guid settingId,
         EndEffectiveRuleRequest request, CancellationToken cancellationToken)
     {
@@ -71,14 +118,25 @@ public sealed class AdministrationController(AdministrationService administratio
             request.ExpectedVersion, cancellationToken));
     }
 
-    [HttpGet("document-categories")]
+    [HttpGet("document-categories", Name = "GetCategoriesAdministration")]
+    [EndpointSummary("List document categories")]
+    [EndpointDescription("Returns document categories for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<DocumentCategoryDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<DocumentCategoryDto>>> Categories(
         CancellationToken cancellationToken)
     {
         return Ok(await administration.CategoriesAsync(cancellationToken));
     }
 
-    [HttpPost("document-categories")]
+    [HttpPost("document-categories", Name = "CreateCategoryAdministration")]
+    [EndpointSummary("Create document category")]
+    [EndpointDescription("Creates document category for the authenticated farm.")]
+    [ProducesResponseType<DocumentCategoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DocumentCategoryDto>> CreateCategory(
         CreateDocumentCategoryRequest request, CancellationToken cancellationToken)
     {
@@ -87,6 +145,13 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpPut("document-categories/{categoryId:guid}")]
+    [EndpointSummary("Update document category")]
+    [EndpointDescription("Updates document category for the authenticated farm.")]
+    [ProducesResponseType<DocumentCategoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DocumentCategoryDto>> UpdateCategory(Guid categoryId,
         UpdateDocumentCategoryRequest request, CancellationToken cancellationToken)
     {
@@ -94,7 +159,14 @@ public sealed class AdministrationController(AdministrationService administratio
             request.Description, request.ExpectedVersion, cancellationToken));
     }
 
-    [HttpPost("document-categories/{categoryId:guid}/archive")]
+    [HttpPost("document-categories/{categoryId:guid}/archive", Name = "ArchiveCategoryAdministration")]
+    [EndpointSummary("Archive document category")]
+    [EndpointDescription("Archives document category for the authenticated farm.")]
+    [ProducesResponseType<DocumentCategoryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<DocumentCategoryDto>> ArchiveCategory(Guid categoryId,
         ArchiveDocumentCategoryRequest request, CancellationToken cancellationToken)
     {
@@ -102,7 +174,12 @@ public sealed class AdministrationController(AdministrationService administratio
             request.ExpectedVersion, cancellationToken));
     }
 
-    [HttpGet("session")]
+    [HttpGet("session", Name = "GetSessionAdministration")]
+    [EndpointSummary("Get administration session")]
+    [EndpointDescription("Returns administration session for the authenticated farm.")]
+    [ProducesResponseType<AdministrationSessionDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AdministrationSessionDto>> Session(
         CancellationToken cancellationToken)
     {
@@ -110,6 +187,11 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpGet("roles")]
+    [EndpointSummary("List administration capabilities")]
+    [EndpointDescription("Returns administration capabilities for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<AdministrationCapabilityDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<AdministrationCapabilityDto>>> Roles(
         CancellationToken cancellationToken)
     {
@@ -117,6 +199,11 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpGet("users")]
+    [EndpointSummary("List administration users")]
+    [EndpointDescription("Returns administration users for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<AdministrationUserDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<AdministrationUserDto>>> Users(
         CancellationToken cancellationToken)
     {
@@ -124,21 +211,36 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpPost("users/{membershipId:guid}/disable")]
-    public async Task<IActionResult> DisableManager(Guid membershipId,
-        CancellationToken cancellationToken)
-    {
-        await administration.DisableManagerAsync(membershipId, cancellationToken);
-        return NoContent();
-    }
+    [EndpointSummary("Disable manager access")]
+    [EndpointDescription("Disables manager access for the authenticated farm.")]
+    [ProducesResponseType<AdministrationUserDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AdministrationUserDto>> DisableManager(Guid membershipId,
+        CancellationToken cancellationToken) =>
+        Ok(await administration.DisableManagerAsync(membershipId, cancellationToken));
 
     [HttpGet("audit")]
+    [EndpointSummary("Get audit events")]
+    [EndpointDescription("Returns audit events for the authenticated farm.")]
+    [ProducesResponseType<AdministrationAuditPageDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AdministrationAuditPageDto>> Audit(
         [FromQuery] AdministrationAuditRequest request, CancellationToken cancellationToken)
     {
         return Ok(await administration.AuditAsync(ToFilter(request), cancellationToken));
     }
 
-    [HttpGet("audit/{eventId:guid}")]
+    [HttpGet("audit/{eventId:guid}", Name = "GetAdministrationAuditDetail")]
+    [EndpointSummary("Get audit event detail")]
+    [EndpointDescription("Returns audit event detail for the authenticated farm.")]
+    [ProducesResponseType<AdministrationAuditDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AdministrationAuditDto>> AuditDetail(
         Guid eventId, CancellationToken cancellationToken)
     {
@@ -146,6 +248,13 @@ public sealed class AdministrationController(AdministrationService administratio
     }
 
     [HttpGet("audit.csv")]
+    [EndpointSummary("Export audit events")]
+    [EndpointDescription("Exports audit events for the authenticated farm.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ExportAudit([FromQuery] AdministrationAuditRequest request,
         CancellationToken cancellationToken)
     {

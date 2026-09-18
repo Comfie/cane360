@@ -21,7 +21,7 @@ export function CropCycleForm({ field, onSaved, onCancel }: CropCycleFormProps) 
   const [error, setError] = useState('');
 
   useEffect(() => {
-    cropVarietiesClient.cropVarietiesAll()
+    cropVarietiesClient.getCropVarieties()
       .then(setVarieties)
       .catch((requestError) => setError(getApiError(requestError)));
   }, []);

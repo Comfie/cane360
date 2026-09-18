@@ -5,6 +5,9 @@ namespace Cane360.Application.Common.Interfaces;
 
 public interface IFarmSetupRepository
 {
+    Task<string?> GetActiveTenantSecurityRoleForUserAsync(string userId,
+        CancellationToken cancellationToken);
+
     /// <summary>Administration membership, personnel, and reference context without operational history.</summary>
     Task<Tenant?> GetTenantAdministrationContextForUserAsync(string userId, bool trackChanges,
         CancellationToken cancellationToken);

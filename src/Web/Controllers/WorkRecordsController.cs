@@ -11,7 +11,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/work-records")]
 public sealed class WorkRecordsController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetWorkRecords")]
     public async Task<ActionResult<IReadOnlyList<WorkRecordDto>>> Get(
         [FromQuery] string? workDate, [FromQuery] Guid? workerId, [FromQuery] Guid? activityId,
         CancellationToken cancellationToken)
@@ -36,19 +36,17 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetLabourReferenceDataQuery(parsedDate), cancellationToken));
     }
 
-    [HttpPost]
-    public async Task<ActionResult<WorkRecordDto>> Create(CreateWorkRecordRequest request,
-        CancellationToken cancellationToken)
+    [HttpPost(Name = "CreateWorkRecords")]
+    public async Task<ActionResult<WorkRecordDto>> Create(CreateWorkRecordRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.WorkDate, out DateOnly workDate))
         {
             return BadRequest(DateError(nameof(request.WorkDate)));
         }
 
-        WorkRecordDto result = await sender.Send(new CreateWorkRecordCommand(request.WorkerId, workDate,
-                request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason),
-            cancellationToken);
-        return CreatedAtAction(nameof(Get), new { workDate = result.WorkDate, workerId = result.WorkerId }, result);
+        var result = await sender.Send(new CreateWorkRecordCommand(request.WorkerId, workDate,
+            request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken);
+        return Ok(result);
     }
 
     [HttpPost("{workRecordId:guid}/supervisor-verification")]
@@ -60,23 +58,14 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
             cancellationToken));
     }
 
-    [HttpPost("{workRecordId:guid}/manager-confirmation")]
-    public async Task<ActionResult<WorkRecordDto>> Confirm(Guid workRecordId, ConfirmWorkRecordRequest request,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await sender.Send(new ConfirmWorkRecordCommand(workRecordId, request.ExpectedVersion),
-            cancellationToken));
-    }
+    [HttpPost("{workRecordId:guid}/manager-confirmation", Name = "ConfirmWorkRecords")]
+    public async Task<ActionResult<WorkRecordDto>> Confirm(Guid workRecordId, ConfirmWorkRecordRequest request, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new ConfirmWorkRecordCommand(workRecordId, request.ExpectedVersion), cancellationToken));
 
-    [HttpPost("{workRecordId:guid}/corrections")]
-    public async Task<ActionResult<WorkRecordDto>> Correct(Guid workRecordId, CorrectWorkRecordRequest request,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await sender.Send(new CorrectWorkRecordCommand(workRecordId, request.ExpectedVersion,
-                request.CorrectionReason,
-                request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason),
-            cancellationToken));
-    }
+    [HttpPost("{workRecordId:guid}/corrections", Name = "CorrectWorkRecords")]
+    public async Task<ActionResult<WorkRecordDto>> Correct(Guid workRecordId, CorrectWorkRecordRequest request, CancellationToken cancellationToken) =>
+        Ok(await sender.Send(new CorrectWorkRecordCommand(workRecordId, request.ExpectedVersion, request.CorrectionReason,
+            request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken));
 
     private static WorkScopeCommand? Scope(WorkScopeRequest? scope)
     {

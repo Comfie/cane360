@@ -54,6 +54,11 @@ try
 
     var app = builder.Build();
 
+    if (app.Environment.IsProduction())
+    {
+        app.Logger.LogWarning("Anonymous API rate limiting is shared across callers because the deployment does not have a trusted client-IP forwarding configuration.");
+    }
+
     if (args.Contains("--database-status", StringComparer.OrdinalIgnoreCase))
     {
         if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Cane360Db")))
@@ -91,12 +96,15 @@ try
             RequestLogLevel.Select(httpContext.Response.StatusCode, elapsed, exception);
     });
 
+    // Public API reference is intentional; the audited national-ID reveal endpoint is excluded from ApiExplorer.
     app.MapOpenApi();
     app.MapScalarApiReference();
 
     app.UseExceptionHandler();
 
+    app.UseRouting();
     app.UseAuthentication();
+    app.UseRateLimiter();
     app.UseAuthorization();
 
     app.MapControllers();

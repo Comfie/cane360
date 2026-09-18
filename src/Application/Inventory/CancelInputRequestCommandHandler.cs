@@ -10,7 +10,7 @@ public sealed class CancelInputRequestCommandHandler(
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
+
         var request = await inventoryRepository.GetInputRequestAsync(
             tenant.Id, farm.Id, command.InputRequestId, true, cancellationToken)
             ?? throw new NotFoundException(command.InputRequestId.ToString(), "Input request");

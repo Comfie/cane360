@@ -11,7 +11,7 @@ public sealed class RevokeManagerInvitationCommandHandler(
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
         var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrower(tenant, userId);
+
         var invitation = (await inventoryRepository.GetManagerInvitationsAsync(
             tenant.Id, farm.Id, true, cancellationToken)).SingleOrDefault(item => item.Id == command.InvitationId)
             ?? throw new NotFoundException(command.InvitationId.ToString(), "Manager invitation");

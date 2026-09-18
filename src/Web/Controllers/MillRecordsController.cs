@@ -6,6 +6,7 @@ using Cane360.Application.MillRecords;
 using Cane360.Web.Models.MillRecords;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Cane360.Web.Controllers;
 
@@ -33,7 +34,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     {
         MillDto result = await records.CreateMillAsync(new MillInput(request.Code, request.Name,
             request.Location), cancellationToken);
-        return CreatedAtAction(nameof(GetMills), result);
+        return Ok(result);
     }
 
     [HttpPut("mills/{millId:guid}", Name = "UpdateMill")]
@@ -67,12 +68,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         [FromQuery] string? matchStatus, [FromQuery] string? search,
         CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate))
-        {
-            return DateError();
-        }
-
-        return Ok(await records.GetTicketPageAsync(new TicketFilter(fromDate, toDate, millId, fieldId,
+        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return this.DateValidationError("date", multipleDates: true);
+        return Ok(await records.GetTicketPageAsync(new(fromDate, toDate, millId, fieldId,
             cropCycleId, status, matchStatus, search), page, pageSize, cancellationToken));
     }
 
@@ -87,11 +84,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     public async Task<ActionResult<WeighbridgeTicketDto>> CreateTicket(TicketRequest request,
         CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.TicketDate, out DateOnly ticketDate))
-        {
-            return DateError();
-        }
-
+        if (!TransportValueParser.TryParseDateOnly(request.TicketDate, out DateOnly ticketDate)) return this.DateValidationError("date", multipleDates: true);
         WeighbridgeTicketDto result = await records.CreateTicketAsync(TicketInput(request,
             ticketDate), cancellationToken);
         return CreatedAtAction(nameof(GetTicket), new { ticketId = result.Id }, result);
@@ -101,11 +94,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     public async Task<ActionResult<WeighbridgeTicketDto>> UpdateTicket(Guid ticketId,
         TicketRequest request, CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.TicketDate, out DateOnly ticketDate))
-        {
-            return DateError();
-        }
-
+        if (!TransportValueParser.TryParseDateOnly(request.TicketDate, out DateOnly ticketDate)) return this.DateValidationError("date", multipleDates: true);
         return Ok(await records.UpdateTicketAsync(ticketId, TicketInput(request, ticketDate), cancellationToken));
     }
 
@@ -123,12 +112,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         CorrectTicketRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.Replacement.TicketDate,
-                out DateOnly ticketDate))
-        {
-            return DateError();
-        }
-
-        return Ok(await records.CorrectTicketAsync(ticketId, new CorrectTicketInput(request.Reason,
+            out DateOnly ticketDate)) return this.DateValidationError("date", multipleDates: true);
+        return Ok(await records.CorrectTicketAsync(ticketId, new(request.Reason,
             request.IdempotencyKey, TicketInput(request.Replacement, ticketDate)), cancellationToken));
     }
 
@@ -152,12 +137,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
         [FromQuery] string? matchStatus, [FromQuery] string? search,
         CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate))
-        {
-            return DateError();
-        }
-
-        return Ok(await records.GetStatementPageAsync(new StatementFilter(fromDate, toDate, millId,
+        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return this.DateValidationError("date", multipleDates: true);
+        return Ok(await records.GetStatementPageAsync(new(fromDate, toDate, millId,
             matchStatus, search), page, pageSize, cancellationToken));
     }
 
@@ -173,11 +154,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     public async Task<ActionResult<GrowerStatementDto>> CreateStatement(StatementRequest request,
         CancellationToken cancellationToken)
     {
-        if (!TryStatementDates(request, out DateOnly start, out DateOnly end))
-        {
-            return DateError();
-        }
-
+        if (!TryStatementDates(request, out DateOnly start, out DateOnly end)) return this.DateValidationError("date", multipleDates: true);
         GrowerStatementDto result = await records.CreateStatementAsync(StatementInput(request,
             start, end), cancellationToken);
         return CreatedAtAction(nameof(GetStatement), new { statementId = result.Id }, result);
@@ -187,11 +164,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     public async Task<ActionResult<GrowerStatementDto>> UpdateStatement(Guid statementId,
         StatementRequest request, CancellationToken cancellationToken)
     {
-        if (!TryStatementDates(request, out DateOnly start, out DateOnly end))
-        {
-            return DateError();
-        }
-
+        if (!TryStatementDates(request, out DateOnly start, out DateOnly end)) return this.DateValidationError("date", multipleDates: true);
         return Ok(await records.UpdateStatementAsync(statementId, StatementInput(request,
             start, end), cancellationToken));
     }
@@ -209,12 +182,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     public async Task<ActionResult<GrowerStatementDto>> CorrectStatement(Guid statementId,
         CorrectStatementRequest request, CancellationToken cancellationToken)
     {
-        if (!TryStatementDates(request.Replacement, out DateOnly start, out DateOnly end))
-        {
-            return DateError();
-        }
-
-        return Ok(await records.CorrectStatementAsync(statementId, new CorrectStatementInput(request.Reason,
+        if (!TryStatementDates(request.Replacement, out DateOnly start, out DateOnly end)) return this.DateValidationError("date", multipleDates: true);
+        return Ok(await records.CorrectStatementAsync(statementId, new(request.Reason,
             request.IdempotencyKey, StatementInput(request.Replacement, start, end)), cancellationToken));
     }
 
@@ -278,17 +247,14 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpGet("tickets/export", Name = "ExportWeighbridgeRegister")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportTickets([FromQuery] string? from, [FromQuery] string? to,
         [FromQuery] Guid? millId, [FromQuery] Guid? fieldId, [FromQuery] Guid? cropCycleId,
         [FromQuery] string? status, [FromQuery] string? matchStatus, [FromQuery] string? search,
         CancellationToken cancellationToken)
     {
-        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate))
-        {
-            return DateError();
-        }
-
-        IReadOnlyList<WeighbridgeTicketDto> rows = await records.GetTicketsAsync(new TicketFilter(fromDate,
+        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return this.DateValidationError("date", multipleDates: true);
+        IReadOnlyList<WeighbridgeTicketDto> rows = await records.GetTicketsAsync(new(fromDate,
             toDate, millId, fieldId, cropCycleId, status, matchStatus, search), cancellationToken);
         ReportExportContext export = await records.RecordExportAsync("WeighbridgeRegister",
             Request.QueryString.Value ?? string.Empty,
@@ -307,16 +273,13 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpGet("statements/export", Name = "ExportStatementReconciliation")]
+    [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
     public async Task<IActionResult> ExportStatements([FromQuery] string? from, [FromQuery] string? to,
         [FromQuery] Guid? millId, [FromQuery] string? matchStatus, [FromQuery] string? search,
         CancellationToken cancellationToken)
     {
-        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate))
-        {
-            return DateError();
-        }
-
-        IReadOnlyList<GrowerStatementDto> rows = await records.GetStatementsAsync(new StatementFilter(fromDate,
+        if (!TryDates(from, to, out DateOnly? fromDate, out DateOnly? toDate)) return this.DateValidationError("date", multipleDates: true);
+        IReadOnlyList<GrowerStatementDto> rows = await records.GetStatementsAsync(new(fromDate,
             toDate, millId, matchStatus, search), cancellationToken);
         ReportExportContext export = await records.RecordExportAsync("StatementReconciliation",
             Request.QueryString.Value ?? string.Empty,
@@ -400,22 +363,8 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
 
         return true;
     }
-
-    private BadRequestObjectResult DateError()
-    {
-        return BadRequest(new ValidationProblemDetails(
-            new Dictionary<string, string[]> { ["date"] = ["Dates must use yyyy-MM-dd."] }));
-    }
-
-    private BadRequestObjectResult EvidenceError()
-    {
-        return BadRequest(new ValidationProblemDetails(
-            new Dictionary<string, string[]>
-            {
-                ["evidence"] = ["Evidence must be valid base64 content no larger than 20 MB."]
-            }));
-    }
-
+    private BadRequestObjectResult EvidenceError() => BadRequest(new ValidationProblemDetails(
+        new Dictionary<string, string[]> { ["evidence"] = ["Evidence must be valid base64 content no larger than 20 MB."] }));
     private static bool TryEvidence(EvidenceUploadRequest request, out byte[] content)
     {
         content = [];

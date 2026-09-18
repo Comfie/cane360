@@ -11,7 +11,7 @@ namespace Cane360.Web.Controllers;
 [Route("api/farm-personnel")]
 public sealed class FarmPersonnelController(ISender sender) : ControllerBase
 {
-    [HttpGet]
+    [HttpGet(Name = "GetFarmPersonnel")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PersonnelRegisterDto>> Get(CancellationToken cancellationToken)
@@ -19,8 +19,8 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetPersonnelQuery(), cancellationToken));
     }
 
-    [HttpPost]
-    [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status201Created)]
+    [HttpPost(Name = "CreateFarmPersonnel")]
+    [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<PersonnelRegisterDto>> Create(
@@ -33,7 +33,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
             request.ActiveFrom,
             request.Roles,
             request.IsPrimaryManager), cancellationToken);
-        return CreatedAtAction(nameof(Get), new { }, result);
+        return Ok(result);
     }
 
     [HttpPut("{personId:guid}")]
@@ -56,7 +56,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
             request.ExpectedVersion), cancellationToken));
     }
 
-    [HttpPost("{personId:guid}/deactivate")]
+    [HttpPost("{personId:guid}/deactivate", Name = "DeactivateFarmPersonnel")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -70,7 +70,7 @@ public sealed class FarmPersonnelController(ISender sender) : ControllerBase
             personId, request.ExpectedVersion, request.ActiveTo), cancellationToken));
     }
 
-    [HttpPost("{personId:guid}/roles/{assignmentId:guid}/end")]
+    [HttpPost("{personId:guid}/roles/{assignmentId:guid}/end", Name = "EndRoleFarmPersonnel")]
     [ProducesResponseType<PersonnelRegisterDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

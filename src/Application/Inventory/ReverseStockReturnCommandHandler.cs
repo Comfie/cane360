@@ -7,7 +7,7 @@ public sealed class ReverseStockReturnCommandHandler(IFarmSetupRepository farmRe
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
-        InventoryAccess.RequireGrower(tenant, userId);
+
         var candidate = await inventoryRepository.GetStockReturnAsync(tenant.Id, farm.Id, command.StockReturnId, false, cancellationToken)
             ?? throw new NotFoundException(command.StockReturnId.ToString(), "Stock return");
         if (string.IsNullOrWhiteSpace(command.Reason)) throw InventoryAccess.Failure(nameof(command.Reason), "A reversal reason is required.");

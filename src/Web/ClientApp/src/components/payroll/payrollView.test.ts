@@ -23,7 +23,7 @@ test('period form emits numeric calendar payload', () => assert.deepEqual(period
 
 test('period mutations submit exact versions and refetch', () => {
   assert.match(pageSource, /api\.open\(period\.id, new VersionedPayrollRequest\(\{ expectedVersion: period\.version \}\)\)/);
-  assert.match(pageSource, /api\.cancelPayrollPeriod\(period\.id, new CancelPayrollPeriodRequest\(\{ expectedVersion: period\.version, reason \}\)\)/);
+  assert.match(pageSource, /api\.cancelPeriodPayroll\(period\.id, new CancelPayrollPeriodRequest\(\{ expectedVersion: period\.version, reason \}\)\)/);
   assert.match(pageSource, /await reloadCore\(\)/);
 });
 
@@ -82,7 +82,7 @@ test('grower decision payload binds exact run and calculation versions with retr
 });
 
 test('payroll run mutations call generated client methods and refresh authoritative data', () => {
-  for (const method of ['runsAll', 'runsPOST', 'calculate', 'submitPayrollRun', 'decidePayrollRun', 'cancelPayrollRun']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
+  for (const method of ['getRunsPayroll', 'createRunPayroll', 'calculate', 'submitRunPayroll', 'decideRunPayroll', 'cancelRunPayroll']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
   assert.match(pageSource, /payroll-decision/); assert.match(pageSource, /if \(pending\) return false/); assert.match(pageSource, /await reloadCore\(\)/);
 });
 
@@ -116,7 +116,7 @@ test('draft and rejected advances are editable while only approved advances issu
 
 test('advance cancellation uses labelled inline validation and the real endpoint', () => {
   assert.match(pageSource, /Cancellation reason<input/);
-  assert.match(pageSource, /api\.cancelWorkerAdvance\(selectedAdvance\.id/);
+  assert.match(pageSource, /api\.cancelAdvancePayroll\(selectedAdvance\.id/);
   assert.doesNotMatch(pageSource, /globalThis\.prompt|window\.prompt/);
 });
 
@@ -164,13 +164,13 @@ test('responsive desktop tables and mobile cards keep workflows available', () =
 });
 
 test('Phase 6C settlement uses generated-client payment and document operations', () => {
-  for (const method of ['settlement', 'payments', 'acknowledgement', 'reversal', 'closePayrollSettlement', 'reopen', 'payslip', 'cashRegister']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
+  for (const method of ['settlement', 'payments', 'acknowledgement', 'reversal', 'closeSettlementPayroll', 'reopen', 'payslip', 'cashRegister']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
   assert.match(pageSource, /Operational payslip/);
   assert.match(pageSource, /Encrypted at rest; only the masked value is displayed/);
   assert.doesNotMatch(pageSource, /globalThis\.prompt|window\.prompt/);
 });
 
 test('production workspace calls only generated PayrollClient methods', () => {
-  for (const method of ['workspace', 'periodsAll', 'advancesAll', 'preflight', 'periods', 'open', 'cancelPayrollPeriod', 'schedulePreview', 'advancesPOST', 'advancesPUT', 'submitWorkerAdvance', 'decideWorkerAdvance', 'cancelWorkerAdvance', 'issue']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
+  for (const method of ['workspace', 'getPeriodsPayroll', 'getAdvancesPayroll', 'preflight', 'createPeriodPayroll', 'open', 'cancelPeriodPayroll', 'schedulePreview', 'createAdvancePayroll', 'updateWorkerAdvance', 'submitAdvancePayroll', 'decideAdvancePayroll', 'cancelAdvancePayroll', 'issue']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
   assert.doesNotMatch(pageSource, /mock|localStorage|sessionStorage|simulate/i);
 });

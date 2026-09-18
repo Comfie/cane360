@@ -265,7 +265,7 @@ public sealed class AdministrationService(
         return AdministrationCapabilities.Matrix();
     }
 
-    public async Task DisableManagerAsync(Guid membershipId, CancellationToken cancellationToken)
+    public async Task<AdministrationUserDto> DisableManagerAsync(Guid membershipId, CancellationToken cancellationToken)
     {
         string userId = user.Id ?? throw new UnauthorizedAccessException();
         Tenant tenant = await farms.GetTenantAdministrationContextForUserAsync(userId, true, cancellationToken)
@@ -285,6 +285,8 @@ public sealed class AdministrationService(
             user.CorrelationId ?? Guid.NewGuid().ToString("N"), null,
             $"Grower disabled a {target.SecurityRole} application membership."));
         await farms.SaveChangesAsync(cancellationToken);
+        return (await repository.GetUsersAsync(tenant.Id, farm.Id, cancellationToken))
+            .Single(item => item.MembershipId == target.Id);
     }
 
     public async Task<IReadOnlyList<AdministrationUserDto>> UsersAsync(

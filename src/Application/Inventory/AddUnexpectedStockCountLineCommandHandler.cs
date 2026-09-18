@@ -8,7 +8,7 @@ public sealed class AddUnexpectedStockCountLineCommandHandler(IFarmSetupReposito
 {
     public async Task<StockCountDto> Handle(AddUnexpectedStockCountLineCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrowerOrManager(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var count = await inventoryRepository.GetStockCountAsync(tenant.Id, farm.Id, command.StockCountId, true, cancellationToken) ?? throw new NotFoundException(command.StockCountId.ToString(), "Stock count");
         if (count.Status != StockCountStatus.InProgress || count.Version != command.ExpectedCountVersion) throw new ConflictException("Only the current in-progress count accepts unexpected stock.");
         var item = await inventoryRepository.GetItemAsync(tenant.Id, farm.Id, command.InventoryItemId, false, cancellationToken) ?? throw new NotFoundException(command.InventoryItemId.ToString(), "Inventory item");

@@ -11,7 +11,6 @@ public sealed class UpdateSupplierCommandHandler(IFarmSetupRepository farms,
     {
         var tenant = await InventoryAccess.RequireTenantAsync(farms, user, false, cancellationToken);
         var farm = InventoryAccess.RequireFarm(tenant);
-        InventoryAccess.RequireGrowerOrManager(tenant, InventoryAccess.RequireUserId(user));
         var supplier = await inventory.GetSupplierAsync(tenant.Id, farm.Id, request.SupplierId, true, cancellationToken)
             ?? throw new NotFoundException(request.SupplierId.ToString(), "Supplier");
         if (supplier.Version != request.ExpectedVersion)

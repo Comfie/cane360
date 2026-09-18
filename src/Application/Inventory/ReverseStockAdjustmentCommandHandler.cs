@@ -8,7 +8,7 @@ public sealed class ReverseStockAdjustmentCommandHandler(IFarmSetupRepository fa
 {
     public async Task<StockAdjustmentDto> Handle(ReverseStockAdjustmentCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user); InventoryAccess.RequireGrower(tenant, userId);
+        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken); var farm = InventoryAccess.RequireFarm(tenant); var userId = InventoryAccess.RequireUserId(user);
         var candidate = await inventoryRepository.GetStockAdjustmentAsync(tenant.Id, farm.Id, command.StockAdjustmentId, false, cancellationToken) ?? throw new NotFoundException(command.StockAdjustmentId.ToString(), "Stock adjustment");
         await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken); await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, candidate.StoreId, cancellationToken); await inventoryRepository.LockStockAdjustmentAsync(tenant.Id, farm.Id, candidate.Id, cancellationToken); await inventoryRepository.LockStockPositionsAsync([candidate.StockPositionId], cancellationToken);
         var original = await inventoryRepository.GetStockAdjustmentAsync(tenant.Id, farm.Id, candidate.Id, true, cancellationToken) ?? throw new NotFoundException(candidate.Id.ToString(), "Stock adjustment");

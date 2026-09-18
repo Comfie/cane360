@@ -7,7 +7,7 @@ public sealed class DecideWorkerAdvanceCommandHandler(IFarmSetupRepository farms
     public async Task<WorkerAdvanceDto> Handle(DecideWorkerAdvanceCommand request, CancellationToken cancellationToken)
     {
         var (tenant, farm, userId) = await PayrollAccess.ContextAsync(farms, user, false, cancellationToken);
-        PayrollAccess.RequireGrower(tenant, userId);
+
         var existing = await payroll.GetApprovalByKeyAsync(tenant.Id, farm.Id, request.IdempotencyKey, cancellationToken);
         if (existing is not null)
         {
