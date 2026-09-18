@@ -38,7 +38,7 @@ public sealed class OpenApiCoverageTests
     [TestCase(typeof(PayrollController), nameof(PayrollController.CreateAdvance), StatusCodes.Status201Created)]
     [TestCase(typeof(PayrollController), nameof(PayrollController.CreateRun), StatusCodes.Status201Created)]
     [TestCase(typeof(InventoryController), nameof(InventoryController.CreateReceipt), StatusCodes.Status201Created)]
-    [TestCase(typeof(AdministrationController), nameof(AdministrationController.DisableManager), StatusCodes.Status204NoContent)]
+    [TestCase(typeof(AdministrationController), nameof(AdministrationController.DisableManager), StatusCodes.Status200OK)]
     public void DocumentedSuccessMatchesCurrentActionResult(Type controller, string actionName,
         int statusCode)
     {

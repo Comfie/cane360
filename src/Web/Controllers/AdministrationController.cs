@@ -183,17 +183,14 @@ public sealed class AdministrationController(AdministrationService administratio
     [HttpPost("users/{membershipId:guid}/disable")]
     [EndpointSummary("Disable manager access")]
     [EndpointDescription("Disables manager access for the authenticated farm.")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<AdministrationUserDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DisableManager(Guid membershipId,
-        CancellationToken cancellationToken)
-    {
-        await administration.DisableManagerAsync(membershipId, cancellationToken);
-        return NoContent();
-    }
+    public async Task<ActionResult<AdministrationUserDto>> DisableManager(Guid membershipId,
+        CancellationToken cancellationToken) =>
+        Ok(await administration.DisableManagerAsync(membershipId, cancellationToken));
 
     [HttpGet("audit")]
     [EndpointSummary("Get audit events")]

@@ -92,6 +92,28 @@ public sealed class AdministrationServiceTests
     }
 
     [Test]
+    public async Task GrowerDisableReturnsUpdatedTenantMembership()
+    {
+        Tenant tenant = TenantWithFarm();
+        var person = tenant.ActiveFarm!.AddPerson("Manager", null, new DateOnly(2026, 1, 1));
+        var membership = tenant.AddMembership("manager", person.Id, TenantSecurityRoles.FarmManager);
+        var reads = new Mock<IAdministrationReadRepository>();
+        var expected = new AdministrationUserDto(membership.Id, "manager", "manager@example.test",
+            TenantSecurityRoles.FarmManager, "Archived", person.Id, person.DisplayName);
+        reads.Setup(item => item.GetUsersAsync(tenant.Id, tenant.ActiveFarm.Id,
+            It.IsAny<CancellationToken>())).ReturnsAsync([expected]);
+        AdministrationService service = Service(tenant, "grower", reads);
+
+        AdministrationUserDto result = await service.DisableManagerAsync(membership.Id,
+            CancellationToken.None);
+
+        result.ShouldBeSameAs(expected);
+        membership.Status.ToString().ShouldBe("Archived");
+        reads.Verify(item => item.GetUsersAsync(tenant.Id, tenant.ActiveFarm.Id,
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Test]
     public void TenantCannotLoseRequiredGrowerAuthority()
     {
         Tenant tenant = TenantWithFarm();

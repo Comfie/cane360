@@ -98,7 +98,10 @@ export function AdministrationPage() {
     </nav>
     {section === 'overview' && <Overview overview={overview} role={session.role} onNavigate={setSection} />}
     {section === 'users' && session.role === 'Grower' && <Users users={users} session={session} onDisable={(id) =>
-      change(() => administration.disable(id))} />}
+      change(async () => {
+        const disabled = await administration.disable(id);
+        setUsers((current) => current.map((member) => member.membershipId === id ? disabled : member));
+      })} />}
     {section === 'roles' && <Roles session={session} />}
     {section === 'activities' && <ActivityTypes types={types} onChange={change} />}
     {section === 'units' && <Units units={units} onChange={change} />}
