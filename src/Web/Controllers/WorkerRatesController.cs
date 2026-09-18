@@ -13,6 +13,13 @@ namespace Cane360.Web.Controllers;
 public sealed class WorkerRatesController(ISender sender) : ControllerBase
 {
     [HttpPost]
+    [EndpointSummary("Create worker rate")]
+    [EndpointDescription("Creates worker rate for the authenticated farm.")]
+    [ProducesResponseType<WorkerDetailsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<WorkerDetailsDto>> Create(Guid workerId, CreateWorkerRateRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EffectiveFrom, out var effectiveFrom) ||
@@ -26,6 +33,13 @@ public sealed class WorkerRatesController(ISender sender) : ControllerBase
     }
 
     [HttpPost("{rateId:guid}/end", Name = "EndWorkerRates")]
+    [EndpointSummary("End worker rate")]
+    [EndpointDescription("Ends worker rate for the authenticated farm.")]
+    [ProducesResponseType<WorkerDetailsDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<WorkerDetailsDto>> End(Guid workerId, Guid rateId, EndWorkerRateRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EffectiveTo, out var effectiveTo))

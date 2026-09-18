@@ -15,28 +15,60 @@ namespace Cane360.Web.Controllers;
 public sealed class InventoryController(ISender sender) : ControllerBase
 {
     [HttpGet]
+    [EndpointSummary("Get inventory workspace")]
+    [EndpointDescription("Returns inventory workspace for the authenticated farm.")]
+    [ProducesResponseType<InventoryWorkspaceDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<InventoryWorkspaceDto>> Workspace(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetInventoryWorkspaceQuery(), cancellationToken));
 
     [HttpGet("receipts/{receiptId:guid}")]
+    [EndpointSummary("Get stock receipt")]
+    [EndpointDescription("Returns stock receipt for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<StockReceiptDto>> Receipt(Guid receiptId, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockReceiptQuery(receiptId), cancellationToken));
 
     [HttpGet("movements")]
+    [EndpointSummary("List stock movements")]
+    [EndpointDescription("Returns stock movements for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<StockMovementDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<StockMovementDto>>> Movements(
         [FromQuery] Guid? itemId, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockMovementsQuery(itemId), cancellationToken));
 
     [HttpGet("counts", Name = "GetCountsInventory")]
+    [EndpointSummary("List stock counts")]
+    [EndpointDescription("Returns stock counts for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<StockCountDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<StockCountDto>>> Counts(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockCountsQuery(), cancellationToken));
 
     [HttpGet("adjustments", Name = "GetAdjustmentsInventory")]
+    [EndpointSummary("List stock adjustments")]
+    [EndpointDescription("Returns stock adjustments for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<StockAdjustmentDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<StockAdjustmentDto>>> Adjustments(CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetStockAdjustmentsQuery(), cancellationToken));
 
     [HttpGet("leakage-report")]
+    [EndpointSummary("Get inventory leakage report")]
+    [EndpointDescription("Returns inventory leakage report for the authenticated farm.")]
+    [ProducesResponseType<LeakageReportDto>(StatusCodes.Status200OK)]
     [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<LeakageReportDto>> LeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));
@@ -45,7 +77,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpGet("leakage-report.csv")]
+    [EndpointSummary("Export inventory leakage report")]
+    [EndpointDescription("Exports inventory leakage report for the authenticated farm.")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [EnableRateLimiting(ApiRateLimitOptions.ExportsPolicy)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ExportLeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));
@@ -55,6 +93,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("counts", Name = "CreateCountInventory")]
+    [EndpointSummary("Create stock count")]
+    [EndpointDescription("Creates stock count for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> CreateCount(CreateStockCountRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
@@ -63,26 +107,67 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("counts/{countId:guid}/start")]
+    [EndpointSummary("Start stock count")]
+    [EndpointDescription("Starts stock count for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> StartCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new StartStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("counts/{countId:guid}/lines/{lineId:guid}", Name = "EnterStockCountLine")]
+    [EndpointSummary("Enter stock count line")]
+    [EndpointDescription("Enters stock count line for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> EnterCountLine(Guid countId, Guid lineId, EnterStockCountLineRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new EnterStockCountLineCommand(countId, lineId, request.CountedQuantity, request.Notes, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("counts/{countId:guid}/unexpected-lines")]
+    [EndpointSummary("Add unexpected stock count line")]
+    [EndpointDescription("Adds unexpected stock count line for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> AddUnexpectedCountLine(Guid countId, AddUnexpectedStockCountLineRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new AddUnexpectedStockCountLineCommand(countId, request.InventoryItemId, request.InventoryLotId, request.ExpectedCountVersion), cancellationToken));
 
     [HttpPost("counts/{countId:guid}/review")]
+    [EndpointSummary("Review stock count")]
+    [EndpointDescription("Reviews stock count for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> ReviewCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReviewStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("counts/{countId:guid}/cancel", Name = "CancelCountInventory")]
+    [EndpointSummary("Cancel stock count")]
+    [EndpointDescription("Cancels stock count for the authenticated farm.")]
+    [ProducesResponseType<StockCountDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> CancelCount(Guid countId, CancelStockCountRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new CancelStockCountCommand(countId, request.ExpectedVersion, request.Reason), cancellationToken));
 
     [HttpPost("adjustments", Name = "CreateAdjustmentInventory")]
+    [EndpointSummary("Create stock adjustment")]
+    [EndpointDescription("Creates stock adjustment for the authenticated farm.")]
+    [ProducesResponseType<StockAdjustmentDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> CreateAdjustment(CreateStockAdjustmentRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
@@ -91,22 +176,56 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("adjustments/{adjustmentId:guid}/submit", Name = "SubmitAdjustmentInventory")]
+    [EndpointSummary("Submit stock adjustment")]
+    [EndpointDescription("Submits stock adjustment for the authenticated farm.")]
+    [ProducesResponseType<StockAdjustmentDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> SubmitAdjustment(Guid adjustmentId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new SubmitStockAdjustmentCommand(adjustmentId, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("adjustments/{adjustmentId:guid}/decision", Name = "DecideAdjustmentInventory")]
+    [EndpointSummary("Decide stock adjustment")]
+    [EndpointDescription("Records a decision for stock adjustment for the authenticated farm.")]
+    [ProducesResponseType<StockAdjustmentDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> DecideAdjustment(Guid adjustmentId, DecideStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new DecideStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.Outcome, request.Reason, request.IdempotencyKey), cancellationToken));
 
     [HttpPost("adjustments/{adjustmentId:guid}/post", Name = "PostAdjustmentInventory")]
+    [EndpointSummary("Post stock adjustment")]
+    [EndpointDescription("Posts stock adjustment for the authenticated farm.")]
+    [ProducesResponseType<StockAdjustmentDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> PostAdjustment(Guid adjustmentId, PostStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new PostStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken));
 
     [HttpPost("adjustments/{adjustmentId:guid}/reverse", Name = "ReverseAdjustmentInventory")]
+    [EndpointSummary("Reverse stock adjustment")]
+    [EndpointDescription("Reverses stock adjustment for the authenticated farm.")]
+    [ProducesResponseType<StockAdjustmentDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> ReverseAdjustment(Guid adjustmentId, ReverseStockAdjustmentRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReverseStockAdjustmentCommand(adjustmentId, request.Reason, request.IdempotencyKey), cancellationToken));
 
     [HttpPost("units", Name = "CreateUnitInventory")]
+    [EndpointSummary("Create unit of measure")]
+    [EndpointDescription("Creates unit of measure for the authenticated farm.")]
+    [ProducesResponseType<UnitOfMeasureDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UnitOfMeasureDto>> CreateUnit(
         CreateUnitOfMeasureRequest request, CancellationToken cancellationToken)
     {
@@ -116,23 +235,48 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpGet("units", Name = "GetUnitsInventory")]
+    [EndpointSummary("List units of measure")]
+    [EndpointDescription("Returns units of measure for the authenticated farm.")]
+    [ProducesResponseType<IReadOnlyList<UnitOfMeasureDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<IReadOnlyList<UnitOfMeasureDto>>> Units(
         CancellationToken cancellationToken) =>
         Ok(await sender.Send(new GetUnitsOfMeasureQuery(), cancellationToken));
 
     [HttpPost("units/{unitId:guid}/archive", Name = "ArchiveUnitInventory")]
+    [EndpointSummary("Archive unit of measure")]
+    [EndpointDescription("Archives unit of measure for the authenticated farm.")]
+    [ProducesResponseType<UnitOfMeasureDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UnitOfMeasureDto>> ArchiveUnit(Guid unitId,
         VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ArchiveUnitOfMeasureCommand(unitId, request.ExpectedVersion),
             cancellationToken));
 
     [HttpPut("units/{unitId:guid}")]
+    [EndpointSummary("Rename unit of measure")]
+    [EndpointDescription("Renames unit of measure for the authenticated farm.")]
+    [ProducesResponseType<UnitOfMeasureDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UnitOfMeasureDto>> RenameUnit(Guid unitId,
         RenameUnitOfMeasureRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new RenameUnitOfMeasureCommand(unitId,
             request.Name, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("items")]
+    [EndpointSummary("Create inventory item")]
+    [EndpointDescription("Creates inventory item for the authenticated farm.")]
+    [ProducesResponseType<InventoryItemDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<InventoryItemDto>> CreateItem(
         CreateInventoryItemRequest request, CancellationToken cancellationToken)
     {
@@ -143,6 +287,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("suppliers")]
+    [EndpointSummary("Create supplier")]
+    [EndpointDescription("Creates supplier for the authenticated farm.")]
+    [ProducesResponseType<SupplierDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<SupplierDto>> CreateSupplier(
         CreateSupplierRequest request, CancellationToken cancellationToken)
     {
@@ -152,6 +302,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("lots")]
+    [EndpointSummary("Create inventory lot")]
+    [EndpointDescription("Creates inventory lot for the authenticated farm.")]
+    [ProducesResponseType<InventoryLotDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<InventoryLotDto>> CreateLot(
         CreateInventoryLotRequest request, CancellationToken cancellationToken)
     {
@@ -166,6 +322,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("receipts")]
+    [EndpointSummary("Create stock receipt")]
+    [EndpointDescription("Creates stock receipt for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockReceiptDto>> CreateReceipt(
         CreateStockReceiptRequest request, CancellationToken cancellationToken)
     {
@@ -187,12 +349,26 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     }
 
     [HttpPost("receipts/{receiptId:guid}/submit-opening-balance")]
+    [EndpointSummary("Submit opening balance")]
+    [EndpointDescription("Submits opening balance for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockReceiptDto>> SubmitOpeningBalance(
         Guid receiptId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new SubmitOpeningBalanceCommand(
             receiptId, request.ExpectedVersion), cancellationToken));
 
     [HttpPost("receipts/{receiptId:guid}/opening-balance-decision")]
+    [EndpointSummary("Decide opening balance")]
+    [EndpointDescription("Records a decision for opening balance for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockReceiptDto>> DecideOpeningBalance(
         Guid receiptId, DecideOpeningBalanceRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new DecideOpeningBalanceCommand(
@@ -200,12 +376,26 @@ public sealed class InventoryController(ISender sender) : ControllerBase
             request.IdempotencyKey), cancellationToken));
 
     [HttpPost("receipts/{receiptId:guid}/post", Name = "PostReceiptInventory")]
+    [EndpointSummary("Post stock receipt")]
+    [EndpointDescription("Posts stock receipt for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockReceiptDto>> PostReceipt(
         Guid receiptId, PostStockReceiptRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new PostStockReceiptCommand(
             receiptId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken));
 
     [HttpPost("receipts/{receiptId:guid}/reverse", Name = "ReverseReceiptInventory")]
+    [EndpointSummary("Reverse stock receipt")]
+    [EndpointDescription("Reverses stock receipt for the authenticated farm.")]
+    [ProducesResponseType<StockReceiptDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockReceiptDto>> ReverseReceipt(
         Guid receiptId, ReverseStockReceiptRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReverseStockReceiptCommand(
