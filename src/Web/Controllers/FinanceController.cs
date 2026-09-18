@@ -131,6 +131,7 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
     }
 
     [HttpPost("budgets", Name = "CreateFinanceBudget")]
+    [ProducesResponseType<BudgetDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<BudgetDto>> CreateBudget(CreateBudgetRequest request,
         CancellationToken cancellationToken)
     {

@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { FinanceClient, MillRecordsClient, WorkersClient } from '../web-api-client.ts';
 import { getApiError } from './apiError.ts';
+
+test('generated create clients accept 201 responses', async () => {
+  const id = '00000000-0000-0000-0000-000000000001';
+  const http = { fetch: async () => new Response(JSON.stringify({ id, worker: { id } }), { status: 201 }) };
+  const finance = new FinanceClient('', http);
+  const millRecords = new MillRecordsClient('', http);
+  const workers = new WorkersClient('', http);
+
+  for (const create of [
+    () => finance.createFinanceBudget({} as never),
+    () => millRecords.createWeighbridgeTicket({} as never),
+    () => millRecords.createGrowerStatement({} as never),
+    () => workers.createWorkers({} as never),
+  ]) {
+    assert.ok(await create());
+  }
+});
 
 test('extracts validation messages from generated client results', () => {
   assert.equal(getApiError({

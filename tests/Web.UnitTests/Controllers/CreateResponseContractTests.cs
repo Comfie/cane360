@@ -1,5 +1,4 @@
 using Cane360.Application.Activities;
-using Cane360.Application.Finance;
 using Cane360.Web.Controllers;
 using Cane360.Web.Models.Activities;
 using MediatR;
@@ -10,15 +9,20 @@ namespace Cane360.Web.UnitTests.Controllers;
 
 public sealed class CreateResponseContractTests
 {
-    [Test]
-    public void FinanceTransactionCreateDocumentsItsCreatedResponse()
+    [TestCase(typeof(FinanceController), nameof(FinanceController.CreateTransaction))]
+    [TestCase(typeof(FinanceController), nameof(FinanceController.CreateBudget))]
+    [TestCase(typeof(MillRecordsController), nameof(MillRecordsController.CreateTicket))]
+    [TestCase(typeof(MillRecordsController), nameof(MillRecordsController.CreateStatement))]
+    [TestCase(typeof(WorkersController), nameof(WorkersController.Create))]
+    public void CreatedActionsDocumentTheirCreatedResponse(Type controller, string actionName)
     {
-        var action = typeof(FinanceController).GetMethod(nameof(FinanceController.CreateTransaction))!;
+        var action = controller.GetMethod(actionName)!;
+        var resultType = action.ReturnType.GenericTypeArguments[0].GenericTypeArguments[0];
         var responses = action.GetCustomAttributes(typeof(ProducesResponseTypeAttribute), false)
             .Cast<ProducesResponseTypeAttribute>();
 
         responses.Any(response => response.StatusCode == StatusCodes.Status201Created &&
-            response.Type == typeof(OperationalTransactionDto)).ShouldBeTrue();
+            response.Type == resultType).ShouldBeTrue();
     }
 
     [Test]

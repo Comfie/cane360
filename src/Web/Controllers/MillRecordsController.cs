@@ -81,6 +81,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpPost("tickets", Name = "CreateWeighbridgeTicket")]
+    [ProducesResponseType<WeighbridgeTicketDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<WeighbridgeTicketDto>> CreateTicket(TicketRequest request,
         CancellationToken cancellationToken)
     {
@@ -151,6 +152,7 @@ public sealed class MillRecordsController(IMillRecordsService records) : Control
     }
 
     [HttpPost("statements", Name = "CreateGrowerStatement")]
+    [ProducesResponseType<GrowerStatementDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<GrowerStatementDto>> CreateStatement(StatementRequest request,
         CancellationToken cancellationToken)
     {

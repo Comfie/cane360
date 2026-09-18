@@ -4792,7 +4792,7 @@ export class FinanceClient {
     }
 
     /**
-     * @return OK
+     * @return Created
      */
     createFinanceBudget(body: CreateBudgetRequest): Promise<BudgetDto> {
         let url_ = this.baseUrl + "/api/finance/budgets";
@@ -4817,12 +4817,12 @@ export class FinanceClient {
     protected processCreateFinanceBudget(response: Response): Promise<BudgetDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = BudgetDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = BudgetDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -9719,7 +9719,7 @@ export class MillRecordsClient {
     }
 
     /**
-     * @return OK
+     * @return Created
      */
     createWeighbridgeTicket(body: TicketRequest): Promise<WeighbridgeTicketDto> {
         let url_ = this.baseUrl + "/api/finance/mill-records/tickets";
@@ -9744,12 +9744,12 @@ export class MillRecordsClient {
     protected processCreateWeighbridgeTicket(response: Response): Promise<WeighbridgeTicketDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WeighbridgeTicketDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = WeighbridgeTicketDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -10132,7 +10132,7 @@ export class MillRecordsClient {
     }
 
     /**
-     * @return OK
+     * @return Created
      */
     createGrowerStatement(body: StatementRequest): Promise<GrowerStatementDto> {
         let url_ = this.baseUrl + "/api/finance/mill-records/statements";
@@ -10157,12 +10157,12 @@ export class MillRecordsClient {
     protected processCreateGrowerStatement(response: Response): Promise<GrowerStatementDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = GrowerStatementDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = GrowerStatementDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
@@ -13862,7 +13862,7 @@ export class WorkersClient {
     }
 
     /**
-     * @return OK
+     * @return Created
      */
     createWorkers(body: CreateWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers";
@@ -13887,12 +13887,12 @@ export class WorkersClient {
     protected processCreateWorkers(response: Response): Promise<WorkerDetailsDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WorkerDetailsDto.fromJS(resultData200);
-            return result200;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = WorkerDetailsDto.fromJS(resultData201);
+            return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {

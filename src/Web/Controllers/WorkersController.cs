@@ -20,6 +20,7 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
 
     [HttpPost(Name = "CreateWorkers")]
+    [ProducesResponseType<WorkerDetailsDto>(StatusCodes.Status201Created)]
     public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveFrom, out DateOnly activeFrom))
