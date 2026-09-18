@@ -25,7 +25,7 @@ public sealed class WorkersController(ISender sender) : ControllerBase
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveFrom, out var activeFrom))
         {
-            return BadRequest(DateError(nameof(request.ActiveFrom)));
+            return this.DateValidationError(nameof(request.ActiveFrom));
         }
 
         var result = await sender.Send(new CreateWorkerCommand(request.PersonId, request.DisplayName,
@@ -38,7 +38,7 @@ public sealed class WorkersController(ISender sender) : ControllerBase
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveTo, out var activeTo))
         {
-            return BadRequest(DateError(nameof(request.ActiveTo)));
+            return this.DateValidationError(nameof(request.ActiveTo));
         }
 
         return Ok(await sender.Send(new ArchiveWorkerCommand(workerId, activeTo, request.ExpectedVersion), cancellationToken));
@@ -51,7 +51,4 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         var result = await sender.Send(new RevealWorkerNationalIdCommand(workerId, request.Reason), cancellationToken);
         return Ok(new { result.WorkerId, result.NationalId });
     }
-
-    private static ValidationProblemDetails DateError(string propertyName) => new(
-        new Dictionary<string, string[]> { [propertyName] = ["Date must use yyyy-MM-dd."] });
 }

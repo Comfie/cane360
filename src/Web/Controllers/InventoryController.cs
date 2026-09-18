@@ -71,8 +71,8 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<LeakageReportDto>> LeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return BadRequest(DateError(nameof(request.ToDate)));
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return this.DateValidationError(nameof(request.FromDate));
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return this.DateValidationError(nameof(request.ToDate));
         return Ok(await sender.Send(new GetLeakageReportQuery(new LeakageReportFilter(fromDate, toDate, request.FieldId, request.CropCycleId, request.ActivityId, request.InventoryItemId, request.InventoryLotId, request.IssuerPersonId, request.RecipientPersonId, request.SupervisorPersonId, request.Status, request.ExceptionType, request.Severity, request.Page, request.PageSize)), cancellationToken));
     }
 
@@ -86,8 +86,8 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ExportLeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return BadRequest(DateError(nameof(request.FromDate)));
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return BadRequest(DateError(nameof(request.ToDate)));
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return this.DateValidationError(nameof(request.FromDate));
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return this.DateValidationError(nameof(request.ToDate));
         var export = await sender.Send(new ExportLeakageReportCommand(new LeakageReportFilter(fromDate, toDate, request.FieldId, request.CropCycleId, request.ActivityId, request.InventoryItemId, request.InventoryLotId, request.IssuerPersonId, request.RecipientPersonId, request.SupervisorPersonId, request.Status, request.ExceptionType, request.Severity, 1, 500)), cancellationToken);
         return File(Encoding.UTF8.GetBytes(export.Content), "text/csv; charset=utf-8", export.FileName);
     }
@@ -101,7 +101,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockCountDto>> CreateCount(CreateStockCountRequest request, CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
+        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return this.DateValidationError(nameof(request.EventDate));
         var count = await sender.Send(new CreateStockCountCommand(eventDate, request.Notes ?? string.Empty, request.CountingPersons), cancellationToken);
         return Ok(count);
     }
@@ -170,7 +170,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<StockAdjustmentDto>> CreateAdjustment(CreateStockAdjustmentRequest request, CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return BadRequest(DateError(nameof(request.EventDate)));
+        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return this.DateValidationError(nameof(request.EventDate));
         var adjustment = await sender.Send(new CreateStockAdjustmentCommand(request.StockCountLineId, request.InventoryItemId, request.InventoryLotId, request.AdjustmentType, request.SignedQuantity, request.ExplicitUnitValueUsd, request.Reason, eventDate), cancellationToken);
         return Ok(adjustment);
     }
@@ -314,7 +314,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         DateOnly? expiryDate = null;
         if (!TransportValueParser.TryParseOptionalDateOnly(request.ExpiryDate, out expiryDate))
         {
-            return BadRequest(DateError(nameof(request.ExpiryDate)));
+            return this.DateValidationError(nameof(request.ExpiryDate));
         }
         var result = await sender.Send(new CreateInventoryLotCommand(
             request.InventoryItemId, request.Code, expiryDate), cancellationToken);
@@ -333,7 +333,7 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     {
         if (!TransportValueParser.TryParseDateOnly(request.ReceiptDate, out var receiptDate))
         {
-            return BadRequest(DateError(nameof(request.ReceiptDate)));
+            return this.DateValidationError(nameof(request.ReceiptDate));
         }
         var result = await sender.Send(new CreateStockReceiptCommand(
             request.ReceiptType,
@@ -400,7 +400,4 @@ public sealed class InventoryController(ISender sender) : ControllerBase
         Guid receiptId, ReverseStockReceiptRequest request, CancellationToken cancellationToken) =>
         Ok(await sender.Send(new ReverseStockReceiptCommand(
             receiptId, request.ExpectedVersion, request.Reason, request.IdempotencyKey), cancellationToken));
-
-    private static ValidationProblemDetails DateError(string propertyName) => new(
-        new Dictionary<string, string[]> { [propertyName] = ["Date must use yyyy-MM-dd."] });
 }
