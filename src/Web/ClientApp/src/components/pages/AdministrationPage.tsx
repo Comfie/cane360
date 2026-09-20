@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { X } from 'lucide-react';
 import {
   ActivityTypesClient, AdministrationClient, ArchiveDocumentCategoryRequest,
   CreateActivityTypeRequest, CreateDocumentCategoryRequest, CreateFarmSettingRequest,
@@ -20,6 +21,7 @@ import { DatePicker } from '../DatePicker';
 import { LoadingState } from '../LoadingState';
 import { PageHeader } from '../PageHeader';
 import { ValidationError } from '../ValidationError';
+import { useDialogFocus } from '../useDialogFocus';
 
 const administration = new AdministrationClient();
 const activities = new ActivityTypesClient();
@@ -587,13 +589,23 @@ function Audit() {
       <div className="administration-pagination"><button type="button" disabled={page === 1}
         onClick={() => setPage(page - 1)}>Previous</button><span>Page {page} · {result.totalCount} events</span>
         <button type="button" disabled={page * 25 >= result.totalCount} onClick={() => setPage(page + 1)}>Next</button></div></>}
-    {selected && <div className="administration-audit-detail"><button type="button" onClick={() => setSelected(null)}>Close detail</button>
-      <h3>{selected.action}</h3><p>{selected.safeSummary}</p>
-      <dl><dt>Occurred</dt><dd>{selected.occurredAt.toLocaleString()}</dd>
-        <dt>Subject</dt><dd>{selected.subjectType} · {selected.subjectId}</dd>
-        <dt>Authenticated user</dt><dd>{selected.authenticatedUserEmail || selected.authenticatedUserId}</dd>
-        <dt>Operational person</dt><dd>{selected.operationalPersonName || '—'}</dd>
-        <dt>Reason</dt><dd>{selected.reason || '—'}</dd>
-        <dt>Correlation</dt><dd>{selected.correlationId}</dd></dl></div>}
+    {selected && <AuditDetailDialog event={selected} onClose={() => setSelected(null)} />}
   </section>;
+}
+
+function AuditDetailDialog({ event, onClose }: { event: AdministrationAuditDto; onClose: () => void }) {
+  const dialogRef = useDialogFocus<HTMLElement>(onClose);
+  return <div className="dialog-backdrop" role="presentation" onMouseDown={(mouseEvent) => {
+    if (mouseEvent.target === mouseEvent.currentTarget) onClose();
+  }}><section ref={dialogRef} className="administration-audit-dialog" role="dialog" aria-modal="true"
+    aria-labelledby="audit-detail-title"><header><div><span className="eyebrow">Audit event</span>
+      <h2 id="audit-detail-title">{event.action}</h2></div><button type="button" className="dialog-close"
+        onClick={onClose} aria-label="Close audit detail"><X /></button></header>
+    <div className="administration-audit-detail"><p>{event.safeSummary}</p>
+      <dl><dt>Occurred</dt><dd>{event.occurredAt.toLocaleString()}</dd>
+        <dt>Subject</dt><dd>{event.subjectType} · {event.subjectId}</dd>
+        <dt>Authenticated user</dt><dd>{event.authenticatedUserEmail || event.authenticatedUserId}</dd>
+        <dt>Operational person</dt><dd>{event.operationalPersonName || '—'}</dd>
+        <dt>Reason</dt><dd>{event.reason || '—'}</dd>
+        <dt>Correlation</dt><dd>{event.correlationId}</dd></dl></div></section></div>;
 }

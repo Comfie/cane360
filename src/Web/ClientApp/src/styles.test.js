@@ -125,3 +125,17 @@ test('crop-cycle overview links to implemented operational records with cycle co
   assert.match(inputs, /request\.cropCycleId === cropCycleId/);
   assert.match(finance, /getFinanceCropCycleCost\(requestedCropCycleId\)/);
 });
+
+test('audit event cards keep their content visible when button theme colors change', async () => {
+  const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
+  const component = await readFile(new URL('./components/pages/AdministrationPage.tsx', import.meta.url), 'utf8');
+
+  assert.match(styles, /\.administration-audit-card \{[^}]*display: grid;[^}]*grid-template-columns: minmax\(11rem, \.75fr\) minmax\(13rem, \.8fr\) minmax\(20rem, 1\.45fr\);[^}]*color: var\(--text\);[^}]*box-shadow: none;/);
+  assert.match(styles, /\.administration-audit-card time \{[^}]*color: var\(--text-muted\);/);
+  assert.match(styles, /\.administration-audit-card strong \{[^}]*color: var\(--text-strong\);/);
+  assert.match(styles, /@media \(max-width: 1024px\) \{[\s\S]*grid-template-columns: minmax\(10rem, \.65fr\) minmax\(12rem, 1fr\);/);
+  assert.match(styles, /@media \(max-width: 768px\) \{[\s\S]*\.administration-audit-card \{[^}]*grid-template-columns: 1fr;/);
+  assert.match(component, /className="administration-audit-dialog" role="dialog" aria-modal="true"/);
+  assert.match(component, /useDialogFocus<HTMLElement>\(onClose\)/);
+  assert.doesNotMatch(component, /selected && <div className="administration-audit-detail"/);
+});

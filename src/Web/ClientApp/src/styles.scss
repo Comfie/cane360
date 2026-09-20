@@ -3952,8 +3952,31 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
 }
 
 .administration-audit-card {
+  display: grid;
+  grid-template-columns: minmax(11rem, .75fr) minmax(13rem, .8fr) minmax(20rem, 1.45fr);
+  align-items: center;
   width: 100%;
+  color: var(--text);
   text-align: left;
+  box-shadow: none;
+}
+
+.administration-audit-card:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-subtle);
+}
+
+.administration-audit-card time {
+  color: var(--text-muted);
+}
+
+.administration-audit-card strong {
+  color: var(--text-strong);
+}
+
+.administration-audit-card > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .administration-audit-card time,
@@ -3961,17 +3984,46 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
   white-space: nowrap;
 }
 
-.administration-audit-detail {
-  margin-top: 1rem;
-  padding: 1rem;
+.administration-audit-dialog {
+  width: min(100%, 46rem);
+  max-height: calc(100vh - 2rem);
+  margin: 0;
+  overflow: auto;
   border: 1px solid var(--pico-muted-border-color);
-  border-radius: .6rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-4);
+}
+
+.administration-audit-dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.administration-audit-dialog h2 {
+  margin: var(--space-1) 0 0;
+}
+
+.administration-audit-detail {
+  padding: var(--space-5);
+}
+
+.administration-audit-detail > p {
+  margin-top: 0;
+  color: var(--text);
 }
 
 .administration-audit-detail dl {
   display: grid;
   grid-template-columns: minmax(0, 130px) minmax(0, 1fr);
   gap: .35rem .75rem;
+  margin-bottom: 0;
   overflow-wrap: anywhere;
 }
 
@@ -3981,6 +4033,16 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
   justify-content: space-between;
   gap: .5rem;
   margin-top: .75rem;
+}
+
+@media (max-width: 1024px) {
+  .administration-audit-card {
+    grid-template-columns: minmax(10rem, .65fr) minmax(12rem, 1fr);
+  }
+
+  .administration-audit-card > span {
+    grid-column: 1 / -1;
+  }
 }
 
 .administration-matrix {
@@ -4063,6 +4125,11 @@ body :focus-visible { outline: 2px solid var(--cane-700); outline-offset: 3px; }
   .administration-audit-card {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .administration-audit-card {
+    grid-template-columns: 1fr;
+    gap: .25rem;
   }
 
   .administration-audit-detail dl {
