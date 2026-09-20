@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
 import { CalendarDays, ChevronLeft, ChevronRight, ClipboardCheck, List, Plus, Sheet, TriangleAlert, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CreateActivityTypeRequest,
   FarmPersonnelClient,
@@ -31,6 +32,9 @@ const personnelClient = new FarmPersonnelClient();
 const timelinePageSize = 6;
 
 export function ActivitiesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const linkedFieldId = searchParams.get('fieldId') ?? '';
+  const linkedCropCycleId = searchParams.get('cropCycleId') ?? '';
   const { setup, error: setupError, isLoading: setupLoading } = useFarmSetup();
   const [activities, setActivities] = useState<ActivityListItemDto[]>([]);
   const [types, setTypes] = useState<ActivityTypeDto[]>([]);
@@ -39,7 +43,7 @@ export function ActivitiesPage() {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const [showCreate, setShowCreate] = useState(false);
   const [showTypeForm, setShowTypeForm] = useState(false);
-  const [filters, setFilters] = useState<ActivityFilters>({ field: '', type: '', status: '' });
+  const [filters, setFilters] = useState<ActivityFilters>({ field: linkedFieldId, cropCycle: linkedCropCycleId, type: '', status: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -69,6 +73,7 @@ export function ActivitiesPage() {
   const activeTypes = types.filter((type) => type.status === 'Active');
   const visibleActivities = useMemo(() => activities.filter((activity) =>
     (!filters.field || activity.fieldId === filters.field) &&
+    (!filters.cropCycle || activity.cropCycleId === filters.cropCycle) &&
     (!filters.type || activity.activityTypeId === filters.type) &&
     (!filters.status || activity.status === filters.status)), [activities, filters]);
   const grouped = useMemo(() => groupActivitiesByDate(visibleActivities), [visibleActivities]);
@@ -89,8 +94,9 @@ export function ActivitiesPage() {
       <ValidationError message={error} />
 
       <section className="activity-toolbar record-panel" aria-label="Activity filters">
+        {filters.cropCycle && <div className="linked-context"><span><strong>Crop-cycle view</strong> Showing activities for {fields.find((field) => field.id === filters.field)?.name ?? 'the selected field'}.</span><button type="button" className="text-action" onClick={() => { setFilters({ ...filters, field: '', cropCycle: '' }); setSearchParams({}, { replace: true }); }}>Show all activities</button></div>}
         <div className="activity-filters">
-          <label>Field<select value={filters.field} onChange={(event) => setFilters({ ...filters, field: event.target.value })}><option value="">All fields</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>
+          <label>Field<select value={filters.field} onChange={(event) => setFilters({ ...filters, field: event.target.value, cropCycle: '' })}><option value="">All fields</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>
           <label>Activity type<select value={filters.type} onChange={(event) => setFilters({ ...filters, type: event.target.value })}><option value="">All types</option>{types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
           <label>Status<select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="">All statuses</option>{['Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled'].map((status) => <option key={status} value={status}>{formatActivityStatus(status)}</option>)}</select></label>
         </div>
@@ -118,6 +124,7 @@ export function ActivitiesPage() {
 
 interface ActivityFilters {
   field: string;
+  cropCycle: string;
   type: string;
   status: string;
 }

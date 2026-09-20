@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
 import { CircleDollarSign, FileSearch, Landmark, Pencil, Plus, RefreshCw, RotateCcw, Send, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CreateOperationalTransactionRequest,
   CropCyclesClient,
@@ -32,14 +33,18 @@ const cyclesApi = new CropCyclesClient();
 const today = new Date().toISOString().slice(0, 10);
 
 interface AllocationRow { key: string; allocationType: 'CropCycleDirect' | 'Field' | 'FarmOverhead'; fieldId: string; cropCycleId: string; category: string; amountUsd: string; }
+type FinanceTab = 'transactions' | 'cost' | 'budgets' | 'mill-records';
 
 export function FinancePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedCropCycleId = searchParams.get('cropCycleId') ?? '';
   const [transactions, setTransactions] = useState<OperationalTransactionDto[]>([]);
   const [farm, setFarm] = useState<FarmSetupDto | null>(null);
   const [cycles, setCycles] = useState<FinanceCycleOption[]>([]);
   const [cost, setCost] = useState<CropCycleCostSummaryDto | null>(null);
   const [role, setRole] = useState('');
-  const [tab, setTab] = useState<'transactions' | 'cost' | 'budgets' | 'mill-records'>('transactions');
+  const [tab, setTab] = useState<FinanceTab>(() => searchParams.get('tab') === 'cost' ? 'cost' : 'transactions');
+  const [selectedCostCycleId, setSelectedCostCycleId] = useState(requestedCropCycleId);
   const [filters, setFilters] = useState({ from: '', to: '', type: '', category: '', status: '', search: '' });
   const [transactionPage, setTransactionPage] = useState(1);
   const [transactionTotals, setTransactionTotals] = useState({ totalCount: 0, postedExpenseUsd: 0, postedIncomeUsd: 0, draftCount: 0 });
@@ -101,12 +106,26 @@ export function FinancePage() {
     if (ok) setReversing(null);
   };
 
-  const loadCost = async (cycleId: string) => {
-    if (!cycleId) { setCost(null); return; }
-    setPending('cost'); setError('');
-    try { setCost(await financeApi.getFinanceCropCycleCost(cycleId)); }
-    catch (requestError) { setError(getApiError(requestError)); }
-    finally { setPending(''); }
+  useEffect(() => {
+    if (!requestedCropCycleId) { setCost(null); return; }
+    let current = true;
+    setSelectedCostCycleId(requestedCropCycleId); setPending('cost'); setError('');
+    financeApi.getFinanceCropCycleCost(requestedCropCycleId)
+      .then((result) => { if (current) setCost(result); })
+      .catch((requestError) => { if (current) setError(getApiError(requestError)); })
+      .finally(() => { if (current) setPending(''); });
+    return () => { current = false; };
+  }, [requestedCropCycleId]);
+
+  const selectTab = (next: FinanceTab) => {
+    setTab(next);
+    setSearchParams(next === 'cost' && selectedCostCycleId ? { tab: next, cropCycleId: selectedCostCycleId } : { tab: next }, { replace: true });
+  };
+
+  const selectCostCycle = (cycleId: string) => {
+    setSelectedCostCycleId(cycleId);
+    if (!cycleId) setCost(null);
+    setSearchParams(cycleId ? { tab: 'cost', cropCycleId: cycleId } : { tab: 'cost' }, { replace: true });
   };
 
   if (loading) return <LoadingState label="Opening the finance daybook" />;
@@ -118,10 +137,10 @@ export function FinancePage() {
     {success && <p className="success-banner">{success}</p>}
     <section className="finance-commandbar record-panel">
       <nav aria-label="Finance views">
-        <button aria-current={tab === 'transactions'} onClick={() => setTab('transactions')}>Transaction register</button>
-        <button aria-current={tab === 'cost'} onClick={() => setTab('cost')}>Crop cost trace</button>
-        <button aria-current={tab === 'budgets'} onClick={() => setTab('budgets')}>Budgets &amp; variance</button>
-        <button aria-current={tab === 'mill-records'} onClick={() => setTab('mill-records')}>Mill records</button>
+        <button aria-current={tab === 'transactions'} onClick={() => selectTab('transactions')}>Transaction register</button>
+        <button aria-current={tab === 'cost'} onClick={() => selectTab('cost')}>Crop cost trace</button>
+        <button aria-current={tab === 'budgets'} onClick={() => selectTab('budgets')}>Budgets &amp; variance</button>
+        <button aria-current={tab === 'mill-records'} onClick={() => selectTab('mill-records')}>Mill records</button>
       </nav>
       <button className="text-action" disabled={pending === 'reconcile'} onClick={() => mutate('reconcile', () => financeApi.reconcileFinancePayrollCosts(), 'Approved payroll cost reconciliation completed.')}><RefreshCw size={15} /> Reconcile payroll costs</button>
     </section>
@@ -140,7 +159,7 @@ export function FinancePage() {
         onPage={(page) => loadTransactions(page).catch((error) => setError(getApiError(error)))} onEdit={setEditor}
         onAllocate={setAllocating} onPost={setPosting} onReverse={setReversing} />
     </>}
-    {tab === 'cost' && <CostWorkspace cycles={cycles} cost={cost} loading={pending === 'cost'} onSelect={loadCost} />}
+    {tab === 'cost' && <CostWorkspace cycles={cycles} selectedCycleId={selectedCostCycleId} cost={cost} loading={pending === 'cost'} onSelect={selectCostCycle} />}
     {tab === 'budgets' && <BudgetWorkspace cycles={cycles} role={role} onError={setError} onSuccess={setSuccess} />}
     {tab === 'mill-records' && <MillRecordsWorkspace onError={setError} onSuccess={setSuccess} />}
     {editor && <FinanceDialog title={editor === 'new' ? 'Record transaction draft' : 'Edit transaction draft'} onClose={() => setEditor(null)}><TransactionForm transaction={editor === 'new' ? null : editor} onSaved={async () => { setEditor(null); await refresh(); }} onError={setError} /></FinanceDialog>}
@@ -186,8 +205,8 @@ function AllocationForm({ transaction, farm, cycles, onSaved, onError }: { trans
   return <form className="allocation-form" onSubmit={submit}><p className={total === transaction.amountUsd ? 'allocation-reconciled' : 'allocation-unbalanced'}>Allocated {usd(total)} of {usd(transaction.amountUsd)} · {total === transaction.amountUsd ? 'exactly reconciled' : `${usd(Math.abs(transaction.amountUsd - total))} remaining`}</p>{rows.map((row) => <fieldset key={row.key} className="allocation-row"><label>Scope<select value={row.allocationType} onChange={(event) => patchRow(row.key, { allocationType: event.target.value as AllocationRow['allocationType'], fieldId: '', cropCycleId: '' })}><option value="CropCycleDirect">Crop-cycle direct</option><option value="Field">Field only</option><option value="FarmOverhead">Farm overhead</option></select></label>{row.allocationType !== 'FarmOverhead' && <label>Field<select value={row.fieldId} onChange={(event) => patchRow(row.key, { fieldId: event.target.value, cropCycleId: '' })} required><option value="">Select field</option>{farm?.fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>}{row.allocationType === 'CropCycleDirect' && <label>Crop cycle<select value={row.cropCycleId} onChange={(event) => { const cycle = cycles.find((item) => item.id === event.target.value); patchRow(row.key, { cropCycleId: event.target.value, fieldId: cycle?.fieldId || row.fieldId }); }} required><option value="">Select cycle</option>{cycles.filter((cycle) => !row.fieldId || cycle.fieldId === row.fieldId).map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label>}<label className="allocation-amount">Amount (USD)<input type="number" min="0.01" step="0.01" value={row.amountUsd} onChange={(event) => patchRow(row.key, { amountUsd: event.target.value })} required /></label><button type="button" className="icon-button allocation-remove" aria-label="Remove allocation" title="Remove allocation" disabled={rows.length === 1} onClick={() => setRows((value) => value.filter((item) => item.key !== row.key))}><X size={16} /></button></fieldset>)}<footer className="form-actions"><button type="button" className="secondary" onClick={() => setRows((value) => [...value, { key: newFinanceKey('allocation'), allocationType: 'FarmOverhead', fieldId: '', cropCycleId: '', category: transaction.category, amountUsd: '' }])}><Plus size={15} /> Add allocation</button><button disabled={saving || total !== transaction.amountUsd}>Save exact allocations</button></footer></form>;
 }
 
-function CostWorkspace({ cycles, cost, loading, onSelect }: { cycles: FinanceCycleOption[]; cost: CropCycleCostSummaryDto | null; loading: boolean; onSelect: (id: string) => void; }) {
-  return <div className="cost-workspace"><section className="cost-selector record-panel"><label>Crop cycle<select onChange={(event) => onSelect(event.target.value)} defaultValue=""><option value="">Choose a crop cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label><p>Totals come only from signed `OperationalCostPosting` rows. Income and unallocated overhead never alter crop cost.</p></section>{loading && <LoadingState label="Tracing cost sources" />}{cost && <><section className="cost-summary record-panel"><header><div><small>{cost.fieldName}</small><h2>{usd(cost.totalCostUsd)}</h2><span>Total controlled crop cost</span></div><div className="cost-unit-rates"><strong>{perUnit(cost.costPerHectareUsd, 'ha')}</strong><small>{cost.reportingHectares == null ? 'Reporting area missing' : `${cost.reportingHectares} reporting ha`}</small><strong>{perUnit(cost.costPerTonneUsd, 't')}</strong><small>{cost.actualHarvestedTonnes == null ? 'Actual harvest missing' : `${cost.actualHarvestedTonnes} actual t`}</small></div></header><div className="cost-breakdown"><span><small>Labour</small><b>{usd(cost.labourUsd)}</b></span><span><small>Applied inputs</small><b>{usd(cost.appliedInputsUsd)}</b></span><span><small>Direct expenses</small><b>{usd(cost.directExpensesUsd)}</b></span><span><small>Approved loss</small><b>{usd(cost.approvedInventoryLossUsd)}</b></span></div></section><section className="cost-trace record-panel"><header><FileSearch size={19} /><div><h2>Authoritative source trace</h2><p>Every amount below binds to one operational source.</p></div></header>{cost.sources.map((source) => <article key={source.id}><span className="trace-node" /><span><strong>{financeLabel(source.category)}</strong><small>{source.sourceType} · {source.sourceId}</small>{source.payrollRunId && <small>Payroll run {source.payrollRunId} · calculation v{source.payrollCalculationVersion} · worker line {source.payrollWorkerLineId} · work record {source.workRecordId}</small>}{source.operationalTransactionId && <small>Transaction {source.operationalTransactionId} · allocation {source.transactionAllocationId}</small>}<small>{source.reversalOfId ? `Reverses posting ${source.reversalOfId}` : source.sourceDescription}</small></span><b className={source.amountUsd < 0 ? 'finance-income' : ''}>{usd(source.amountUsd)}</b></article>)}</section></> }</div>;
+function CostWorkspace({ cycles, selectedCycleId, cost, loading, onSelect }: { cycles: FinanceCycleOption[]; selectedCycleId: string; cost: CropCycleCostSummaryDto | null; loading: boolean; onSelect: (id: string) => void; }) {
+  return <div className="cost-workspace"><section className="cost-selector record-panel"><label>Crop cycle<select onChange={(event) => onSelect(event.target.value)} value={selectedCycleId}><option value="">Choose a crop cycle</option>{cycles.map((cycle) => <option key={cycle.id} value={cycle.id}>{cycle.label}</option>)}</select></label><p>Totals come only from signed `OperationalCostPosting` rows. Income and unallocated overhead never alter crop cost.</p></section>{loading && <LoadingState label="Tracing cost sources" />}{cost && <><section className="cost-summary record-panel"><header><div><small>{cost.fieldName}</small><h2>{usd(cost.totalCostUsd)}</h2><span>Total controlled crop cost</span></div><div className="cost-unit-rates"><strong>{perUnit(cost.costPerHectareUsd, 'ha')}</strong><small>{cost.reportingHectares == null ? 'Reporting area missing' : `${cost.reportingHectares} reporting ha`}</small><strong>{perUnit(cost.costPerTonneUsd, 't')}</strong><small>{cost.actualHarvestedTonnes == null ? 'Actual harvest missing' : `${cost.actualHarvestedTonnes} actual t`}</small></div></header><div className="cost-breakdown"><span><small>Labour</small><b>{usd(cost.labourUsd)}</b></span><span><small>Applied inputs</small><b>{usd(cost.appliedInputsUsd)}</b></span><span><small>Direct expenses</small><b>{usd(cost.directExpensesUsd)}</b></span><span><small>Approved loss</small><b>{usd(cost.approvedInventoryLossUsd)}</b></span></div></section><section className="cost-trace record-panel"><header><FileSearch size={19} /><div><h2>Authoritative source trace</h2><p>Every amount below binds to one operational source.</p></div></header>{cost.sources.map((source) => <article key={source.id}><span className="trace-node" /><span><strong>{financeLabel(source.category)}</strong><small>{source.sourceType} · {source.sourceId}</small>{source.payrollRunId && <small>Payroll run {source.payrollRunId} · calculation v{source.payrollCalculationVersion} · worker line {source.payrollWorkerLineId} · work record {source.workRecordId}</small>}{source.operationalTransactionId && <small>Transaction {source.operationalTransactionId} · allocation {source.transactionAllocationId}</small>}<small>{source.reversalOfId ? `Reverses posting ${source.reversalOfId}` : source.sourceDescription}</small></span><b className={source.amountUsd < 0 ? 'finance-income' : ''}>{usd(source.amountUsd)}</b></article>)}</section></> }</div>;
 }
 
 function ReversalConfirmation({ transaction, isBusy, onConfirm, onCancel }: { transaction: OperationalTransactionDto; isBusy: boolean; onConfirm: (reason: string) => void | Promise<void>; onCancel: () => void; }) {

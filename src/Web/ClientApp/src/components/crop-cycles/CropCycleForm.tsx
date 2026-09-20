@@ -69,7 +69,11 @@ export function CropCycleForm({ field, onSaved, onCancel }: CropCycleFormProps) 
         {cycleType === 'Ratoon' && <label>Ratoon number<input name="ratoonNumber" type="number" min="1" max="20" step="1" inputMode="numeric" required /></label>}
         {!isAddingVariety && varieties.length > 0 && <label>Variety<select name="cropVarietyId" required defaultValue=""><option value="" disabled>Select a variety</option>{varieties.map((variety) => <option key={variety.id} value={variety.id}>{variety.code} · {variety.name}</option>)}</select></label>}
         {isAddingVariety && <><label>Variety code<input name="varietyCode" maxLength={20} placeholder="e.g. N14" required /></label><label>Variety name<input name="varietyName" maxLength={80} placeholder="e.g. N14" required /></label></>}
-        <label className="inline-choice"><input type="checkbox" checked={isAddingVariety} onChange={(event) => setIsAddingVariety(event.target.checked)} /> Add a new variety</label>
+        <label className="inline-choice toggle-control variety-toggle">
+          <input type="checkbox" role="switch" checked={isAddingVariety} onChange={(event) => setIsAddingVariety(event.target.checked)} />
+          <span className="toggle-control-track" aria-hidden="true" />
+          <span>Add a new variety</span>
+        </label>
         <label>Cycle start date<DatePicker name="startDate" required /></label>
         <label>Expected harvest from<DatePicker name="expectedHarvestStart" required /></label>
         <label>Expected harvest to<DatePicker name="expectedHarvestEnd" required /></label>

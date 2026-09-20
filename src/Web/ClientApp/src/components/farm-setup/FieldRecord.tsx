@@ -1,9 +1,15 @@
 import { CalendarDays, Droplets, Sprout } from 'lucide-react';
 import { formatCycleStatus } from '../crop-cycles/cropCycleView';
 import type { ReactNode } from 'react';
-import type { FieldDto } from '../../web-api-client';
+import type { CropCycleListItemDto, FieldDto } from '../../web-api-client';
 
-export function FieldRecord({ field, children }: { field: FieldDto; children?: ReactNode }) {
+interface FieldRecordProps {
+  field: FieldDto;
+  draftCycle?: CropCycleListItemDto;
+  children?: ReactNode;
+}
+
+export function FieldRecord({ field, draftCycle, children }: FieldRecordProps) {
   const cycle = field.currentCropCycle;
 
   return (
@@ -29,8 +35,21 @@ export function FieldRecord({ field, children }: { field: FieldDto; children?: R
           </div>
           <div className="yield-value"><span>Expected yield</span><strong>{cycle.expectedYieldTonnes.toLocaleString()} t</strong></div>
         </section>
-      ) : (
-        <div className="cycle-empty"><Sprout size={18} aria-hidden="true" /> No current crop cycle</div>
+      ) : !draftCycle && (
+        <div className="cycle-empty">
+          <span className="cycle-empty-icon" aria-hidden="true"><Sprout size={18} /></span>
+          <div><strong>Field ready</strong><span>No crop cycle configured. Set up the crop growing in this field.</span></div>
+        </div>
+      )}
+      {draftCycle && (
+        <section className="draft-cycle-summary" aria-label={`Draft crop cycle for ${field.name}`}>
+          <span className="draft-cycle-icon" aria-hidden="true"><Sprout size={17} /></span>
+          <div>
+            <span className="record-status is-draft"><span aria-hidden="true" /> Draft crop plan</span>
+            <strong>{draftCycle.variety} · {draftCycle.cycleType === 'Ratoon' ? `Ratoon ${draftCycle.ratoonNumber}` : 'Plant cane'}</strong>
+            <small><CalendarDays size={13} aria-hidden="true" /> Starts {formatDate(draftCycle.startDate)} · harvest {formatDate(draftCycle.expectedHarvestStart)}–{formatDate(draftCycle.expectedHarvestEnd)}</small>
+          </div>
+        </section>
       )}
       {children}
     </article>

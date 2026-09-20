@@ -1,5 +1,5 @@
-import { createElement, useEffect, useRef, useState, type FormEvent } from 'react';
-import { ArrowLeft, CalendarDays, CircleDot, Coins, History, Sprout, Users, Warehouse } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { ArrowLeft, ArrowUpRight, CalendarDays, CircleDot, Coins, History, Sprout, Users, Warehouse } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { ConfirmationDialog } from '../ConfirmationDialog';
 import { cropCyclesClient, localDate, transitionCycle } from '../crop-cycles/cropCycleApi';
@@ -99,12 +99,12 @@ export function CropCycleOverviewPage() {
       </section>
 
       <section aria-labelledby="future-history-title">
-        <div className="section-heading"><div><span className="eyebrow">Operational records</span><h2 id="future-history-title">Cycle-linked information</h2></div><p>Only implemented, persisted records appear in Cane360 history.</p></div>
-        <div className="unavailable-grid">
-          <UnavailableHistory icon={CalendarDays} title="Activities" />
-          <UnavailableHistory icon={Users} title="Payroll and labour cost posting" />
-          <UnavailableHistory icon={Warehouse} title="Inputs" />
-          <UnavailableHistory icon={Coins} title="Costs" />
+        <div className="section-heading"><div><span className="eyebrow">Operational records</span><h2 id="future-history-title">Cycle-linked information</h2></div><p>Open the working records and source evidence connected to this crop cycle.</p></div>
+        <div className="cycle-module-grid">
+          <CycleModuleLink icon={CalendarDays} title="Activities" description="View work planned and recorded for this cycle." to={`/activities?fieldId=${fieldId}&cropCycleId=${cropCycleId}`} />
+          <CycleModuleLink icon={Users} title="Payroll and labour" description="Review payroll runs and their labour-source evidence." to="/payroll" />
+          <CycleModuleLink icon={Warehouse} title="Inputs" description="Review this cycle’s requests, issues and accountability." to={`/inventory?tab=inputs&cropCycleId=${cropCycleId}`} />
+          <CycleModuleLink icon={Coins} title="Costs" description="Open the authoritative crop-cost breakdown and sources." to={`/finance?tab=cost&cropCycleId=${cropCycleId}`} />
         </div>
       </section>
 
@@ -144,8 +144,8 @@ function TransitionConfirmation({ action, isBusy, onCancel, onConfirm }: Transit
   </ConfirmationDialog>;
 }
 
-function UnavailableHistory({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
-  return <article className="unavailable-card">{createElement(Icon, { size: 18, 'aria-hidden': true })}<div><strong>{title}</strong><span>Unavailable until this module is implemented.</span></div></article>;
+function CycleModuleLink({ icon: Icon, title, description, to }: { icon: LucideIcon; title: string; description: string; to: string }) {
+  return <Link className="cycle-module-card" to={to}><span className="cycle-module-icon" aria-hidden="true"><Icon size={18} /></span><div><strong>{title}</strong><span>{description}</span></div><ArrowUpRight className="cycle-module-arrow" size={17} aria-hidden="true" /></Link>;
 }
 
 function nextStepTitle(status: string): string {

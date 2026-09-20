@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Eye, LandPlot, Plus, Sprout } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CreateFieldRequest, type CropCycleCollectionDto, type FarmSetupDto } from '../../web-api-client';
 import { CropCycleForm } from '../crop-cycles/CropCycleForm';
 import { cropCyclesClient } from '../crop-cycles/cropCycleApi';
@@ -16,6 +16,7 @@ import { LineProfileForm } from '../farm-setup/LineProfileForm';
 import { useAuth } from '../api-authorization/AuthContext';
 
 export function FieldsPage() {
+  const navigate = useNavigate();
   const isSupervisor = useAuth().session.role === 'Supervisor';
   const { setup, setSetup, error, setError, isLoading } = useFarmSetup();
   const [isAddingField, setIsAddingField] = useState(false);
@@ -57,15 +58,6 @@ export function FieldsPage() {
   const fields = setup.farm?.fields ?? [];
   const showFieldForm = !isSupervisor && (fields.length === 0 || isAddingField);
 
-  const reloadFieldCycles = async (fieldId: string) => {
-    try {
-      const collection = await cropCyclesClient.getCropCycles(fieldId);
-      setCycleCollections((current) => [...current.filter((item) => item.field.id !== fieldId), collection]);
-    } catch (requestError) {
-      setError(getApiError(requestError));
-    }
-  };
-
   return (
     <div className="page-stack">
       <PageHeader eyebrow="Crop records" title="Fields and crop cycles" description={`${isSupervisor ? 'View' : 'Manage'} field plans, current crops and chronological history on ${setup.farm?.name}.`}>
@@ -94,22 +86,28 @@ export function FieldsPage() {
             <p>Each field keeps its own current crop and full cycle register.</p>
           </div>
           <div className="field-record-list">
-            {fields.map((field) => (
-              <FieldRecord key={field.id} field={field}>
+            {fields.map((field) => {
+              const draftCycle = cycleCollections
+                .find((collection) => collection.field.id === field.id)
+                ?.cropCycles.find((cycle) => cycle.status === 'Draft');
+
+              return <FieldRecord key={field.id} field={field} draftCycle={draftCycle}>
                 {!isSupervisor && <LineProfileForm fieldId={field.id} />}
                 {!isSupervisor && <div className="field-cycle-actions">
                   {field.currentCropCycle && <Link className="secondary-action" to={`/fields/${field.id}/crop-cycles/${field.currentCropCycle.id}`}><Eye size={16} /> View current cycle</Link>}
-                  {activeCycleField !== field.id && <button type="button" className="secondary-action" onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> Plan crop cycle</button>}
+                  {draftCycle
+                    ? <Link className={field.currentCropCycle ? 'secondary-action' : 'primary-action'} to={`/fields/${field.id}/crop-cycles/${draftCycle.id}`}><Sprout size={17} /> {field.currentCropCycle ? 'Review draft' : 'Review and activate'}</Link>
+                    : activeCycleField !== field.id && <button type="button" className={field.currentCropCycle ? 'secondary-action' : 'primary-action'} onClick={() => setActiveCycleField(field.id)}><Sprout size={17} /> {field.currentCropCycle ? 'Plan next crop' : 'Set up first crop'}</button>}
                 </div>}
                 {!isSupervisor && activeCycleField === field.id && (
                   <CropCycleForm
                     field={field}
-                    onSaved={async () => { setActiveCycleField(null); await reloadFieldCycles(field.id); }}
+                    onSaved={(details) => navigate(`/fields/${field.id}/crop-cycles/${details.cropCycle.id}`)}
                     onCancel={() => setActiveCycleField(null)}
                   />
                 )}
-              </FieldRecord>
-            ))}
+              </FieldRecord>;
+            })}
           </div>
         </section>
       )}

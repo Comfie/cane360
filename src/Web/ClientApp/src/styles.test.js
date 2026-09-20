@@ -109,3 +109,19 @@ test('shared errors use a dismissible responsive toast instead of an inline card
   assert.match(component, /role="alert"/);
   assert.match(component, /aria-label="Dismiss error"/);
 });
+
+test('crop-cycle overview links to implemented operational records with cycle context', async () => {
+  const overview = await readFile(new URL('./components/pages/CropCycleOverviewPage.tsx', import.meta.url), 'utf8');
+  const activities = await readFile(new URL('./components/pages/ActivitiesPage.tsx', import.meta.url), 'utf8');
+  const inputs = await readFile(new URL('./components/inventory/InputControlsWorkspace.tsx', import.meta.url), 'utf8');
+  const finance = await readFile(new URL('./components/pages/FinancePage.tsx', import.meta.url), 'utf8');
+
+  assert.match(overview, /to=\{`\/activities\?fieldId=\$\{fieldId\}&cropCycleId=\$\{cropCycleId\}`\}/);
+  assert.match(overview, /to=\{`\/inventory\?tab=inputs&cropCycleId=\$\{cropCycleId\}`\}/);
+  assert.match(overview, /to=\{`\/finance\?tab=cost&cropCycleId=\$\{cropCycleId\}`\}/);
+  assert.match(overview, /to="\/payroll"/);
+  assert.doesNotMatch(overview, /Unavailable until this module is implemented/);
+  assert.match(activities, /activity\.cropCycleId === filters\.cropCycle/);
+  assert.match(inputs, /request\.cropCycleId === cropCycleId/);
+  assert.match(finance, /getFinanceCropCycleCost\(requestedCropCycleId\)/);
+});

@@ -1,6 +1,7 @@
 import { createElement, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { useDialogFocus } from '../useDialogFocus';
 import { Archive, Boxes, ClipboardCheck, PackagePlus, Pencil, Plus, Power, PowerOff, ReceiptText, RotateCcw, Scale, ShieldCheck, Truck, X } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import type {
   InventoryItemDto,
@@ -49,8 +50,10 @@ import {
 } from '../inventory/inventoryView';
 
 export function InventoryPage() {
+  const [searchParams] = useSearchParams();
+  const linkedCropCycleId = searchParams.get('cropCycleId') ?? '';
   const [workspace, setWorkspace] = useState<InventoryWorkspaceDto | null>(null);
-  const [tab, setTab] = useState<'stock' | 'receipts' | 'ledger' | 'catalogue' | 'inputs' | 'counts' | 'adjustments'>('stock');
+  const [tab, setTab] = useState<'stock' | 'receipts' | 'ledger' | 'catalogue' | 'inputs' | 'counts' | 'adjustments'>(() => searchParams.get('tab') === 'inputs' ? 'inputs' : 'stock');
   const [dialog, setDialog] = useState('');
   const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
   const [error, setError] = useState('');
@@ -94,7 +97,7 @@ export function InventoryPage() {
     {tab === 'receipts' && <ReceiptRegister receipts={workspace.receipts} onChanged={reload} onError={setError} />}
     {tab === 'ledger' && <MovementLedger movements={workspace.recentMovements} />}
     {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} onEditSupplier={(supplier) => { setEditingSupplier(supplier); setDialog('supplier'); }} onSupplierChanged={reload} onError={setError} />}
-    {tab === 'inputs' && <InputControlsWorkspace onError={setError} />}
+    {tab === 'inputs' && <>{linkedCropCycleId && <div className="linked-context record-panel"><span><strong>Crop-cycle view</strong> Requests, issues and accountability are scoped to the selected crop cycle.</span><Link className="text-action" to="/inventory?tab=inputs">Show all inputs</Link></div>}<InputControlsWorkspace cropCycleId={linkedCropCycleId || undefined} onError={setError} /></>}
     {tab === 'counts' && <CountRegister counts={counts} onChanged={reload} onError={setError} onOpen={() => setDialog('count')} />}
     {tab === 'adjustments' && <AdjustmentRegister adjustments={adjustments} />}
 

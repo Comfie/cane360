@@ -6,7 +6,7 @@ export function FarmSetupProgress({ setup }: { setup: FarmSetupDto }) {
   const steps = [
     { label: 'Farm', complete: setup.isConfigured },
     { label: 'Field', complete: fields.length > 0 },
-    { label: 'Current crop', complete: fields.some((field) => field.currentCropCycle) },
+    { label: 'Farm has current crop', complete: fields.some((field) => field.currentCropCycle) },
   ];
 
   return (

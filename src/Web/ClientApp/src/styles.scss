@@ -2317,12 +2317,73 @@ p {
 .cycle-empty {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--text-muted);
   font-size: var(--type-sm);
+}
+
+.cycle-empty-icon,
+.draft-cycle-icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-subtle);
+  color: var(--cane-700);
+}
+
+.cycle-empty > div,
+.draft-cycle-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.cycle-empty strong,
+.draft-cycle-summary strong {
+  color: var(--text-strong);
+  font-size: var(--type-sm);
+}
+
+.cycle-empty > div > span,
+.draft-cycle-summary small {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.draft-cycle-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--harvest-500) 42%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--harvest-500) 8%, var(--surface));
+}
+
+.draft-cycle-icon {
+  background: color-mix(in srgb, var(--harvest-500) 14%, var(--surface-raised));
+  color: color-mix(in srgb, var(--harvest-500) 70%, var(--text-strong));
+}
+
+.draft-cycle-summary small {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.record-status.is-draft {
+  color: color-mix(in srgb, var(--harvest-500) 70%, var(--text-strong));
+}
+
+.record-status.is-draft > span {
+  background: var(--harvest-500);
 }
 
 .cycle-form {
@@ -3031,9 +3092,14 @@ p {
   font-size: var(--type-sm) !important;
 }
 
-.inline-choice input {
-  width: auto !important;
-  margin: 0;
+.variety-toggle {
+  color: var(--text-strong);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.variety-toggle .toggle-control-track {
+  flex: 0 0 auto;
 }
 
 .form-guidance {
@@ -3340,35 +3406,86 @@ p {
   font-size: var(--type-sm);
 }
 
-.unavailable-grid {
+.cycle-module-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
-.unavailable-card {
-  display: flex;
+.cycle-module-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
   gap: var(--space-3);
   margin: 0;
   padding: var(--space-3);
-  border: 1px dashed var(--border-strong);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: var(--surface);
   color: var(--text-muted);
+  text-decoration: none;
+  box-shadow: var(--shadow-1);
 }
 
-.unavailable-card div {
+.cycle-module-card:is(:hover, :focus-visible) {
+  border-color: var(--cane-400);
+  background: var(--surface-subtle);
+}
+
+.cycle-module-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--cane-100);
+  color: var(--pico-primary);
+}
+
+.cycle-module-card div {
   display: grid;
   gap: var(--space-1);
 }
 
-.unavailable-card strong {
+.cycle-module-card strong {
   color: var(--text-strong);
   font-size: var(--type-sm);
 }
 
-.unavailable-card span {
+.cycle-module-card div span {
   font-size: var(--type-xs);
+}
+
+.cycle-module-arrow {
+  color: var(--pico-primary);
+}
+
+.linked-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--cane-500);
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.linked-context span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.linked-context strong {
+  color: var(--text-strong);
+}
+
+.activity-toolbar > .linked-context {
+  margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-4)) var(--space-3);
+  border-bottom: 1px solid var(--border);
 }
 
 .dialog-backdrop {
@@ -3479,7 +3596,7 @@ p {
     grid-template-columns: minmax(0, 1.5fr) minmax(18rem, 0.75fr);
   }
 
-  .unavailable-grid {
+  .cycle-module-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
