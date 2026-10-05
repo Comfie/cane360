@@ -12,4 +12,5 @@ public sealed record CropCycleListItemDto(
     decimal ExpectedYieldTonnes,
     string Status,
     long Version,
-    HarvestResultDto? HarvestResult);
+    HarvestResultDto? HarvestResult,
+    int? CropAgeMonths = null);

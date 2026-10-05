@@ -93,6 +93,15 @@ public sealed class Field : BaseAuditableEntity
             soilNotes);
     }
 
+    public void UpdateDetails(string name, string irrigationMethod, string? soilNotes)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(irrigationMethod);
+        Name = name.Trim();
+        IrrigationMethod = irrigationMethod.Trim();
+        SoilNotes = string.IsNullOrWhiteSpace(soilNotes) ? null : soilNotes.Trim();
+    }
+
     public CropCycle CreateCropCycleDraft(
         CropCycleType cycleType,
         int? ratoonNumber,

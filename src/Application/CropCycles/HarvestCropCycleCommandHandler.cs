@@ -14,6 +14,6 @@ public sealed class HarvestCropCycleCommandHandler(
         CropCycleAccess.ApplyDomainAction(nameof(request.HarvestDate), () =>
             cycle.RecordHarvest(request.HarvestDate, request.ActualTonnes, today, now, userId));
         await repository.SaveChangesAsync(cancellationToken);
-        return CropCycleMapper.MapDetails(field, cycle);
+        return CropCycleMapper.MapDetails(field, cycle, DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
     }
 }

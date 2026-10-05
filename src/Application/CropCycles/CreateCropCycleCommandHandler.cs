@@ -1,9 +1,12 @@
+using Microsoft.Extensions.Options;
+
 namespace Cane360.Application.CropCycles;
 
 public sealed class CreateCropCycleCommandHandler(
     IFarmSetupRepository repository,
     IUser user,
-    TimeProvider timeProvider) : IRequestHandler<CreateCropCycleCommand, CropCycleDetailsDto>
+    TimeProvider timeProvider,
+    IOptions<CropMaturityOptions> maturityOptions) : IRequestHandler<CreateCropCycleCommand, CropCycleDetailsDto>
 {
     public async Task<CropCycleDetailsDto> Handle(
         CreateCropCycleCommand request,
@@ -17,6 +20,7 @@ public sealed class CreateCropCycleCommandHandler(
                               ?? throw new NotFoundException(request.CropVarietyId.ToString(), "Active crop variety");
         string userId = CropCycleAccess.RequireUserId(user);
         CropCycle? cropCycle = null;
+        DateOnly maturity = maturityOptions.Value.Calculate(request.StartDate)!.Value;
 
         CropCycleAccess.ApplyDomainAction(nameof(request.CycleType), () =>
             cropCycle = field.CreateCropCycleDraft(
@@ -25,13 +29,13 @@ public sealed class CreateCropCycleCommandHandler(
                 variety,
                 variety.Name,
                 request.StartDate,
-                request.ExpectedHarvestStart,
-                request.ExpectedHarvestEnd,
+                request.ExpectedHarvestStart ?? maturity,
+                request.ExpectedHarvestEnd ?? request.ExpectedHarvestStart ?? maturity,
                 request.ExpectedYieldTonnes,
                 timeProvider.GetUtcNow(),
                 userId));
 
         await repository.SaveChangesAsync(cancellationToken);
-        return CropCycleMapper.MapDetails(field, cropCycle!);
+        return CropCycleMapper.MapDetails(field, cropCycle!, DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
     }
 }

@@ -20,12 +20,17 @@ public sealed class CreateCropCycleCommandValidator : AbstractValidator<CreateCr
             .Null()
             .When(command => string.Equals(command.CycleType, "PlantCane", StringComparison.OrdinalIgnoreCase))
             .WithMessage("Plant cane cannot carry a ratoon number.");
+        RuleFor(command => command.StartDate).NotEmpty()
+            .Must(date => date.Year <= 9989).WithMessage("Cycle start date is outside the supported range.");
         RuleFor(command => command.ExpectedHarvestStart)
-            .GreaterThanOrEqualTo(command => command.StartDate)
+            .Must((command, value) => value is null || value >= command.StartDate)
             .WithMessage("Expected harvest must not begin before the crop cycle starts.");
         RuleFor(command => command.ExpectedHarvestEnd)
-            .GreaterThanOrEqualTo(command => command.ExpectedHarvestStart)
+            .Must((command, value) => value is null || value >= command.ExpectedHarvestStart)
             .WithMessage("Expected harvest end must be on or after its start.");
+        RuleFor(command => command.ExpectedHarvestEnd)
+            .Must((command, value) => value.HasValue == command.ExpectedHarvestStart.HasValue)
+            .WithMessage("Provide both harvest window dates or leave both blank for calculated maturity.");
         RuleFor(command => command.ExpectedYieldTonnes).GreaterThan(0).LessThanOrEqualTo(1_000_000);
     }
 }

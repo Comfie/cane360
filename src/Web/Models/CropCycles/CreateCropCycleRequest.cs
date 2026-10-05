@@ -5,6 +5,6 @@ public sealed record CreateCropCycleRequest(
     int? RatoonNumber,
     Guid CropVarietyId,
     DateOnly StartDate,
-    DateOnly ExpectedHarvestStart,
-    DateOnly ExpectedHarvestEnd,
+    DateOnly? ExpectedHarvestStart,
+    DateOnly? ExpectedHarvestEnd,
     decimal ExpectedYieldTonnes);

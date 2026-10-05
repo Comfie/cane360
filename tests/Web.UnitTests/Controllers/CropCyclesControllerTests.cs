@@ -64,6 +64,51 @@ public class CropCyclesControllerTests
         result.Result.ShouldBeOfType<CreatedAtActionResult>().RouteValues!["cropCycleId"].ShouldBe(cycleId);
     }
 
+    [Test]
+    public async Task YieldCorrectionMapsVersionAndManualTonnesToCropCycleCommand()
+    {
+        var sender = new Mock<ISender>();
+        Guid fieldId = Guid.NewGuid();
+        Guid cycleId = Guid.NewGuid();
+        CropCycleDetailsDto expected = CreateDetails(fieldId, cycleId);
+        sender.Setup(service => service.Send(It.Is<UpdateActualYieldCommand>(command =>
+                command.FieldId == fieldId && command.CropCycleId == cycleId &&
+                command.ExpectedVersion == 3 && command.ActualTonnes == 55.125m), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var result = await new CropCyclesController(sender.Object).UpdateActualYield(fieldId, cycleId,
+            new UpdateActualYieldRequest(3, 55.125m), CancellationToken.None);
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
+    public async Task DraftEditAllowsCalculatedWindowAndUsesRouteCycleIdentity()
+    {
+        var sender = new Mock<ISender>();
+        Guid fieldId = Guid.NewGuid();
+        Guid cycleId = Guid.NewGuid();
+        CropCycleDetailsDto expected = CreateDetails(fieldId, cycleId);
+        sender.Setup(service => service.Send(It.Is<UpdateCropCyclePlanCommand>(command =>
+                command.FieldId == fieldId && command.CropCycleId == cycleId && command.ExpectedVersion == 3 &&
+                command.StartDate == new DateOnly(2026, 1, 31) && command.ExpectedHarvestStart == null &&
+                command.ExpectedHarvestEnd == null && command.ExpectedYieldTonnes == 60m), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+        var result = await new CropCyclesController(sender.Object).UpdatePlan(fieldId, cycleId,
+            new UpdateCropCyclePlanRequest(3, new DateOnly(2026, 1, 31), null, null, 60m), CancellationToken.None);
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBeSameAs(expected);
+    }
+
+    [Test]
+    public async Task MaturityPreviewPreservesMissingPlantingDate()
+    {
+        var sender = new Mock<ISender>();
+        Guid fieldId = Guid.NewGuid();
+        sender.Setup(service => service.Send(new CalculateCropMaturityQuery(fieldId, null), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CropMaturityDto(14, null));
+        var result = await new CropCyclesController(sender.Object).CalculateMaturity(fieldId, null, CancellationToken.None);
+        result.Value.ShouldBeNull();
+        result.Result.ShouldBeOfType<OkObjectResult>().Value.ShouldBe(new CropMaturityDto(14, null));
+    }
+
     private static CropCycleDetailsDto CreateDetails(Guid fieldId, Guid cycleId) => new(
         new CropCycleFieldDto(fieldId, "A-01", "North block", 12.5m),
         new CropCycleListItemDto(

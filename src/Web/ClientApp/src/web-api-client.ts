@@ -2871,6 +2871,66 @@ export class CropCyclesClient {
     }
 
     /**
+     * @param plantingDate (optional)
+     * @return OK
+     */
+    calculateCropMaturity(fieldId: string, plantingDate: Date | undefined): Promise<CropMaturityDto> {
+        let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/maturity?";
+        if (fieldId === undefined || fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' must be defined.");
+        url_ = url_.replace("{fieldId}", encodeURIComponent("" + fieldId));
+        if (plantingDate === null)
+            throw new globalThis.Error("The parameter 'plantingDate' cannot be null.");
+        else if (plantingDate !== undefined)
+            url_ += "plantingDate=" + encodeURIComponent(plantingDate ? formatDate(plantingDate) : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCalculateCropMaturity(_response);
+        });
+    }
+
+    protected processCalculateCropMaturity(response: Response): Promise<CropMaturityDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = CropMaturityDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CropMaturityDto>(null as any);
+    }
+
+    /**
      * Get crop-cycle overview
      * @return OK
      */
@@ -3217,6 +3277,130 @@ export class CropCyclesClient {
     }
 
     protected processCloseCropCycles(response: Response): Promise<CropCycleDetailsDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = CropCycleDetailsDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CropCycleDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateCropCyclePlan(fieldId: string, cropCycleId: string, body: UpdateCropCyclePlanRequest): Promise<CropCycleDetailsDto> {
+        let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/{cropCycleId}/plan";
+        if (fieldId === undefined || fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' must be defined.");
+        url_ = url_.replace("{fieldId}", encodeURIComponent("" + fieldId));
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCropCyclePlan(_response);
+        });
+    }
+
+    protected processUpdateCropCyclePlan(response: Response): Promise<CropCycleDetailsDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = CropCycleDetailsDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CropCycleDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateCropCycleActualYield(fieldId: string, cropCycleId: string, body: UpdateActualYieldRequest): Promise<CropCycleDetailsDto> {
+        let url_ = this.baseUrl + "/api/fields/{fieldId}/crop-cycles/{cropCycleId}/actual-yield";
+        if (fieldId === undefined || fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' must be defined.");
+        url_ = url_.replace("{fieldId}", encodeURIComponent("" + fieldId));
+        if (cropCycleId === undefined || cropCycleId === null)
+            throw new globalThis.Error("The parameter 'cropCycleId' must be defined.");
+        url_ = url_.replace("{cropCycleId}", encodeURIComponent("" + cropCycleId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCropCycleActualYield(_response);
+        });
+    }
+
+    protected processUpdateCropCycleActualYield(response: Response): Promise<CropCycleDetailsDto> {
         const status = response.status;
         let _headers: any = {};
         if (response.headers && response.headers.forEach) {
@@ -4128,6 +4312,65 @@ export class FarmSetupClient {
             });
         }
         return Promise.resolve<RevealedFarmOwnerNationalIdDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateFieldDetails(fieldId: string, body: UpdateFieldDetailsRequest): Promise<FarmSetupDto> {
+        let url_ = this.baseUrl + "/api/FarmSetup/fields/{fieldId}";
+        if (fieldId === undefined || fieldId === null)
+            throw new globalThis.Error("The parameter 'fieldId' must be defined.");
+        url_ = url_.replace("{fieldId}", encodeURIComponent("" + fieldId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFieldDetails(_response);
+        });
+    }
+
+    protected processUpdateFieldDetails(response: Response): Promise<FarmSetupDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = FarmSetupDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmSetupDto>(null as any);
     }
 
     /**
@@ -19089,8 +19332,8 @@ export class CreateCropCycleRequest implements ICreateCropCycleRequest {
     ratoonNumber!: number | undefined;
     cropVarietyId!: string;
     startDate!: Date;
-    expectedHarvestStart!: Date;
-    expectedHarvestEnd!: Date;
+    expectedHarvestStart!: Date | undefined;
+    expectedHarvestEnd!: Date | undefined;
     expectedYieldTonnes!: number;
 
     [key: string]: any;
@@ -19149,8 +19392,8 @@ export interface ICreateCropCycleRequest {
     ratoonNumber: number | undefined;
     cropVarietyId: string;
     startDate: Date;
-    expectedHarvestStart: Date;
-    expectedHarvestEnd: Date;
+    expectedHarvestStart: Date | undefined;
+    expectedHarvestEnd: Date | undefined;
     expectedYieldTonnes: number;
 
     [key: string]: any;
@@ -21947,6 +22190,7 @@ export class CropCycleListItemDto implements ICropCycleListItemDto {
     status!: string;
     version!: number;
     harvestResult!: HarvestResultDto | undefined;
+    cropAgeMonths?: number | undefined;
 
     [key: string]: any;
 
@@ -21977,6 +22221,7 @@ export class CropCycleListItemDto implements ICropCycleListItemDto {
             this.status = _data["status"];
             this.version = _data["version"];
             this.harvestResult = _data["harvestResult"] ? HarvestResultDto.fromJS(_data["harvestResult"]) : undefined as any;
+            this.cropAgeMonths = _data["cropAgeMonths"];
         }
     }
 
@@ -22005,6 +22250,7 @@ export class CropCycleListItemDto implements ICropCycleListItemDto {
         data["status"] = this.status;
         data["version"] = this.version;
         data["harvestResult"] = this.harvestResult ? this.harvestResult.toJSON() : undefined as any;
+        data["cropAgeMonths"] = this.cropAgeMonths;
         return data;
     }
 }
@@ -22022,6 +22268,7 @@ export interface ICropCycleListItemDto {
     status: string;
     version: number;
     harvestResult: HarvestResultDto | undefined;
+    cropAgeMonths?: number | undefined;
 
     [key: string]: any;
 }
@@ -22102,6 +22349,58 @@ export interface ICropCycleTimelineEventDto {
     reason: string | undefined;
     enteredBy?: string | undefined;
     operationalActor?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class CropMaturityDto implements ICropMaturityDto {
+    defaultCropMaturityMonths!: number;
+    expectedMaturityDate!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ICropMaturityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.defaultCropMaturityMonths = _data["defaultCropMaturityMonths"];
+            this.expectedMaturityDate = _data["expectedMaturityDate"];
+        }
+    }
+
+    static fromJS(data: any): CropMaturityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CropMaturityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["defaultCropMaturityMonths"] = this.defaultCropMaturityMonths;
+        data["expectedMaturityDate"] = this.expectedMaturityDate;
+        return data;
+    }
+}
+
+export interface ICropMaturityDto {
+    defaultCropMaturityMonths: number;
+    expectedMaturityDate: string | undefined;
 
     [key: string]: any;
 }
@@ -32221,6 +32520,58 @@ export interface IUnitOfMeasureDto {
     [key: string]: any;
 }
 
+export class UpdateActualYieldRequest implements IUpdateActualYieldRequest {
+    expectedVersion!: number;
+    actualTonnes!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateActualYieldRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.actualTonnes = _data["actualTonnes"];
+        }
+    }
+
+    static fromJS(data: any): UpdateActualYieldRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateActualYieldRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["actualTonnes"] = this.actualTonnes;
+        return data;
+    }
+}
+
+export interface IUpdateActualYieldRequest {
+    expectedVersion: number;
+    actualTonnes: number;
+
+    [key: string]: any;
+}
+
 export class UpdateBudgetRequest implements IUpdateBudgetRequest {
     name!: string;
     reportingAreaHa!: number | undefined;
@@ -32281,6 +32632,70 @@ export interface IUpdateBudgetRequest {
     expectedProductionTonnes: number | undefined;
     notes: string | undefined;
     expectedRowVersion: number;
+
+    [key: string]: any;
+}
+
+export class UpdateCropCyclePlanRequest implements IUpdateCropCyclePlanRequest {
+    expectedVersion!: number;
+    startDate!: Date;
+    expectedHarvestStart!: Date | undefined;
+    expectedHarvestEnd!: Date | undefined;
+    expectedYieldTonnes!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateCropCyclePlanRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.expectedHarvestStart = _data["expectedHarvestStart"] ? new Date(_data["expectedHarvestStart"].toString()) : undefined as any;
+            this.expectedHarvestEnd = _data["expectedHarvestEnd"] ? new Date(_data["expectedHarvestEnd"].toString()) : undefined as any;
+            this.expectedYieldTonnes = _data["expectedYieldTonnes"];
+        }
+    }
+
+    static fromJS(data: any): UpdateCropCyclePlanRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateCropCyclePlanRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["expectedHarvestStart"] = this.expectedHarvestStart ? formatDate(this.expectedHarvestStart) : undefined as any;
+        data["expectedHarvestEnd"] = this.expectedHarvestEnd ? formatDate(this.expectedHarvestEnd) : undefined as any;
+        data["expectedYieldTonnes"] = this.expectedYieldTonnes;
+        return data;
+    }
+}
+
+export interface IUpdateCropCyclePlanRequest {
+    expectedVersion: number;
+    startDate: Date;
+    expectedHarvestStart: Date | undefined;
+    expectedHarvestEnd: Date | undefined;
+    expectedYieldTonnes: number;
 
     [key: string]: any;
 }
@@ -32432,6 +32847,62 @@ export interface IUpdateFarmInformationRequest {
     ownerProfile?: FarmOwnerProfileInput | undefined;
     farmModelId?: string | undefined;
     updateFarmModel?: boolean;
+
+    [key: string]: any;
+}
+
+export class UpdateFieldDetailsRequest implements IUpdateFieldDetailsRequest {
+    name!: string;
+    irrigationMethod!: string;
+    soilNotes!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateFieldDetailsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.irrigationMethod = _data["irrigationMethod"];
+            this.soilNotes = _data["soilNotes"];
+        }
+    }
+
+    static fromJS(data: any): UpdateFieldDetailsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateFieldDetailsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["irrigationMethod"] = this.irrigationMethod;
+        data["soilNotes"] = this.soilNotes;
+        return data;
+    }
+}
+
+export interface IUpdateFieldDetailsRequest {
+    name: string;
+    irrigationMethod: string;
+    soilNotes: string | undefined;
 
     [key: string]: any;
 }

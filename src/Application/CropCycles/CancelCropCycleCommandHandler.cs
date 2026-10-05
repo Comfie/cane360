@@ -12,6 +12,6 @@ public sealed class CancelCropCycleCommandHandler(
         CropCycleAccess.ApplyDomainAction(nameof(request.Reason), () =>
             cycle.Cancel(request.Reason, timeProvider.GetUtcNow(), userId));
         await repository.SaveChangesAsync(cancellationToken);
-        return CropCycleMapper.MapDetails(field, cycle);
+        return CropCycleMapper.MapDetails(field, cycle, DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
     }
 }
