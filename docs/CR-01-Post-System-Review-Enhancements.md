@@ -96,7 +96,15 @@ Implementation branch: `feature/cr-01-1-farm-owner-profile`. Baseline commit: `2
 
 The closure pre-commit gate passed: solution build with 0 warnings/errors, Application 414/414, Web/API 119/119, frontend 110/110, ESLint and TypeScript checks. EF reports no pending model changes. The read-only Railway Development status check confirms 21 applied migrations and 0 pending; `20261005202118_AddFarmOwnerProfileEnhancements` is already applied and is not reapplied during Git closure.
 
-Feature and merge commit references, post-merge results and push state are recorded after Git closure. No application deployment is performed by the Git closure procedure; Railway application deployment status is not yet verified.
+Feature commit: `d70cb6b3daae0038fde76472a3347af14e8e206f` (`feat(cr-01): add farm owner profile enhancements`), pushed to `origin/feature/cr-01-1-farm-owner-profile`; the feature branch is retained.
+
+Merge commit: `e49a4a6be26c8630f59627dec38e41e5f6b3006c`, a regular two-parent merge into main with no squash, history rewrite or conflicts. This is also the main SHA at final executable verification. The final main tip includes the subsequent documentation-only closure commit; resolve its full SHA with `git log -1 --format=%H --grep="^docs(cr-01): record git closure$" main`. Its own SHA cannot be embedded in its contents; the final user closure report records it explicitly.
+
+Post-merge gate on main: solution build passed with 0 warnings/errors; Application 414 passed, Web/API 119 passed, frontend 110 passed, all with 0 failures and 0 skips. ESLint, TypeScript, generated-client name check and production Vite build passed. EF reports no pending model changes. Railway Development reports 21 applied migrations and 0 pending. Existing CR-01 post-migration operational acceptance passed 5/5 with 0 failures/skips, covering protected identity/reveal/audit, legacy profiles, Farm Model constraints and tenant isolation, plus existing fields/crop cycles. Migration `20261005202118_AddFarmOwnerProfileEnhancements` was not reapplied.
+
+All 89 original unrelated untracked files were checked against their pre-closure SHA-256 fingerprints and preserved. Pre-existing Phase 8 code remains unchanged. Known limitations above remain unchanged.
+
+Main is ready for a normal push after this documentation-only commit; successful push is confirmed in the final user closure report. No application deployment was performed during Git closure. Railway database migration is complete; Railway application deployment status is not verified, and a Git push alone does not establish deployment success.
 
 CR-01.2, CR-01.3, CR-01.4 and later slices have NOT started. No new Phase 8 work was implemented.
 
