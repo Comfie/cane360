@@ -1,4 +1,6 @@
 import {Droplets, LandPlot, MapPin, Pencil, UserRound} from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {farmSetupClient} from './farmSetupApi';
 import type {FarmSetupDto} from '../../web-api-client';
 
 interface FarmSummaryProps {
@@ -9,6 +11,14 @@ interface FarmSummaryProps {
 
 export function FarmSummary({setup, compact = false, onEdit}: FarmSummaryProps) {
     const farm = setup.farm;
+    const [modelName, setModelName] = useState('Not assigned');
+    useEffect(() => {
+        let current = true;
+        if (farm?.farmModelId) farmSetupClient.listFarmModels().then(models => {
+            if (current) setModelName(models.find(model => model.id === farm.farmModelId)?.name ?? 'Unavailable');
+        }).catch(() => {if (current) setModelName('Unavailable');});
+        return () => {current = false;};
+    }, [farm?.farmModelId]);
     if (!farm) return null;
 
     return (
@@ -28,7 +38,7 @@ export function FarmSummary({setup, compact = false, onEdit}: FarmSummaryProps) 
             </header>
             <dl className="record-details">
                 <div>
-                    <dt><UserRound size={16} aria-hidden="true"/> Grower</dt>
+                    <dt><UserRound size={16} aria-hidden="true"/> Farm Owner</dt>
                     <dd>{setup.grower?.displayName}</dd>
                 </div>
                 <div>
@@ -48,7 +58,8 @@ export function FarmSummary({setup, compact = false, onEdit}: FarmSummaryProps) 
                 <div className="record-notes">
                     <div><span>Address</span><strong>{farm.address}</strong></div>
                     <div><span>Tenure</span><strong>{farm.tenure}</strong></div>
-                    {setup.grower?.phone && <div><span>Grower phone</span><strong>{setup.grower.phone}</strong></div>}
+                    <div><span>Farm Model</span><strong>{farm.farmModelId ? modelName : 'Not assigned'}</strong></div>
+                    {setup.grower?.phone && <div><span>Farm Owner contact</span><strong>{setup.grower.phone}</strong></div>}
                 </div>
             )}
         </section>

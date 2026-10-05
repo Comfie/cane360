@@ -116,7 +116,7 @@ export function PersonnelRegister() {
             </button>
         </header>
         {!register.primaryManagerAssigned && <div className="manager-gap"><Users size={18}/>
-            <div><strong>Primary manager not assigned</strong><span>Add a named person with the primary Farm manager role when ready. The grower has not been assumed to be the manager.</span>
+            <div><strong>Primary manager not assigned</strong><span>Add a named person with the primary Farm manager role when ready. The Farm Owner has not been assumed to be the manager.</span>
             </div>
         </div>}
         {error && !adding && !editingPerson && <p className="form-error">{error}</p>}

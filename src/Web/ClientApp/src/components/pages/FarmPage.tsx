@@ -1,3 +1,7 @@
+import {FarmOwnerFields} from '../farm-setup/FarmOwnerFields';
+import {farmOwnerInput} from '../farm-setup/farmOwnerForm';
+import {FarmOwnerSummary} from '../farm-setup/FarmOwnerSummary';
+import {useAuth} from '../api-authorization/AuthContext';
 import {type FormEvent, useState} from 'react';
 import {ArrowRight, Tractor} from 'lucide-react';
 import {Link} from 'react-router-dom';
@@ -12,6 +16,7 @@ import {ValidationError} from '../ValidationError';
 import {PersonnelRegister} from '../farm-setup/PersonnelRegister';
 
 export function FarmPage() {
+    const canEdit = useAuth().session.role !== 'Supervisor';
     const {setup, setSetup, error, setError, isLoading} = useFarmSetup();
     const [isSaving, setIsSaving] = useState(false);
     const [isEditingFarm, setIsEditingFarm] = useState(false);
@@ -28,6 +33,7 @@ export function FarmPage() {
 
         try {
             const result = await farmSetupClient.createFarmFarmSetup(new CreateGrowerFarmRequest({
+                ownerProfile: farmOwnerInput(data),
                 growerDisplayName: String(data.get('growerDisplayName')).trim(),
                 growerPhone: optionalValue(data.get('growerPhone')),
                 farmCode: String(data.get('farmCode')).trim(),
@@ -52,8 +58,8 @@ export function FarmPage() {
                 eyebrow="Farm setup"
                 title={setup.isConfigured ? 'Your farm record' : 'Create your farm'}
                 description={setup.isConfigured
-                    ? 'The grower and farm details below define your Cane360 working boundary.'
-                    : 'Start with the grower and operating details used across field records, work, and reporting.'}
+                    ? 'The Farm Owner and farm details below define your Cane360 working boundary.'
+                    : 'Start with the Farm Owner and operating details used across field records, work, and reporting.'}
             >
                 {setup.isConfigured &&
                     <Link className="primary-action" to="/fields">Add a field <ArrowRight size={17}/></Link>}
@@ -62,10 +68,10 @@ export function FarmPage() {
             <FarmSetupProgress setup={setup}/>
             <ValidationError message={error}/>
 
-            {setup.isConfigured ? <><FarmSummary setup={setup} onEdit={() => {
+            {setup.isConfigured ? <><FarmSummary setup={setup} onEdit={canEdit ? () => {
                 setError('');
                 setIsEditingFarm(true);
-            }}/><PersonnelRegister/>{isEditingFarm &&
+            } : undefined}/><FarmOwnerSummary owner={setup.grower}/><PersonnelRegister/>{isEditingFarm &&
                 <FarmProfileEditor setup={setup} onClose={() => setIsEditingFarm(false)} onSaved={(result) => {
                     setSetup(result);
                     setIsEditingFarm(false);
@@ -73,15 +79,12 @@ export function FarmPage() {
                 <form className="setup-form record-panel" onSubmit={createFarm}>
                     <header className="form-section-heading">
                         <span className="form-section-icon" aria-hidden="true"><Tractor size={19}/></span>
-                        <div><span className="eyebrow">Step 1 of 3</span><h2>Grower and farm details</h2></div>
+                        <div><span className="eyebrow">Step 1 of 3</span><h2>Farm Owner and farm details</h2></div>
                     </header>
 
-                    <fieldset className="form-grid">
-                        <label>Grower name<input name="growerDisplayName" autoComplete="name" maxLength={120} required/></label>
-                        <label>Phone number <small>Optional</small><input name="growerPhone" type="tel"
-                                                                          autoComplete="tel" maxLength={30}
-                                                                          placeholder="+263 77 123 4567"/></label>
-                        <label>Farm code<input name="farmCode" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_-]*"
+                    <FarmOwnerFields/>
+                    <fieldset className="form-grid"><legend>Farm details</legend>
+                        <label>Farm code<input name="farmCode" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_\-]*"
                                                placeholder="e.g. GREEN-01" required/></label>
                         <label>Farm name<input name="farmName" maxLength={120} placeholder="e.g. Green Valley Farm"
                                                required/></label>
@@ -107,7 +110,7 @@ export function FarmPage() {
                     </fieldset>
 
                     <footer className="form-actions">
-                        <p>This creates one grower workspace, active farm, membership, and default store together.</p>
+                        <p>This creates one Farm Owner workspace, active farm, membership, and default store together.</p>
                         <button type="submit" disabled={isSaving}>{isSaving ? 'Creating farm…' : 'Create farm'}</button>
                     </footer>
                 </form>

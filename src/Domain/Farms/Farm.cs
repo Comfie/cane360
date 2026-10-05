@@ -40,6 +40,17 @@ public sealed class Farm : BaseAuditableEntity
     public decimal DeclaredHectares { get; private set; }
     public string IrrigationContext { get; private set; } = string.Empty;
     public RecordStatus Status { get; private set; }
+    public Guid? FarmModelId { get; private set; }
+
+    public void AssignModel(FarmModel? model)
+    {
+        if (model is not null && (model.TenantId != TenantId || (!model.Active && model.Id != FarmModelId)))
+        {
+            throw new InvalidOperationException("Choose an active Farm Model from this tenant.");
+        }
+        FarmModelId = model?.Id;
+    }
+
     public Store Store { get; private set; } = null!;
     public IReadOnlyCollection<Field> Fields => _fields.AsReadOnly();
     public IReadOnlyCollection<Person> Persons => _persons.AsReadOnly();

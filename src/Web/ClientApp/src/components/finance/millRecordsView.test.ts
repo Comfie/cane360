@@ -35,16 +35,16 @@ test('workspace uses only generated client mutations', async () => {
 test('workspace preserves responsive cards and stacked matching hooks', async () => {
     const styles = await readFile(new URL('../../styles.scss', import.meta.url), 'utf8');
     assert.match(styles, /\.mill-ticket-row/);
-    assert.match(styles, /\.match-form \{ grid-template-columns: 1fr; \}/);
+    assert.match(styles, /\.match-form\s*\{\s*grid-template-columns:\s*1fr;\s*\}/);
 });
 
 test('grower statement editor uses the fixed dialog backdrop', async () => {
     const source = await readFile(new URL('./MillRecordsWorkspace.tsx', import.meta.url), 'utf8');
     const styles = await readFile(new URL('../../styles.scss', import.meta.url), 'utf8');
-    assert.match(source, /statementEditor && <Editor title=/);
-    assert.match(source, /className="dialog-backdrop" role="presentation"/);
-    assert.match(source, /className="mill-editor-dialog finance-dialog" role="dialog" aria-modal="true"/);
-    assert.match(styles, /\.mill-editor-dialog \{[^}]*max-height:[^}]*overflow-y: auto/);
+    assert.match(source, /statementEditor\s*&&\s*<Editor\s*title=/);
+    assert.match(source, /className="dialog-backdrop"\s*role="presentation"/);
+    assert.match(source, /className="mill-editor-dialog\s*finance-dialog"\s*role="dialog"\s*aria-modal="true"/);
+    assert.match(styles, /\.mill-editor-dialog\s*\{[^}]*max-height:[^}]*overflow-y:\s*auto/);
 });
 
 test('statement evidence remains distinct from operational income', async () => {

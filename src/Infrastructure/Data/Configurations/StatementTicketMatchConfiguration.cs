@@ -16,6 +16,7 @@ internal sealed class StatementTicketMatchConfiguration : IEntityTypeConfigurati
             table.HasCheckConstraint("CK_StatementTicketMatches_Action",
                 "(\"Action\" = 'Added' AND \"ReversesMatchId\" IS NULL) OR (\"Action\" = 'Reversed' AND \"ReversesMatchId\" IS NOT NULL AND \"Reason\" IS NOT NULL)");
         });
+        builder.Property(entity => entity.CompletesMatching);
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
         builder.HasAlternateKey(x => new { x.Id, x.TenantId, x.FarmId });

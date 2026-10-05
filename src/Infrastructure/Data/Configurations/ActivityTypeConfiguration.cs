@@ -15,6 +15,8 @@ internal sealed class ActivityTypeConfiguration : IEntityTypeConfiguration<Activ
                 "\"QuantityBasis\" IN ('None', 'Hectares', 'StandardLines')");
             table.HasCheckConstraint("CK_ActivityTypes_Status", "\"Status\" IN ('Active', 'Archived')");
         });
+        builder.Property(entity => entity.SupportsPlanned);
+        builder.Property(entity => entity.SupportsUnplanned);
         builder.HasKey(type => type.Id);
         builder.Property(type => type.Id).ValueGeneratedNever();
         builder.Property(type => type.Code).HasMaxLength(24).IsRequired();

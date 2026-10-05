@@ -44,7 +44,7 @@ public sealed class SupervisorAuthorizationBoundaryTests
     {
         Fixture fixture = CreateFixture();
         var handler = new UpdateFarmInformationCommandHandler(fixture.Repository.Object,
-            User(SupervisorUserId));
+            User(SupervisorUserId), Mock.Of<IWorkerSensitiveDataProtector>(), TimeProvider.System);
 
         // The handler treats an unresolved tenant as "no farm yet", so denial surfaces as a
         // validation failure rather than a not-found; either way the write never happens.
@@ -202,7 +202,7 @@ public sealed class SupervisorAuthorizationBoundaryTests
     {
         Fixture fixture = CreateFixture();
         var handler = new UpdateFarmInformationCommandHandler(fixture.Repository.Object,
-            User(GrowerUserId));
+            User(GrowerUserId), Mock.Of<IWorkerSensitiveDataProtector>(), TimeProvider.System);
 
         await handler.Handle(new UpdateFarmInformationCommand("Tariro Moyo", null, "GREEN",
             "Renamed Valley", "Plot 4", "Triangle", "Lease", 120m, "Furrow"),

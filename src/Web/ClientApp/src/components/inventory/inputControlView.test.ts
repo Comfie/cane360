@@ -70,7 +70,7 @@ test('compact workflow keeps supervisor attestation and manager confirmation vis
 });
 
 test('compact workflow exposes store-received return and Grower-only loss decision controls', () => {
-    assert.match(workspaceSource, /A return restores stock only when this Store-received posting succeeds/);
-    assert.match(workspaceSource, /workspace\.session\.role !== 'Grower'/);
-    assert.match(workspaceSource, /Blocking condition: record a confirmed application/);
+    assert.match(workspaceSource, /A\s*return\s*restores\s*stock\s*only\s*when\s*this\s*Store-received\s*posting\s*succeeds/);
+    assert.match(workspaceSource, /workspace\.session\.role\s*!==\s*'Grower'/);
+    assert.match(workspaceSource, /Blocking\s*condition:\s*record\s*a\s*confirmed\s*application/);
 });

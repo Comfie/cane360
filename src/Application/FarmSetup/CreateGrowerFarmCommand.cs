@@ -9,4 +9,5 @@ public sealed record CreateGrowerFarmCommand(
     string Location,
     string Tenure,
     decimal DeclaredHectares,
-    string IrrigationContext) : IRequest<FarmSetupDto>;
+    string IrrigationContext,
+    Cane360.Application.FarmSetup.FarmOwnerProfileInput? OwnerProfile = null) : IRequest<FarmSetupDto>;

@@ -9,4 +9,5 @@ public sealed record FarmDto(
     string Tenure,
     decimal DeclaredHectares,
     string IrrigationContext,
-    IReadOnlyList<FieldDto> Fields);
+    IReadOnlyList<FieldDto> Fields,
+    Guid? FarmModelId = null);

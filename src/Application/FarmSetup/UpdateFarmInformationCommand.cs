@@ -9,4 +9,7 @@ public sealed record UpdateFarmInformationCommand(
     string Location,
     string Tenure,
     decimal DeclaredHectares,
-    string IrrigationContext) : IRequest<FarmSetupDto>;
+    string IrrigationContext,
+    Cane360.Application.FarmSetup.FarmOwnerProfileInput? OwnerProfile = null,
+    Guid? FarmModelId = null,
+    bool UpdateFarmModel = false) : IRequest<FarmSetupDto>;

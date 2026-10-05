@@ -33,7 +33,7 @@ export const protectedNavigation: readonly NavigationItem[] = Object.freeze([
         label: 'Farm',
         shortLabel: 'Farm',
         eyebrow: 'Farm setup',
-        description: 'Grower, farm, personnel, irrigation, and operating details will live here.',
+        description: 'Farm Owner, farm, personnel, irrigation, and operating details will live here.',
     },
     {
         id: 'fields',

@@ -17,6 +17,7 @@ internal sealed class PersonRoleAssignmentConfiguration : IEntityTypeConfigurati
             table.HasCheckConstraint("CK_PersonRoleAssignments_PrimaryRole",
                 "NOT \"IsPrimary\" OR \"Role\" = 'FarmManager'");
         });
+        builder.Property(entity => entity.EffectiveFrom);
         builder.HasKey(assignment => assignment.Id);
         builder.Property(assignment => assignment.Id).ValueGeneratedNever();
         builder.Property(assignment => assignment.Role).HasConversion<string>().HasMaxLength(32);

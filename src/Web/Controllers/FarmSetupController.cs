@@ -40,7 +40,7 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.Location,
             request.Tenure,
             request.DeclaredHectares,
-            request.IrrigationContext), cancellationToken));
+            request.IrrigationContext, request.OwnerProfile), cancellationToken));
     }
 
     [HttpPut("farm", Name = "UpdateFarmFarmSetup")]
@@ -63,8 +63,38 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
             request.Location,
             request.Tenure,
             request.DeclaredHectares,
-            request.IrrigationContext), cancellationToken));
+            request.IrrigationContext, request.OwnerProfile, request.FarmModelId,
+            request.UpdateFarmModel), cancellationToken));
     }
+
+    [HttpGet("farm-models", Name = "ListFarmModels")]
+    [EndpointSummary("List Farm Models")]
+    [EndpointDescription("Lists tenant-scoped active and inactive Farm Model categories.")]
+    [ProducesResponseType<IReadOnlyList<FarmModelDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<FarmModelDto>>> ListFarmModels(CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetFarmModelsQuery(), cancellationToken));
+
+    [HttpPost("farm-models", Name = "SaveFarmModel")]
+    [EndpointSummary("Save Farm Model")]
+    [EndpointDescription("Creates or updates a tenant category; codes remain stable and categories are never deleted.")]
+    [ProducesResponseType<FarmModelDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<FarmModelDto>> SaveFarmModel(SaveFarmModelCommand request, CancellationToken cancellationToken)
+        => Ok(await sender.Send(request, cancellationToken));
+
+    [HttpPost("owner/national-id/reveal", Name = "RevealFarmOwnerNationalId")]
+    [EndpointSummary("Reveal Farm Owner national ID")]
+    [EndpointDescription("Grower-only audited reveal of protected Farm Owner identity.")]
+    [ProducesResponseType<RevealedFarmOwnerNationalIdDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<ActionResult<RevealedFarmOwnerNationalIdDto>> RevealFarmOwnerNationalId(CancellationToken cancellationToken)
+        => Ok(await sender.Send(new RevealFarmOwnerNationalIdCommand(), cancellationToken));
 
     [HttpPost("fields")]
     [EndpointSummary("Create field")]

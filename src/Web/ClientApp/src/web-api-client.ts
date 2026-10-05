@@ -3937,6 +3937,200 @@ export class FarmSetupClient {
     }
 
     /**
+     * List Farm Models
+     * @return OK
+     */
+    listFarmModels(): Promise<FarmModelDto[]> {
+        let url_ = this.baseUrl + "/api/FarmSetup/farm-models";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListFarmModels(_response);
+        });
+    }
+
+    protected processListFarmModels(response: Response): Promise<FarmModelDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FarmModelDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmModelDto[]>(null as any);
+    }
+
+    /**
+     * Save Farm Model
+     * @return OK
+     */
+    saveFarmModel(body: SaveFarmModelCommand): Promise<FarmModelDto> {
+        let url_ = this.baseUrl + "/api/FarmSetup/farm-models";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSaveFarmModel(_response);
+        });
+    }
+
+    protected processSaveFarmModel(response: Response): Promise<FarmModelDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FarmModelDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ValidationProblemDetails.fromJS(resultData400);
+            return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = ProblemDetails.fromJS(resultData409);
+            return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FarmModelDto>(null as any);
+    }
+
+    /**
+     * Reveal Farm Owner national ID
+     * @return OK
+     */
+    revealFarmOwnerNationalId(): Promise<RevealedFarmOwnerNationalIdDto> {
+        let url_ = this.baseUrl + "/api/FarmSetup/owner/national-id/reveal";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevealFarmOwnerNationalId(_response);
+        });
+    }
+
+    protected processRevealFarmOwnerNationalId(response: Response): Promise<RevealedFarmOwnerNationalIdDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RevealedFarmOwnerNationalIdDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            let result403: any = null;
+            let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result403 = ProblemDetails.fromJS(resultData403);
+            return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            let result404: any = null;
+            let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result404 = ProblemDetails.fromJS(resultData404);
+            return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RevealedFarmOwnerNationalIdDto>(null as any);
+    }
+
+    /**
      * Create field
      * @return OK
      */
@@ -19487,6 +19681,7 @@ export class CreateGrowerFarmRequest implements ICreateGrowerFarmRequest {
     tenure!: string;
     declaredHectares!: number;
     irrigationContext!: string;
+    ownerProfile?: FarmOwnerProfileInput | undefined;
 
     [key: string]: any;
 
@@ -19514,6 +19709,7 @@ export class CreateGrowerFarmRequest implements ICreateGrowerFarmRequest {
             this.tenure = _data["tenure"];
             this.declaredHectares = _data["declaredHectares"];
             this.irrigationContext = _data["irrigationContext"];
+            this.ownerProfile = _data["ownerProfile"] ? FarmOwnerProfileInput.fromJS(_data["ownerProfile"]) : undefined as any;
         }
     }
 
@@ -19539,6 +19735,7 @@ export class CreateGrowerFarmRequest implements ICreateGrowerFarmRequest {
         data["tenure"] = this.tenure;
         data["declaredHectares"] = this.declaredHectares;
         data["irrigationContext"] = this.irrigationContext;
+        data["ownerProfile"] = this.ownerProfile ? this.ownerProfile.toJSON() : undefined as any;
         return data;
     }
 }
@@ -19553,6 +19750,7 @@ export interface ICreateGrowerFarmRequest {
     tenure: string;
     declaredHectares: number;
     irrigationContext: string;
+    ownerProfile?: FarmOwnerProfileInput | undefined;
 
     [key: string]: any;
 }
@@ -22982,6 +23180,7 @@ export class FarmDto implements IFarmDto {
     declaredHectares!: number;
     irrigationContext!: string;
     fields!: FieldDto[];
+    farmModelId?: string | undefined;
 
     [key: string]: any;
 
@@ -23016,6 +23215,7 @@ export class FarmDto implements IFarmDto {
                 for (let item of _data["fields"])
                     this.fields!.push(FieldDto.fromJS(item));
             }
+            this.farmModelId = _data["farmModelId"];
         }
     }
 
@@ -23045,6 +23245,7 @@ export class FarmDto implements IFarmDto {
             for (let item of this.fields)
                 data["fields"].push(item ? item.toJSON() : undefined as any);
         }
+        data["farmModelId"] = this.farmModelId;
         return data;
     }
 }
@@ -23059,6 +23260,166 @@ export interface IFarmDto {
     declaredHectares: number;
     irrigationContext: string;
     fields: FieldDto[];
+    farmModelId?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class FarmModelDto implements IFarmModelDto {
+    id!: string;
+    code!: string;
+    name!: string;
+    active!: boolean;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IFarmModelDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.active = _data["active"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): FarmModelDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FarmModelDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["active"] = this.active;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IFarmModelDto {
+    id: string;
+    code: string;
+    name: string;
+    active: boolean;
+    version: number;
+
+    [key: string]: any;
+}
+
+export class FarmOwnerProfileInput implements IFarmOwnerProfileInput {
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    growerNumber?: string | undefined;
+    association?: string | undefined;
+    membershipNumber?: string | undefined;
+    registeredAddress?: string | undefined;
+    email?: string | undefined;
+    photoReference?: string | undefined;
+    active?: boolean;
+    nationalId?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IFarmOwnerProfileInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.active = true;
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.title = _data["title"];
+            this.firstName = _data["firstName"];
+            this.surname = _data["surname"];
+            this.sex = _data["sex"];
+            this.growerNumber = _data["growerNumber"];
+            this.association = _data["association"];
+            this.membershipNumber = _data["membershipNumber"];
+            this.registeredAddress = _data["registeredAddress"];
+            this.email = _data["email"];
+            this.photoReference = _data["photoReference"];
+            this.active = _data["active"] !== undefined ? _data["active"] : true;
+            this.nationalId = _data["nationalId"];
+        }
+    }
+
+    static fromJS(data: any): FarmOwnerProfileInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new FarmOwnerProfileInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["title"] = this.title;
+        data["firstName"] = this.firstName;
+        data["surname"] = this.surname;
+        data["sex"] = this.sex;
+        data["growerNumber"] = this.growerNumber;
+        data["association"] = this.association;
+        data["membershipNumber"] = this.membershipNumber;
+        data["registeredAddress"] = this.registeredAddress;
+        data["email"] = this.email;
+        data["photoReference"] = this.photoReference;
+        data["active"] = this.active;
+        data["nationalId"] = this.nationalId;
+        return data;
+    }
+}
+
+export interface IFarmOwnerProfileInput {
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    growerNumber?: string | undefined;
+    association?: string | undefined;
+    membershipNumber?: string | undefined;
+    registeredAddress?: string | undefined;
+    email?: string | undefined;
+    photoReference?: string | undefined;
+    active?: boolean;
+    nationalId?: string | undefined;
 
     [key: string]: any;
 }
@@ -23565,6 +23926,18 @@ export interface IFinanceSessionDto {
 export class GrowerDto implements IGrowerDto {
     displayName!: string;
     phone!: string | undefined;
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    growerNumber?: string | undefined;
+    association?: string | undefined;
+    membershipNumber?: string | undefined;
+    registeredAddress?: string | undefined;
+    email?: string | undefined;
+    photoReference?: string | undefined;
+    active?: boolean;
+    nationalIdMask?: string | undefined;
 
     [key: string]: any;
 
@@ -23574,6 +23947,9 @@ export class GrowerDto implements IGrowerDto {
                 if (data.hasOwnProperty(property))
                     (this as any)[property] = (data as any)[property];
             }
+        }
+        if (!data) {
+            this.active = true;
         }
     }
 
@@ -23585,6 +23961,18 @@ export class GrowerDto implements IGrowerDto {
             }
             this.displayName = _data["displayName"];
             this.phone = _data["phone"];
+            this.title = _data["title"];
+            this.firstName = _data["firstName"];
+            this.surname = _data["surname"];
+            this.sex = _data["sex"];
+            this.growerNumber = _data["growerNumber"];
+            this.association = _data["association"];
+            this.membershipNumber = _data["membershipNumber"];
+            this.registeredAddress = _data["registeredAddress"];
+            this.email = _data["email"];
+            this.photoReference = _data["photoReference"];
+            this.active = _data["active"] !== undefined ? _data["active"] : true;
+            this.nationalIdMask = _data["nationalIdMask"];
         }
     }
 
@@ -23603,6 +23991,18 @@ export class GrowerDto implements IGrowerDto {
         }
         data["displayName"] = this.displayName;
         data["phone"] = this.phone;
+        data["title"] = this.title;
+        data["firstName"] = this.firstName;
+        data["surname"] = this.surname;
+        data["sex"] = this.sex;
+        data["growerNumber"] = this.growerNumber;
+        data["association"] = this.association;
+        data["membershipNumber"] = this.membershipNumber;
+        data["registeredAddress"] = this.registeredAddress;
+        data["email"] = this.email;
+        data["photoReference"] = this.photoReference;
+        data["active"] = this.active;
+        data["nationalIdMask"] = this.nationalIdMask;
         return data;
     }
 }
@@ -23610,6 +24010,18 @@ export class GrowerDto implements IGrowerDto {
 export interface IGrowerDto {
     displayName: string;
     phone: string | undefined;
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    growerNumber?: string | undefined;
+    association?: string | undefined;
+    membershipNumber?: string | undefined;
+    registeredAddress?: string | undefined;
+    email?: string | undefined;
+    photoReference?: string | undefined;
+    active?: boolean;
+    nationalIdMask?: string | undefined;
 
     [key: string]: any;
 }
@@ -29371,6 +29783,58 @@ export interface IRequestStockIssueCorrectionRequest {
     [key: string]: any;
 }
 
+export class RevealedFarmOwnerNationalIdDto implements IRevealedFarmOwnerNationalIdDto {
+    profileId!: string;
+    nationalId!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRevealedFarmOwnerNationalIdDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.profileId = _data["profileId"];
+            this.nationalId = _data["nationalId"];
+        }
+    }
+
+    static fromJS(data: any): RevealedFarmOwnerNationalIdDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RevealedFarmOwnerNationalIdDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["profileId"] = this.profileId;
+        data["nationalId"] = this.nationalId;
+        return data;
+    }
+}
+
+export interface IRevealedFarmOwnerNationalIdDto {
+    profileId: string;
+    nationalId: string;
+
+    [key: string]: any;
+}
+
 export class ReverseOperationalTransactionRequest implements IReverseOperationalTransactionRequest {
     reason!: string;
     idempotencyKey!: string;
@@ -29878,6 +30342,73 @@ export interface IRunSettlementDto {
     isClosed: boolean;
     canClose: boolean;
     workers: WorkerSettlementDto[];
+
+    [key: string]: any;
+}
+
+export class SaveFarmModelCommand implements ISaveFarmModelCommand {
+    code!: string;
+    name!: string;
+    active?: boolean;
+    id?: string | undefined;
+    expectedVersion?: number | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: ISaveFarmModelCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.active = true;
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.active = _data["active"] !== undefined ? _data["active"] : true;
+            this.id = _data["id"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): SaveFarmModelCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new SaveFarmModelCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["active"] = this.active;
+        data["id"] = this.id;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface ISaveFarmModelCommand {
+    code: string;
+    name: string;
+    active?: boolean;
+    id?: string | undefined;
+    expectedVersion?: number | undefined;
 
     [key: string]: any;
 }
@@ -31820,6 +32351,9 @@ export class UpdateFarmInformationRequest implements IUpdateFarmInformationReque
     tenure!: string;
     declaredHectares!: number;
     irrigationContext!: string;
+    ownerProfile?: FarmOwnerProfileInput | undefined;
+    farmModelId?: string | undefined;
+    updateFarmModel?: boolean;
 
     [key: string]: any;
 
@@ -31829,6 +32363,9 @@ export class UpdateFarmInformationRequest implements IUpdateFarmInformationReque
                 if (data.hasOwnProperty(property))
                     (this as any)[property] = (data as any)[property];
             }
+        }
+        if (!data) {
+            this.updateFarmModel = false;
         }
     }
 
@@ -31847,6 +32384,9 @@ export class UpdateFarmInformationRequest implements IUpdateFarmInformationReque
             this.tenure = _data["tenure"];
             this.declaredHectares = _data["declaredHectares"];
             this.irrigationContext = _data["irrigationContext"];
+            this.ownerProfile = _data["ownerProfile"] ? FarmOwnerProfileInput.fromJS(_data["ownerProfile"]) : undefined as any;
+            this.farmModelId = _data["farmModelId"];
+            this.updateFarmModel = _data["updateFarmModel"] !== undefined ? _data["updateFarmModel"] : false;
         }
     }
 
@@ -31872,6 +32412,9 @@ export class UpdateFarmInformationRequest implements IUpdateFarmInformationReque
         data["tenure"] = this.tenure;
         data["declaredHectares"] = this.declaredHectares;
         data["irrigationContext"] = this.irrigationContext;
+        data["ownerProfile"] = this.ownerProfile ? this.ownerProfile.toJSON() : undefined as any;
+        data["farmModelId"] = this.farmModelId;
+        data["updateFarmModel"] = this.updateFarmModel;
         return data;
     }
 }
@@ -31886,6 +32429,9 @@ export interface IUpdateFarmInformationRequest {
     tenure: string;
     declaredHectares: number;
     irrigationContext: string;
+    ownerProfile?: FarmOwnerProfileInput | undefined;
+    farmModelId?: string | undefined;
+    updateFarmModel?: boolean;
 
     [key: string]: any;
 }

@@ -28,12 +28,12 @@ const navigationComponentSource = readFileSync(new URL('../Navigation.tsx', impo
 const stylesSource = readFileSync(new URL('../../styles.scss', import.meta.url), 'utf8');
 
 test('protected payroll route and Labour and Payroll navigation target the real workspace', () => {
-    assert.match(routesSource, /<Route path="\/payroll" element={<PayrollPage \/>} \/>/);
-    assert.match(routesSource, /<Route path="\/labour" element={<LabourPage \/>} \/>/);
-    assert.match(navigationSource, /path: '\/payroll',[\s\S]*label: 'Labour and Payroll'/);
-    assert.match(pageSource, /to="\/labour">Manage workers &amp; rates/);
-    assert.match(labourPageSource, /to="\/payroll">Open payroll runs/);
-    assert.match(navigationComponentSource, /location\.pathname === '\/labour' \|\| location\.pathname === '\/payroll'/);
+    assert.match(routesSource, /<Route\s*path="\/payroll"\s*element={<PayrollPage\s*\/>}\s*\/>/);
+    assert.match(routesSource, /<Route\s*path="\/labour"\s*element={<LabourPage\s*\/>}\s*\/>/);
+    assert.match(navigationSource, /path:\s*'\/payroll',[\s\S]*label:\s*'Labour\s*and\s*Payroll'/);
+    assert.match(pageSource, /to="\/labour">Manage\s*workers\s*&amp;\s*rates/);
+    assert.match(labourPageSource, /to="\/payroll">Open\s*payroll\s*runs/);
+    assert.match(navigationComponentSource, /location\.pathname\s*===\s*'\/labour'\s*\|\|\s*location\.pathname\s*===\s*'\/payroll'/);
 });
 
 test('period form emits numeric calendar payload', () => assert.deepEqual(periodPayload('2028', '2'), {
@@ -42,9 +42,9 @@ test('period form emits numeric calendar payload', () => assert.deepEqual(period
 }));
 
 test('period mutations submit exact versions and refetch', () => {
-    assert.match(pageSource, /api\.open\(period\.id, new VersionedPayrollRequest\(\{ expectedVersion: period\.version \}\)\)/);
-    assert.match(pageSource, /api\.cancelPeriodPayroll\(period\.id, new CancelPayrollPeriodRequest\(\{ expectedVersion: period\.version, reason \}\)\)/);
-    assert.match(pageSource, /await reloadCore\(\)/);
+    assert.match(pageSource, /api\.open\(period\.id,\s*new\s*VersionedPayrollRequest\(\{\s*expectedVersion:\s*period\.version\s*\}\)\)/);
+    assert.match(pageSource, /api\.cancelPeriodPayroll\(period\.id,\s*new\s*CancelPayrollPeriodRequest\(\{\s*expectedVersion:\s*period\.version,\s*reason\s*\}\)\)/);
+    assert.match(pageSource, /await\s*reloadCore\(\)/);
 });
 
 test('period refresh prefers an open or draft period over cancelled history', () => {
@@ -248,26 +248,26 @@ test('workspace includes loading, empty, validation, server, conflict, forbidden
 });
 
 test('responsive desktop tables and mobile cards keep workflows available', () => {
-    assert.match(stylesSource, /\.payroll-table-heading, \.payroll-table > article \{ display: grid/);
-    assert.match(stylesSource, /\.payroll-page > \* \{ min-width: 0; max-width: 100%; \}/);
-    assert.match(stylesSource, /\.payroll-page \.section-heading[\s\S]*padding: var\(--space-4\) var\(--space-5\)/);
-    assert.match(stylesSource, /\.payroll-page \.record-panel \{ min-width: 0; overflow: hidden; \}/);
-    assert.match(stylesSource, /@media \(max-width: 39\.99rem\)[\s\S]*\.period-table > article, \.preflight-table > article \{ display: grid; grid-template-columns: 1fr/);
-    assert.match(stylesSource, /\.advance-actions \{ display: flex; flex-wrap: wrap/);
+    assert.match(stylesSource, /\.payroll-table-heading,\s*\.payroll-table\s*>\s*article\s*\{\s*display:\s*grid/);
+    assert.match(stylesSource, /\.payroll-page\s*>\s*\*\s*\{\s*min-width:\s*0;\s*max-width:\s*100%;\s*\}/);
+    assert.match(stylesSource, /\.payroll-page\s*\.section-heading[\s\S]*padding:\s*var\(--space-4\)\s*var\(--space-5\)/);
+    assert.match(stylesSource, /\.payroll-page\s*\.record-panel\s*\{\s*min-width:\s*0;\s*overflow:\s*hidden;\s*\}/);
+    assert.match(stylesSource, /@media\s*\(max-width:\s*39\.99rem\)[\s\S]*\.period-table\s*>\s*article,\s*\.preflight-table\s*>\s*article\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*1fr/);
+    assert.match(stylesSource, /\.advance-actions\s*\{\s*display:\s*flex;\s*flex-wrap:\s*wrap/);
     assert.doesNotMatch(stylesSource, /\.advance-actions \{ position: sticky/);
-    assert.match(stylesSource, /\.advance-actions button \{ min-height: 2\.75rem/);
-    assert.match(stylesSource, /\.settlement-worker-heading, \.settlement-worker-row \{ display: grid; grid-template-columns:/);
-    assert.match(stylesSource, /@media \(max-width: 47\.5rem\)[\s\S]*\.settlement-worker-heading \{ display: none; \}/);
-    assert.match(stylesSource, /\.settlement-worker-row button, \.settlement-actions button \{ min-height: 44px; width: 100%; \}/);
-    assert.match(stylesSource, /@media print[\s\S]*\.print-document/);
-    assert.match(stylesSource, /\.print-document thead \{ display: table-header-group; \}/);
-    assert.match(stylesSource, /\.print-document tr \{ break-inside: avoid; page-break-inside: avoid; \}/);
+    assert.match(stylesSource, /\.advance-actions\s*button\s*\{\s*min-height:\s*2\.75rem/);
+    assert.match(stylesSource, /\.settlement-worker-heading,\s*\.settlement-worker-row\s*\{\s*display:\s*grid;\s*grid-template-columns:/);
+    assert.match(stylesSource, /@media\s*\(max-width:\s*47\.5rem\)[\s\S]*\.settlement-worker-heading\s*\{\s*display:\s*none;\s*\}/);
+    assert.match(stylesSource, /\.settlement-worker-row\s*button,\s*\.settlement-actions\s*button\s*\{\s*min-height:\s*44px;\s*width:\s*100%;\s*\}/);
+    assert.match(stylesSource, /@media\s*print[\s\S]*\.print-document/);
+    assert.match(stylesSource, /\.print-document\s*thead\s*\{\s*display:\s*table-header-group;\s*\}/);
+    assert.match(stylesSource, /\.print-document\s*tr\s*\{\s*break-inside:\s*avoid;\s*page-break-inside:\s*avoid;\s*\}/);
 });
 
 test('Phase 6C settlement uses generated-client payment and document operations', () => {
     for (const method of ['settlement', 'payments', 'acknowledgement', 'reversal', 'closeSettlementPayroll', 'reopen', 'payslip', 'cashRegister']) assert.match(pageSource, new RegExp(`api\\.${method}\\(`));
-    assert.match(pageSource, /Operational payslip/);
-    assert.match(pageSource, /Encrypted at rest; only the masked value is displayed/);
+    assert.match(pageSource, /Operational\s*payslip/);
+    assert.match(pageSource, /Encrypted\s*at\s*rest;\s*only\s*the\s*masked\s*value\s*is\s*displayed/);
     assert.doesNotMatch(pageSource, /globalThis\.prompt|window\.prompt/);
 });
 

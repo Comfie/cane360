@@ -36,6 +36,10 @@ internal sealed class FarmConfiguration : IEntityTypeConfiguration<Farm>
             .WithOne()
             .HasForeignKey(person => person.FarmId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FarmModel>().WithMany()
+            .HasForeignKey(farm => new { farm.FarmModelId, farm.TenantId })
+            .HasPrincipalKey(model => new { model.Id, model.TenantId })
+            .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
 

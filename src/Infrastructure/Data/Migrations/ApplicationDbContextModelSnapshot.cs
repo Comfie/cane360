@@ -755,6 +755,9 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasPrecision(12, 4)
                         .HasColumnType("numeric(12,4)");
 
+                    b.Property<Guid?>("FarmModelId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("IrrigationContext")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -796,10 +799,59 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"Status\" = 'Active'");
 
+                    b.HasIndex("FarmModelId", "TenantId");
+
                     b.HasIndex("TenantId", "Code")
                         .IsUnique();
 
                     b.ToTable("Farms", "farm");
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Farms.FarmModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("FarmModels", "farm");
                 });
 
             modelBuilder.Entity("Cane360.Domain.Farms.FarmSetting", b =>
@@ -934,6 +986,15 @@ namespace Cane360.Infrastructure.Data.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("Active")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Association")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -946,6 +1007,18 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("GrowerNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("timestamp with time zone");
 
@@ -953,19 +1026,70 @@ namespace Cane360.Infrastructure.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("character varying(450)");
 
+                    b.Property<string>("MembershipNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<byte[]>("NationalIdCiphertext")
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("NationalIdFingerprint")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("NationalIdKeyId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("NationalIdMask")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<byte[]>("NationalIdNonce")
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("NationalIdTag")
+                        .HasColumnType("bytea");
+
                     b.Property<string>("Phone")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<string>("PhotoReference")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<string>("RegisteredAddress")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<string>("Sex")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Surname")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId")
                         .IsUnique();
 
-                    b.ToTable("GrowerProfiles", "identity");
+                    b.HasIndex("TenantId", "NationalIdFingerprint")
+                        .IsUnique()
+                        .HasFilter("\"NationalIdFingerprint\" IS NOT NULL");
+
+                    b.ToTable("GrowerProfiles", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_GrowerProfiles_ProtectedNationalId", "(\"NationalIdCiphertext\" IS NULL AND \"NationalIdNonce\" IS NULL AND \"NationalIdTag\" IS NULL AND \"NationalIdFingerprint\" IS NULL AND \"NationalIdKeyId\" IS NULL AND \"NationalIdMask\" IS NULL) OR (\"NationalIdCiphertext\" IS NOT NULL AND octet_length(\"NationalIdCiphertext\") > 0 AND \"NationalIdNonce\" IS NOT NULL AND octet_length(\"NationalIdNonce\") = 12 AND \"NationalIdTag\" IS NOT NULL AND octet_length(\"NationalIdTag\") = 16 AND \"NationalIdFingerprint\" IS NOT NULL AND octet_length(\"NationalIdFingerprint\") = 32 AND \"NationalIdKeyId\" IS NOT NULL AND length(\"NationalIdKeyId\") > 0 AND \"NationalIdMask\" IS NOT NULL AND length(\"NationalIdMask\") > 0)");
+                        });
                 });
 
             modelBuilder.Entity("Cane360.Domain.Farms.HarvestResult", b =>
@@ -7526,6 +7650,21 @@ namespace Cane360.Infrastructure.Data.Migrations
                 {
                     b.HasOne("Cane360.Domain.Farms.Tenant", null)
                         .WithMany("Farms")
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cane360.Domain.Farms.FarmModel", null)
+                        .WithMany()
+                        .HasForeignKey("FarmModelId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Cane360.Domain.Farms.FarmModel", b =>
+                {
+                    b.HasOne("Cane360.Domain.Farms.Tenant", null)
+                        .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

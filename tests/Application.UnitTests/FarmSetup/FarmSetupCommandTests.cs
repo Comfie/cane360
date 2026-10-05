@@ -41,7 +41,8 @@ public class FarmSetupCommandTests
             .Setup(store => store.GetTenantForUserAsync("user-1", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Tenant?)null);
 
-        var handler = new CreateGrowerFarmCommandHandler(repository.Object, user.Object);
+        var handler = new CreateGrowerFarmCommandHandler(repository.Object, user.Object,
+            Mock.Of<IWorkerSensitiveDataProtector>(), TimeProvider.System);
         var result = await handler.Handle(ValidFarmCommand(), CancellationToken.None);
 
         result.IsConfigured.ShouldBeTrue();
@@ -61,7 +62,8 @@ public class FarmSetupCommandTests
             .Setup(store => store.GetTenantForUserAsync("user-1", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Tenant.CreateForGrower("user-1", "Existing Grower", null));
 
-        var handler = new CreateGrowerFarmCommandHandler(repository.Object, user.Object);
+        var handler = new CreateGrowerFarmCommandHandler(repository.Object, user.Object,
+            Mock.Of<IWorkerSensitiveDataProtector>(), TimeProvider.System);
 
         await Should.ThrowAsync<Cane360.Application.Common.Exceptions.ValidationException>(() =>
             handler.Handle(ValidFarmCommand(), CancellationToken.None));
@@ -86,7 +88,8 @@ public class FarmSetupCommandTests
         repository
             .Setup(store => store.GetTenantForUserAsync("user-1", true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
-        var handler = new UpdateFarmInformationCommandHandler(repository.Object, user.Object);
+        var handler = new UpdateFarmInformationCommandHandler(repository.Object, user.Object,
+            Mock.Of<IWorkerSensitiveDataProtector>(), TimeProvider.System);
 
         var result = await handler.Handle(new UpdateFarmInformationCommand(
             "Tariro Ncube",

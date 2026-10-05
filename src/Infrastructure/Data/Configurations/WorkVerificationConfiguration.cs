@@ -13,6 +13,7 @@ internal sealed class WorkVerificationConfiguration : IEntityTypeConfiguration<W
         builder.ToTable("WorkVerifications", "labour", table =>
             table.HasCheckConstraint("CK_WorkVerifications_ConfirmationTime",
                 "\"ManagerConfirmedAt\" IS NULL OR \"ManagerConfirmedAt\" >= \"SupervisorVerifiedAt\""));
+        builder.Property(verification => verification.SupervisorVerifiedAt);
         builder.HasKey(verification => verification.Id);
         builder.Property(verification => verification.Id).ValueGeneratedNever();
         builder.Property(verification => verification.SupervisorVerificationEnteredByUserId).HasMaxLength(450)
