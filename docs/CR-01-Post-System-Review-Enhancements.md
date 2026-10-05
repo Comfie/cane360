@@ -2,12 +2,12 @@
 
 ## Requirements lock (CR-01.0)
 
-CR-01.0 and CR-01.1 are complete. CR-01.2 is authorized for implementation and validation; Git closure and later slices are not authorized.
+CR-01.0, CR-01.1 and CR-01.2 are complete. CR-01.2 Git closure is authorized and recorded below; later slices are not authorized.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
-| CR-01.2 | Field/Crop UX | Implemented and validated; awaiting Git closure |
+| CR-01.2 | Field/Crop UX | Complete; implemented, validated and merged into main |
 | CR-01.3 | Employee Master | Not started |
 | CR-01.4 | Inventory Category Administration | Not started |
 | CR-01.5 | Regression/Integration | Deferred |
@@ -191,7 +191,7 @@ Age is derived from StartDate to the clock date or recorded harvest date in comp
 
 ## CR-01.2 implementation and validation — 2026-10-05
 
-Baseline/HEAD: `af30f3281525d8581b2ceed1e9031f8fa5efd19a`; feature branch `feature/cr-01-2-field-crop-ux`. No commit, staging, push, merge or deployment was performed. The earlier CR-01.1 closure statements above describe that slice's historical state; the table and this section describe CR-01.2's current state.
+Implementation handoff baseline/HEAD: `af30f3281525d8581b2ceed1e9031f8fa5efd19a`; feature branch `feature/cr-01-2-field-crop-ux`. At that handoff, no commit, staging, push, merge or deployment had been performed. The earlier CR-01.1 closure statements describe that slice's historical state; CR-01.2 Git closure is recorded below.
 
 ### Physical Field creation and post-creation access
 
@@ -321,3 +321,35 @@ Final design checks: no crop-cycle properties moved to Field; Add Field asks onl
 - `tests/Application.UnitTests/Farms/SupervisorAuthorizationBoundaryTests.cs`
 - `tests/Infrastructure.IntegrationTests/PostgreSqlFieldCropUxAcceptanceTests.cs`
 - `tests/Web.UnitTests/Controllers/CropCyclesControllerTests.cs`
+
+## CR-01.2 Git closure — 2026-10-05
+
+Feature commit: `9be3968ea24d47fda158922844411e3eff43c64c` (`feat(cr-01): improve field and crop cycle UX`), pushed to `origin/feature/cr-01-2-field-crop-ux`. The feature branch is retained locally and remotely.
+
+Merge commit: `1362a4d6faa099f12dc7c08c7cb3111618dd4e7c` (`Merge CR-01.2 field and crop cycle UX enhancements`). Main and origin/main both matched baseline `af30f3281525d8581b2ceed1e9031f8fa5efd19a` before the merge. The merge is a regular two-parent merge, matching CR-01.1, with no squash, conflicts, force push or history rewrite. Its tree exactly matches the verified feature tree.
+
+Main SHA at final executable verification: `1362a4d6faa099f12dc7c08c7cb3111618dd4e7c`. The final main tip is the subsequent documentation-only commit `docs(cr-01): record CR-01.2 git closure`; resolve its full SHA with `git log -1 --format=%H --grep="^docs(cr-01): record CR-01.2 git closure$" main`. As in CR-01.1, that commit cannot embed its own SHA in its contents; the final user report records the final main SHA and push outcome explicitly.
+
+The pre-commit and post-merge gates both passed:
+
+| Closure gate | Final result on merged main |
+| --- | --- |
+| .NET solution build | Passed; 0 warnings/errors |
+| Application tests | 436/436 passed; 0 failures/skips |
+| Web/API tests | 122/122 passed; 0 failures/skips |
+| Focused CR-01.2 backend tests | 22/22 passed; 0 failures/skips |
+| Additional focused API cases | 3 passed within Web/API suite |
+| Frontend tests | 118/118 passed; includes 8 focused CR-01.2 cases |
+| Frontend lint and typecheck | Passed |
+| Frontend production build and generated-client checks | Passed; existing bundle-size advisory remains |
+| EF pending-model/model parity | Clean; no changes since last migration |
+| Railway Development CR012Acceptance rerun | 5/5 passed; 0 failures/skips |
+| git diff --check | Passed |
+
+**No CR-01.2 database migration exists or is required.** No migration file or model snapshot changed, and no migration was created, applied or reapplied during closure. Railway Development's last verified schema state remains 21 applied / 0 pending, including `20261005202118_AddFarmOwnerProfileEnhancements`. Migration counts were not queried during closure merely to prove that no migration exists. The acceptance rerun used uniquely labelled synthetic tenants/run identifiers and rolled back only each test's own uncommitted transaction; it did not clean committed data or modify non-test tenants.
+
+The 55-file staged set exactly matched the reviewed CR-01.2 manifest. All 89 unrelated untracked paths and their content hashes were preserved. All tracked files outside the CR-01.2 set, including pre-existing Phase 8 work, retained their content hashes. Local environment files, secrets, temporary outputs and unrelated documentation were not staged. The post-merge executable checks left the tracked tree clean; only this closure documentation was changed afterward.
+
+Known limitations are unchanged: the application-wide maturity setting requires restart; expected maturity reuses the persisted harvest-window expectation, with explicit draft recalculation and stable historical values; planting/cycle-plan edits are draft-only; manual yield corrections are Harvested-only before closure; physical Field code/areas/reporting source retain existing immutability; crop age uses whole calendar months and the existing UTC date convention. The existing bundle-size advisory remains. No application deployment or authenticated deployment smoke was performed or verified.
+
+CR-01.3 Employee Master, CR-01.4 Inventory Category Administration and new Phase 8 work have NOT started. Git closure is the stopping boundary for this task.
