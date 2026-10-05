@@ -24,6 +24,12 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetCropCyclesQuery(fieldId), cancellationToken));
     }
 
+    [HttpGet("maturity", Name = "CalculateCropMaturity")]
+    [ProducesResponseType<CropMaturityDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<CropMaturityDto>> CalculateMaturity(Guid fieldId, DateOnly? plantingDate,
+        CancellationToken cancellationToken)
+        => Ok(await sender.Send(new CalculateCropMaturityQuery(fieldId, plantingDate), cancellationToken));
+
     [HttpPost(Name = "CreateCropCycles")]
     [EndpointSummary("Create crop-cycle draft")]
     [EndpointDescription("Creates a plant-cane or ratoon crop-cycle draft for a field.")]
@@ -100,6 +106,21 @@ public sealed class CropCyclesController(ISender sender) : ControllerBase
     {
         return Send(new CloseCropCycleCommand(fieldId, cropCycleId, request.ExpectedVersion), cancellationToken);
     }
+
+    [HttpPut("{cropCycleId:guid}/plan", Name = "UpdateCropCyclePlan")]
+    [ProducesResponseType<CropCycleDetailsDto>(StatusCodes.Status200OK)]
+    public Task<ActionResult<CropCycleDetailsDto>> UpdatePlan(Guid fieldId, Guid cropCycleId,
+        UpdateCropCyclePlanRequest request, CancellationToken cancellationToken)
+        => Send(new UpdateCropCyclePlanCommand(fieldId, cropCycleId, request.ExpectedVersion,
+            request.StartDate, request.ExpectedHarvestStart, request.ExpectedHarvestEnd, request.ExpectedYieldTonnes),
+            cancellationToken);
+
+    [HttpPut("{cropCycleId:guid}/actual-yield", Name = "UpdateCropCycleActualYield")]
+    [ProducesResponseType<CropCycleDetailsDto>(StatusCodes.Status200OK)]
+    public Task<ActionResult<CropCycleDetailsDto>> UpdateActualYield(Guid fieldId, Guid cropCycleId,
+        UpdateActualYieldRequest request, CancellationToken cancellationToken)
+        => Send(new UpdateActualYieldCommand(fieldId, cropCycleId, request.ExpectedVersion, request.ActualTonnes),
+            cancellationToken);
 
     private async Task<ActionResult<CropCycleDetailsDto>> Send(
         IRequest<CropCycleDetailsDto> command,

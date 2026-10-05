@@ -6,18 +6,18 @@ namespace Cane360.Application.CropCycles;
 
 internal static class CropCycleMapper
 {
-    public static CropCycleCollectionDto MapCollection(Field field)
+    public static CropCycleCollectionDto MapCollection(Field field, DateOnly? today = null)
     {
         return new CropCycleCollectionDto(
             MapField(field),
             field.CropCycles
                 .OrderByDescending(cycle => cycle.StartDate)
                 .ThenByDescending(cycle => cycle.Created)
-                .Select(MapListItem)
+                .Select(cycle => MapListItem(cycle, today))
                 .ToArray());
     }
 
-    public static CropCycleDetailsDto MapDetails(Field field, CropCycle cycle)
+    public static CropCycleDetailsDto MapDetails(Field field, CropCycle cycle, DateOnly? today = null)
     {
         List<string> allowed = new();
         Dictionary<string, string> blocked = new();
@@ -67,7 +67,7 @@ internal static class CropCycleMapper
 
         return new CropCycleDetailsDto(
             MapField(field),
-            MapListItem(cycle),
+            MapListItem(cycle, today),
             allowed,
             blocked,
             MapTimeline(field, cycle));
@@ -79,9 +79,10 @@ internal static class CropCycleMapper
         Farm farm,
         IIdentityService identityService,
         IReadOnlyList<WorkRecord>? labourRecords = null,
-        IReadOnlyList<WorkerProfile>? workers = null)
+        IReadOnlyList<WorkerProfile>? workers = null,
+        DateOnly? today = null)
     {
-        CropCycleDetailsDto details = MapDetails(field, cycle);
+        CropCycleDetailsDto details = MapDetails(field, cycle, today);
         IEnumerable<string> userIds = cycle.Activities
             .SelectMany(activity => activity.StatusChanges.Select(change => change.RecordedBy)
                 .Append(activity.CreatedBy)
@@ -210,7 +211,7 @@ internal static class CropCycleMapper
         return new CropCycleFieldDto(field.Id, field.Code, field.Name, field.ReportingHectares);
     }
 
-    private static CropCycleListItemDto MapListItem(CropCycle cycle)
+    private static CropCycleListItemDto MapListItem(CropCycle cycle, DateOnly? today)
     {
         return new CropCycleListItemDto(
             cycle.Id,
@@ -228,7 +229,8 @@ internal static class CropCycleMapper
                 ? null
                 : new HarvestResultDto(
                     FormatDate(cycle.HarvestResult.HarvestDate),
-                    cycle.HarvestResult.ActualTonnes));
+                    cycle.HarvestResult.ActualTonnes),
+            today.HasValue ? cycle.AgeInMonths(today.Value) : null);
     }
 
     private static IReadOnlyList<CropCycleTimelineEventDto> MapTimeline(Field field, CropCycle cycle)
@@ -248,7 +250,7 @@ internal static class CropCycleMapper
         timeline.AddRange(cycle.StatusChanges.Select(change => new CropCycleTimelineEventDto(
             change.Id,
             "StatusChange",
-            StatusTitle(change.FromStatus, change.ToStatus),
+            change.FromStatus == change.ToStatus ? "Crop cycle edited" : StatusTitle(change.FromStatus, change.ToStatus),
             FormatTimestamp(change.RecordedAt),
             FormatTimestamp(change.RecordedAt),
             change.ToStatus == CropCycleStatus.Draft

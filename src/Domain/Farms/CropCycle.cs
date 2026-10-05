@@ -45,7 +45,7 @@ public sealed class CropCycle : BaseAuditableEntity
     public int? RatoonNumber { get; private set; }
     public Guid? CropVarietyId { get; private set; }
     public string Variety { get; private set; } = string.Empty;
-    public DateOnly StartDate { get; }
+    public DateOnly StartDate { get; private set; }
     public DateOnly ExpectedHarvestStart { get; private set; }
     public DateOnly ExpectedHarvestEnd { get; private set; }
     public decimal ExpectedYieldTonnes { get; private set; }
@@ -106,6 +106,53 @@ public sealed class CropCycle : BaseAuditableEntity
             expectedYieldTonnes,
             recordedAt,
             recordedBy);
+    }
+
+    public int AgeInMonths(DateOnly today)
+    {
+        DateOnly end = HarvestResult?.HarvestDate ?? today;
+        if (end < StartDate)
+        {
+            return 0;
+        }
+        int months = (end.Year - StartDate.Year) * 12 + end.Month - StartDate.Month;
+        return StartDate.AddMonths(months) > end ? months - 1 : months;
+    }
+
+    public void UpdateDraftPlan(DateOnly startDate, DateOnly harvestStart, DateOnly harvestEnd,
+        decimal expectedYieldTonnes, DateTimeOffset recordedAt, string recordedBy)
+    {
+        EnsureStatus(CropCycleStatus.Draft);
+        ArgumentException.ThrowIfNullOrWhiteSpace(recordedBy);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(expectedYieldTonnes);
+        if (harvestStart < startDate || harvestEnd < harvestStart)
+        {
+            throw new InvalidOperationException("The expected harvest window must follow the crop-cycle start date.");
+        }
+
+        string reason = FormattableString.Invariant(
+            $"Plan edited: start {StartDate:yyyy-MM-dd} to {startDate:yyyy-MM-dd}; expected harvest {ExpectedHarvestStart:yyyy-MM-dd}–{ExpectedHarvestEnd:yyyy-MM-dd} to {harvestStart:yyyy-MM-dd}–{harvestEnd:yyyy-MM-dd}; expected tonnes {ExpectedYieldTonnes:F3} to {expectedYieldTonnes:F3}.");
+        StartDate = startDate;
+        ExpectedHarvestStart = harvestStart;
+        ExpectedHarvestEnd = harvestEnd;
+        ExpectedYieldTonnes = expectedYieldTonnes;
+        RecordEdit(reason, recordedAt, recordedBy);
+    }
+
+    public void UpdateActualYield(decimal actualTonnes, DateTimeOffset recordedAt, string recordedBy)
+    {
+        EnsureStatus(CropCycleStatus.Harvested);
+        ArgumentException.ThrowIfNullOrWhiteSpace(recordedBy);
+        string reason = FormattableString.Invariant(
+            $"Manual actual yield edited: {HarvestResult!.ActualTonnes:F3} to {actualTonnes:F3} tonnes.");
+        HarvestResult.UpdateActualTonnes(actualTonnes);
+        RecordEdit(reason, recordedAt, recordedBy);
+    }
+
+    private void RecordEdit(string reason, DateTimeOffset recordedAt, string recordedBy)
+    {
+        Version++;
+        _statusChanges.Add(CropCycleStatusChange.Create(Id, Status, Status, recordedAt, recordedBy, reason));
     }
 
     internal void Activate(DateTimeOffset recordedAt, string recordedBy)

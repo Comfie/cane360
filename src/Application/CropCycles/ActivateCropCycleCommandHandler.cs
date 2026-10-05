@@ -12,7 +12,7 @@ public sealed class ActivateCropCycleCommandHandler(
         CropCycleAccess.ApplyDomainAction(nameof(request.CropCycleId), () =>
             field.ActivateCropCycle(cycle, timeProvider.GetUtcNow(), userId));
         await repository.SaveChangesAsync(cancellationToken);
-        return CropCycleMapper.MapDetails(field, cycle);
+        return CropCycleMapper.MapDetails(field, cycle, DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
     }
 
     internal static async Task<(Field Field, CropCycle Cycle, string UserId)> LoadAsync(

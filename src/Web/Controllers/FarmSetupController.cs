@@ -96,6 +96,13 @@ public sealed class FarmSetupController(ISender sender) : ControllerBase
     public async Task<ActionResult<RevealedFarmOwnerNationalIdDto>> RevealFarmOwnerNationalId(CancellationToken cancellationToken)
         => Ok(await sender.Send(new RevealFarmOwnerNationalIdCommand(), cancellationToken));
 
+    [HttpPut("fields/{fieldId:guid}", Name = "UpdateFieldDetails")]
+    [ProducesResponseType<FarmSetupDto>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<FarmSetupDto>> UpdateField(Guid fieldId, UpdateFieldDetailsRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await sender.Send(new UpdateFieldDetailsCommand(fieldId, request.Name, request.IrrigationMethod,
+            request.SoilNotes), cancellationToken));
+
     [HttpPost("fields")]
     [EndpointSummary("Create field")]
     [EndpointDescription("Adds a uniquely coded field to the authenticated grower's active farm.")]

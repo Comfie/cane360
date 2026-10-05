@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {Sprout} from 'lucide-react';
 import type {CropCycleDetailsDto, CropVarietyDto, FieldDto} from '../../web-api-client';
 import {createCycle, createVariety, cropVarietiesClient, localDate} from './cropCycleApi';
-import {DatePicker} from '../DatePicker';
+import {CropPlanFields} from './CropPlanFields';
 import {getApiError} from '../farm-setup/farmSetupApi';
 import {ValidationError} from '../ValidationError';
 
@@ -45,8 +45,8 @@ export function CropCycleForm({field, onSaved, onCancel}: CropCycleFormProps) {
                 ratoonNumber: cycleType === 'Ratoon' ? Number(data.get('ratoonNumber')) : undefined,
                 cropVarietyId,
                 startDate: localDate(data.get('startDate')),
-                expectedHarvestStart: localDate(data.get('expectedHarvestStart')),
-                expectedHarvestEnd: localDate(data.get('expectedHarvestEnd')),
+                expectedHarvestStart: data.get('expectedHarvestStart') ? localDate(data.get('expectedHarvestStart')) : undefined,
+                expectedHarvestEnd: data.get('expectedHarvestEnd') ? localDate(data.get('expectedHarvestEnd')) : undefined,
                 expectedYieldTonnes: Number(data.get('expectedYieldTonnes')),
             });
             onSaved(details);
@@ -89,11 +89,7 @@ export function CropCycleForm({field, onSaved, onCancel}: CropCycleFormProps) {
                     <span className="toggle-control-track" aria-hidden="true"/>
                     <span>Add a new variety</span>
                 </label>
-                <label>Cycle start date<DatePicker name="startDate" required/></label>
-                <label>Expected harvest from<DatePicker name="expectedHarvestStart" required/></label>
-                <label>Expected harvest to<DatePicker name="expectedHarvestEnd" required/></label>
-                <label>Expected yield (tonnes)<input name="expectedYieldTonnes" type="number" min="0.01" max="1000000"
-                                                     step="0.001" inputMode="decimal" required/></label>
+                <CropPlanFields fieldId={field.id}/>
             </fieldset>
             {varieties.length === 0 && !isAddingVariety &&
                 <p className="form-guidance">No crop varieties exist yet. Choose “Add a new variety” to create the first

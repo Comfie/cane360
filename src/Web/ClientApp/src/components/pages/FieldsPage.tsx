@@ -1,14 +1,16 @@
-import {type FormEvent, useEffect, useState} from 'react';
-import {Eye, LandPlot, Plus, Sprout} from 'lucide-react';
+import {FieldForm} from '../farm-setup/FieldForm';
+import {useEffect, useState} from 'react';
+import {Eye, Plus, Sprout} from 'lucide-react';
 import {Link, useNavigate} from 'react-router-dom';
-import {CreateFieldRequest, type CropCycleCollectionDto, type FarmSetupDto} from '../../web-api-client';
+import {type CropCycleCollectionDto} from '../../web-api-client';
 import {CropCycleForm} from '../crop-cycles/CropCycleForm';
 import {cropCyclesClient} from '../crop-cycles/cropCycleApi';
 import {CropCycleRegister} from '../crop-cycles/CropCycleRegister';
 import {EmptyState} from '../EmptyState';
+import {FieldDetailsForm} from '../farm-setup/FieldDetailsForm';
 import {FieldRecord} from '../farm-setup/FieldRecord';
 import {FarmSetupProgress} from '../farm-setup/FarmSetupProgress';
-import {farmSetupClient, getApiError, useFarmSetup} from '../farm-setup/farmSetupApi';
+import {getApiError, useFarmSetup} from '../farm-setup/farmSetupApi';
 import {LoadingState} from '../LoadingState';
 import {PageHeader} from '../PageHeader';
 import {ValidationError} from '../ValidationError';
@@ -86,10 +88,10 @@ export function FieldsPage() {
 
             {showFieldForm && (
                 <FieldForm
-                    onSaved={(result, fieldId) => {
+                    onSaved={(result) => {
                         setSetup(result);
                         setIsAddingField(false);
-                        setActiveCycleField(fieldId);
+                        setActiveCycleField(null);
                     }}
                     onCancel={fields.length > 0 ? () => setIsAddingField(false) : undefined}
                     onError={setError}
@@ -111,6 +113,7 @@ export function FieldsPage() {
                                 ?.cropCycles.find((cycle) => cycle.status === 'Draft');
 
                             return <FieldRecord key={field.id} field={field} draftCycle={draftCycle}>
+                                {!isSupervisor && <FieldDetailsForm field={field} onSaved={setSetup}/>}
                                 {!isSupervisor && <LineProfileForm fieldId={field.id}/>}
                                 {!isSupervisor && <div className="field-cycle-actions">
                                     {field.currentCropCycle && <Link className="secondary-action"
@@ -148,87 +151,4 @@ export function FieldsPage() {
                                      readOnly={isSupervisor}/>)}
         </div>
     );
-}
-
-interface FieldFormProps {
-    onSaved: (setup: FarmSetupDto, fieldId: string) => void;
-    onCancel?: () => void;
-    onError: (message: string) => void;
-}
-
-function FieldForm({onSaved, onCancel, onError}: FieldFormProps) {
-    const [isSaving, setIsSaving] = useState(false);
-    const [reportingSource, setReportingSource] = useState('Declared');
-
-    const saveField = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        const fieldCode = String(data.get('code')).trim();
-        onError('');
-        setIsSaving(true);
-
-        try {
-            const result = await farmSetupClient.fields(new CreateFieldRequest({
-                code: fieldCode,
-                name: String(data.get('name')).trim(),
-                declaredHectares: Number(data.get('declaredHectares')),
-                mappedHectares: reportingSource === 'Mapped' ? Number(data.get('mappedHectares')) : optionalNumber(data.get('mappedHectares')),
-                reportingAreaSource: reportingSource,
-                irrigationMethod: String(data.get('irrigationMethod')).trim(),
-                soilNotes: optionalValue(data.get('soilNotes')),
-            }));
-            const resultFields = result.farm?.fields ?? [];
-            const newField = resultFields.find((field) => field.code.toUpperCase() === fieldCode.toUpperCase());
-            onSaved(result, newField?.id ?? '');
-        } catch (requestError) {
-            onError(getApiError(requestError));
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    return (
-        <form className="setup-form record-panel" onSubmit={saveField}>
-            <header className="form-section-heading">
-                <span className="form-section-icon" aria-hidden="true"><LandPlot size={19}/></span>
-                <div><span className="eyebrow">Field setup</span><h2>Add a field</h2><p>Record both measured areas, then
-                    choose the source Cane360 should report.</p></div>
-            </header>
-            <fieldset className="form-grid">
-                <label>Field code<input name="code" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_-]*"
-                                        placeholder="e.g. A-01" required/></label>
-                <label>Field name<input name="name" maxLength={120} placeholder="e.g. North block" required/></label>
-                <label>Declared area (ha)<input name="declaredHectares" type="number" min="0.01" max="100000"
-                                                step="0.01" inputMode="decimal" required/></label>
-                <label>Mapped area (ha) <small>{reportingSource === 'Mapped' ? 'Required' : 'Optional'}</small><input
-                    name="mappedHectares" type="number" min="0.01" max="100000" step="0.01" inputMode="decimal"
-                    required={reportingSource === 'Mapped'}/></label>
-                <label>Reporting area source<select name="reportingAreaSource" value={reportingSource}
-                                                    onChange={(event) => setReportingSource(event.target.value)}>
-                    <option value="Declared">Declared area</option>
-                    <option value="Mapped">Mapped area</option>
-                </select></label>
-                <label>Irrigation method<input name="irrigationMethod" maxLength={100} placeholder="e.g. Furrow"
-                                               required/></label>
-                <label className="is-wide">Soil notes <small>Optional</small><textarea name="soilNotes" maxLength={500}
-                                                                                       rows={3}/></label>
-            </fieldset>
-            <footer className="form-actions"><p>Field codes must be unique within this farm.</p>
-                <div>{onCancel &&
-                    <button type="button" className="secondary outline" onClick={onCancel}>Cancel</button>}
-                    <button type="submit" disabled={isSaving}>{isSaving ? 'Adding field…' : 'Add field'}</button>
-                </div>
-            </footer>
-        </form>
-    );
-}
-
-function optionalValue(value: string | File | null): string | undefined {
-    const text = String(value ?? '').trim();
-    return text || undefined;
-}
-
-function optionalNumber(value: string | File | null): number | undefined {
-    const text = String(value ?? '').trim();
-    return text ? Number(text) : undefined;
 }

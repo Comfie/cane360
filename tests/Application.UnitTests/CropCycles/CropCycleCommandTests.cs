@@ -21,7 +21,8 @@ public class CropCycleCommandTests
         var tenant = CreateTenant(out var field, out var variety);
         repository.Setup(store => store.GetTenantForUserAsync("user-1", true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
-        var handler = new CreateCropCycleCommandHandler(repository.Object, user.Object, new FixedTimeProvider(Now));
+        var handler = new CreateCropCycleCommandHandler(repository.Object, user.Object, new FixedTimeProvider(Now),
+            Microsoft.Extensions.Options.Options.Create(new CropMaturityOptions()));
 
         var result = await handler.Handle(new CreateCropCycleCommand(
             field.Id,
@@ -47,7 +48,8 @@ public class CropCycleCommandTests
         var tenant = CreateTenant(out _, out var variety);
         repository.Setup(store => store.GetTenantForUserAsync("user-1", true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
-        var handler = new CreateCropCycleCommandHandler(repository.Object, user.Object, new FixedTimeProvider(Now));
+        var handler = new CreateCropCycleCommandHandler(repository.Object, user.Object, new FixedTimeProvider(Now),
+            Microsoft.Extensions.Options.Options.Create(new CropMaturityOptions()));
 
         await Should.ThrowAsync<NotFoundException>(() => handler.Handle(new CreateCropCycleCommand(
             Guid.NewGuid(),
@@ -96,7 +98,7 @@ public class CropCycleCommandTests
         var user = CurrentUser();
         repository.Setup(store => store.GetTenantForOperationalUserAsync("user-1", false, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Tenant?)null);
-        var handler = new GetCropCyclesQueryHandler(repository.Object, user.Object);
+        var handler = new GetCropCyclesQueryHandler(repository.Object, user.Object, new FixedTimeProvider(Now));
 
         await Should.ThrowAsync<NotFoundException>(() => handler.Handle(
             new GetCropCyclesQuery(Guid.NewGuid()), CancellationToken.None));

@@ -74,7 +74,7 @@ public class CropCycleLabourHistoryTests
         var identity = new Mock<IIdentityService>();
         identity.Setup(service => service.GetUserNameAsync(It.IsAny<string>())).ReturnsAsync("manager@example.test");
         var handler = new GetCropCycleDetailsQueryHandler(
-            farmRepository.Object, labourRepository.Object, user.Object, identity.Object);
+            farmRepository.Object, labourRepository.Object, user.Object, identity.Object, TimeProvider.System);
 
         return await handler.Handle(
             new GetCropCycleDetailsQuery(context.Field.Id, context.Cycle.Id), CancellationToken.None);

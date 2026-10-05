@@ -6,7 +6,8 @@ public sealed class GetCropCycleDetailsQueryHandler(
     IFarmSetupRepository repository,
     ILabourRepository labourRepository,
     IUser user,
-    IIdentityService identityService) : IRequestHandler<GetCropCycleDetailsQuery, CropCycleDetailsDto>
+    IIdentityService identityService,
+    TimeProvider timeProvider) : IRequestHandler<GetCropCycleDetailsQuery, CropCycleDetailsDto>
 {
     public async Task<CropCycleDetailsDto> Handle(
         GetCropCycleDetailsQuery request,
@@ -24,6 +25,7 @@ public sealed class GetCropCycleDetailsQueryHandler(
             .Where(record => record.Activities.Any(link => activityIds.Contains(link.ActivityId))).ToArray();
         IReadOnlyList<WorkerProfile> workers =
             await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
-        return await CropCycleMapper.MapDetailsAsync(field, cropCycle, farm, identityService, cycleRecords, workers);
+        return await CropCycleMapper.MapDetailsAsync(field, cropCycle, farm, identityService, cycleRecords, workers,
+            DateOnly.FromDateTime(timeProvider.GetUtcNow().UtcDateTime));
     }
 }

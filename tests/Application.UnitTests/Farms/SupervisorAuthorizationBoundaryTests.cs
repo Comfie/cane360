@@ -108,7 +108,7 @@ public sealed class SupervisorAuthorizationBoundaryTests
     {
         Fixture fixture = CreateFixture();
         var setup = new GetFarmSetupQueryHandler(fixture.Repository.Object, User(SupervisorUserId));
-        var cycles = new GetCropCyclesQueryHandler(fixture.Repository.Object, User(SupervisorUserId));
+        var cycles = new GetCropCyclesQueryHandler(fixture.Repository.Object, User(SupervisorUserId), TimeProvider.System);
 
         FarmSetupDto workspace = await setup.Handle(new GetFarmSetupQuery(), CancellationToken.None);
         CropCycleCollectionDto register = await cycles.Handle(

@@ -2,6 +2,7 @@ import {type FormEvent, useEffect, useRef, useState} from 'react';
 import type {LucideIcon} from 'lucide-react';
 import {ArrowLeft, ArrowUpRight, CalendarDays, CircleDot, Coins, History, Sprout, Users, Warehouse} from 'lucide-react';
 import {Link, useParams} from 'react-router-dom';
+import {CropCycleEditForm} from '../crop-cycles/CropCycleEditForm';
 import {ConfirmationDialog} from '../ConfirmationDialog';
 import type {CropCycleTransitionAction} from '../crop-cycles/cropCycleApi';
 import {cropCyclesClient, localDate, transitionCycle} from '../crop-cycles/cropCycleApi';
@@ -94,9 +95,12 @@ export function CropCycleOverviewPage() {
                             <dd>{cycle.variety}</dd>
                         </div>
                         <div>
-                            <dt>Start date</dt>
+                            <dt>Planting / cycle start date</dt>
                             <dd>{formatDate(cycle.startDate)}</dd>
                         </div>
+                        <div><dt>{cycle.harvestResult ? 'Crop age at harvest' : 'Crop age'}</dt>
+                            <dd>{cycle.cropAgeMonths == null ? 'Unavailable' : `${cycle.cropAgeMonths} months`}</dd></div>
+                        <div><dt>Expected maturity / harvest from</dt><dd>{formatDate(cycle.expectedHarvestStart)}</dd></div>
                         <div>
                             <dt>Harvest window</dt>
                             <dd>{formatDate(cycle.expectedHarvestStart)}–{formatDate(cycle.expectedHarvestEnd)}</dd>
@@ -129,6 +133,8 @@ export function CropCycleOverviewPage() {
                         <strong>{actionLabel(action)} unavailable:</strong> {reason}</p>)}
                 </article>
             </section>
+
+            <CropCycleEditForm key={cycle.id} details={details} onSaved={setDetails}/>
 
             <section aria-labelledby="history-title">
                 <div className="section-heading">
@@ -241,7 +247,7 @@ function nextStepDescription(status: string): string {
         Draft: 'Activation makes this the field’s current crop. Cancel only if the draft will not proceed.',
         Active: 'Mark the crop ready only when harvest preparation should begin.',
         ReadyForHarvest: 'A valid harvest date and positive actual tonnes are required.',
-        Harvested: 'Review the permanent harvest result before closing this cycle.'
+        Harvested: 'Review or correct the manually entered actual yield before closing this cycle.'
     })[status] ?? '';
 }
 

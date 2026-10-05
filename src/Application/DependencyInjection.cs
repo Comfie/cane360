@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Cane360.Application.Administration;
 using Cane360.Application.Common.Behaviours;
+using Cane360.Application.CropCycles;
 using Cane360.Application.Finance;
 using Cane360.Application.MillRecords;
 using Cane360.Application.Payroll;
@@ -13,6 +14,11 @@ public static class DependencyInjection
 {
     public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
+        builder.Services.AddOptions<CropMaturityOptions>()
+            .Bind(builder.Configuration.GetSection(CropMaturityOptions.SectionName))
+            .Validate(options => options.DefaultCropMaturityMonths is >= 1 and <= 120,
+                "DefaultCropMaturityMonths must be between 1 and 120.")
+            .ValidateOnStart();
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         builder.Services.AddScoped<IPayrollSettlementService, PayrollSettlementService>();
         builder.Services.AddScoped<IFinanceService, FinanceService>();

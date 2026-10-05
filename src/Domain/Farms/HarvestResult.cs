@@ -15,6 +15,12 @@ public sealed class HarvestResult : BaseAuditableEntity
     public DateOnly HarvestDate { get; private set; }
     public decimal ActualTonnes { get; private set; }
 
+    internal void UpdateActualTonnes(decimal actualTonnes)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actualTonnes);
+        ActualTonnes = actualTonnes;
+    }
+
     internal static HarvestResult Create(Guid cropCycleId, DateOnly harvestDate, decimal actualTonnes)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actualTonnes);

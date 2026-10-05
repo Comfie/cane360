@@ -2,12 +2,12 @@
 
 ## Requirements lock (CR-01.0)
 
-Only CR-01.0 and CR-01.1 are authorized for this change.
+CR-01.0 and CR-01.1 are complete. CR-01.2 is authorized for implementation and validation; Git closure and later slices are not authorized.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
-| CR-01.2 | Field/Crop UX | Not started |
+| CR-01.2 | Field/Crop UX | Implemented and validated; awaiting Git closure |
 | CR-01.3 | Employee Master | Not started |
 | CR-01.4 | Inventory Category Administration | Not started |
 | CR-01.5 | Regression/Integration | Deferred |
@@ -180,3 +180,144 @@ CR-01.2, CR-01.3, CR-01.4 and later slices have NOT started. No new Phase 8 work
 - `tests/Infrastructure.IntegrationTests/PostgreSqlFarmOwnerProfileAcceptanceTests.cs`
 - `tests/Infrastructure.IntegrationTests/PostgreSqlFarmOwnerProfilePrerequisiteTests.cs`
 - `tests/Web.UnitTests/Controllers/FarmProfileContractTests.cs`
+
+## CR-01.2 minimal implementation approach
+
+Inspection: Field owns physical identifiers, declared/mapped/reporting area, irrigation and soil notes. CropCycle owns mandatory StartDate (planting/cycle start), persisted expected harvest window, expected yield, variety/ratoon and lifecycle. HarvestResult owns manual actual tonnes and actual harvest date. There is no separate maturity column or manually entered crop age. Mill records/reconciliation are separate. Add Field already excludes crop properties.
+
+Use application options `CropCycles:DefaultCropMaturityMonths` (initial 14), overridable through `CropCycles__DefaultCropMaturityMonths`. Existing FarmSettings is constrained in the database to activity late-entry days; broadening it would require a migration and administrative changes. No runtime maturity administration is required. Reuse the persisted expected harvest window as the maturity expectation rather than create a duplicate date: when no explicit window is supplied, snapshot StartDate.AddMonths(configured months) into both bounds. Explicit windows remain overrides. Existing cycles never recalculate on read or configuration change. Draft plan edits can explicitly request recalculation; active/completed start dates remain immutable to protect operational history.
+
+Age is derived from StartDate to the clock date or recorded harvest date in completed calendar months, with future starts displayed as zero. No age is persisted. Actual yield remains positive manually entered tonnes (three decimal places), recorded at harvest and correctable while Harvested; Closed/Cancelled cycles remain read-only. Reuse version concurrency and lifecycle history for plan/yield edits. Physical field edits remain separate from crop commands. No migration is anticipated.
+
+## CR-01.2 implementation and validation — 2026-10-05
+
+Baseline/HEAD: `af30f3281525d8581b2ceed1e9031f8fa5efd19a`; feature branch `feature/cr-01-2-field-crop-ux`. No commit, staging, push, merge or deployment was performed. The earlier CR-01.1 closure statements above describe that slice's historical state; the table and this section describe CR-01.2's current state.
+
+### Physical Field creation and post-creation access
+
+Before and after, Add Field has exactly these seven physical inputs: field code, field name, declared hectares, optional mapped hectares (required when reporting from mapped area), reporting area source, irrigation method, and optional soil notes. Code, name, declared area and irrigation retain their required validation; reporting source defaults to Declared and record status remains Active. Field has no independent GPS input in this model; Farm location/mapping and GPS architecture are unchanged. Crop controls were already absent, so none were artificially removed from other workflows.
+
+The core form is now a separate reusable/testable component, its guidance separates physical creation from crop setup, soil notes use a smaller input, and saving a field no longer automatically opens the next crop form. A field without a cycle shows an honest empty state. Existing current-cycle links, draft links and the chronological cycle register remain the routes to operational data. Physical field editing exposes name, irrigation and soil notes separately; code and immutable area/reporting properties retain their existing domain behavior. Soil notes are also visible in Field View.
+
+Field still owns physical production area. CropCycle still owns StartDate, variety/type/ratoon, expected harvest window and expected yield. HarvestResult owns actual harvest date and manually entered tonnes. No crop properties, maturity date, yield or age were added to Field. No activity, labour, inventory, costing or Phase 7 relationships changed.
+
+### Maturity configuration and historical truth
+
+The authoritative setting is `CropMaturityOptions.DefaultCropMaturityMonths`, initially **14**, bound from `CropCycles:DefaultCropMaturityMonths`. Operators may override it in application configuration or with `CropCycles__DefaultCropMaturityMonths`; restart the application to use a changed value. Startup validation permits 1–120 months. No production dependencies or runtime settings screen were added.
+
+The existing effective-dated FarmSettings mechanism is intentionally limited by a database constraint to `ActivityLateEntryReasonDays`. Reusing it for maturity would require a database migration and expanding an unrelated settings administration flow. Application options provide the approved configurability with no schema change.
+
+`StartDate` is the established planting/cycle-start concept, including ratoon starts; it is not a new planting column. The existing persisted expected harvest window is the maturity expectation snapshot. For a new draft with both window dates omitted, the application calculates `StartDate.AddMonths(DefaultCropMaturityMonths)` and stores it as both window bounds. Calendar month-end and leap-year behavior follows DateOnly.AddMonths. If both dates are supplied explicitly, that existing window overrides the default and remains unchanged. Partial windows, absent/default start dates, inverted windows and out-of-range dates are rejected.
+
+The tenant-scoped maturity preview returns no date for an absent planting date, otherwise the configured calendar calculation. The frontend asks the server for this preview and contains no maturity-month calculation or default literal. Its generated date-only query serialization preserves the selected local calendar date instead of shifting it through UTC.
+
+Draft editing initially preserves the stored window. Selecting “Use calculated maturity” explicitly recalculates from the edited start date and current configured months. Existing explicit windows remain supported. No read dynamically recalculates stored dates, and a configuration change affects only new or explicitly recalculated draft plans. Active, ReadyForHarvest, Harvested, Closed and Cancelled plans cannot be rewritten. Historical snapshots are protected, including when the default changes later. There is no duplicate persisted or calculated maturity property.
+
+### Crop age and manual actual yield
+
+Crop age is a derived whole-calendar-month display from StartDate to the existing TimeProvider UTC date (the same date convention as the existing harvest command). After a harvest result exists, its HarvestDate is the fixed end date, including after closure. A future start displays zero months. The API provides CropAgeMonths in crop-cycle collection/details responses; age is never stored or manually entered. The overview consistently labels “Crop age” or “Crop age at harvest”. Fields without crop cycles have no crop-age, planting or yield values.
+
+Actual Yield remains manually recorded in the existing harvest lifecycle operation. The new correction flow updates HarvestResult.ActualTonnes only while the cycle is Harvested, before closure. It accepts positive tonnes up to the existing limit, with at most three decimal places; negative, zero and excessive-precision inputs are rejected. Actual harvest date and lifecycle safeguards remain unchanged. Closed and Cancelled cycles remain read-only.
+
+Manual yield has no dependency on the mill repository or reconciliation service. Mill tickets and statement matches remain independent; the focused test keeps recorded ticket net tonnes and reconciliation match tonnes unchanged during a manual yield correction. Railway persistence tests also verify that the same field/cycle ticket retains its original net tonnes after correction. No Phase 7 calculation or reconciliation code was modified.
+
+### API, authorization and history
+
+Existing create-crop-cycle requests now accept an omitted/null expected window for calculated maturity; explicitly supplied windows retain their previous behavior. Added authenticated endpoints are GET crop-cycle maturity preview, PUT draft crop plan, PUT crop-cycle actual yield, and PUT physical field details. Route IDs supply the field/cycle context, and response DTOs include derived age. The TypeScript client was regenerated; its normalizer preserves existing checked-in formatting to avoid unrelated generation churn.
+
+Write operations use the existing tenant repository scope for Grower/FarmManager membership. Supervisor restrictions and Farm Owner access remain unchanged. Crop edits use existing version concurrency and the existing CropCycleStatusChange history collection: same-status edits increment Version, retain actor/timestamp, and record before/after plan or actual-yield values in Reason. The timeline labels these records “Crop cycle edited”. Physical field edits use existing tenant AuditEvents. No second history/audit system was introduced.
+
+### Verification and database state
+
+**CR-01.2 requires no database migration.** No migration was generated, applied, rolled back or reapplied. Railway Development's last verified schema baseline remains 21 applied / 0 pending, including `20261005202118_AddFarmOwnerProfileEnhancements`; schema state was not queried merely to prove that no new migration exists.
+
+| Gate | Result |
+| --- | --- |
+| dotnet build Cane360.slnx --no-restore | Passed; 0 warnings/errors |
+| Full Application suite | 436/436 passed |
+| Full Web/API suite | 122/122 passed |
+| Focused FieldCropUxTests | 22/22 passed |
+| New API route/preview contract cases | 3/3 passed within Web suite |
+| Frontend suite | 118/118 passed; includes 8 new rendering/client cases |
+| Frontend lint | Passed |
+| Frontend typecheck | Passed |
+| Frontend production build | Passed; existing large-bundle advisory remains |
+| EF has-pending-model-changes | Clean; no model changes since last migration |
+| Railway Development CR012Acceptance | 5/5 passed |
+| Isolated browser UI smoke | Passed at 1440px and 390px; no horizontal overflow |
+| git diff --check | Passed |
+
+Railway acceptance tests each create a uniquely labelled synthetic tenant and run identifier inside their own uncommitted transaction, assert only their own records, and roll back that transaction. They cover physical field create/edit, maturity persistence and draft recalculation/history, manual actual yield and independent mill-ticket persistence, historical harvest age/snapshot reads, and rejected foreign field identity. They neither clean committed data nor query global business-table counts. No application/test startup migration was used.
+
+Browser smoke used isolated synthetic API fixtures, not a production or pilot account. It verified Add Field's exact input set, separate crop setup after saving, Field editing, maturity preview, draft editing, crop-age presentation, manual yield saving, selected-cycle request context and responsive widths. Real persistence and repository scoping were separately verified by Railway acceptance tests. Application deployment and a live authenticated end-to-end deployment smoke were not performed.
+
+### Limitations and final design check
+
+- Maturity is an application-wide configurable default, requiring restart for an operator change; no tenant maturity administration was added.
+- Expected maturity reuses the persisted expected harvest-window start. Historical explicit windows remain historical expectations; they are not rewritten to an assumed 14-month value. Draft recalculation is an explicit choice.
+- Planting/cycle-start edits are draft-only. Actual yield corrections are Harvested-only; completed/closed history and actual harvest dates retain their established immutability.
+- Physical Field code, areas and reporting source retain existing immutability. Field detail edits use existing audit metadata and last-save behavior rather than inventing a new concurrency model.
+- Crop age is whole calendar months on the existing UTC harvest-date convention; it is a display, not a persisted agronomic measurement.
+- Existing production bundle-size advisory remains. No deployment was performed or verified.
+
+Final design checks: no crop-cycle properties moved to Field; Add Field asks only for physical data; Actual Yield is manual; mill/reconciliation cannot overwrite it; maturity months have one configured default; historical snapshots do not recalculate on reads/configuration changes. All 89 original unrelated untracked paths remain untracked, nothing is staged, and the pre-existing Phase 8 files are unchanged. CR-01.3 Employee Master, CR-01.4 Inventory Category Administration and new Phase 8 work have NOT started.
+
+### CR-01.2 changed-file manifest
+
+55 files: 31 tracked modifications and 24 new CR-01.2 files. Original untracked files are excluded.
+
+- `docs/CR-01-Post-System-Review-Enhancements.md`
+- `src/Application/CropCycles/ActivateCropCycleCommandHandler.cs`
+- `src/Application/CropCycles/CalculateCropMaturityQuery.cs`
+- `src/Application/CropCycles/CalculateCropMaturityQueryHandler.cs`
+- `src/Application/CropCycles/CalculateCropMaturityQueryValidator.cs`
+- `src/Application/CropCycles/CancelCropCycleCommandHandler.cs`
+- `src/Application/CropCycles/CloseCropCycleCommandHandler.cs`
+- `src/Application/CropCycles/CreateCropCycleCommand.cs`
+- `src/Application/CropCycles/CreateCropCycleCommandHandler.cs`
+- `src/Application/CropCycles/CreateCropCycleCommandValidator.cs`
+- `src/Application/CropCycles/CropCycleListItemDto.cs`
+- `src/Application/CropCycles/CropCycleMapper.cs`
+- `src/Application/CropCycles/CropMaturityDto.cs`
+- `src/Application/CropCycles/CropMaturityOptions.cs`
+- `src/Application/CropCycles/GetCropCycleDetailsQueryHandler.cs`
+- `src/Application/CropCycles/GetCropCyclesQueryHandler.cs`
+- `src/Application/CropCycles/HarvestCropCycleCommandHandler.cs`
+- `src/Application/CropCycles/MarkCropCycleReadyForHarvestCommandHandler.cs`
+- `src/Application/CropCycles/UpdateActualYieldCommand.cs`
+- `src/Application/CropCycles/UpdateActualYieldCommandHandler.cs`
+- `src/Application/CropCycles/UpdateActualYieldCommandValidator.cs`
+- `src/Application/CropCycles/UpdateCropCyclePlanCommand.cs`
+- `src/Application/CropCycles/UpdateCropCyclePlanCommandHandler.cs`
+- `src/Application/CropCycles/UpdateCropCyclePlanCommandValidator.cs`
+- `src/Application/DependencyInjection.cs`
+- `src/Application/FarmSetup/UpdateFieldDetailsCommand.cs`
+- `src/Application/FarmSetup/UpdateFieldDetailsCommandHandler.cs`
+- `src/Application/FarmSetup/UpdateFieldDetailsCommandValidator.cs`
+- `src/Domain/Farms/CropCycle.cs`
+- `src/Domain/Farms/Field.cs`
+- `src/Domain/Farms/HarvestResult.cs`
+- `src/Web/ClientApp/package.json`
+- `src/Web/ClientApp/scripts/normalize-generated-client.cjs`
+- `src/Web/ClientApp/src/components/crop-cycles/CropCycleEditForm.tsx`
+- `src/Web/ClientApp/src/components/crop-cycles/CropCycleForm.tsx`
+- `src/Web/ClientApp/src/components/crop-cycles/CropPlanFields.tsx`
+- `src/Web/ClientApp/src/components/crop-cycles/fieldCropUx.test.js`
+- `src/Web/ClientApp/src/components/farm-setup/FieldDetailsForm.tsx`
+- `src/Web/ClientApp/src/components/farm-setup/FieldForm.tsx`
+- `src/Web/ClientApp/src/components/farm-setup/FieldRecord.tsx`
+- `src/Web/ClientApp/src/components/pages/CropCycleOverviewPage.tsx`
+- `src/Web/ClientApp/src/components/pages/FieldsPage.tsx`
+- `src/Web/ClientApp/src/web-api-client.ts`
+- `src/Web/Controllers/CropCyclesController.cs`
+- `src/Web/Controllers/FarmSetupController.cs`
+- `src/Web/Models/CropCycles/CreateCropCycleRequest.cs`
+- `src/Web/Models/CropCycles/UpdateActualYieldRequest.cs`
+- `src/Web/Models/CropCycles/UpdateCropCyclePlanRequest.cs`
+- `src/Web/Models/FarmSetup/UpdateFieldDetailsRequest.cs`
+- `tests/Application.UnitTests/CropCycles/CropCycleCommandTests.cs`
+- `tests/Application.UnitTests/CropCycles/CropCycleLabourHistoryTests.cs`
+- `tests/Application.UnitTests/CropCycles/FieldCropUxTests.cs`
+- `tests/Application.UnitTests/Farms/SupervisorAuthorizationBoundaryTests.cs`
+- `tests/Infrastructure.IntegrationTests/PostgreSqlFieldCropUxAcceptanceTests.cs`
+- `tests/Web.UnitTests/Controllers/CropCyclesControllerTests.cs`

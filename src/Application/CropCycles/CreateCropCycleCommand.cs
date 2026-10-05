@@ -6,6 +6,6 @@ public sealed record CreateCropCycleCommand(
     int? RatoonNumber,
     Guid CropVarietyId,
     DateOnly StartDate,
-    DateOnly ExpectedHarvestStart,
-    DateOnly ExpectedHarvestEnd,
+    DateOnly? ExpectedHarvestStart,
+    DateOnly? ExpectedHarvestEnd,
     decimal ExpectedYieldTonnes) : IRequest<CropCycleDetailsDto>;

@@ -25,6 +25,7 @@ export function FieldRecord({field, draftCycle, children}: FieldRecordProps) {
                 <span><Droplets size={14} aria-hidden="true"/> {field.irrigationMethod}</span>
                 <span>Reporting from {field.reportingAreaSource.toLowerCase()} area</span>
             </div>
+            {field.soilNotes && <p>{field.soilNotes}</p>}
             {cycle ? (
                 <section className="cycle-summary" aria-label={`Current crop cycle for ${field.name}`}>
                     <div className="cycle-icon" aria-hidden="true"><Sprout size={17}/></div>
