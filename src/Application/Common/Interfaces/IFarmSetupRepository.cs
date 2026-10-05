@@ -55,6 +55,10 @@ public interface IFarmSetupRepository
     Task<IReadOnlyList<FarmSetting>> GetFarmSettingsAsync(Guid tenantId, Guid farmId,
         bool trackChanges, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<FarmModel>> GetFarmModelsAsync(Guid tenantId, bool trackChanges,
+        CancellationToken cancellationToken);
+    void Add(FarmModel model);
+
     void Add(FarmSetting setting);
     void Add(AuditEvent auditEvent);
 

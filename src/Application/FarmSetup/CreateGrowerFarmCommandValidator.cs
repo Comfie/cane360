@@ -4,6 +4,7 @@ public sealed class CreateGrowerFarmCommandValidator : AbstractValidator<CreateG
 {
     public CreateGrowerFarmCommandValidator()
     {
+        RuleFor(command => command.OwnerProfile).SetValidator(new FarmOwnerProfileInputValidator()!);
         RuleFor(command => command.GrowerDisplayName).NotEmpty().MaximumLength(120);
         RuleFor(command => command.GrowerPhone).MaximumLength(30);
         RuleFor(command => command.FarmCode)

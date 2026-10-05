@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<GrowerProfile> GrowerProfiles => Set<GrowerProfile>();
     public DbSet<TenantMembership> TenantMemberships => Set<TenantMembership>();
     public DbSet<Farm> Farms => Set<Farm>();
+    public DbSet<FarmModel> FarmModels => Set<FarmModel>();
     public DbSet<FarmSetting> FarmSettings => Set<FarmSetting>();
     public DbSet<Store> Stores => Set<Store>();
     public DbSet<Field> Fields => Set<Field>();

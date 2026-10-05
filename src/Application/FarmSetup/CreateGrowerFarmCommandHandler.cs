@@ -2,7 +2,9 @@ namespace Cane360.Application.FarmSetup;
 
 public sealed class CreateGrowerFarmCommandHandler(
     IFarmSetupRepository repository,
-    IUser user) : IRequestHandler<CreateGrowerFarmCommand, FarmSetupDto>
+    IUser user,
+    IWorkerSensitiveDataProtector protector,
+    TimeProvider clock) : IRequestHandler<CreateGrowerFarmCommand, FarmSetupDto>
 {
     public async Task<FarmSetupDto> Handle(
         CreateGrowerFarmCommand request,
@@ -28,6 +30,9 @@ public sealed class CreateGrowerFarmCommandHandler(
             request.DeclaredHectares,
             request.IrrigationContext);
 
+        FarmOwnerProfileUpdater.Apply(tenant, request.OwnerProfile, repository, user, protector, clock);
+        FarmProfileAudit.Add(repository, tenant, user, clock, "ProfileCreated",
+            "Farm Owner profile created; identity and contact values omitted.");
         repository.Add(tenant);
         await repository.SaveChangesAsync(cancellationToken);
 

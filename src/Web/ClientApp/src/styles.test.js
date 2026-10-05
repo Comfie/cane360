@@ -87,8 +87,8 @@ test('record-work activity selections use accessible checkbox controls', async (
 test('evidence attestation controls use a dedicated action row', async () => {
   const styles = await readFile(new URL('./styles.scss', import.meta.url), 'utf8');
 
-  assert.match(styles, /\.evidence-action \{[^}]*grid-column: 1 \/ -1;/);
-  assert.match(styles, /\.evidence-action button \{ white-space: nowrap;/);
+  assert.match(styles, /\.evidence-action\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/);
+  assert.match(styles, /\.evidence-action\s*button\s*\{\s*white-space:\s*nowrap;/);
 });
 
 test('evidence verification uses numbered step markers', async () => {

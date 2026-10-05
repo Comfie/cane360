@@ -14,7 +14,9 @@ internal static class FarmSetupMapper
 
         return new FarmSetupDto(
             true,
-            new GrowerDto(tenant.GrowerProfile.DisplayName, tenant.GrowerProfile.Phone),
+            new GrowerDto(tenant.GrowerProfile.DisplayName, tenant.GrowerProfile.Phone,
+                tenant.GrowerProfile.Title, tenant.GrowerProfile.FirstName, tenant.GrowerProfile.Surname, tenant.GrowerProfile.Sex, tenant.GrowerProfile.GrowerNumber, tenant.GrowerProfile.Association, tenant.GrowerProfile.MembershipNumber, tenant.GrowerProfile.RegisteredAddress, tenant.GrowerProfile.Email, tenant.GrowerProfile.PhotoReference,
+                tenant.GrowerProfile.Active, tenant.GrowerProfile.NationalIdMask),
             new FarmDto(
                 farm.Id,
                 farm.Code,
@@ -27,7 +29,7 @@ internal static class FarmSetupMapper
                 farm.Fields
                     .OrderBy(field => field.Code)
                     .Select(MapField)
-                    .ToArray()));
+                    .ToArray(), farm.FarmModelId));
     }
 
     private static FieldDto MapField(Field field)

@@ -1,5 +1,8 @@
 import type {FormEvent} from 'react';
 import {useState} from 'react';
+import {FarmOwnerFields} from './FarmOwnerFields';
+import {farmOwnerInput} from './farmOwnerForm';
+import {FarmModelEditor} from './FarmModelEditor';
 import {X} from 'lucide-react';
 import type {FarmSetupDto} from '../../web-api-client';
 import {UpdateFarmInformationRequest} from '../../web-api-client';
@@ -15,6 +18,7 @@ interface FarmProfileEditorProps {
 }
 
 export function FarmProfileEditor({setup, onClose, onSaved}: FarmProfileEditorProps) {
+    const [farmModelId, setFarmModelId] = useState(setup.farm?.farmModelId ?? '');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
     const dialogRef = useDialogFocus<HTMLDialogElement>(() => {
@@ -30,6 +34,9 @@ export function FarmProfileEditor({setup, onClose, onSaved}: FarmProfileEditorPr
         setSaving(true);
         try {
             onSaved(await farmSetupClient.updateFarmFarmSetup(new UpdateFarmInformationRequest({
+                ownerProfile: farmOwnerInput(data),
+                farmModelId: farmModelId || undefined,
+                updateFarmModel: true,
                 growerDisplayName: String(data.get('growerDisplayName')).trim(),
                 growerPhone: optionalValue(data.get('growerPhone')),
                 farmCode: String(data.get('farmCode')).trim(),
@@ -60,13 +67,10 @@ export function FarmProfileEditor({setup, onClose, onSaved}: FarmProfileEditorPr
                     <X/></button>
             </header>
             <form className="farm-profile-form" onSubmit={save}>
-                <fieldset className="form-grid">
-                    <label>Grower name<input name="growerDisplayName" autoComplete="name" maxLength={120}
-                                             defaultValue={setup.grower?.displayName} required/></label>
-                    <label>Phone number <small>Optional</small><input name="growerPhone" type="tel" autoComplete="tel"
-                                                                      maxLength={30}
-                                                                      defaultValue={setup.grower?.phone}/></label>
-                    <label>Farm code<input name="farmCode" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_-]*"
+                <FarmOwnerFields owner={setup.grower}/>
+                <FarmModelEditor selected={farmModelId} onSelected={setFarmModelId}/>
+                <fieldset className="form-grid"><legend>Farm details</legend>
+                    <label>Farm code<input name="farmCode" maxLength={20} pattern="[A-Za-z0-9][A-Za-z0-9_\-]*"
                                            defaultValue={farm.code} required/></label>
                     <label>Farm name<input name="farmName" maxLength={120} defaultValue={farm.name} required/></label>
                     <label>Location<input name="location" maxLength={120} defaultValue={farm.location}

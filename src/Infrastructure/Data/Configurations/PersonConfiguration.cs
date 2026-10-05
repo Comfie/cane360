@@ -14,6 +14,7 @@ internal sealed class PersonConfiguration : IEntityTypeConfiguration<Person>
                 "\"ActiveTo\" IS NULL OR \"ActiveTo\" >= \"ActiveFrom\"");
             table.HasCheckConstraint("CK_Persons_Status", "\"Status\" IN ('Active', 'Archived')");
         });
+        builder.Property(entity => entity.ActiveFrom);
         builder.HasKey(person => person.Id);
         builder.Property(person => person.Id).ValueGeneratedNever();
         builder.Property(person => person.DisplayName).HasMaxLength(120).IsRequired();

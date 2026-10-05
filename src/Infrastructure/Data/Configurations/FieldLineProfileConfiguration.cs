@@ -15,6 +15,7 @@ internal sealed class FieldLineProfileConfiguration : IEntityTypeConfiguration<F
             table.HasCheckConstraint("CK_FieldLineProfiles_EffectiveDates",
                 "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
         });
+        builder.Property(entity => entity.EffectiveFrom);
         builder.HasKey(profile => profile.Id);
         builder.Property(profile => profile.Id).ValueGeneratedNever();
         builder.Property(profile => profile.StandardLineLengthMetres).HasPrecision(10, 2);

@@ -11,6 +11,7 @@ internal sealed class ManagerInvitationConfiguration : IEntityTypeConfiguration<
     public void Configure(EntityTypeBuilder<ManagerInvitation> builder)
     {
         builder.ToTable("ManagerInvitations", "identity");
+        builder.Property(entity => entity.ExpiresAt);
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
         builder.HasAlternateKey(entity => new { entity.Id, entity.TenantId, entity.FarmId });

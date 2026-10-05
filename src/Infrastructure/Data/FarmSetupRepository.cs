@@ -178,6 +178,16 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
             .OrderByDescending(item => item.EffectiveFrom).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<FarmModel>> GetFarmModelsAsync(Guid tenantId, bool trackChanges,
+        CancellationToken cancellationToken)
+    {
+        IQueryable<FarmModel> query = context.FarmModels.Where(model => model.TenantId == tenantId);
+        return await (trackChanges ? query : query.AsNoTracking()).OrderBy(model => model.Code)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void Add(FarmModel model) => context.FarmModels.Add(model);
+
     public void Add(FarmSetting setting)
     {
         context.FarmSettings.Add(setting);
@@ -193,6 +203,11 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
         try
         {
             return await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (exception.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: "IX_FarmModels_TenantId_Code" })
+        {
+            throw new ConflictException("Farm Model code is already in use.");
         }
         catch (DbUpdateConcurrencyException)
         {
