@@ -1,11 +1,16 @@
-using Cane360.Domain.Auditing;
-using Cane360.Domain.MillRecords;
 using Cane360.Application.Common.Models;
+using Cane360.Domain.Auditing;
+using FluentValidation.Results;
+using ValidationException = Cane360.Application.Common.Exceptions.ValidationException;
 
 namespace Cane360.Application.MillRecords;
 
-public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsRepository records,
-    IEvidenceDocumentStorage storage, IUser user, TimeProvider clock) : IMillRecordsService
+public sealed class MillRecordsService(
+    IFarmSetupRepository farms,
+    IMillRecordsRepository records,
+    IEvidenceDocumentStorage storage,
+    IUser user,
+    TimeProvider clock) : IMillRecordsService
 {
     private const long MaximumEvidenceBytes = 20 * 1024 * 1024;
 
@@ -13,29 +18,26 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         int page, int pageSize, CancellationToken cancellationToken)
     {
         if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize)
+        {
             throw Validation("page", "Page must be positive and page size must be between 1 and 100.");
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.MatchStatus) && filter.MatchStatus is not ("Matched" or "Unmatched"))
+        {
             throw Validation("matchStatus", "Choose Matched or Unmatched.");
+        }
+
         Context context = await ContextAsync(false, cancellationToken);
         MillTicketPageSource source = await records.GetTicketPageAsync(context.Tenant.Id,
             context.Farm.Id, filter, page, pageSize, cancellationToken);
-        return new(MapTickets(context, source), page, pageSize, source.TotalCount,
+        return new WeighbridgeTicketPageDto(MapTickets(context, source), page, pageSize, source.TotalCount,
             source.UnmatchedCount, source.RecordedNetTonnes);
-    }
-
-    private static IReadOnlyList<WeighbridgeTicketDto> MapTickets(Context context, MillTicketPageSource source)
-    {
-        var mills = source.Mills.ToDictionary(x => x.Id);
-        var evidence = source.Evidence.ToLookup(x => x.WeighbridgeTicketId);
-        var matches = source.Matches.ToLookup(x => x.WeighbridgeTicketId);
-        return source.Tickets.Select(ticket => MapTicket(context, ticket, mills[ticket.MillId],
-            evidence[ticket.Id].ToArray(), matches[ticket.Id].ToArray(), null)).ToArray();
     }
 
     public async Task<MillRecordsSessionDto> GetSessionAsync(CancellationToken cancellationToken)
     {
         Context context = await ContextAsync(false, cancellationToken);
-        return new(Role(context), context.Farm.Fields.OrderBy(x => x.Code).Select(field =>
+        return new MillRecordsSessionDto(Role(context), context.Farm.Fields.OrderBy(x => x.Code).Select(field =>
             new MillFieldDto(field.Id, field.Code, field.Name, field.CropCycles
                 .OrderByDescending(x => x.StartDate).Select(cycle => new MillCropCycleDto(cycle.Id,
                     cycle.Variety, cycle.Status.ToString(), cycle.HarvestResult?.ActualTonnes))
@@ -120,7 +122,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         Context context = await ContextAsync(false, cancellationToken);
         WeighbridgeTicket ticket = await RequireTicketAsync(context, ticketId, false, cancellationToken);
         IReadOnlyList<WeighbridgeTicket> tickets = await records.GetTicketsAsync(context.Tenant.Id,
-            context.Farm.Id, new(null, null, null, null, null, null, null, null), cancellationToken);
+            context.Farm.Id, new TicketFilter(null, null, null, null, null, null, null, null), cancellationToken);
         return await MapTicketAsync(context, ticket, tickets, cancellationToken);
     }
 
@@ -152,8 +154,8 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         ValidateAssociation(context, input.FieldId, input.CropCycleId);
         WeighbridgeTicket ticket = await RequireTicketAsync(context, ticketId, true, cancellationToken);
         Apply(() => ticket.UpdateDraft(input.MillId, input.TicketReference, input.TicketDate,
-            input.GrossTonnes, input.TareTonnes, input.NetTonnes, input.FieldId,
-            input.CropCycleId, input.SourceReference, input.Notes, input.ExpectedVersion),
+                input.GrossTonnes, input.TareTonnes, input.NetTonnes, input.FieldId,
+                input.CropCycleId, input.SourceReference, input.Notes, input.ExpectedVersion),
             nameof(input.ExpectedVersion));
         Audit(context, ticket.Id, "TicketDraftChanged", null, "Weighbridge ticket draft changed.",
             audit => MillRecordAuditEventLink.ForTicket(audit.Id, context.Tenant.Id, context.Farm.Id, ticket.Id));
@@ -166,15 +168,21 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         Context context = await ContextAsync(true, cancellationToken);
         RequireOperator(context);
-        await using IMillRecordsTransaction transaction = await records.BeginSerializableTransactionAsync(cancellationToken);
+        await using IMillRecordsTransaction transaction =
+            await records.BeginSerializableTransactionAsync(cancellationToken);
         WeighbridgeTicket? existing = await records.GetTicketByRecordingKeyAsync(context.Tenant.Id,
             context.Farm.Id, input.IdempotencyKey, cancellationToken);
         if (existing is not null)
         {
-            if (existing.Id != ticketId) throw new ConflictException("This recording key belongs to another ticket.");
+            if (existing.Id != ticketId)
+            {
+                throw new ConflictException("This recording key belongs to another ticket.");
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return await MapTicketAsync(context, existing, [existing], cancellationToken);
         }
+
         WeighbridgeTicket ticket = await RequireTicketAsync(context, ticketId, true, cancellationToken);
         Apply(() => ticket.Record(context.UserId, clock.GetUtcNow(), input.IdempotencyKey,
             input.ExpectedVersion), nameof(input.ExpectedVersion));
@@ -191,25 +199,35 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         Context context = await ContextAsync(false, cancellationToken);
         RequireGrower(context);
-        await using IMillRecordsTransaction transaction = await records.BeginSerializableTransactionAsync(cancellationToken);
+        await using IMillRecordsTransaction transaction =
+            await records.BeginSerializableTransactionAsync(cancellationToken);
         WeighbridgeTicket? existing = await records.GetTicketByRecordingKeyAsync(context.Tenant.Id,
             context.Farm.Id, input.IdempotencyKey, cancellationToken);
         if (existing is not null)
         {
-            if (existing.CorrectsTicketId != ticketId) throw new ConflictException("This correction key belongs to another ticket.");
+            if (existing.CorrectsTicketId != ticketId)
+            {
+                throw new ConflictException("This correction key belongs to another ticket.");
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return await MapTicketAsync(context, existing, [existing], cancellationToken);
         }
+
         WeighbridgeTicket original = await RequireTicketAsync(context, ticketId, false, cancellationToken);
         if (input.Replacement.MillId != original.MillId)
-            throw Validation(nameof(input.Replacement.MillId), "A ticket correction must retain the authoritative mill.");
+        {
+            throw Validation(nameof(input.Replacement.MillId),
+                "A ticket correction must retain the authoritative mill.");
+        }
+
         ValidateAssociation(context, input.Replacement.FieldId, input.Replacement.CropCycleId);
         WeighbridgeTicket replacement = Apply(() => WeighbridgeTicket.CreateCorrection(original,
-            input.Replacement.TicketReference, input.Replacement.TicketDate,
-            input.Replacement.GrossTonnes, input.Replacement.TareTonnes,
-            input.Replacement.NetTonnes, input.Replacement.FieldId,
-            input.Replacement.CropCycleId, input.Replacement.SourceReference,
-            input.Replacement.Notes, input.Reason, context.UserId, clock.GetUtcNow()),
+                input.Replacement.TicketReference, input.Replacement.TicketDate,
+                input.Replacement.GrossTonnes, input.Replacement.TareTonnes,
+                input.Replacement.NetTonnes, input.Replacement.FieldId,
+                input.Replacement.CropCycleId, input.Replacement.SourceReference,
+                input.Replacement.Notes, input.Reason, context.UserId, clock.GetUtcNow()),
             nameof(input.Reason));
         replacement.Record(context.UserId, clock.GetUtcNow(), input.IdempotencyKey, replacement.Version);
         records.Add(replacement);
@@ -235,20 +253,15 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         int page, int pageSize, CancellationToken cancellationToken)
     {
         if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize)
+        {
             throw Validation("page", "Page must be positive and page size must be between 1 and 100.");
+        }
+
         filter = Normalize(filter);
         Context context = await ContextAsync(false, cancellationToken);
         MillStatementPageSource source = await records.GetStatementPageSourceAsync(context.Tenant.Id,
             context.Farm.Id, filter, page, pageSize, cancellationToken);
-        return new(MapStatements(source), page, pageSize, source.TotalCount);
-    }
-
-    private static StatementFilter Normalize(StatementFilter filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter.MatchStatus)) return filter;
-        if (!Enum.TryParse(filter.MatchStatus, true, out ReconciliationStatus status))
-            throw Validation("matchStatus", "Choose Unmatched, PartiallyMatched, Matched or Variance.");
-        return filter with { MatchStatus = status.ToString() };
+        return new GrowerStatementPageDto(MapStatements(source), page, pageSize, source.TotalCount);
     }
 
     public async Task<GrowerStatementDto> GetStatementAsync(Guid statementId,
@@ -257,7 +270,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         Context context = await ContextAsync(false, cancellationToken);
         GrowerStatement statement = await RequireStatementAsync(context, statementId, false, cancellationToken);
         IReadOnlyList<GrowerStatement> statements = await records.GetStatementsAsync(context.Tenant.Id,
-            context.Farm.Id, new(null, null, null, null, null), cancellationToken);
+            context.Farm.Id, new StatementFilter(null, null, null, null, null), cancellationToken);
         return await MapStatementAsync(context, statement, statements, cancellationToken);
     }
 
@@ -299,15 +312,21 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         Context context = await ContextAsync(true, cancellationToken);
         RequireOperator(context);
-        await using IMillRecordsTransaction transaction = await records.BeginSerializableTransactionAsync(cancellationToken);
+        await using IMillRecordsTransaction transaction =
+            await records.BeginSerializableTransactionAsync(cancellationToken);
         GrowerStatement? existing = await records.GetStatementByRecordingKeyAsync(context.Tenant.Id,
             context.Farm.Id, input.IdempotencyKey, cancellationToken);
         if (existing is not null)
         {
-            if (existing.Id != statementId) throw new ConflictException("This recording key belongs to another statement.");
+            if (existing.Id != statementId)
+            {
+                throw new ConflictException("This recording key belongs to another statement.");
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return await MapStatementAsync(context, existing, [existing], cancellationToken);
         }
+
         GrowerStatement statement = await RequireStatementAsync(context, statementId, true, cancellationToken);
         bool hasEvidence = (await records.GetStatementEvidenceAsync(context.Tenant.Id,
             context.Farm.Id, statement.Id, cancellationToken)).Count != 0;
@@ -328,7 +347,11 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         RequireGrower(context);
         GrowerStatement original = await RequireStatementAsync(context, statementId, false, cancellationToken);
         if (input.Replacement.MillId != original.MillId)
-            throw Validation(nameof(input.Replacement.MillId), "A statement correction must retain the authoritative mill.");
+        {
+            throw Validation(nameof(input.Replacement.MillId),
+                "A statement correction must retain the authoritative mill.");
+        }
+
         GrowerStatement replacement = Apply(() => GrowerStatement.CreateCorrection(original,
             input.Replacement.StatementReference, input.Replacement.PeriodStart,
             input.Replacement.PeriodEnd, input.Replacement.TotalTonnes,
@@ -337,7 +360,8 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         records.Add(replacement);
         Audit(context, replacement.Id, "StatementCorrectionCreated", input.Reason,
             "Replacement statement draft appended; original statement preserved.",
-            audit => MillRecordAuditEventLink.ForStatement(audit.Id, context.Tenant.Id, context.Farm.Id, replacement.Id));
+            audit => MillRecordAuditEventLink.ForStatement(audit.Id, context.Tenant.Id, context.Farm.Id,
+                replacement.Id));
         await records.SaveChangesAsync(cancellationToken);
         return await MapStatementAsync(context, replacement, [original, replacement], cancellationToken);
     }
@@ -347,35 +371,61 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         Context context = await ContextAsync(false, cancellationToken);
         RequireOperator(context);
-        await using IMillRecordsTransaction transaction = await records.BeginSerializableTransactionAsync(cancellationToken);
+        await using IMillRecordsTransaction transaction =
+            await records.BeginSerializableTransactionAsync(cancellationToken);
         StatementTicketMatch? retry = await records.GetMatchByIdempotencyKeyAsync(context.Tenant.Id,
             context.Farm.Id, input.IdempotencyKey, cancellationToken);
         if (retry is not null)
         {
             if (retry.GrowerStatementId != statementId || retry.WeighbridgeTicketId != input.WeighbridgeTicketId)
+            {
                 throw new ConflictException("This matching key belongs to another reconciliation action.");
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return await BuildReconciliationAsync(context, statementId, cancellationToken);
         }
+
         GrowerStatement statement = await RequireStatementAsync(context, statementId, false, cancellationToken);
-        WeighbridgeTicket ticket = await RequireTicketAsync(context, input.WeighbridgeTicketId, false, cancellationToken);
+        WeighbridgeTicket ticket =
+            await RequireTicketAsync(context, input.WeighbridgeTicketId, false, cancellationToken);
         if (statement.Status != GrowerStatementStatus.Recorded || ticket.Status != WeighbridgeTicketStatus.Recorded)
+        {
             throw new ConflictException("Only recorded statements and tickets can be matched.");
+        }
+
         if (statement.Version != input.ExpectedStatementVersion || ticket.Version != input.ExpectedTicketVersion)
+        {
             throw new ConflictException("The statement or ticket changed after it was loaded. Refresh and try again.");
+        }
+
         if (statement.MillId != ticket.MillId)
-            throw Validation(nameof(input.WeighbridgeTicketId), "The statement and ticket must belong to the same mill.");
+        {
+            throw Validation(nameof(input.WeighbridgeTicketId),
+                "The statement and ticket must belong to the same mill.");
+        }
+
         IReadOnlyList<StatementTicketMatch> ticketEvents = await records.GetMatchesForTicketAsync(
             context.Tenant.Id, context.Farm.Id, ticket.Id, cancellationToken);
         IReadOnlyList<StatementTicketMatch> active = ActiveMatches(ticketEvents);
         if (active.Any(x => x.GrowerStatementId == statement.Id))
+        {
             throw new ConflictException("This ticket is already actively matched to the statement.");
+        }
+
         decimal available = ticket.NetTonnes - active.Sum(x => x.MatchedTonnes);
         decimal matchedTonnes = input.MatchedTonnes ?? available;
         if (matchedTonnes <= 0 || matchedTonnes > available)
-            throw Validation(nameof(input.MatchedTonnes), "Matched tonnes must be positive and cannot exceed the ticket's available net tonnes.");
+        {
+            throw Validation(nameof(input.MatchedTonnes),
+                "Matched tonnes must be positive and cannot exceed the ticket's available net tonnes.");
+        }
+
         if (matchedTonnes != available && string.IsNullOrWhiteSpace(input.Reason))
+        {
             throw Validation(nameof(input.Reason), "A reason is required for a partial ticket match.");
+        }
+
         StatementTicketMatch match = Apply(() => StatementTicketMatch.Add(context.Tenant.Id,
             context.Farm.Id, statement.Id, ticket.Id, matchedTonnes, input.MatchedAmountUsd,
             input.CompletesMatching, input.Reason, context.UserId, clock.GetUtcNow(),
@@ -394,22 +444,36 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         Context context = await ContextAsync(false, cancellationToken);
         RequireGrower(context);
-        await using IMillRecordsTransaction transaction = await records.BeginSerializableTransactionAsync(cancellationToken);
+        await using IMillRecordsTransaction transaction =
+            await records.BeginSerializableTransactionAsync(cancellationToken);
         StatementTicketMatch? retry = await records.GetMatchByIdempotencyKeyAsync(context.Tenant.Id,
             context.Farm.Id, input.IdempotencyKey, cancellationToken);
         if (retry is not null)
         {
-            if (retry.ReversesMatchId != matchId) throw new ConflictException("This reversal key belongs to another match.");
+            if (retry.ReversesMatchId != matchId)
+            {
+                throw new ConflictException("This reversal key belongs to another match.");
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return await BuildReconciliationAsync(context, statementId, cancellationToken);
         }
+
         StatementTicketMatch original = await records.GetMatchAsync(context.Tenant.Id,
-            context.Farm.Id, matchId, cancellationToken) ?? throw new NotFoundException(matchId.ToString(), "Statement ticket match");
-        if (original.GrowerStatementId != statementId) throw new NotFoundException(matchId.ToString(), "Statement ticket match");
+                                            context.Farm.Id, matchId, cancellationToken) ??
+                                        throw new NotFoundException(matchId.ToString(), "Statement ticket match");
+        if (original.GrowerStatementId != statementId)
+        {
+            throw new NotFoundException(matchId.ToString(), "Statement ticket match");
+        }
+
         IReadOnlyList<StatementTicketMatch> events = await records.GetMatchesForStatementAsync(
             context.Tenant.Id, context.Farm.Id, statementId, cancellationToken);
         if (!ActiveMatches(events).Any(x => x.Id == matchId))
+        {
             throw new ConflictException("This match is no longer active.");
+        }
+
         StatementTicketMatch reversal = Apply(() => StatementTicketMatch.Reverse(original,
             input.Reason, context.UserId, clock.GetUtcNow(), input.IdempotencyKey), nameof(input.Reason));
         records.Add(reversal);
@@ -434,29 +498,41 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         Context context = await ContextAsync(false, cancellationToken);
         GrowerStatement statement = await RequireStatementAsync(context, statementId, false, cancellationToken);
         IReadOnlyList<WeighbridgeTicket> tickets = await records.GetTicketsAsync(context.Tenant.Id,
-            context.Farm.Id, new(statement.PeriodStart, statement.PeriodEnd, statement.MillId,
+            context.Farm.Id, new TicketFilter(statement.PeriodStart, statement.PeriodEnd, statement.MillId,
                 null, null, WeighbridgeTicketStatus.Recorded.ToString(), null, null), cancellationToken);
-        var result = new List<CandidateTicketDto>();
+        List<CandidateTicketDto> result = new();
         foreach (WeighbridgeTicket ticket in CurrentTickets(tickets))
         {
             IReadOnlyList<StatementTicketMatch> active = ActiveMatches(await records.GetMatchesForTicketAsync(
                 context.Tenant.Id, context.Farm.Id, ticket.Id, cancellationToken));
             decimal available = ticket.NetTonnes - active.Sum(x => x.MatchedTonnes);
-            if (available <= 0 || active.Any(x => x.GrowerStatementId == statementId)) continue;
+            if (available <= 0 || active.Any(x => x.GrowerStatementId == statementId))
+            {
+                continue;
+            }
+
             (string? fieldName, string? cycleLabel, _) = Association(context, ticket);
-            result.Add(new(ticket.Id, ticket.TicketReference, ticket.TicketDate.ToString("yyyy-MM-dd"),
+            result.Add(new CandidateTicketDto(ticket.Id, ticket.TicketReference,
+                ticket.TicketDate.ToString("yyyy-MM-dd"),
                 ticket.NetTonnes, available, ticket.Version, ticket.FieldId, fieldName, ticket.CropCycleId,
                 cycleLabel, active.Count != 0));
         }
+
         return result;
     }
 
     public Task<EvidenceDocumentDto> UploadTicketEvidenceAsync(Guid ticketId, EvidenceUpload input,
-        CancellationToken cancellationToken) => UploadEvidenceAsync(ticketId, null, input, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        return UploadEvidenceAsync(ticketId, null, input, cancellationToken);
+    }
 
     public Task<EvidenceDocumentDto> UploadStatementEvidenceAsync(Guid statementId,
-        EvidenceUpload input, CancellationToken cancellationToken) => UploadEvidenceAsync(null,
+        EvidenceUpload input, CancellationToken cancellationToken)
+    {
+        return UploadEvidenceAsync(null,
             statementId, input, cancellationToken);
+    }
 
     public async Task<EvidenceDownload> OpenEvidenceAsync(Guid evidenceId,
         CancellationToken cancellationToken)
@@ -464,13 +540,13 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         Context context = await ContextAsync(false, cancellationToken);
         EvidenceDocument evidence = await records.GetEvidenceAsync(context.Tenant.Id,
             context.Farm.Id, evidenceId, cancellationToken) ?? throw new NotFoundException(
-                evidenceId.ToString(), "Evidence document");
+            evidenceId.ToString(), "Evidence document");
         Audit(context, evidence.Id, "EvidenceAccessed", null,
             "Private mill-record evidence accessed through an authenticated endpoint.",
             audit => MillRecordAuditEventLink.ForEvidence(audit.Id, context.Tenant.Id, context.Farm.Id, evidence.Id));
         await records.SaveChangesAsync(cancellationToken);
         Stream content = await storage.OpenReadAsync(evidence.StorageKey, cancellationToken);
-        return new(content, evidence.OriginalFileName, evidence.ContentType);
+        return new EvidenceDownload(content, evidence.OriginalFileName, evidence.ContentType);
     }
 
     public async Task<ReportExportContext> RecordExportAsync(string kind, string filters,
@@ -487,8 +563,32 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             audit => MillRecordAuditEventLink.ForExport(audit.Id, context.Tenant.Id,
                 context.Farm.Id, export.Id));
         await records.SaveChangesAsync(cancellationToken);
-        return new(context.Farm.Name, kind, filters, generatedAt,
+        return new ReportExportContext(context.Farm.Name, kind, filters, generatedAt,
             "Current mill records and authoritative statement-ticket matches; schema 7C");
+    }
+
+    private static IReadOnlyList<WeighbridgeTicketDto> MapTickets(Context context, MillTicketPageSource source)
+    {
+        Dictionary<Guid, Mill> mills = source.Mills.ToDictionary(x => x.Id);
+        ILookup<Guid?, EvidenceDocument> evidence = source.Evidence.ToLookup(x => x.WeighbridgeTicketId);
+        ILookup<Guid, StatementTicketMatch> matches = source.Matches.ToLookup(x => x.WeighbridgeTicketId);
+        return source.Tickets.Select(ticket => MapTicket(context, ticket, mills[ticket.MillId],
+            evidence[ticket.Id].ToArray(), matches[ticket.Id].ToArray(), null)).ToArray();
+    }
+
+    private static StatementFilter Normalize(StatementFilter filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter.MatchStatus))
+        {
+            return filter;
+        }
+
+        if (!Enum.TryParse(filter.MatchStatus, true, out ReconciliationStatus status))
+        {
+            throw Validation("matchStatus", "Choose Unmatched, PartiallyMatched, Matched or Variance.");
+        }
+
+        return filter with { MatchStatus = status.ToString() };
     }
 
     private async Task<EvidenceDocumentDto> UploadEvidenceAsync(Guid? ticketId, Guid? statementId,
@@ -497,22 +597,39 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         Context context = await ContextAsync(false, cancellationToken);
         RequireOperator(context);
         if (input.Length <= 0 || input.Length > MaximumEvidenceBytes)
+        {
             throw Validation(nameof(input.Content), "Evidence must contain between 1 byte and 20 MB.");
-        if (ticketId.HasValue) await RequireTicketAsync(context, ticketId.Value, false, cancellationToken);
-        if (statementId.HasValue) await RequireStatementAsync(context, statementId.Value, false, cancellationToken);
+        }
+
+        if (ticketId.HasValue)
+        {
+            await RequireTicketAsync(context, ticketId.Value, false, cancellationToken);
+        }
+
+        if (statementId.HasValue)
+        {
+            await RequireStatementAsync(context, statementId.Value, false, cancellationToken);
+        }
+
         DocumentCategory? category = null;
         if (input.DocumentCategoryId.HasValue)
         {
             category = await records.GetDocumentCategoryAsync(context.Tenant.Id,
-                input.DocumentCategoryId.Value, cancellationToken)
-                ?? throw new NotFoundException(input.DocumentCategoryId.Value.ToString(),
-                    "Active document category");
+                           input.DocumentCategoryId.Value, cancellationToken)
+                       ?? throw new NotFoundException(input.DocumentCategoryId.Value.ToString(),
+                           "Active document category");
             if (!category.Active)
+            {
                 throw Validation(nameof(input.DocumentCategoryId), "Select an active document category.");
+            }
         }
+
         StoredEvidence stored = await storage.SaveAsync(input.Content, input.FileName, cancellationToken);
         if (stored.SizeBytes != input.Length)
+        {
             throw Validation(nameof(input.Content), "The uploaded evidence length did not match the request.");
+        }
+
         EvidenceDocument evidence = ticketId.HasValue
             ? EvidenceDocument.ForTicket(context.Tenant.Id, context.Farm.Id, ticketId.Value,
                 input.FileName, input.ContentType, stored.SizeBytes, stored.StorageKey,
@@ -520,7 +637,11 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             : EvidenceDocument.ForStatement(context.Tenant.Id, context.Farm.Id, statementId!.Value,
                 input.FileName, input.ContentType, stored.SizeBytes, stored.StorageKey,
                 context.UserId, clock.GetUtcNow());
-        if (category is not null) evidence.Classify(category);
+        if (category is not null)
+        {
+            evidence.Classify(category);
+        }
+
         records.Add(evidence);
         Audit(context, evidence.Id, statementId.HasValue ? "StatementUploaded" : "TicketEvidenceAttached",
             null, "Private source evidence stored and linked to its authoritative record.",
@@ -539,7 +660,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         IReadOnlyList<StatementTicketMatch> active = ActiveMatches(await records.GetMatchesForTicketAsync(
             context.Tenant.Id, context.Farm.Id, ticket.Id, cancellationToken));
         Guid? correctedBy = allTickets.SingleOrDefault(x => x.CorrectsTicketId == ticket.Id &&
-            x.Status == WeighbridgeTicketStatus.Recorded)?.Id;
+                                                            x.Status == WeighbridgeTicketStatus.Recorded)?.Id;
         return MapTicket(context, ticket, mill, evidence, active, correctedBy);
     }
 
@@ -549,7 +670,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
     {
         (string? fieldName, string? cycleLabel, decimal? harvest) = Association(context, ticket);
         Guid[] statementIds = active.Select(x => x.GrowerStatementId).Distinct().ToArray();
-        return new(ticket.Id, mill.Id, mill.Code, mill.Name, ticket.TicketReference,
+        return new WeighbridgeTicketDto(ticket.Id, mill.Id, mill.Code, mill.Name, ticket.TicketReference,
             ticket.TicketDate.ToString("yyyy-MM-dd"), ticket.GrossTonnes, ticket.TareTonnes,
             ticket.NetTonnes, ticket.FieldId, fieldName, ticket.CropCycleId, cycleLabel, harvest,
             ticket.SourceReference, ticket.Notes, ticket.Status.ToString(), ticket.Version,
@@ -566,10 +687,10 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         IReadOnlyList<EvidenceDocument> evidence = await records.GetStatementEvidenceAsync(
             context.Tenant.Id, context.Farm.Id, statement.Id, cancellationToken);
         Guid? correctedBy = allStatements.SingleOrDefault(x => x.CorrectsStatementId == statement.Id &&
-            x.Status == GrowerStatementStatus.Recorded)?.Id;
+                                                               x.Status == GrowerStatementStatus.Recorded)?.Id;
         ReconciliationSummaryDto reconciliation = await BuildReconciliationAsync(context,
             statement.Id, cancellationToken, statement);
-        return new(statement.Id, mill.Id, mill.Code, mill.Name, statement.StatementReference,
+        return new GrowerStatementDto(statement.Id, mill.Id, mill.Code, mill.Name, statement.StatementReference,
             statement.PeriodStart.ToString("yyyy-MM-dd"), statement.PeriodEnd.ToString("yyyy-MM-dd"),
             statement.TotalTonnes, statement.TotalAmountUsd, statement.Notes,
             statement.Status.ToString(), statement.Version, statement.CreatedAt,
@@ -594,11 +715,13 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
                 matchedTonnes, active.Count, active.Any(x => x.CompletesMatching));
             int amounts = active.Count(x => x.MatchedAmountUsd.HasValue);
             decimal? matchedAmount = amounts == active.Count && active.Count != 0
-                ? active.Sum(x => x.MatchedAmountUsd!.Value) : null;
+                ? active.Sum(x => x.MatchedAmountUsd!.Value)
+                : null;
             AmountReconciliationStatus amountStatus = MillReconciliationMath.AmountStatus(
                 statement.TotalAmountUsd, matchedAmount, active.Count, amounts);
             decimal? amountVariance = matchedAmount.HasValue
-                ? statement.TotalAmountUsd - matchedAmount.Value : null;
+                ? statement.TotalAmountUsd - matchedAmount.Value
+                : null;
             StatementTicketMatchDto[] matchDtos = events
                 .Where(x => x.Action == StatementTicketMatchAction.Added).Select(match =>
                 {
@@ -612,7 +735,7 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             bool reused = active.Any(match => ActiveMatches(related[match.WeighbridgeTicketId].ToArray())
                 .Any(other => other.GrowerStatementId != statement.Id));
             Mill mill = mills[statement.MillId];
-            var reconciliation = new ReconciliationSummaryDto(statement.Id, statement.TotalTonnes,
+            ReconciliationSummaryDto reconciliation = new(statement.Id, statement.TotalTonnes,
                 matchedTonnes, tonnesVariance, statement.TotalAmountUsd, matchedAmount,
                 amountVariance, amountStatus.ToString(), status.ToString(), reused, matchDtos);
             return new GrowerStatementDto(statement.Id, mill.Id, mill.Code, mill.Name,
@@ -639,21 +762,23 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
             matchedTonnes, active.Count, active.Any(x => x.CompletesMatching));
         int amounts = active.Count(x => x.MatchedAmountUsd.HasValue);
         decimal? matchedAmount = amounts == active.Count && active.Count != 0
-            ? active.Sum(x => x.MatchedAmountUsd!.Value) : null;
+            ? active.Sum(x => x.MatchedAmountUsd!.Value)
+            : null;
         AmountReconciliationStatus amountStatus = MillReconciliationMath.AmountStatus(
             statement.TotalAmountUsd, matchedAmount, active.Count, amounts);
         decimal? amountVariance = matchedAmount.HasValue ? statement.TotalAmountUsd - matchedAmount.Value : null;
-        var matchDtos = new List<StatementTicketMatchDto>();
+        List<StatementTicketMatchDto> matchDtos = new();
         foreach (StatementTicketMatch match in events.Where(x => x.Action == StatementTicketMatchAction.Added))
         {
             WeighbridgeTicket ticket = await RequireTicketAsync(context, match.WeighbridgeTicketId,
                 false, cancellationToken);
             StatementTicketMatch? reversal = events.SingleOrDefault(x => x.ReversesMatchId == match.Id);
-            matchDtos.Add(new(match.Id, ticket.Id, ticket.TicketReference,
+            matchDtos.Add(new StatementTicketMatchDto(match.Id, ticket.Id, ticket.TicketReference,
                 ticket.TicketDate.ToString("yyyy-MM-dd"), ticket.NetTonnes, match.MatchedTonnes,
                 match.MatchedAmountUsd, match.CompletesMatching, match.Reason, match.CreatedAt,
                 reversal is null, reversal?.Id));
         }
+
         bool reused = false;
         foreach (StatementTicketMatch match in active)
         {
@@ -662,7 +787,8 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
                     match.WeighbridgeTicketId, cancellationToken));
             reused |= ticketActive.Any(x => x.GrowerStatementId != statementId);
         }
-        return new(statement.Id, statement.TotalTonnes, matchedTonnes, tonnesVariance,
+
+        return new ReconciliationSummaryDto(statement.Id, statement.TotalTonnes, matchedTonnes, tonnesVariance,
             statement.TotalAmountUsd, matchedAmount, amountVariance, amountStatus.ToString(),
             status.ToString(), reused, matchDtos);
     }
@@ -671,59 +797,93 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         IReadOnlyList<StatementTicketMatch> events)
     {
         HashSet<Guid> reversed = events.Where(x => x.Action == StatementTicketMatchAction.Reversed &&
-            x.ReversesMatchId.HasValue).Select(x => x.ReversesMatchId!.Value).ToHashSet();
+                                                   x.ReversesMatchId.HasValue).Select(x => x.ReversesMatchId!.Value)
+            .ToHashSet();
         return events.Where(x => x.Action == StatementTicketMatchAction.Added && !reversed.Contains(x.Id)).ToArray();
     }
 
     private static IReadOnlyList<WeighbridgeTicket> CurrentTickets(IReadOnlyList<WeighbridgeTicket> tickets)
     {
         HashSet<Guid> corrected = tickets.Where(x => x.Status == WeighbridgeTicketStatus.Recorded &&
-            x.CorrectsTicketId.HasValue).Select(x => x.CorrectsTicketId!.Value).ToHashSet();
+                                                     x.CorrectsTicketId.HasValue).Select(x => x.CorrectsTicketId!.Value)
+            .ToHashSet();
         return tickets.Where(x => !corrected.Contains(x.Id)).ToArray();
     }
 
     private static (string? FieldName, string? CycleLabel, decimal? HarvestTonnes) Association(
         Context context, WeighbridgeTicket ticket)
     {
-        Field? field = ticket.FieldId.HasValue ? context.Farm.Fields.SingleOrDefault(x =>
-            x.Id == ticket.FieldId.Value) : null;
-        CropCycle? cycle = ticket.CropCycleId.HasValue ? field?.CropCycles.SingleOrDefault(x =>
-            x.Id == ticket.CropCycleId.Value) : null;
+        Field? field = ticket.FieldId.HasValue
+            ? context.Farm.Fields.SingleOrDefault(x =>
+                x.Id == ticket.FieldId.Value)
+            : null;
+        CropCycle? cycle = ticket.CropCycleId.HasValue
+            ? field?.CropCycles.SingleOrDefault(x =>
+                x.Id == ticket.CropCycleId.Value)
+            : null;
         return (field?.Name, cycle is null ? null : $"{cycle.Variety} · {cycle.StartDate:yyyy}",
             cycle?.HarvestResult?.ActualTonnes);
     }
 
     private static void ValidateAssociation(Context context, Guid? fieldId, Guid? cropCycleId)
     {
-        if (!fieldId.HasValue && !cropCycleId.HasValue) return;
-        if (!fieldId.HasValue) throw Validation(nameof(fieldId), "A field is required when a crop cycle is selected.");
+        if (!fieldId.HasValue && !cropCycleId.HasValue)
+        {
+            return;
+        }
+
+        if (!fieldId.HasValue)
+        {
+            throw Validation(nameof(fieldId), "A field is required when a crop cycle is selected.");
+        }
+
         Field field = context.Farm.Fields.SingleOrDefault(x => x.Id == fieldId.Value) ??
-            throw new NotFoundException(fieldId.Value.ToString(), "Field");
-        if (!cropCycleId.HasValue) return;
+                      throw new NotFoundException(fieldId.Value.ToString(), "Field");
+        if (!cropCycleId.HasValue)
+        {
+            return;
+        }
+
         if (!field.CropCycles.Any(x => x.Id == cropCycleId.Value))
+        {
             throw new NotFoundException(cropCycleId.Value.ToString(), "Crop cycle");
+        }
     }
 
     private async Task<Context> ContextAsync(bool track, CancellationToken cancellationToken)
     {
         string userId = user.Id ?? throw new ForbiddenAccessException();
         Tenant tenant = await farms.GetTenantReferenceContextForUserAsync(userId, track, cancellationToken) ??
-            throw new NotFoundException(userId, "Active grower or farm-manager membership");
-        return new(tenant, tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(),
+                        throw new NotFoundException(userId, "Active grower or farm-manager membership");
+        return new Context(tenant, tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(),
             "Active farm"), userId);
     }
 
     private Task<Mill> RequireMillAsync(Context context, Guid id, bool track,
-        CancellationToken cancellationToken) => RequireAsync(records.GetMillAsync(context.Tenant.Id,
+        CancellationToken cancellationToken)
+    {
+        return RequireAsync(records.GetMillAsync(context.Tenant.Id,
             context.Farm.Id, id, track, cancellationToken), id, "Mill");
+    }
+
     private Task<WeighbridgeTicket> RequireTicketAsync(Context context, Guid id, bool track,
-        CancellationToken cancellationToken) => RequireAsync(records.GetTicketAsync(context.Tenant.Id,
+        CancellationToken cancellationToken)
+    {
+        return RequireAsync(records.GetTicketAsync(context.Tenant.Id,
             context.Farm.Id, id, track, cancellationToken), id, "Weighbridge ticket");
+    }
+
     private Task<GrowerStatement> RequireStatementAsync(Context context, Guid id, bool track,
-        CancellationToken cancellationToken) => RequireAsync(records.GetStatementAsync(context.Tenant.Id,
+        CancellationToken cancellationToken)
+    {
+        return RequireAsync(records.GetStatementAsync(context.Tenant.Id,
             context.Farm.Id, id, track, cancellationToken), id, "Grower statement");
-    private static async Task<T> RequireAsync<T>(Task<T?> task, Guid id, string subject) where T : class =>
-        await task ?? throw new NotFoundException(id.ToString(), subject);
+    }
+
+    private static async Task<T> RequireAsync<T>(Task<T?> task, Guid id, string subject) where T : class
+    {
+        return await task ?? throw new NotFoundException(id.ToString(), subject);
+    }
 
     private void Audit(Context context, Guid subjectId, string action, string? reason,
         string summary, Func<AuditEvent, MillRecordAuditEventLink> link)
@@ -736,22 +896,64 @@ public sealed class MillRecordsService(IFarmSetupRepository farms, IMillRecordsR
         records.Add(link(audit));
     }
 
-    private static MillDto Map(Mill mill) => new(mill.Id, mill.Code, mill.Name, mill.Location,
-        mill.Active, mill.CreatedAt, mill.Version);
-    private static EvidenceDocumentDto Map(EvidenceDocument evidence) => new(evidence.Id,
-        evidence.OriginalFileName, evidence.ContentType, evidence.SizeBytes, evidence.UploadedAt,
-        evidence.DocumentCategoryId, evidence.DocumentCategoryCodeSnapshot);
+    private static MillDto Map(Mill mill)
+    {
+        return new MillDto(mill.Id, mill.Code, mill.Name, mill.Location,
+            mill.Active, mill.CreatedAt, mill.Version);
+    }
+
+    private static EvidenceDocumentDto Map(EvidenceDocument evidence)
+    {
+        return new EvidenceDocumentDto(evidence.Id,
+            evidence.OriginalFileName, evidence.ContentType, evidence.SizeBytes, evidence.UploadedAt,
+            evidence.DocumentCategoryId, evidence.DocumentCategoryCodeSnapshot);
+    }
+
     private static T Apply<T>(Func<T> action, string field)
-    { try { return action(); } catch (InvalidOperationException exception) { throw Validation(field, exception.Message); } catch (ArgumentException exception) { throw Validation(field, exception.Message); } }
+    {
+        try { return action(); }
+        catch (InvalidOperationException exception) { throw Validation(field, exception.Message); }
+        catch (ArgumentException exception) { throw Validation(field, exception.Message); }
+    }
+
     private static void Apply(Action action, string field)
-    { try { action(); } catch (InvalidOperationException exception) when (exception.Message.Contains("changed after it was loaded", StringComparison.Ordinal)) { throw new ConflictException(exception.Message); } catch (InvalidOperationException exception) { throw Validation(field, exception.Message); } catch (ArgumentException exception) { throw Validation(field, exception.Message); } }
-    private static Application.Common.Exceptions.ValidationException Validation(string field, string message) =>
-        new([new FluentValidation.Results.ValidationFailure(field, message)]);
+    {
+        try { action(); }
+        catch (InvalidOperationException exception) when (exception.Message.Contains("changed after it was loaded",
+                                                              StringComparison.Ordinal))
+        {
+            throw new ConflictException(exception.Message);
+        }
+        catch (InvalidOperationException exception) { throw Validation(field, exception.Message); }
+        catch (ArgumentException exception) { throw Validation(field, exception.Message); }
+    }
+
+    private static ValidationException Validation(string field, string message)
+    {
+        return new ValidationException([new ValidationFailure(field, message)]);
+    }
+
     private static void RequireOperator(Context context)
-    { if (Role(context) is not (TenantSecurityRoles.Grower or TenantSecurityRoles.FarmManager)) throw new ForbiddenAccessException(); }
+    {
+        if (Role(context) is not (TenantSecurityRoles.Grower or TenantSecurityRoles.FarmManager))
+        {
+            throw new ForbiddenAccessException();
+        }
+    }
+
     private static void RequireGrower(Context context)
-    { if (Role(context) != TenantSecurityRoles.Grower) throw new ForbiddenAccessException(); }
-    private static string Role(Context context) => context.Tenant.Memberships.Single(x =>
-        x.UserId == context.UserId).SecurityRole;
+    {
+        if (Role(context) != TenantSecurityRoles.Grower)
+        {
+            throw new ForbiddenAccessException();
+        }
+    }
+
+    private static string Role(Context context)
+    {
+        return context.Tenant.Memberships.Single(x =>
+            x.UserId == context.UserId).SecurityRole;
+    }
+
     private sealed record Context(Tenant Tenant, Farm Farm, string UserId);
 }

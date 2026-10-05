@@ -1,5 +1,6 @@
+using Cane360.Application;
 using Cane360.Infrastructure;
-using Cane360.Web.Infrastructure;
+using Cane360.Web;
 using Cane360.Web.Services;
 using Scalar.AspNetCore;
 using Serilog;
@@ -18,14 +19,14 @@ try
         Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
     }
 
-    var builder = WebApplication.CreateBuilder(args);
+    WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
     if (builder.Environment.IsDevelopment())
     {
         builder.Configuration.AddJsonFile(
             "appsettings.Development.Local.json",
-            optional: true,
-            reloadOnChange: true);
+            true,
+            true);
     }
 
     builder.Services.AddSerilog((services, loggerConfiguration) => ConfigureConsole(
@@ -49,21 +50,23 @@ try
     }
 
     builder.AddApplicationServices();
-    builder.AddInfrastructureServices(validateNationalIdOnStart: !isOpenApiDocumentGeneration);
+    builder.AddInfrastructureServices(!isOpenApiDocumentGeneration);
     builder.AddWebServices();
 
-    var app = builder.Build();
+    WebApplication app = builder.Build();
 
     if (app.Environment.IsProduction())
     {
-        app.Logger.LogWarning("Anonymous API rate limiting is shared across callers because the deployment does not have a trusted client-IP forwarding configuration.");
+        app.Logger.LogWarning(
+            "Anonymous API rate limiting is shared across callers because the deployment does not have a trusted client-IP forwarding configuration.");
     }
 
     if (args.Contains("--database-status", StringComparer.OrdinalIgnoreCase))
     {
         if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("Cane360Db")))
         {
-            app.Logger.LogError("Database status was not checked because ConnectionStrings:Cane360Db is not configured.");
+            app.Logger.LogError(
+                "Database status was not checked because ConnectionStrings:Cane360Db is not configured.");
             Environment.ExitCode = 1;
             return;
         }
@@ -85,7 +88,8 @@ try
 
     app.UseSerilogRequestLogging(options =>
     {
-        options.MessageTemplate = "Cane360 HTTP {RequestMethod} {EndpointRoute} responded {StatusCode} in {Elapsed:0.0000} ms; reference {CorrelationId}";
+        options.MessageTemplate =
+            "Cane360 HTTP {RequestMethod} {EndpointRoute} responded {StatusCode} in {Elapsed:0.0000} ms; reference {CorrelationId}";
         options.EnrichDiagnosticContext = static (diagnosticContext, httpContext) =>
         {
             diagnosticContext.Set("EndpointRoute",
@@ -122,10 +126,12 @@ finally
     await Log.CloseAndFlushAsync();
 }
 
-static LoggerConfiguration ConfigureConsole(LoggerConfiguration configuration, bool isDevelopment) =>
-    isDevelopment
+static LoggerConfiguration ConfigureConsole(LoggerConfiguration configuration, bool isDevelopment)
+{
+    return isDevelopment
         ? configuration.WriteTo.Console(
             outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}",
             theme: AnsiConsoleTheme.Code,
             applyThemeToRedirectedOutput: true)
         : configuration.WriteTo.Console(new RailwayJsonFormatter());
+}

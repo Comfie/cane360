@@ -39,7 +39,7 @@ public sealed class WorkerProfile : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public Guid PersonId { get; private set; }
     public EmploymentType EmploymentType { get; private set; }
-    public DateOnly ActiveFrom { get; private set; }
+    public DateOnly ActiveFrom { get; }
     public DateOnly? ActiveTo { get; private set; }
     public RecordStatus Status { get; private set; }
     public byte[] NationalIdCiphertext { get; private set; } = [];
@@ -127,8 +127,10 @@ public sealed class WorkerProfile : BaseAuditableEntity
         Version++;
     }
 
-    public bool IsActiveOn(DateOnly date) =>
-        ActiveFrom <= date && (ActiveTo is null || ActiveTo >= date) && Status == RecordStatus.Active;
+    public bool IsActiveOn(DateOnly date)
+    {
+        return ActiveFrom <= date && (ActiveTo is null || ActiveTo >= date) && Status == RecordStatus.Active;
+    }
 
     private void RequireVersion(long expectedVersion)
     {

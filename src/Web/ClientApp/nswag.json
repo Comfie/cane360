@@ -67,7 +67,7 @@
       "inlineNamedDictionaries": false,
       "inlineNamedAny": false,
       "includeHttpContext": false,
-"serviceHost": null,
+      "serviceHost": null,
       "serviceSchemes": null,
       "output": "src/web-api-client.ts",
       "newLineBehavior": "Auto"

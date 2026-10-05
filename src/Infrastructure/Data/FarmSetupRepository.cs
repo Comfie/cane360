@@ -1,7 +1,7 @@
-using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Farms;
+using Cane360.Application.Common.Interfaces;
 using Cane360.Domain.Auditing;
+using Cane360.Domain.Farms;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -10,14 +10,16 @@ namespace Cane360.Infrastructure.Data;
 public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSetupRepository
 {
     public Task<string?> GetActiveTenantSecurityRoleForUserAsync(string userId,
-        CancellationToken cancellationToken) =>
-        context.TenantMemberships
+        CancellationToken cancellationToken)
+    {
+        return context.TenantMemberships
             .Where(membership => membership.UserId == userId &&
-                membership.Status == RecordStatus.Active &&
-                (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager))
+                                 membership.Status == RecordStatus.Active &&
+                                 (membership.SecurityRole == TenantSecurityRoles.Grower ||
+                                  membership.SecurityRole == TenantSecurityRoles.FarmManager))
             .Select(membership => membership.SecurityRole)
             .SingleOrDefaultAsync(cancellationToken);
+    }
 
     public async Task<Tenant?> GetTenantAdministrationContextForUserAsync(string userId,
         bool trackChanges, CancellationToken cancellationToken)
@@ -26,11 +28,13 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
             .Include(tenant => tenant.Memberships)
             .Include(tenant => tenant.ActivityTypes)
             .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons)
-                .ThenInclude(person => person.RoleAssignments)
+            .ThenInclude(person => person.RoleAssignments)
             .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
-                membership.Status == RecordStatus.Active &&
-                (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+                                                                  membership.Status == RecordStatus.Active &&
+                                                                  (membership.SecurityRole ==
+                                                                   TenantSecurityRoles.Grower ||
+                                                                   membership.SecurityRole ==
+                                                                   TenantSecurityRoles.FarmManager)));
         return await (trackChanges ? query : query.AsNoTracking())
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -43,11 +47,13 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
             .Include(tenant => tenant.Memberships)
             .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Store)
             .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons)
-                .ThenInclude(person => person.RoleAssignments)
+            .ThenInclude(person => person.RoleAssignments)
             .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
-                membership.Status == RecordStatus.Active &&
-                (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+                                                                  membership.Status == RecordStatus.Active &&
+                                                                  (membership.SecurityRole ==
+                                                                   TenantSecurityRoles.Grower ||
+                                                                   membership.SecurityRole ==
+                                                                   TenantSecurityRoles.FarmManager)));
         return await (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -56,29 +62,29 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
     {
         IQueryable<Tenant> query = ReferenceTenantGraph()
             .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
-                membership.Status == RecordStatus.Active &&
-                (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager)));
+                                                                  membership.Status == RecordStatus.Active &&
+                                                                  (membership.SecurityRole ==
+                                                                   TenantSecurityRoles.Grower ||
+                                                                   membership.SecurityRole ==
+                                                                   TenantSecurityRoles.FarmManager)));
         return await (trackChanges ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<Tenant?> GetTenantWorkspaceForUserAsync(string userId,
-        CancellationToken cancellationToken) =>
-        await ReferenceTenantGraph()
+        CancellationToken cancellationToken)
+    {
+        return await ReferenceTenantGraph()
             .Where(tenant => tenant.Memberships.Any(membership => membership.UserId == userId &&
-                membership.Status == RecordStatus.Active &&
-                (membership.SecurityRole == TenantSecurityRoles.Grower ||
-                 membership.SecurityRole == TenantSecurityRoles.FarmManager ||
-                 membership.SecurityRole == TenantSecurityRoles.Supervisor)))
+                                                                  membership.Status == RecordStatus.Active &&
+                                                                  (membership.SecurityRole ==
+                                                                   TenantSecurityRoles.Grower ||
+                                                                   membership.SecurityRole ==
+                                                                   TenantSecurityRoles.FarmManager ||
+                                                                   membership.SecurityRole ==
+                                                                   TenantSecurityRoles.Supervisor)))
             .AsNoTracking()
             .SingleOrDefaultAsync(cancellationToken);
-
-    private IQueryable<Tenant> ReferenceTenantGraph() => context.Tenants
-        .AsSingleQuery()
-        .Include(tenant => tenant.GrowerProfile)
-        .Include(tenant => tenant.Memberships)
-        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields)
-            .ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.HarvestResult);
+    }
 
     public async Task<Tenant?> GetTenantForUserAsync(
         string userId,
@@ -123,8 +129,9 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
 
     public async Task<TenantSessionSummary?> GetSessionSummaryForUserAsync(
         string userId,
-        CancellationToken cancellationToken) =>
-        await context.TenantMemberships
+        CancellationToken cancellationToken)
+    {
+        return await context.TenantMemberships
             .AsNoTracking()
             .Where(membership =>
                 membership.UserId == userId &&
@@ -140,63 +147,27 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
                     .FirstOrDefault(),
                 context.Farms
                     .Where(farm => farm.TenantId == membership.TenantId &&
-                        farm.Status == RecordStatus.Active)
+                                   farm.Status == RecordStatus.Active)
                     .Select(farm => farm.Name)
                     .FirstOrDefault()))
             .SingleOrDefaultAsync(cancellationToken);
-
-    /// <summary>The operational tenant aggregate shared by every operational tenant resolution.</summary>
-    private IQueryable<Tenant> OperationalTenantGraph() => context.Tenants
-        .AsSplitQuery()
-        .Include(tenant => tenant.GrowerProfile)
-        .Include(tenant => tenant.Memberships)
-        .Include(tenant => tenant.CropVarieties)
-        .Include(tenant => tenant.ActivityTypes)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Store)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Persons)
-                .ThenInclude(person => person.RoleAssignments)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.LineProfiles)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.CropCycles)
-                    .ThenInclude(cycle => cycle.HarvestResult)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.CropCycles)
-                    .ThenInclude(cycle => cycle.StatusChanges)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.CropCycles)
-                    .ThenInclude(cycle => cycle.Activities)
-                        .ThenInclude(activity => activity.StatusChanges)
-        .Include(tenant => tenant.Farms)
-            .ThenInclude(farm => farm.Fields)
-                .ThenInclude(field => field.CropCycles)
-                    .ThenInclude(cycle => cycle.Activities)
-                        .ThenInclude(activity => activity.EvidenceLinks);
+    }
 
     public async Task<Tenant?> GetTenantAsync(Guid tenantId, bool trackChanges, CancellationToken cancellationToken)
     {
         IQueryable<Tenant> query = BaseTenantQuery().Where(tenant => tenant.Id == tenantId);
-        if (!trackChanges) query = query.AsNoTracking();
+        if (!trackChanges)
+        {
+            query = query.AsNoTracking();
+        }
+
         return await query.SingleOrDefaultAsync(cancellationToken);
     }
 
-    private IQueryable<Tenant> BaseTenantQuery() => context.Tenants
-        .AsSplitQuery()
-        .Include(tenant => tenant.GrowerProfile)
-        .Include(tenant => tenant.Memberships)
-        .Include(tenant => tenant.ActivityTypes)
-        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Store)
-        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons).ThenInclude(person => person.RoleAssignments)
-        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.LineProfiles)
-        .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.Activities);
-
-    public void Add(Tenant tenant) => context.Tenants.Add(tenant);
+    public void Add(Tenant tenant)
+    {
+        context.Tenants.Add(tenant);
+    }
 
     public async Task<IReadOnlyList<FarmSetting>> GetFarmSettingsAsync(Guid tenantId, Guid farmId,
         bool trackChanges, CancellationToken cancellationToken)
@@ -207,9 +178,15 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
             .OrderByDescending(item => item.EffectiveFrom).ToListAsync(cancellationToken);
     }
 
-    public void Add(FarmSetting setting) => context.FarmSettings.Add(setting);
+    public void Add(FarmSetting setting)
+    {
+        context.FarmSettings.Add(setting);
+    }
 
-    public void Add(AuditEvent auditEvent) => context.AuditEvents.Add(auditEvent);
+    public void Add(AuditEvent auditEvent)
+    {
+        context.AuditEvents.Add(auditEvent);
+    }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -241,5 +218,67 @@ public sealed class FarmSetupRepository(ApplicationDbContext context) : IFarmSet
         {
             throw new ConflictException("This setting overlaps an existing effective version.");
         }
+    }
+
+    private IQueryable<Tenant> ReferenceTenantGraph()
+    {
+        return context.Tenants
+            .AsSingleQuery()
+            .Include(tenant => tenant.GrowerProfile)
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles).ThenInclude(cycle => cycle.HarvestResult);
+    }
+
+    /// <summary>The operational tenant aggregate shared by every operational tenant resolution.</summary>
+    private IQueryable<Tenant> OperationalTenantGraph()
+    {
+        return context.Tenants
+            .AsSplitQuery()
+            .Include(tenant => tenant.GrowerProfile)
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.CropVarieties)
+            .Include(tenant => tenant.ActivityTypes)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Store)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Persons)
+            .ThenInclude(person => person.RoleAssignments)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.LineProfiles)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles)
+            .ThenInclude(cycle => cycle.HarvestResult)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles)
+            .ThenInclude(cycle => cycle.StatusChanges)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles)
+            .ThenInclude(cycle => cycle.Activities)
+            .ThenInclude(activity => activity.StatusChanges)
+            .Include(tenant => tenant.Farms)
+            .ThenInclude(farm => farm.Fields)
+            .ThenInclude(field => field.CropCycles)
+            .ThenInclude(cycle => cycle.Activities)
+            .ThenInclude(activity => activity.EvidenceLinks);
+    }
+
+    private IQueryable<Tenant> BaseTenantQuery()
+    {
+        return context.Tenants
+            .AsSplitQuery()
+            .Include(tenant => tenant.GrowerProfile)
+            .Include(tenant => tenant.Memberships)
+            .Include(tenant => tenant.ActivityTypes)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Store)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Persons)
+            .ThenInclude(person => person.RoleAssignments)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.LineProfiles)
+            .Include(tenant => tenant.Farms).ThenInclude(farm => farm.Fields).ThenInclude(field => field.CropCycles)
+            .ThenInclude(cycle => cycle.Activities);
     }
 }

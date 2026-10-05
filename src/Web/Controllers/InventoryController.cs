@@ -1,6 +1,5 @@
 using System.Text;
 using Cane360.Application.Inventory;
-using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Inventory;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,8 +19,10 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<InventoryWorkspaceDto>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<InventoryWorkspaceDto>> Workspace(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetInventoryWorkspaceQuery(), cancellationToken));
+    public async Task<ActionResult<InventoryWorkspaceDto>> Workspace(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetInventoryWorkspaceQuery(), cancellationToken));
+    }
 
     [HttpGet("receipts/{receiptId:guid}")]
     [EndpointSummary("Get stock receipt")]
@@ -30,8 +31,10 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<StockReceiptDto>> Receipt(Guid receiptId, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetStockReceiptQuery(receiptId), cancellationToken));
+    public async Task<ActionResult<StockReceiptDto>> Receipt(Guid receiptId, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetStockReceiptQuery(receiptId), cancellationToken));
+    }
 
     [HttpGet("movements")]
     [EndpointSummary("List stock movements")]
@@ -51,8 +54,10 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<IReadOnlyList<StockCountDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<IReadOnlyList<StockCountDto>>> Counts(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetStockCountsQuery(), cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<StockCountDto>>> Counts(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetStockCountsQuery(), cancellationToken));
+    }
 
     [HttpGet("adjustments", Name = "GetAdjustmentsInventory")]
     [EndpointSummary("List stock adjustments")]
@@ -60,8 +65,10 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<IReadOnlyList<StockAdjustmentDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<IReadOnlyList<StockAdjustmentDto>>> Adjustments(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetStockAdjustmentsQuery(), cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<StockAdjustmentDto>>> Adjustments(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetStockAdjustmentsQuery(), cancellationToken));
+    }
 
     [HttpGet("leakage-report")]
     [EndpointSummary("Get inventory leakage report")]
@@ -71,11 +78,24 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<ActionResult<LeakageReportDto>> LeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<LeakageReportDto>> LeakageReport([FromQuery] LeakageReportRequest request,
+        CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return this.DateValidationError(nameof(request.FromDate));
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return this.DateValidationError(nameof(request.ToDate));
-        return Ok(await sender.Send(new GetLeakageReportQuery(new LeakageReportFilter(fromDate, toDate, request.FieldId, request.CropCycleId, request.ActivityId, request.InventoryItemId, request.InventoryLotId, request.IssuerPersonId, request.RecipientPersonId, request.SupervisorPersonId, request.Status, request.ExceptionType, request.Severity, request.Page, request.PageSize)), cancellationToken));
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out DateOnly? fromDate))
+        {
+            return this.DateValidationError(nameof(request.FromDate));
+        }
+
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out DateOnly? toDate))
+        {
+            return this.DateValidationError(nameof(request.ToDate));
+        }
+
+        return Ok(await sender.Send(
+            new GetLeakageReportQuery(new LeakageReportFilter(fromDate, toDate, request.FieldId, request.CropCycleId,
+                request.ActivityId, request.InventoryItemId, request.InventoryLotId, request.IssuerPersonId,
+                request.RecipientPersonId, request.SupervisorPersonId, request.Status, request.ExceptionType,
+                request.Severity, request.Page, request.PageSize)), cancellationToken));
     }
 
     [HttpGet("leakage-report.csv")]
@@ -86,11 +106,24 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> ExportLeakageReport([FromQuery] LeakageReportRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ExportLeakageReport([FromQuery] LeakageReportRequest request,
+        CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out var fromDate)) return this.DateValidationError(nameof(request.FromDate));
-        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out var toDate)) return this.DateValidationError(nameof(request.ToDate));
-        var export = await sender.Send(new ExportLeakageReportCommand(new LeakageReportFilter(fromDate, toDate, request.FieldId, request.CropCycleId, request.ActivityId, request.InventoryItemId, request.InventoryLotId, request.IssuerPersonId, request.RecipientPersonId, request.SupervisorPersonId, request.Status, request.ExceptionType, request.Severity, 1, 500)), cancellationToken);
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.FromDate, out DateOnly? fromDate))
+        {
+            return this.DateValidationError(nameof(request.FromDate));
+        }
+
+        if (!TransportValueParser.TryParseOptionalDateOnly(request.ToDate, out DateOnly? toDate))
+        {
+            return this.DateValidationError(nameof(request.ToDate));
+        }
+
+        LeakageCsvExportDto export = await sender.Send(
+            new ExportLeakageReportCommand(new LeakageReportFilter(fromDate, toDate, request.FieldId,
+                request.CropCycleId, request.ActivityId, request.InventoryItemId, request.InventoryLotId,
+                request.IssuerPersonId, request.RecipientPersonId, request.SupervisorPersonId, request.Status,
+                request.ExceptionType, request.Severity, 1, 500)), cancellationToken);
         return File(Encoding.UTF8.GetBytes(export.Content), "text/csv; charset=utf-8", export.FileName);
     }
 
@@ -101,10 +134,18 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> CreateCount(CreateStockCountRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<StockCountDto>> CreateCount(CreateStockCountRequest request,
+        CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return this.DateValidationError(nameof(request.EventDate));
-        var count = await sender.Send(new CreateStockCountCommand(eventDate, request.Notes ?? string.Empty, request.CountingPersons), cancellationToken);
+        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
+        {
+            return this.DateValidationError(nameof(request.EventDate));
+        }
+
+        StockCountDto count =
+            await sender.Send(
+                new CreateStockCountCommand(eventDate, request.Notes ?? string.Empty, request.CountingPersons),
+                cancellationToken);
         return Ok(count);
     }
 
@@ -116,8 +157,11 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> StartCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new StartStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
+    public async Task<ActionResult<StockCountDto>> StartCount(Guid countId, VersionedInventoryRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new StartStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
+    }
 
     [HttpPost("counts/{countId:guid}/lines/{lineId:guid}", Name = "EnterStockCountLine")]
     [EndpointSummary("Enter stock count line")]
@@ -127,8 +171,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> EnterCountLine(Guid countId, Guid lineId, EnterStockCountLineRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new EnterStockCountLineCommand(countId, lineId, request.CountedQuantity, request.Notes, request.ExpectedVersion), cancellationToken));
+    public async Task<ActionResult<StockCountDto>> EnterCountLine(Guid countId, Guid lineId,
+        EnterStockCountLineRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(
+            new EnterStockCountLineCommand(countId, lineId, request.CountedQuantity, request.Notes,
+                request.ExpectedVersion), cancellationToken));
+    }
 
     [HttpPost("counts/{countId:guid}/unexpected-lines")]
     [EndpointSummary("Add unexpected stock count line")]
@@ -138,8 +187,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> AddUnexpectedCountLine(Guid countId, AddUnexpectedStockCountLineRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new AddUnexpectedStockCountLineCommand(countId, request.InventoryItemId, request.InventoryLotId, request.ExpectedCountVersion), cancellationToken));
+    public async Task<ActionResult<StockCountDto>> AddUnexpectedCountLine(Guid countId,
+        AddUnexpectedStockCountLineRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(
+            new AddUnexpectedStockCountLineCommand(countId, request.InventoryItemId, request.InventoryLotId,
+                request.ExpectedCountVersion), cancellationToken));
+    }
 
     [HttpPost("counts/{countId:guid}/review")]
     [EndpointSummary("Review stock count")]
@@ -149,8 +203,11 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> ReviewCount(Guid countId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new ReviewStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
+    public async Task<ActionResult<StockCountDto>> ReviewCount(Guid countId, VersionedInventoryRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new ReviewStockCountCommand(countId, request.ExpectedVersion), cancellationToken));
+    }
 
     [HttpPost("counts/{countId:guid}/cancel", Name = "CancelCountInventory")]
     [EndpointSummary("Cancel stock count")]
@@ -160,8 +217,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockCountDto>> CancelCount(Guid countId, CancelStockCountRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new CancelStockCountCommand(countId, request.ExpectedVersion, request.Reason), cancellationToken));
+    public async Task<ActionResult<StockCountDto>> CancelCount(Guid countId, CancelStockCountRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new CancelStockCountCommand(countId, request.ExpectedVersion, request.Reason),
+            cancellationToken));
+    }
 
     [HttpPost("adjustments", Name = "CreateAdjustmentInventory")]
     [EndpointSummary("Create stock adjustment")]
@@ -170,10 +231,18 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockAdjustmentDto>> CreateAdjustment(CreateStockAdjustmentRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<StockAdjustmentDto>> CreateAdjustment(CreateStockAdjustmentRequest request,
+        CancellationToken cancellationToken)
     {
-        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out var eventDate)) return this.DateValidationError(nameof(request.EventDate));
-        var adjustment = await sender.Send(new CreateStockAdjustmentCommand(request.StockCountLineId, request.InventoryItemId, request.InventoryLotId, request.AdjustmentType, request.SignedQuantity, request.ExplicitUnitValueUsd, request.Reason, eventDate), cancellationToken);
+        if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
+        {
+            return this.DateValidationError(nameof(request.EventDate));
+        }
+
+        StockAdjustmentDto adjustment = await sender.Send(
+            new CreateStockAdjustmentCommand(request.StockCountLineId, request.InventoryItemId, request.InventoryLotId,
+                request.AdjustmentType, request.SignedQuantity, request.ExplicitUnitValueUsd, request.Reason,
+                eventDate), cancellationToken);
         return Ok(adjustment);
     }
 
@@ -185,8 +254,12 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockAdjustmentDto>> SubmitAdjustment(Guid adjustmentId, VersionedInventoryRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new SubmitStockAdjustmentCommand(adjustmentId, request.ExpectedVersion), cancellationToken));
+    public async Task<ActionResult<StockAdjustmentDto>> SubmitAdjustment(Guid adjustmentId,
+        VersionedInventoryRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new SubmitStockAdjustmentCommand(adjustmentId, request.ExpectedVersion),
+            cancellationToken));
+    }
 
     [HttpPost("adjustments/{adjustmentId:guid}/decision", Name = "DecideAdjustmentInventory")]
     [EndpointSummary("Decide stock adjustment")]
@@ -196,8 +269,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockAdjustmentDto>> DecideAdjustment(Guid adjustmentId, DecideStockAdjustmentRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new DecideStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.Outcome, request.Reason, request.IdempotencyKey), cancellationToken));
+    public async Task<ActionResult<StockAdjustmentDto>> DecideAdjustment(Guid adjustmentId,
+        DecideStockAdjustmentRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(
+            new DecideStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.Outcome, request.Reason,
+                request.IdempotencyKey), cancellationToken));
+    }
 
     [HttpPost("adjustments/{adjustmentId:guid}/post", Name = "PostAdjustmentInventory")]
     [EndpointSummary("Post stock adjustment")]
@@ -207,8 +285,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockAdjustmentDto>> PostAdjustment(Guid adjustmentId, PostStockAdjustmentRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new PostStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.IdempotencyKey), cancellationToken));
+    public async Task<ActionResult<StockAdjustmentDto>> PostAdjustment(Guid adjustmentId,
+        PostStockAdjustmentRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(
+            new PostStockAdjustmentCommand(adjustmentId, request.ExpectedVersion, request.IdempotencyKey),
+            cancellationToken));
+    }
 
     [HttpPost("adjustments/{adjustmentId:guid}/reverse", Name = "ReverseAdjustmentInventory")]
     [EndpointSummary("Reverse stock adjustment")]
@@ -218,8 +301,13 @@ public sealed class InventoryController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<StockAdjustmentDto>> ReverseAdjustment(Guid adjustmentId, ReverseStockAdjustmentRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new ReverseStockAdjustmentCommand(adjustmentId, request.Reason, request.IdempotencyKey), cancellationToken));
+    public async Task<ActionResult<StockAdjustmentDto>> ReverseAdjustment(Guid adjustmentId,
+        ReverseStockAdjustmentRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(
+            new ReverseStockAdjustmentCommand(adjustmentId, request.Reason, request.IdempotencyKey),
+            cancellationToken));
+    }
 
     [HttpPost("units", Name = "CreateUnitInventory")]
     [EndpointSummary("Create unit of measure")]

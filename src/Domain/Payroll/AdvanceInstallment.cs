@@ -4,7 +4,8 @@ public sealed class AdvanceInstallment : BaseEntity
 {
     private AdvanceInstallment() { }
 
-    private AdvanceInstallment(Guid workerAdvanceId, Guid tenantId, Guid farmId, int sequence, Guid payrollPeriodId, decimal amountUsd)
+    private AdvanceInstallment(Guid workerAdvanceId, Guid tenantId, Guid farmId, int sequence, Guid payrollPeriodId,
+        decimal amountUsd)
     {
         WorkerAdvanceId = workerAdvanceId;
         TenantId = tenantId;
@@ -21,6 +22,9 @@ public sealed class AdvanceInstallment : BaseEntity
     public Guid PayrollPeriodId { get; private set; }
     public decimal AmountUsd { get; private set; }
 
-    internal static AdvanceInstallment Create(Guid workerAdvanceId, Guid tenantId, Guid farmId, int sequence, Guid payrollPeriodId, decimal amountUsd) =>
-        new(workerAdvanceId, tenantId, farmId, sequence, payrollPeriodId, amountUsd);
+    internal static AdvanceInstallment Create(Guid workerAdvanceId, Guid tenantId, Guid farmId, int sequence,
+        Guid payrollPeriodId, decimal amountUsd)
+    {
+        return new AdvanceInstallment(workerAdvanceId, tenantId, farmId, sequence, payrollPeriodId, amountUsd);
+    }
 }

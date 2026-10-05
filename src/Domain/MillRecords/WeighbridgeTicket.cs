@@ -13,7 +13,11 @@ public sealed class WeighbridgeTicket : BaseEntity
         ValidateWeights(grossTonnes, tareTonnes, netTonnes);
         ArgumentException.ThrowIfNullOrWhiteSpace(ticketReference);
         ArgumentException.ThrowIfNullOrWhiteSpace(createdByUserId);
-        if (correctsTicketId.HasValue) ArgumentException.ThrowIfNullOrWhiteSpace(correctionReason);
+        if (correctsTicketId.HasValue)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(correctionReason);
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         MillId = millId;
@@ -33,8 +37,8 @@ public sealed class WeighbridgeTicket : BaseEntity
         CorrectionReason = Clean(correctionReason);
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid MillId { get; private set; }
     public string TicketReference { get; private set; } = string.Empty;
     public DateOnly TicketDate { get; private set; }
@@ -58,9 +62,12 @@ public sealed class WeighbridgeTicket : BaseEntity
     public static WeighbridgeTicket CreateDraft(Guid tenantId, Guid farmId, Guid millId,
         string ticketReference, DateOnly ticketDate, decimal grossTonnes, decimal? tareTonnes,
         decimal netTonnes, Guid? fieldId, Guid? cropCycleId, string? sourceReference,
-        string? notes, string createdByUserId, DateTimeOffset createdAt) => new(tenantId,
-        farmId, millId, ticketReference, ticketDate, grossTonnes, tareTonnes, netTonnes,
-        fieldId, cropCycleId, sourceReference, notes, createdByUserId, createdAt, null, null);
+        string? notes, string createdByUserId, DateTimeOffset createdAt)
+    {
+        return new WeighbridgeTicket(tenantId,
+            farmId, millId, ticketReference, ticketDate, grossTonnes, tareTonnes, netTonnes,
+            fieldId, cropCycleId, sourceReference, notes, createdByUserId, createdAt, null, null);
+    }
 
     public static WeighbridgeTicket CreateCorrection(WeighbridgeTicket original,
         string ticketReference, DateOnly ticketDate, decimal grossTonnes, decimal? tareTonnes,
@@ -68,8 +75,11 @@ public sealed class WeighbridgeTicket : BaseEntity
         string? notes, string reason, string userId, DateTimeOffset at)
     {
         if (original.Status != WeighbridgeTicketStatus.Recorded)
+        {
             throw new InvalidOperationException("Only a recorded ticket can be corrected.");
-        return new(original.TenantId, original.FarmId, original.MillId, ticketReference,
+        }
+
+        return new WeighbridgeTicket(original.TenantId, original.FarmId, original.MillId, ticketReference,
             ticketDate, grossTonnes, tareTonnes, netTonnes, fieldId, cropCycleId,
             sourceReference, notes, userId, at, original.Id, reason);
     }
@@ -107,14 +117,22 @@ public sealed class WeighbridgeTicket : BaseEntity
         Version++;
     }
 
-    public static string NormalizeReference(string value) => value.Trim().ToUpperInvariant();
+    public static string NormalizeReference(string value)
+    {
+        return value.Trim().ToUpperInvariant();
+    }
 
     private void RequireDraft(long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This ticket changed after it was loaded. Refresh and try again.");
+        }
+
         if (Status != WeighbridgeTicketStatus.Draft)
+        {
             throw new InvalidOperationException("Recorded tickets are immutable and require a correction.");
+        }
     }
 
     public static void ValidateWeights(decimal grossTonnes, decimal? tareTonnes,
@@ -122,21 +140,48 @@ public sealed class WeighbridgeTicket : BaseEntity
     {
         RequireTonnesScale(grossTonnes, nameof(grossTonnes));
         RequireTonnesScale(netTonnes, nameof(netTonnes));
-        if (grossTonnes < 0) throw new ArgumentOutOfRangeException(nameof(grossTonnes), "Gross tonnes cannot be negative.");
-        if (netTonnes <= 0) throw new ArgumentOutOfRangeException(nameof(netTonnes), "Net tonnes must be positive.");
-        if (!tareTonnes.HasValue) return;
+        if (grossTonnes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(grossTonnes), "Gross tonnes cannot be negative.");
+        }
+
+        if (netTonnes <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(netTonnes), "Net tonnes must be positive.");
+        }
+
+        if (!tareTonnes.HasValue)
+        {
+            return;
+        }
+
         RequireTonnesScale(tareTonnes.Value, nameof(tareTonnes));
-        if (tareTonnes.Value < 0) throw new ArgumentOutOfRangeException(nameof(tareTonnes), "Tare tonnes cannot be negative.");
-        if (grossTonnes < tareTonnes.Value) throw new InvalidOperationException("Gross tonnes cannot be less than tare tonnes.");
+        if (tareTonnes.Value < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tareTonnes), "Tare tonnes cannot be negative.");
+        }
+
+        if (grossTonnes < tareTonnes.Value)
+        {
+            throw new InvalidOperationException("Gross tonnes cannot be less than tare tonnes.");
+        }
+
         if (grossTonnes - tareTonnes.Value != netTonnes)
+        {
             throw new InvalidOperationException("Net tonnes must equal gross tonnes minus tare tonnes.");
+        }
     }
 
     private static void RequireTonnesScale(decimal value, string parameter)
     {
         if (decimal.Round(value, 3, MidpointRounding.AwayFromZero) != value)
+        {
             throw new ArgumentException("Tonnage supports at most three decimal places.", parameter);
+        }
     }
 
-    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Clean(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

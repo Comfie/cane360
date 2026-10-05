@@ -1,7 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
-using Cane360.Domain.Farms;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,9 +10,12 @@ internal sealed class PersonRoleAssignmentConfiguration : IEntityTypeConfigurati
     {
         builder.ToTable("PersonRoleAssignments", "farm", table =>
         {
-            table.HasCheckConstraint("CK_PersonRoleAssignments_EffectiveDates", "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
-            table.HasCheckConstraint("CK_PersonRoleAssignments_Role", "\"Role\" IN ('FarmManager', 'Supervisor', 'Storekeeper')");
-            table.HasCheckConstraint("CK_PersonRoleAssignments_PrimaryRole", "NOT \"IsPrimary\" OR \"Role\" = 'FarmManager'");
+            table.HasCheckConstraint("CK_PersonRoleAssignments_EffectiveDates",
+                "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
+            table.HasCheckConstraint("CK_PersonRoleAssignments_Role",
+                "\"Role\" IN ('FarmManager', 'Supervisor', 'Storekeeper')");
+            table.HasCheckConstraint("CK_PersonRoleAssignments_PrimaryRole",
+                "NOT \"IsPrimary\" OR \"Role\" = 'FarmManager'");
         });
         builder.HasKey(assignment => assignment.Id);
         builder.Property(assignment => assignment.Id).ValueGeneratedNever();

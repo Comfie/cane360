@@ -12,8 +12,10 @@ internal sealed class TransactionAllocationConfiguration : IEntityTypeConfigurat
         builder.ToTable("TransactionAllocations", "finance", table =>
         {
             table.HasCheckConstraint("CK_TransactionAllocations_Amount", "\"AmountUsd\" > 0");
-            table.HasCheckConstraint("CK_TransactionAllocations_Category", "\"Category\" IN ('Fuel', 'RepairsAndMaintenance', 'Utilities', 'Transport', 'ContractServices', 'CropInputs', 'CropSales', 'OtherExpense', 'OtherIncome')");
-            table.HasCheckConstraint("CK_TransactionAllocations_Shape", "(\"AllocationType\" = 'CropCycleDirect' AND \"CropCycleId\" IS NOT NULL AND \"FieldId\" IS NOT NULL) OR (\"AllocationType\" = 'Field' AND \"CropCycleId\" IS NULL AND \"FieldId\" IS NOT NULL) OR (\"AllocationType\" = 'FarmOverhead' AND \"CropCycleId\" IS NULL AND \"FieldId\" IS NULL)");
+            table.HasCheckConstraint("CK_TransactionAllocations_Category",
+                "\"Category\" IN ('Fuel', 'RepairsAndMaintenance', 'Utilities', 'Transport', 'ContractServices', 'CropInputs', 'CropSales', 'OtherExpense', 'OtherIncome')");
+            table.HasCheckConstraint("CK_TransactionAllocations_Shape",
+                "(\"AllocationType\" = 'CropCycleDirect' AND \"CropCycleId\" IS NOT NULL AND \"FieldId\" IS NOT NULL) OR (\"AllocationType\" = 'Field' AND \"CropCycleId\" IS NULL AND \"FieldId\" IS NOT NULL) OR (\"AllocationType\" = 'FarmOverhead' AND \"CropCycleId\" IS NULL AND \"FieldId\" IS NULL)");
         });
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();

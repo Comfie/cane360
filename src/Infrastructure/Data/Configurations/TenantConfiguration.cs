@@ -1,7 +1,5 @@
-using Cane360.Domain.Farms;
 using Cane360.Domain.Common;
-using Cane360.Domain.Activities;
-using Cane360.Infrastructure.Identity;
+using Cane360.Domain.Farms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

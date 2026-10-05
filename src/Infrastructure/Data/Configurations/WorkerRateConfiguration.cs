@@ -1,8 +1,5 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,10 +11,13 @@ internal sealed class WorkerRateConfiguration : IEntityTypeConfiguration<WorkerR
     {
         builder.ToTable("WorkerRates", "labour", table =>
         {
-            table.HasCheckConstraint("CK_WorkerRates_Basis", "\"Basis\" IN ('Daily', 'Monthly', 'Hectare', 'StandardLine')");
+            table.HasCheckConstraint("CK_WorkerRates_Basis",
+                "\"Basis\" IN ('Daily', 'Monthly', 'Hectare', 'StandardLine')");
             table.HasCheckConstraint("CK_WorkerRates_PositiveRate", "\"RateUsd\" > 0");
-            table.HasCheckConstraint("CK_WorkerRates_EffectiveDates", "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
-            table.HasCheckConstraint("CK_WorkerRates_ActivityScope", "((\"Basis\" IN ('Hectare', 'StandardLine')) = (\"ActivityTypeId\" IS NOT NULL))");
+            table.HasCheckConstraint("CK_WorkerRates_EffectiveDates",
+                "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
+            table.HasCheckConstraint("CK_WorkerRates_ActivityScope",
+                "((\"Basis\" IN ('Hectare', 'StandardLine')) = (\"ActivityTypeId\" IS NOT NULL))");
         });
         builder.HasKey(rate => rate.Id);
         builder.Property(rate => rate.Id).ValueGeneratedNever();

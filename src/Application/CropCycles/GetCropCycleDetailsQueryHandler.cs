@@ -1,3 +1,5 @@
+using Cane360.Domain.Labour;
+
 namespace Cane360.Application.CropCycles;
 
 public sealed class GetCropCycleDetailsQueryHandler(
@@ -10,15 +12,18 @@ public sealed class GetCropCycleDetailsQueryHandler(
         GetCropCycleDetailsQuery request,
         CancellationToken cancellationToken)
     {
-        var tenant = await CropCycleAccess.RequireTenantAsync(
+        Tenant tenant = await CropCycleAccess.RequireTenantAsync(
             repository, user, false, cancellationToken);
-        var field = CropCycleAccess.RequireField(tenant, request.FieldId);
-        var cropCycle = CropCycleAccess.RequireCycle(field, request.CropCycleId);
-        var farm = tenant.ActiveFarm!;
-        var activityIds = cropCycle.Activities.Select(activity => activity.Id).ToHashSet();
-        var records = await labourRepository.GetWorkRecordsAsync(tenant.Id, farm.Id, null, null, null, false, cancellationToken);
-        var cycleRecords = records.Where(record => record.Activities.Any(link => activityIds.Contains(link.ActivityId))).ToArray();
-        var workers = await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
+        Field field = CropCycleAccess.RequireField(tenant, request.FieldId);
+        CropCycle cropCycle = CropCycleAccess.RequireCycle(field, request.CropCycleId);
+        Farm farm = tenant.ActiveFarm!;
+        HashSet<Guid> activityIds = cropCycle.Activities.Select(activity => activity.Id).ToHashSet();
+        IReadOnlyList<WorkRecord> records =
+            await labourRepository.GetWorkRecordsAsync(tenant.Id, farm.Id, null, null, null, false, cancellationToken);
+        WorkRecord[] cycleRecords = records
+            .Where(record => record.Activities.Any(link => activityIds.Contains(link.ActivityId))).ToArray();
+        IReadOnlyList<WorkerProfile> workers =
+            await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
         return await CropCycleMapper.MapDetailsAsync(field, cropCycle, farm, identityService, cycleRecords, workers);
     }
 }

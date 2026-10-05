@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.CropCycles;
 
 public sealed class GetCropVarietiesQueryHandler(
@@ -10,7 +8,7 @@ public sealed class GetCropVarietiesQueryHandler(
         GetCropVarietiesQuery request,
         CancellationToken cancellationToken)
     {
-        var tenant = await CropCycleAccess.RequireTenantAsync(
+        Tenant tenant = await CropCycleAccess.RequireTenantAsync(
             repository, user, false, cancellationToken);
 
         return tenant.CropVarieties

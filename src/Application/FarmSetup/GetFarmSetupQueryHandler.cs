@@ -8,8 +8,8 @@ public sealed class GetFarmSetupQueryHandler(
         GetFarmSetupQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = FarmSetupValidation.RequireUserId(user);
-        var tenant = await repository.GetTenantWorkspaceForUserAsync(userId, cancellationToken);
+        string userId = FarmSetupValidation.RequireUserId(user);
+        Tenant? tenant = await repository.GetTenantWorkspaceForUserAsync(userId, cancellationToken);
 
         return FarmSetupMapper.Map(tenant);
     }

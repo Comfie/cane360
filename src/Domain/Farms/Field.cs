@@ -1,6 +1,6 @@
-namespace Cane360.Domain.Farms;
-
 using Cane360.Domain.Activities;
+
+namespace Cane360.Domain.Farms;
 
 public sealed class Field : BaseAuditableEntity
 {
@@ -33,21 +33,24 @@ public sealed class Field : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
-    public decimal DeclaredHectares { get; private set; }
-    public decimal? MappedHectares { get; private set; }
-    public ReportingAreaSource ReportingAreaSource { get; private set; }
+    public decimal DeclaredHectares { get; }
+    public decimal? MappedHectares { get; }
+    public ReportingAreaSource ReportingAreaSource { get; }
     public string IrrigationMethod { get; private set; } = string.Empty;
     public string? SoilNotes { get; private set; }
     public RecordStatus Status { get; private set; }
     public IReadOnlyCollection<CropCycle> CropCycles => _cropCycles.AsReadOnly();
     public IReadOnlyCollection<FieldLineProfile> LineProfiles => _lineProfiles.AsReadOnly();
-    public FieldLineProfile? CurrentLineProfile => _lineProfiles.SingleOrDefault(profile => profile.EffectiveTo is null);
+
+    public FieldLineProfile? CurrentLineProfile =>
+        _lineProfiles.SingleOrDefault(profile => profile.EffectiveTo is null);
 
     public decimal ReportingHectares => ReportingAreaSource switch
     {
         ReportingAreaSource.Declared => DeclaredHectares,
         ReportingAreaSource.Mapped when MappedHectares is > 0 => MappedHectares.Value,
-        _ => throw new InvalidOperationException("Mapped hectares are required when mapped area is selected for reporting.")
+        _ => throw new InvalidOperationException(
+            "Mapped hectares are required when mapped area is selected for reporting.")
     };
 
     public CropCycle? CurrentCropCycle => _cropCycles.SingleOrDefault(cycle =>
@@ -75,7 +78,8 @@ public sealed class Field : BaseAuditableEntity
 
         if (reportingAreaSource == ReportingAreaSource.Mapped && mappedHectares is null)
         {
-            throw new InvalidOperationException("Mapped hectares are required when mapped area is selected for reporting.");
+            throw new InvalidOperationException(
+                "Mapped hectares are required when mapped area is selected for reporting.");
         }
 
         return new Field(
@@ -101,7 +105,7 @@ public sealed class Field : BaseAuditableEntity
         DateTimeOffset recordedAt,
         string recordedBy)
     {
-        var cropCycle = CropCycle.CreateDraft(
+        CropCycle cropCycle = CropCycle.CreateDraft(
             Id,
             cycleType,
             ratoonNumber,
@@ -139,7 +143,7 @@ public sealed class Field : BaseAuditableEntity
         string numberingScheme,
         DateOnly effectiveFrom)
     {
-        var current = CurrentLineProfile;
+        FieldLineProfile? current = CurrentLineProfile;
         if (current is not null)
         {
             if (effectiveFrom <= current.EffectiveFrom)
@@ -150,7 +154,7 @@ public sealed class Field : BaseAuditableEntity
             current.End(effectiveFrom.AddDays(-1));
         }
 
-        var profile = FieldLineProfile.Create(
+        FieldLineProfile profile = FieldLineProfile.Create(
             Id, standardLineLengthMetres, estimatedLineCount, numberingScheme, effectiveFrom);
         _lineProfiles.Add(profile);
         return profile;

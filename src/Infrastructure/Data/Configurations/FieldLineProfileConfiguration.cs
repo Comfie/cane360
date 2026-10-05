@@ -1,7 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
-using Cane360.Domain.Farms;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,8 +10,10 @@ internal sealed class FieldLineProfileConfiguration : IEntityTypeConfiguration<F
     {
         builder.ToTable("FieldLineProfiles", "farm", table =>
         {
-            table.HasCheckConstraint("CK_FieldLineProfiles_PositiveValues", "\"StandardLineLengthMetres\" > 0 AND \"EstimatedLineCount\" > 0");
-            table.HasCheckConstraint("CK_FieldLineProfiles_EffectiveDates", "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
+            table.HasCheckConstraint("CK_FieldLineProfiles_PositiveValues",
+                "\"StandardLineLengthMetres\" > 0 AND \"EstimatedLineCount\" > 0");
+            table.HasCheckConstraint("CK_FieldLineProfiles_EffectiveDates",
+                "\"EffectiveTo\" IS NULL OR \"EffectiveTo\" >= \"EffectiveFrom\"");
         });
         builder.HasKey(profile => profile.Id);
         builder.Property(profile => profile.Id).ValueGeneratedNever();

@@ -9,16 +9,35 @@ public sealed class TransactionAllocation : BaseEntity
         decimal amountUsd, TransactionAllocationType allocationType, DateTimeOffset createdAt)
     {
         if (tenantId == Guid.Empty || farmId == Guid.Empty || transactionId == Guid.Empty)
+        {
             throw new ArgumentException("Tenant, farm, and transaction are required.");
-        if (amountUsd <= 0) throw new ArgumentOutOfRangeException(nameof(amountUsd), "Allocation amount must be positive.");
+        }
+
+        if (amountUsd <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amountUsd), "Allocation amount must be positive.");
+        }
+
         if (decimal.Round(amountUsd, 2, MidpointRounding.AwayFromZero) != amountUsd)
+        {
             throw new ArgumentException("USD allocations support at most two decimal places.", nameof(amountUsd));
+        }
+
         if (allocationType == TransactionAllocationType.CropCycleDirect && (cropCycleId is null || fieldId is null))
+        {
             throw new InvalidOperationException("A crop-cycle direct allocation requires its field and crop cycle.");
+        }
+
         if (allocationType == TransactionAllocationType.Field && (fieldId is null || cropCycleId is not null))
+        {
             throw new InvalidOperationException("A field allocation requires only a field.");
-        if (allocationType == TransactionAllocationType.FarmOverhead && (fieldId is not null || cropCycleId is not null))
+        }
+
+        if (allocationType == TransactionAllocationType.FarmOverhead &&
+            (fieldId is not null || cropCycleId is not null))
+        {
             throw new InvalidOperationException("Farm overhead cannot identify a field or crop cycle.");
+        }
 
         TenantId = tenantId;
         FarmId = farmId;
@@ -43,7 +62,9 @@ public sealed class TransactionAllocation : BaseEntity
 
     public static TransactionAllocation Create(Guid tenantId, Guid farmId, Guid transactionId,
         Guid? cropCycleId, Guid? fieldId, OperationalFinanceCategory category, decimal amountUsd,
-        TransactionAllocationType allocationType, DateTimeOffset createdAt) =>
-        new(tenantId, farmId, transactionId, cropCycleId, fieldId, category, amountUsd,
+        TransactionAllocationType allocationType, DateTimeOffset createdAt)
+    {
+        return new TransactionAllocation(tenantId, farmId, transactionId, cropCycleId, fieldId, category, amountUsd,
             allocationType, createdAt);
+    }
 }

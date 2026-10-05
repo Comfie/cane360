@@ -13,7 +13,8 @@ internal sealed class StockIssueConfiguration : IEntityTypeConfiguration<StockIs
     {
         builder.ToTable("StockIssues", "inventory", table =>
         {
-            table.HasCheckConstraint("CK_StockIssues_LateReason", "\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0");
+            table.HasCheckConstraint("CK_StockIssues_LateReason",
+                "\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0");
             table.HasCheckConstraint("CK_StockIssues_EntryDelay", "\"EntryDelayDays\" >= 0");
         });
         builder.HasKey(entity => entity.Id);
@@ -29,18 +30,26 @@ internal sealed class StockIssueConfiguration : IEntityTypeConfiguration<StockIs
         builder.Property(entity => entity.Version).IsConcurrencyToken();
         builder.HasOne<Store>().WithMany().HasForeignKey(entity => new { entity.StoreId, entity.FarmId })
             .HasPrincipalKey(store => new { store.Id, store.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InputRequest>().WithMany().HasForeignKey(entity => new { entity.InputRequestId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(request => new { request.Id, request.TenantId, request.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InputRequest>().WithMany()
+            .HasForeignKey(entity => new { entity.InputRequestId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(request => new { request.Id, request.TenantId, request.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Person>().WithMany().HasForeignKey(entity => new { entity.IssuerPersonId, entity.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Person>().WithMany().HasForeignKey(entity => new { entity.RecipientPersonId, entity.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.CorrectionRequestedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasMany(entity => entity.Lines).WithOne().HasForeignKey(line => new { line.StockIssueId, line.TenantId, line.FarmId })
-            .HasPrincipalKey(entity => new { entity.Id, entity.TenantId, entity.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(entity => entity.PostingIdempotencyKey).IsUnique().HasFilter("\"PostingIdempotencyKey\" IS NOT NULL");
-        builder.HasIndex(entity => entity.ReversalIdempotencyKey).IsUnique().HasFilter("\"ReversalIdempotencyKey\" IS NOT NULL");
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.CorrectionRequestedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(entity => entity.Lines).WithOne()
+            .HasForeignKey(line => new { line.StockIssueId, line.TenantId, line.FarmId })
+            .HasPrincipalKey(entity => new { entity.Id, entity.TenantId, entity.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(entity => entity.PostingIdempotencyKey).IsUnique()
+            .HasFilter("\"PostingIdempotencyKey\" IS NOT NULL");
+        builder.HasIndex(entity => entity.ReversalIdempotencyKey).IsUnique()
+            .HasFilter("\"ReversalIdempotencyKey\" IS NOT NULL");
         builder.HasIndex(entity => new { entity.TenantId, entity.FarmId, entity.InputRequestId, entity.Status });
         builder.Property(entity => entity.CreatedBy).HasMaxLength(450);
         builder.Property(entity => entity.LastModifiedBy).HasMaxLength(450);

@@ -1,8 +1,7 @@
 using Cane360.Application.Common.Interfaces;
-using Cane360.Web.Infrastructure;
 using Cane360.Web.Services;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace Cane360.Web;
 
 public static class DependencyInjection
 {
@@ -26,5 +25,4 @@ public static class DependencyInjection
         builder.Services.AddOpenApi(options =>
             options.AddOperationTransformer<ApiExceptionOperationTransformer>());
     }
-
 }

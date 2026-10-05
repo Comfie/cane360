@@ -16,21 +16,29 @@ public sealed class TenantMembership : BaseAuditableEntity
 
     public Guid TenantId { get; private set; }
     public string UserId { get; private set; } = string.Empty;
-    public string SecurityRole { get; private set; } = string.Empty;
+    public string SecurityRole { get; } = string.Empty;
     public Guid? FarmId { get; private set; }
     public Guid? PersonId { get; private set; }
     public RecordStatus Status { get; private set; }
 
-    internal static TenantMembership CreateGrower(Guid tenantId, string userId) =>
-        new(tenantId, userId, TenantSecurityRoles.Grower, null, null);
+    internal static TenantMembership CreateGrower(Guid tenantId, string userId)
+    {
+        return new TenantMembership(tenantId, userId, TenantSecurityRoles.Grower, null, null);
+    }
 
-    internal static TenantMembership Create(Guid tenantId, string userId, string securityRole, Guid farmId, Guid personId) =>
-        new(tenantId, userId, securityRole, farmId, personId);
+    internal static TenantMembership Create(Guid tenantId, string userId, string securityRole, Guid farmId,
+        Guid personId)
+    {
+        return new TenantMembership(tenantId, userId, securityRole, farmId, personId);
+    }
 
     internal void Disable()
     {
         if (SecurityRole == TenantSecurityRoles.Grower || Status != RecordStatus.Active)
+        {
             throw new InvalidOperationException("Only an active non-Grower membership may be disabled.");
+        }
+
         Status = RecordStatus.Archived;
     }
 }

@@ -31,8 +31,8 @@ public sealed class ActivityType : BaseAuditableEntity
     public Guid TenantId { get; private set; }
     public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
-    public bool SupportsPlanned { get; private set; }
-    public bool SupportsUnplanned { get; private set; }
+    public bool SupportsPlanned { get; }
+    public bool SupportsUnplanned { get; }
     public ActivityQuantityBasis QuantityBasis { get; private set; }
     public RecordStatus Status { get; private set; }
     public long Version { get; private set; }
@@ -50,18 +50,22 @@ public sealed class ActivityType : BaseAuditableEntity
         return new ActivityType(tenantId, code, name, supportsPlanned, supportsUnplanned, quantityBasis);
     }
 
-    public bool Supports(ActivityPlanningKind kind) => kind switch
+    public bool Supports(ActivityPlanningKind kind)
     {
-        ActivityPlanningKind.Planned => SupportsPlanned,
-        ActivityPlanningKind.Unplanned => SupportsUnplanned,
-        _ => false
-    };
+        return kind switch
+        {
+            ActivityPlanningKind.Planned => SupportsPlanned,
+            ActivityPlanningKind.Unplanned => SupportsUnplanned,
+            _ => false
+        };
+    }
 
     public void Archive(long expectedVersion)
     {
         if (Version != expectedVersion)
         {
-            throw new InvalidOperationException("This activity type changed after it was loaded. Refresh and try again.");
+            throw new InvalidOperationException(
+                "This activity type changed after it was loaded. Refresh and try again.");
         }
 
         if (Status != RecordStatus.Active)
@@ -76,15 +80,27 @@ public sealed class ActivityType : BaseAuditableEntity
     public void Rename(string name, long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This activity type changed after it was loaded.");
+        }
+
         if (Status != RecordStatus.Active)
+        {
             throw new InvalidOperationException("Archived activity types cannot be edited.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (name.Trim().Length > 100)
+        {
             throw new InvalidOperationException("Activity type name cannot exceed 100 characters.");
+        }
+
         Name = name.Trim();
         Version++;
     }
 
-    private static string NormaliseCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormaliseCode(string code)
+    {
+        return code.Trim().ToUpperInvariant();
+    }
 }

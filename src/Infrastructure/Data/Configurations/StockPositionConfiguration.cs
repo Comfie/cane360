@@ -1,6 +1,5 @@
 using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,11 +17,13 @@ internal sealed class StockPositionConfiguration : IEntityTypeConfiguration<Stoc
         builder.HasOne<Farm>().WithMany().HasForeignKey(entity => new { entity.FarmId, entity.TenantId })
             .HasPrincipalKey(farm => new { farm.Id, farm.TenantId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Store>().WithMany().HasForeignKey(entity => new { entity.StoreId, entity.FarmId })
-            .HasPrincipalKey(store => new { Id = store.Id, store.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InventoryItem>().WithMany().HasForeignKey(entity => new { entity.InventoryItemId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(store => new { store.Id, store.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryItem>().WithMany()
+            .HasForeignKey(entity => new { entity.InventoryItemId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(item => new { item.Id, item.TenantId, item.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<InventoryLot>().WithMany()
-            .HasForeignKey(entity => new { entity.InventoryLotId, entity.InventoryItemId, entity.TenantId, entity.FarmId })
+            .HasForeignKey(entity =>
+                new { entity.InventoryLotId, entity.InventoryItemId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(lot => new { lot.Id, lot.InventoryItemId, lot.TenantId, lot.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => new { entity.StoreId, entity.InventoryItemId, entity.PositionKey }).IsUnique();

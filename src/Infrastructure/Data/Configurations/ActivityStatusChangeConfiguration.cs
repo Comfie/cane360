@@ -1,6 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
-using Cane360.Domain.Farms;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,8 +11,10 @@ internal sealed class ActivityStatusChangeConfiguration : IEntityTypeConfigurati
     {
         builder.ToTable("ActivityStatusChanges", "activities", table =>
         {
-            table.HasCheckConstraint("CK_ActivityStatusChanges_Status", "\"FromStatus\" IN ('Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed') AND \"ToStatus\" IN ('Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled')");
-            table.HasCheckConstraint("CK_ActivityStatusChanges_CancellationReason", "\"ToStatus\" <> 'Cancelled' OR length(trim(\"Reason\")) > 0");
+            table.HasCheckConstraint("CK_ActivityStatusChanges_Status",
+                "\"FromStatus\" IN ('Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed') AND \"ToStatus\" IN ('Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled')");
+            table.HasCheckConstraint("CK_ActivityStatusChanges_CancellationReason",
+                "\"ToStatus\" <> 'Cancelled' OR length(trim(\"Reason\")) > 0");
         });
         builder.HasKey(change => change.Id);
         builder.Property(change => change.Id).ValueGeneratedNever();

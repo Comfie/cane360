@@ -26,11 +26,11 @@ public sealed class WorkerRate : BaseAuditableEntity
 
     public Guid TenantId { get; private set; }
     public Guid FarmId { get; private set; }
-    public Guid WorkerProfileId { get; private set; }
-    public PayBasis Basis { get; private set; }
-    public Guid? ActivityTypeId { get; private set; }
+    public Guid WorkerProfileId { get; }
+    public PayBasis Basis { get; }
+    public Guid? ActivityTypeId { get; }
     public decimal RateUsd { get; private set; }
-    public DateOnly EffectiveFrom { get; private set; }
+    public DateOnly EffectiveFrom { get; }
     public DateOnly? EffectiveTo { get; private set; }
     public long Version { get; private set; }
 
@@ -50,7 +50,7 @@ public sealed class WorkerRate : BaseAuditableEntity
             throw new InvalidOperationException("The rate end date cannot be before its start date.");
         }
 
-        var isPiece = basis is PayBasis.Hectare or PayBasis.StandardLine;
+        bool isPiece = basis is PayBasis.Hectare or PayBasis.StandardLine;
         if (isPiece != activityTypeId.HasValue)
         {
             throw new InvalidOperationException(
@@ -64,15 +64,19 @@ public sealed class WorkerRate : BaseAuditableEntity
             rateUsd, effectiveFrom, effectiveTo);
     }
 
-    public bool AppliesOn(DateOnly date) =>
-        EffectiveFrom <= date && (EffectiveTo is null || EffectiveTo >= date);
+    public bool AppliesOn(DateOnly date)
+    {
+        return EffectiveFrom <= date && (EffectiveTo is null || EffectiveTo >= date);
+    }
 
-    public bool Overlaps(WorkerRate other) =>
-        WorkerProfileId == other.WorkerProfileId &&
-        Basis == other.Basis &&
-        ActivityTypeId == other.ActivityTypeId &&
-        EffectiveFrom <= (other.EffectiveTo ?? DateOnly.MaxValue) &&
-        other.EffectiveFrom <= (EffectiveTo ?? DateOnly.MaxValue);
+    public bool Overlaps(WorkerRate other)
+    {
+        return WorkerProfileId == other.WorkerProfileId &&
+               Basis == other.Basis &&
+               ActivityTypeId == other.ActivityTypeId &&
+               EffectiveFrom <= (other.EffectiveTo ?? DateOnly.MaxValue) &&
+               other.EffectiveFrom <= (EffectiveTo ?? DateOnly.MaxValue);
+    }
 
     public void End(DateOnly effectiveTo, long expectedVersion)
     {

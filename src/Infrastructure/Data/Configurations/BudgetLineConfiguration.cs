@@ -13,8 +13,10 @@ internal sealed class BudgetLineConfiguration : IEntityTypeConfiguration<BudgetL
             table.HasCheckConstraint("CK_BudgetLines_Amount", "\"AmountUsd\" > 0");
             table.HasCheckConstraint("CK_BudgetLines_Quantity", "\"Quantity\" IS NULL OR \"Quantity\" > 0");
             table.HasCheckConstraint("CK_BudgetLines_UnitRate", "\"UnitRateUsd\" IS NULL OR \"UnitRateUsd\" > 0");
-            table.HasCheckConstraint("CK_BudgetLines_UnitValues", "(\"Quantity\" IS NULL AND \"Unit\" IS NULL AND \"UnitRateUsd\" IS NULL) OR (\"Quantity\" IS NOT NULL AND \"Unit\" IS NOT NULL AND \"UnitRateUsd\" IS NOT NULL)");
-            table.HasCheckConstraint("CK_BudgetLines_Category", "\"Category\" IN ('Labour', 'AppliedInput', 'DirectExpense', 'ApprovedVarianceCost')");
+            table.HasCheckConstraint("CK_BudgetLines_UnitValues",
+                "(\"Quantity\" IS NULL AND \"Unit\" IS NULL AND \"UnitRateUsd\" IS NULL) OR (\"Quantity\" IS NOT NULL AND \"Unit\" IS NOT NULL AND \"UnitRateUsd\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_BudgetLines_Category",
+                "\"Category\" IN ('Labour', 'AppliedInput', 'DirectExpense', 'ApprovedVarianceCost')");
         });
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();

@@ -32,7 +32,11 @@ public sealed class Supplier : BaseAuditableEntity
     public void Archive(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status == InventoryRecordStatus.Archived) return;
+        if (Status == InventoryRecordStatus.Archived)
+        {
+            return;
+        }
+
         Status = InventoryRecordStatus.Archived;
         Version++;
     }
@@ -40,7 +44,11 @@ public sealed class Supplier : BaseAuditableEntity
     public void Unarchive(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status == InventoryRecordStatus.Active) return;
+        if (Status == InventoryRecordStatus.Active)
+        {
+            return;
+        }
+
         Status = InventoryRecordStatus.Active;
         Version++;
     }
@@ -49,7 +57,10 @@ public sealed class Supplier : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status != InventoryRecordStatus.Active)
+        {
             throw new InvalidOperationException("Archived suppliers cannot be edited.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Code = NormalizeCode(code);
@@ -60,8 +71,14 @@ public sealed class Supplier : BaseAuditableEntity
 
     private void RequireVersion(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This supplier changed after it was loaded.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This supplier changed after it was loaded.");
+        }
     }
 
-    private static string NormalizeCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormalizeCode(string code)
+    {
+        return code.Trim().ToUpperInvariant();
+    }
 }

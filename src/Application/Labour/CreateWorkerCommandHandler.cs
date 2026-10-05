@@ -1,6 +1,4 @@
-using Cane360.Application.Common.Exceptions;
 using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
 
 namespace Cane360.Application.Labour;
@@ -14,18 +12,20 @@ public sealed class CreateWorkerCommandHandler(
 {
     public async Task<WorkerDetailsDto> Handle(CreateWorkerCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await LabourAccess.RequireTenantAsync(farmRepository, user, true, cancellationToken);
-        var farm = LabourAccess.RequireFarm(tenant);
-        var userId = LabourAccess.RequireUserId(user);
-        var person = request.PersonId.HasValue
+        Tenant tenant = await LabourAccess.RequireTenantAsync(farmRepository, user, true, cancellationToken);
+        Farm farm = LabourAccess.RequireFarm(tenant);
+        string userId = LabourAccess.RequireUserId(user);
+        Person person = request.PersonId.HasValue
             ? LabourAccess.RequirePerson(farm, request.PersonId.Value)
             : farm.AddPerson(request.DisplayName!, request.Phone, request.ActiveFrom);
-        if (person.Status != RecordStatus.Active || person.ActiveFrom > request.ActiveFrom || person.ActiveTo < request.ActiveFrom)
+        if (person.Status != RecordStatus.Active || person.ActiveFrom > request.ActiveFrom ||
+            person.ActiveTo < request.ActiveFrom)
         {
-            throw LabourAccess.Failure(nameof(request.PersonId), "The selected person must be active on the worker start date.");
+            throw LabourAccess.Failure(nameof(request.PersonId),
+                "The selected person must be active on the worker start date.");
         }
 
-        var workerId = Guid.NewGuid();
+        Guid workerId = Guid.NewGuid();
         ProtectedNationalId? protectedId = null;
         LabourAccess.ApplyDomainAction(nameof(request.NationalId), () =>
             protectedId = protector.Protect(tenant.Id, farm.Id, workerId, request.NationalId));

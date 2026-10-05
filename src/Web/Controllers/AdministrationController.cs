@@ -1,7 +1,6 @@
 using System.Text;
 using Cane360.Application.Administration;
 using Cane360.Application.Inventory;
-using Cane360.Web.Infrastructure;
 using Cane360.Web.Models.Administration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -219,8 +218,10 @@ public sealed class AdministrationController(AdministrationService administratio
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AdministrationUserDto>> DisableManager(Guid membershipId,
-        CancellationToken cancellationToken) =>
-        Ok(await administration.DisableManagerAsync(membershipId, cancellationToken));
+        CancellationToken cancellationToken)
+    {
+        return Ok(await administration.DisableManagerAsync(membershipId, cancellationToken));
+    }
 
     [HttpGet("audit")]
     [EndpointSummary("Get audit events")]

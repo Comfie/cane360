@@ -12,7 +12,11 @@ public sealed class GrowerStatement : BaseEntity
         Validate(periodStart, periodEnd, totalTonnes, totalAmountUsd);
         ArgumentException.ThrowIfNullOrWhiteSpace(statementReference);
         ArgumentException.ThrowIfNullOrWhiteSpace(createdByUserId);
-        if (correctsStatementId.HasValue) ArgumentException.ThrowIfNullOrWhiteSpace(correctionReason);
+        if (correctsStatementId.HasValue)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(correctionReason);
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         MillId = millId;
@@ -29,8 +33,8 @@ public sealed class GrowerStatement : BaseEntity
         CorrectionReason = Clean(correctionReason);
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid MillId { get; private set; }
     public string StatementReference { get; private set; } = string.Empty;
     public DateOnly PeriodStart { get; private set; }
@@ -51,9 +55,12 @@ public sealed class GrowerStatement : BaseEntity
     public static GrowerStatement CreateDraft(Guid tenantId, Guid farmId, Guid millId,
         string statementReference, DateOnly periodStart, DateOnly periodEnd,
         decimal totalTonnes, decimal totalAmountUsd, string? notes, string createdByUserId,
-        DateTimeOffset createdAt) => new(tenantId, farmId, millId, statementReference,
-        periodStart, periodEnd, totalTonnes, totalAmountUsd, notes, createdByUserId,
-        createdAt, null, null);
+        DateTimeOffset createdAt)
+    {
+        return new GrowerStatement(tenantId, farmId, millId, statementReference,
+            periodStart, periodEnd, totalTonnes, totalAmountUsd, notes, createdByUserId,
+            createdAt, null, null);
+    }
 
     public static GrowerStatement CreateCorrection(GrowerStatement original,
         string statementReference, DateOnly periodStart, DateOnly periodEnd,
@@ -61,8 +68,11 @@ public sealed class GrowerStatement : BaseEntity
         string userId, DateTimeOffset at)
     {
         if (original.Status != GrowerStatementStatus.Recorded)
+        {
             throw new InvalidOperationException("Only a recorded statement can be corrected.");
-        return new(original.TenantId, original.FarmId, original.MillId, statementReference,
+        }
+
+        return new GrowerStatement(original.TenantId, original.FarmId, original.MillId, statementReference,
             periodStart, periodEnd, totalTonnes, totalAmountUsd, notes, userId, at,
             original.Id, reason);
     }
@@ -89,7 +99,10 @@ public sealed class GrowerStatement : BaseEntity
     {
         RequireDraft(expectedVersion);
         if (!hasOriginalEvidence)
+        {
             throw new InvalidOperationException("Original statement evidence is required before recording.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         Status = GrowerStatementStatus.Recorded;
@@ -99,26 +112,54 @@ public sealed class GrowerStatement : BaseEntity
         Version++;
     }
 
-    public static string NormalizeReference(string value) => value.Trim().ToUpperInvariant();
+    public static string NormalizeReference(string value)
+    {
+        return value.Trim().ToUpperInvariant();
+    }
 
     private void RequireDraft(long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This statement changed after it was loaded. Refresh and try again.");
+        }
+
         if (Status != GrowerStatementStatus.Draft)
+        {
             throw new InvalidOperationException("Recorded statements are immutable and require a correction.");
+        }
     }
 
     private static void Validate(DateOnly start, DateOnly end, decimal tonnes, decimal amount)
     {
-        if (end < start) throw new InvalidOperationException("The statement period end cannot precede its start.");
-        if (tonnes < 0) throw new ArgumentOutOfRangeException(nameof(tonnes), "Statement tonnes cannot be negative.");
+        if (end < start)
+        {
+            throw new InvalidOperationException("The statement period end cannot precede its start.");
+        }
+
+        if (tonnes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tonnes), "Statement tonnes cannot be negative.");
+        }
+
         if (decimal.Round(tonnes, 3, MidpointRounding.AwayFromZero) != tonnes)
+        {
             throw new ArgumentException("Tonnage supports at most three decimal places.", nameof(tonnes));
-        if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount), "Statement amount cannot be negative.");
+        }
+
+        if (amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "Statement amount cannot be negative.");
+        }
+
         if (decimal.Round(amount, 2, MidpointRounding.AwayFromZero) != amount)
+        {
             throw new ArgumentException("USD amounts support at most two decimal places.", nameof(amount));
+        }
     }
 
-    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Clean(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

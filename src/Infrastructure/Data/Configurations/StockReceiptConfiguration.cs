@@ -1,3 +1,4 @@
+using Cane360.Domain.Activities;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
 using Cane360.Infrastructure.Identity;
@@ -12,10 +13,14 @@ internal sealed class StockReceiptConfiguration : IEntityTypeConfiguration<Stock
     {
         builder.ToTable("StockReceipts", "inventory", table =>
         {
-            table.HasCheckConstraint("CK_StockReceipts_Supplier", "(\"ReceiptType\" = 'Purchase' AND \"SupplierId\" IS NOT NULL) OR (\"ReceiptType\" = 'OpeningBalance' AND \"SupplierId\" IS NULL)");
-            table.HasCheckConstraint("CK_StockReceipts_OpeningReason", "\"ReceiptType\" <> 'OpeningBalance' OR length(trim(\"Reason\")) > 0");
-            table.HasCheckConstraint("CK_StockReceipts_PostingMetadata", "(\"Status\" NOT IN ('Posted', 'Reversed')) OR (\"PostedAt\" IS NOT NULL AND length(trim(\"PostedByUserId\")) > 0 AND length(trim(\"PostingIdempotencyKey\")) > 0)");
-            table.HasCheckConstraint("CK_StockReceipts_ReversalMetadata", "\"Status\" <> 'Reversed' OR (\"ReversedAt\" IS NOT NULL AND length(trim(\"ReversedByUserId\")) > 0 AND length(trim(\"ReversalIdempotencyKey\")) > 0)");
+            table.HasCheckConstraint("CK_StockReceipts_Supplier",
+                "(\"ReceiptType\" = 'Purchase' AND \"SupplierId\" IS NOT NULL) OR (\"ReceiptType\" = 'OpeningBalance' AND \"SupplierId\" IS NULL)");
+            table.HasCheckConstraint("CK_StockReceipts_OpeningReason",
+                "\"ReceiptType\" <> 'OpeningBalance' OR length(trim(\"Reason\")) > 0");
+            table.HasCheckConstraint("CK_StockReceipts_PostingMetadata",
+                "(\"Status\" NOT IN ('Posted', 'Reversed')) OR (\"PostedAt\" IS NOT NULL AND length(trim(\"PostedByUserId\")) > 0 AND length(trim(\"PostingIdempotencyKey\")) > 0)");
+            table.HasCheckConstraint("CK_StockReceipts_ReversalMetadata",
+                "\"Status\" <> 'Reversed' OR (\"ReversedAt\" IS NOT NULL AND length(trim(\"ReversedByUserId\")) > 0 AND length(trim(\"ReversalIdempotencyKey\")) > 0)");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -35,25 +40,30 @@ internal sealed class StockReceiptConfiguration : IEntityTypeConfiguration<Stock
             .HasForeignKey(entity => new { entity.FarmId, entity.TenantId })
             .HasPrincipalKey(farm => new { farm.Id, farm.TenantId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Store>().WithMany().HasForeignKey(entity => new { entity.StoreId, entity.FarmId })
-            .HasPrincipalKey(store => new { Id = store.Id, store.FarmId }).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(store => new { store.Id, store.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Supplier>().WithMany()
             .HasForeignKey(entity => new { entity.SupplierId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(supplier => new { supplier.Id, supplier.TenantId, supplier.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<Cane360.Domain.Activities.Person>().WithMany()
+        builder.HasOne<Person>().WithMany()
             .HasForeignKey(entity => new { entity.ReceivedByPersonId, entity.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(entity => entity.Lines).WithOne()
             .HasForeignKey(line => new { line.StockReceiptId, line.TenantId, line.FarmId })
-            .HasPrincipalKey(receipt => new { Id = receipt.Id, receipt.TenantId, receipt.FarmId })
+            .HasPrincipalKey(receipt => new { receipt.Id, receipt.TenantId, receipt.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockReceipt>().WithMany().HasForeignKey(entity => entity.CorrectsStockReceiptId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.ReversedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockReceipt>().WithMany().HasForeignKey(entity => entity.CorrectsStockReceiptId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.ReversedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => new { entity.FarmId, entity.Status, entity.ReceiptDate });
         builder.HasIndex(entity => new { entity.FarmId, entity.SupplierId, entity.SourceReference });
-        builder.HasIndex(entity => entity.PostingIdempotencyKey).IsUnique().HasFilter("\"PostingIdempotencyKey\" IS NOT NULL");
-        builder.HasIndex(entity => entity.ReversalIdempotencyKey).IsUnique().HasFilter("\"ReversalIdempotencyKey\" IS NOT NULL");
+        builder.HasIndex(entity => entity.PostingIdempotencyKey).IsUnique()
+            .HasFilter("\"PostingIdempotencyKey\" IS NOT NULL");
+        builder.HasIndex(entity => entity.ReversalIdempotencyKey).IsUnique()
+            .HasFilter("\"ReversalIdempotencyKey\" IS NOT NULL");
         ConfigureAudit(builder);
     }
 

@@ -1,6 +1,5 @@
 using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

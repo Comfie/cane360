@@ -1,10 +1,13 @@
+using System.Globalization;
+
 namespace Cane360.Domain.Payroll;
 
 public sealed class PayrollPeriod : BaseAuditableEntity
 {
     private PayrollPeriod() { }
 
-    private PayrollPeriod(Guid tenantId, Guid farmId, int year, int month, DateTimeOffset createdAt, string createdByUserId, Guid? createdByPersonId)
+    private PayrollPeriod(Guid tenantId, Guid farmId, int year, int month, DateTimeOffset createdAt,
+        string createdByUserId, Guid? createdByPersonId)
     {
         TenantId = tenantId;
         FarmId = farmId;
@@ -12,7 +15,7 @@ public sealed class PayrollPeriod : BaseAuditableEntity
         Month = month;
         StartDate = new DateOnly(year, month, 1);
         EndDate = StartDate.AddMonths(1).AddDays(-1);
-        DisplayName = StartDate.ToString("MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
+        DisplayName = StartDate.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
         CreatedAt = createdAt;
         CreatedByUserId = createdByUserId.Trim();
         CreatedByPersonId = createdByPersonId;
@@ -23,7 +26,7 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public int Year { get; private set; }
     public int Month { get; private set; }
-    public DateOnly StartDate { get; private set; }
+    public DateOnly StartDate { get; }
     public DateOnly EndDate { get; private set; }
     public string DisplayName { get; private set; } = string.Empty;
     public PayrollPeriodStatus Status { get; private set; }
@@ -43,10 +46,14 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public Guid? ClosedByPayrollRunId { get; private set; }
     public long Version { get; private set; }
 
-    public static PayrollPeriod Create(Guid tenantId, Guid farmId, int year, int month, DateTimeOffset createdAt, string createdByUserId, Guid? createdByPersonId)
+    public static PayrollPeriod Create(Guid tenantId, Guid farmId, int year, int month, DateTimeOffset createdAt,
+        string createdByUserId, Guid? createdByPersonId)
     {
         if (tenantId == Guid.Empty || farmId == Guid.Empty || year is < 2000 or > 9999 || month is < 1 or > 12)
+        {
             throw new ArgumentException("A valid tenant, farm, calendar year, and calendar month are required.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(createdByUserId);
         return new PayrollPeriod(tenantId, farmId, year, month, createdAt, createdByUserId, createdByPersonId);
     }
@@ -54,7 +61,11 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public void Open(DateTimeOffset at, string userId, Guid? personId, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != PayrollPeriodStatus.Draft) throw new InvalidOperationException("Only a draft payroll period can be opened.");
+        if (Status != PayrollPeriodStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft payroll period can be opened.");
+        }
+
         Status = PayrollPeriodStatus.Open;
         OpenedAt = at;
         OpenedByUserId = userId.Trim();
@@ -65,7 +76,11 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public void Cancel(DateTimeOffset at, string userId, Guid? personId, string reason, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != PayrollPeriodStatus.Draft) throw new InvalidOperationException("Only a draft payroll period can be cancelled in Phase 6A.");
+        if (Status != PayrollPeriodStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft payroll period can be cancelled in Phase 6A.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         Status = PayrollPeriodStatus.Cancelled;
         CancelledAt = at;
@@ -78,8 +93,16 @@ public sealed class PayrollPeriod : BaseAuditableEntity
     public void Close(DateTimeOffset at, string userId, Guid? personId, Guid payrollRunId, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != PayrollPeriodStatus.Open) throw new InvalidOperationException("Only an open payroll period can be closed.");
-        if (payrollRunId == Guid.Empty) throw new ArgumentException("A payroll run is required to close the period.");
+        if (Status != PayrollPeriodStatus.Open)
+        {
+            throw new InvalidOperationException("Only an open payroll period can be closed.");
+        }
+
+        if (payrollRunId == Guid.Empty)
+        {
+            throw new ArgumentException("A payroll run is required to close the period.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         Status = PayrollPeriodStatus.Closed;
         ClosedAt = at;
@@ -91,6 +114,10 @@ public sealed class PayrollPeriod : BaseAuditableEntity
 
     private void RequireVersion(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This payroll period changed after it was loaded. Refresh and try again.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException(
+                "This payroll period changed after it was loaded. Refresh and try again.");
+        }
     }
 }

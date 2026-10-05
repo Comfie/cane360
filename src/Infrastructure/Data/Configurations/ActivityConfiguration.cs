@@ -1,5 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
 using Cane360.Domain.Farms;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +12,24 @@ internal sealed class ActivityConfiguration : IEntityTypeConfiguration<Activity>
     {
         builder.ToTable("Activities", "activities", table =>
         {
-            table.HasCheckConstraint("CK_Activities_PlannedDate", "\"Kind\" <> 'Planned' OR \"PlannedDate\" IS NOT NULL");
-            table.HasCheckConstraint("CK_Activities_Quantity", "(\"QuantityBasis\" = 'None' AND \"ActualQuantity\" IS NULL) OR (\"QuantityBasis\" <> 'None' AND (\"ActualQuantity\" IS NULL OR \"ActualQuantity\" > 0))");
-            table.HasCheckConstraint("CK_Activities_WholeLines", "\"QuantityBasis\" <> 'StandardLines' OR \"ActualQuantity\" IS NULL OR \"ActualQuantity\" = trunc(\"ActualQuantity\")");
-            table.HasCheckConstraint("CK_Activities_EntryTime", "\"ActualEnteredAt\" IS NULL OR \"ActualAt\" IS NULL OR \"ActualEnteredAt\" >= \"ActualAt\"");
-            table.HasCheckConstraint("CK_Activities_LateReason", "\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0");
+            table.HasCheckConstraint("CK_Activities_PlannedDate",
+                "\"Kind\" <> 'Planned' OR \"PlannedDate\" IS NOT NULL");
+            table.HasCheckConstraint("CK_Activities_Quantity",
+                "(\"QuantityBasis\" = 'None' AND \"ActualQuantity\" IS NULL) OR (\"QuantityBasis\" <> 'None' AND (\"ActualQuantity\" IS NULL OR \"ActualQuantity\" > 0))");
+            table.HasCheckConstraint("CK_Activities_WholeLines",
+                "\"QuantityBasis\" <> 'StandardLines' OR \"ActualQuantity\" IS NULL OR \"ActualQuantity\" = trunc(\"ActualQuantity\")");
+            table.HasCheckConstraint("CK_Activities_EntryTime",
+                "\"ActualEnteredAt\" IS NULL OR \"ActualAt\" IS NULL OR \"ActualEnteredAt\" >= \"ActualAt\"");
+            table.HasCheckConstraint("CK_Activities_LateReason",
+                "\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0");
             table.HasCheckConstraint("CK_Activities_EntryDelayDays", "\"EntryDelayDays\" >= 0");
-            table.HasCheckConstraint("CK_Activities_RequiredActual", "\"Status\" NOT IN ('AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed') OR (\"ActualAt\" IS NOT NULL AND (\"QuantityBasis\" = 'None' OR \"ActualQuantity\" IS NOT NULL))");
+            table.HasCheckConstraint("CK_Activities_RequiredActual",
+                "\"Status\" NOT IN ('AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed') OR (\"ActualAt\" IS NOT NULL AND (\"QuantityBasis\" = 'None' OR \"ActualQuantity\" IS NOT NULL))");
             table.HasCheckConstraint("CK_Activities_Kind", "\"Kind\" IN ('Planned', 'Unplanned')");
-            table.HasCheckConstraint("CK_Activities_QuantityBasis", "\"QuantityBasis\" IN ('None', 'Hectares', 'StandardLines')");
-            table.HasCheckConstraint("CK_Activities_Status", "\"Status\" IN ('Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled')");
+            table.HasCheckConstraint("CK_Activities_QuantityBasis",
+                "\"QuantityBasis\" IN ('None', 'Hectares', 'StandardLines')");
+            table.HasCheckConstraint("CK_Activities_Status",
+                "\"Status\" IN ('Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled')");
         });
         builder.HasKey(activity => activity.Id);
         builder.Property(activity => activity.Id).ValueGeneratedNever();

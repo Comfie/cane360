@@ -1,12 +1,11 @@
 using System.Diagnostics;
-using Cane360.Web.Infrastructure;
 using Cane360.Infrastructure.Identity;
 using Cane360.Web.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Cane360.Web.Controllers;
 
@@ -27,22 +26,18 @@ public sealed class UsersController(
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var timer = Stopwatch.StartNew();
-        var user = new ApplicationUser
-        {
-            UserName = request.Email,
-            Email = request.Email
-        };
+        Stopwatch timer = Stopwatch.StartNew();
+        ApplicationUser user = new() { UserName = request.Email, Email = request.Email };
 
         IdentityResult result = await userManager.CreateAsync(user, request.Password);
 
-        var visibleErrors = result.Errors
+        IdentityError[] visibleErrors = result.Errors
             .Where(error => error.Code is not ("DuplicateUserName" or "DuplicateEmail"))
             .ToArray();
 
         if (result.Succeeded || (visibleErrors.Length == 0 && result.Errors.Any()))
         {
-            var remaining = MinimumRegistrationDuration - timer.Elapsed;
+            TimeSpan remaining = MinimumRegistrationDuration - timer.Elapsed;
             if (remaining > TimeSpan.Zero)
             {
                 await Task.Delay(remaining, HttpContext.RequestAborted);
@@ -51,7 +46,7 @@ public sealed class UsersController(
             return Ok();
         }
 
-        var errors = visibleErrors
+        Dictionary<string, string[]> errors = visibleErrors
             .GroupBy(error => error.Code)
             .ToDictionary(
                 group => group.Key,

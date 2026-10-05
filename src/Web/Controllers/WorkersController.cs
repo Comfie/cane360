@@ -12,16 +12,21 @@ namespace Cane360.Web.Controllers;
 public sealed class WorkersController(ISender sender) : ControllerBase
 {
     [HttpGet(Name = "GetWorkers")]
-    public async Task<ActionResult<IReadOnlyList<WorkerListItemDto>>> Get(CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetWorkersQuery(), cancellationToken));
+    public async Task<ActionResult<IReadOnlyList<WorkerListItemDto>>> Get(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetWorkersQuery(), cancellationToken));
+    }
 
     [HttpGet("{workerId:guid}", Name = "GetWorkerDetails")]
-    public async Task<ActionResult<WorkerDetailsDto>> GetById(Guid workerId, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
+    public async Task<ActionResult<WorkerDetailsDto>> GetById(Guid workerId, CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetWorkerDetailsQuery(workerId), cancellationToken));
+    }
 
     [HttpPost(Name = "CreateWorkers")]
     [ProducesResponseType<WorkerDetailsDto>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkerDetailsDto>> Create(CreateWorkerRequest request,
+        CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveFrom, out DateOnly activeFrom))
         {
@@ -34,7 +39,8 @@ public sealed class WorkersController(ISender sender) : ControllerBase
     }
 
     [HttpPost("{workerId:guid}/archive", Name = "ArchiveWorkers")]
-    public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request,
+        CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.ActiveTo, out DateOnly activeTo))
         {

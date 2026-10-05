@@ -1,5 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Farms;
 using FluentValidation.Results;
 using ApplicationValidationException = Cane360.Application.Common.Exceptions.ValidationException;
 
@@ -7,8 +5,10 @@ namespace Cane360.Application.CropCycles;
 
 internal static class CropCycleAccess
 {
-    public static string RequireUserId(IUser user) =>
-        user.Id ?? throw new UnauthorizedAccessException();
+    public static string RequireUserId(IUser user)
+    {
+        return user.Id ?? throw new UnauthorizedAccessException();
+    }
 
     public static async Task<Tenant> RequireTenantAsync(
         IFarmSetupRepository repository,
@@ -16,9 +16,9 @@ internal static class CropCycleAccess
         bool trackChanges,
         CancellationToken cancellationToken)
     {
-        var userId = RequireUserId(user);
+        string userId = RequireUserId(user);
         return await repository.GetTenantForUserAsync(userId, trackChanges, cancellationToken)
-            ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
+               ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
     }
 
     public static async Task<Tenant> RequireReadTenantAsync(
@@ -26,21 +26,23 @@ internal static class CropCycleAccess
         IUser user,
         CancellationToken cancellationToken)
     {
-        var userId = RequireUserId(user);
+        string userId = RequireUserId(user);
         return await repository.GetTenantForOperationalUserAsync(userId, false, cancellationToken)
-            ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
+               ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
     }
 
     public static Field RequireField(Tenant tenant, Guid fieldId)
     {
-        var farm = tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm");
+        Farm farm = tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm");
         return farm.Fields.SingleOrDefault(candidate => candidate.Id == fieldId)
-            ?? throw new NotFoundException(fieldId.ToString(), "Field");
+               ?? throw new NotFoundException(fieldId.ToString(), "Field");
     }
 
-    public static CropCycle RequireCycle(Field field, Guid cropCycleId) =>
-        field.CropCycles.SingleOrDefault(candidate => candidate.Id == cropCycleId)
-        ?? throw new NotFoundException(cropCycleId.ToString(), "Crop cycle");
+    public static CropCycle RequireCycle(Field field, Guid cropCycleId)
+    {
+        return field.CropCycles.SingleOrDefault(candidate => candidate.Id == cropCycleId)
+               ?? throw new NotFoundException(cropCycleId.ToString(), "Crop cycle");
+    }
 
     public static void RequireVersion(CropCycle cycle, long expectedVersion)
     {
@@ -51,8 +53,10 @@ internal static class CropCycleAccess
         }
     }
 
-    public static ApplicationValidationException Failure(string propertyName, string message) =>
-        new([new ValidationFailure(propertyName, message)]);
+    public static ApplicationValidationException Failure(string propertyName, string message)
+    {
+        return new ApplicationValidationException([new ValidationFailure(propertyName, message)]);
+    }
 
     public static void ApplyDomainAction(string propertyName, Action action)
     {

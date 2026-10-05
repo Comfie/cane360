@@ -25,6 +25,9 @@ public sealed class MillRecordExport : BaseEntity
     public DateTimeOffset CreatedAt { get; private set; }
 
     public static MillRecordExport Create(Guid tenantId, Guid farmId, string kind,
-        string filters, string userId, DateTimeOffset at) => new(tenantId, farmId, kind,
-        filters, userId, at);
+        string filters, string userId, DateTimeOffset at)
+    {
+        return new MillRecordExport(tenantId, farmId, kind,
+            filters, userId, at);
+    }
 }

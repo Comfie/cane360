@@ -22,7 +22,7 @@ public sealed class FarmSetting : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public string Key { get; private set; } = string.Empty;
     public int Value { get; private set; }
-    public DateOnly EffectiveFrom { get; private set; }
+    public DateOnly EffectiveFrom { get; }
     public DateOnly? EffectiveTo { get; private set; }
     public long Version { get; private set; }
 
@@ -30,23 +30,40 @@ public sealed class FarmSetting : BaseAuditableEntity
         DateOnly effectiveFrom, DateOnly? effectiveTo)
     {
         if (key != ActivityLateEntryReasonDays)
+        {
             throw new InvalidOperationException("This farm setting is not supported.");
+        }
+
         if (value is < 0 or > 30)
+        {
             throw new InvalidOperationException("Late-entry days must be between 0 and 30.");
+        }
+
         if (effectiveTo.HasValue && effectiveTo < effectiveFrom)
+        {
             throw new InvalidOperationException("Setting end date cannot precede its start date.");
+        }
+
         return new FarmSetting(tenantId, farmId, key, value, effectiveFrom, effectiveTo);
     }
 
-    public bool IsEffective(DateOnly date) =>
-        EffectiveFrom <= date && (EffectiveTo is null || EffectiveTo >= date);
+    public bool IsEffective(DateOnly date)
+    {
+        return EffectiveFrom <= date && (EffectiveTo is null || EffectiveTo >= date);
+    }
 
     public void End(DateOnly effectiveTo, long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This setting changed after it was loaded.");
+        }
+
         if (effectiveTo < EffectiveFrom || (EffectiveTo.HasValue && effectiveTo > EffectiveTo))
+        {
             throw new InvalidOperationException("The end date must stay within the setting's effective range.");
+        }
+
         EffectiveTo = effectiveTo;
         Version++;
     }

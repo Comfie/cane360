@@ -46,10 +46,22 @@ public sealed class StockCount : BaseAuditableEntity
         long expectedVersion)
     {
         Require(expectedVersion);
-        if (Status != StockCountStatus.Draft) throw new InvalidOperationException("Only a draft count can be started.");
-        if (cutoffPostingSequence < 0) throw new InvalidOperationException("The count cut-off is invalid.");
+        if (Status != StockCountStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft count can be started.");
+        }
+
+        if (cutoffPostingSequence < 0)
+        {
+            throw new InvalidOperationException("The count cut-off is invalid.");
+        }
+
         CutoffPostingSequence = cutoffPostingSequence;
-        foreach (var line in lines) Lines.Add(line);
+        foreach (StockCountLine line in lines)
+        {
+            Lines.Add(line);
+        }
+
         StartedAt = startedAt;
         Status = StockCountStatus.InProgress;
         Version++;
@@ -58,7 +70,11 @@ public sealed class StockCount : BaseAuditableEntity
     public void MoveToReview(DateTimeOffset reviewedAt, long expectedVersion)
     {
         Require(expectedVersion);
-        if (Status != StockCountStatus.InProgress) throw new InvalidOperationException("Only an in-progress count can be reviewed.");
+        if (Status != StockCountStatus.InProgress)
+        {
+            throw new InvalidOperationException("Only an in-progress count can be reviewed.");
+        }
+
         ReviewedAt = reviewedAt;
         Status = StockCountStatus.Review;
         Version++;
@@ -67,16 +83,34 @@ public sealed class StockCount : BaseAuditableEntity
     public void ResolveReview(DateTimeOffset closedAt, long expectedVersion)
     {
         Require(expectedVersion);
-        if (Status != StockCountStatus.Review) throw new InvalidOperationException("Only a review count can be resolved.");
-        Status = Lines.All(line => line.VarianceQuantity == 0) ? StockCountStatus.ClosedNoVariance : StockCountStatus.PendingAdjustment;
-        if (Status == StockCountStatus.ClosedNoVariance) ClosedAt = closedAt;
+        if (Status != StockCountStatus.Review)
+        {
+            throw new InvalidOperationException("Only a review count can be resolved.");
+        }
+
+        Status = Lines.All(line => line.VarianceQuantity == 0)
+            ? StockCountStatus.ClosedNoVariance
+            : StockCountStatus.PendingAdjustment;
+        if (Status == StockCountStatus.ClosedNoVariance)
+        {
+            ClosedAt = closedAt;
+        }
+
         Version++;
     }
 
     public void CloseAfterAdjustments(DateTimeOffset closedAt)
     {
-        if (Status != StockCountStatus.PendingAdjustment) throw new InvalidOperationException("Only a count pending adjustments can close.");
-        if (Lines.Any(line => line.VarianceQuantity != 0 && !line.IsResolved)) throw new InvalidOperationException("Every non-zero variance requires a posted adjustment.");
+        if (Status != StockCountStatus.PendingAdjustment)
+        {
+            throw new InvalidOperationException("Only a count pending adjustments can close.");
+        }
+
+        if (Lines.Any(line => line.VarianceQuantity != 0 && !line.IsResolved))
+        {
+            throw new InvalidOperationException("Every non-zero variance requires a posted adjustment.");
+        }
+
         Status = StockCountStatus.Closed;
         ClosedAt = closedAt;
         Version++;
@@ -85,7 +119,10 @@ public sealed class StockCount : BaseAuditableEntity
     public void ReopenAfterAdjustmentReversal(Guid adjustmentId)
     {
         if (Status != StockCountStatus.Closed || !Lines.Any(line => line.PostedStockAdjustmentId == adjustmentId))
+        {
             throw new InvalidOperationException("Only the posted count adjustment can reopen this count.");
+        }
+
         Status = StockCountStatus.PendingAdjustment;
         ClosedAt = null;
         Version++;
@@ -94,7 +131,11 @@ public sealed class StockCount : BaseAuditableEntity
     public void Cancel(string reason, long expectedVersion)
     {
         Require(expectedVersion);
-        if (Status is not (StockCountStatus.Draft or StockCountStatus.InProgress)) throw new InvalidOperationException("Only a draft or in-progress count can be cancelled.");
+        if (Status is not (StockCountStatus.Draft or StockCountStatus.InProgress))
+        {
+            throw new InvalidOperationException("Only a draft or in-progress count can be cancelled.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         CancellationReason = reason.Trim();
         Status = StockCountStatus.Cancelled;
@@ -103,6 +144,9 @@ public sealed class StockCount : BaseAuditableEntity
 
     private void Require(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This count changed after it was loaded. Refresh and try again.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This count changed after it was loaded. Refresh and try again.");
+        }
     }
 }

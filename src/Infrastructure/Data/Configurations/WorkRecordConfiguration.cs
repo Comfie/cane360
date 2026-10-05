@@ -1,5 +1,3 @@
-using Cane360.Domain.Activities;
-using Cane360.Domain.Auditing;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
 using Cane360.Infrastructure.Identity;
@@ -14,12 +12,18 @@ internal sealed class WorkRecordConfiguration : IEntityTypeConfiguration<WorkRec
     {
         builder.ToTable("WorkRecords", "labour", table =>
         {
-            table.HasCheckConstraint("CK_WorkRecords_Basis", "\"PayBasis\" IN ('Daily', 'Monthly', 'Hectare', 'StandardLine')");
-            table.HasCheckConstraint("CK_WorkRecords_Status", "\"Status\" IN ('Draft', 'SupervisorVerified', 'Confirmed', 'Cancelled', 'Superseded')");
-            table.HasCheckConstraint("CK_WorkRecords_Quantity", "((\"PayBasis\" IN ('Hectare', 'StandardLine')) AND \"Quantity\" > 0) OR ((\"PayBasis\" IN ('Daily', 'Monthly')) AND \"Quantity\" IS NULL)");
-            table.HasCheckConstraint("CK_WorkRecords_WholeLines", "\"PayBasis\" <> 'StandardLine' OR \"Quantity\" = trunc(\"Quantity\")");
-            table.HasCheckConstraint("CK_WorkRecords_MonthlyDeferred", "\"PayBasis\" <> 'Monthly' OR \"CalculatedAmountUsd\" IS NULL");
-            table.HasCheckConstraint("CK_WorkRecords_EntryDelay", "\"EntryDelayDays\" >= 0 AND (\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0)");
+            table.HasCheckConstraint("CK_WorkRecords_Basis",
+                "\"PayBasis\" IN ('Daily', 'Monthly', 'Hectare', 'StandardLine')");
+            table.HasCheckConstraint("CK_WorkRecords_Status",
+                "\"Status\" IN ('Draft', 'SupervisorVerified', 'Confirmed', 'Cancelled', 'Superseded')");
+            table.HasCheckConstraint("CK_WorkRecords_Quantity",
+                "((\"PayBasis\" IN ('Hectare', 'StandardLine')) AND \"Quantity\" > 0) OR ((\"PayBasis\" IN ('Daily', 'Monthly')) AND \"Quantity\" IS NULL)");
+            table.HasCheckConstraint("CK_WorkRecords_WholeLines",
+                "\"PayBasis\" <> 'StandardLine' OR \"Quantity\" = trunc(\"Quantity\")");
+            table.HasCheckConstraint("CK_WorkRecords_MonthlyDeferred",
+                "\"PayBasis\" <> 'Monthly' OR \"CalculatedAmountUsd\" IS NULL");
+            table.HasCheckConstraint("CK_WorkRecords_EntryDelay",
+                "\"EntryDelayDays\" >= 0 AND (\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0)");
         });
         builder.HasKey(record => record.Id);
         builder.Property(record => record.Id).ValueGeneratedNever();
@@ -49,9 +53,12 @@ internal sealed class WorkRecordConfiguration : IEntityTypeConfiguration<WorkRec
             .HasForeignKey(record => new { record.FieldId, record.FarmId })
             .HasPrincipalKey(field => new { field.Id, field.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<WorkerRate>().WithMany().HasForeignKey(record => record.WorkerRateId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(record => record.EnteredByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(record => record.SupersededByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WorkerRate>().WithMany().HasForeignKey(record => record.WorkerRateId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(record => record.EnteredByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(record => record.SupersededByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(record => record.Activities).WithOne(link => link.WorkRecord)
             .HasForeignKey(link => new { link.WorkRecordId, link.TenantId, link.FarmId })
             .HasPrincipalKey(record => new { record.Id, record.TenantId, record.FarmId })
@@ -61,7 +68,8 @@ internal sealed class WorkRecordConfiguration : IEntityTypeConfiguration<WorkRec
             .HasPrincipalKey(record => new { record.Id, record.TenantId, record.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(record => record.Verification).WithOne()
-            .HasForeignKey<WorkVerification>(verification => new { verification.WorkRecordId, verification.TenantId, verification.FarmId })
+            .HasForeignKey<WorkVerification>(verification =>
+                new { verification.WorkRecordId, verification.TenantId, verification.FarmId })
             .HasPrincipalKey<WorkRecord>(record => new { record.Id, record.TenantId, record.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(record => new { record.AttendanceId, record.PayBasis })

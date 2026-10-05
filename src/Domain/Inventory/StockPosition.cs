@@ -22,6 +22,8 @@ public sealed class StockPosition : BaseEntity
     public string PositionKey { get; private set; } = string.Empty;
 
     public static StockPosition Create(
-        Guid tenantId, Guid farmId, Guid storeId, Guid itemId, Guid? lotId) =>
-        new(tenantId, farmId, storeId, itemId, lotId);
+        Guid tenantId, Guid farmId, Guid storeId, Guid itemId, Guid? lotId)
+    {
+        return new StockPosition(tenantId, farmId, storeId, itemId, lotId);
+    }
 }

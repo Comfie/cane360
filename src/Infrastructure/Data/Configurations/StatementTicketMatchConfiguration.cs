@@ -39,7 +39,6 @@ internal sealed class StatementTicketMatchConfiguration : IEntityTypeConfigurati
         builder.HasIndex(x => new { x.TenantId, x.FarmId, x.IdempotencyKey }).IsUnique();
         builder.HasIndex(x => new { x.ReversesMatchId, x.TenantId, x.FarmId }).IsUnique()
             .HasFilter("\"ReversesMatchId\" IS NOT NULL");
-        builder.HasIndex(x => new { x.TenantId, x.FarmId, x.GrowerStatementId,
-            x.WeighbridgeTicketId });
+        builder.HasIndex(x => new { x.TenantId, x.FarmId, x.GrowerStatementId, x.WeighbridgeTicketId });
     }
 }

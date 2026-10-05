@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using Microsoft.Extensions.Options;
-
 namespace Cane360.Infrastructure.Security;
 
 public sealed class NationalIdProtectionOptions

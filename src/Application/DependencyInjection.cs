@@ -1,21 +1,27 @@
 ﻿using System.Reflection;
+using Cane360.Application.Administration;
 using Cane360.Application.Common.Behaviours;
+using Cane360.Application.Finance;
+using Cane360.Application.MillRecords;
+using Cane360.Application.Payroll;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace Cane360.Application;
 
 public static class DependencyInjection
 {
     public static void AddApplicationServices(this IHostApplicationBuilder builder)
     {
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-        builder.Services.AddScoped<IPayrollSettlementService, Cane360.Application.Payroll.PayrollSettlementService>();
-        builder.Services.AddScoped<IFinanceService, Cane360.Application.Finance.FinanceService>();
-        builder.Services.AddScoped<IPayrollCostProjectionService, Cane360.Application.Finance.PayrollCostProjectionService>();
-        builder.Services.AddScoped<IMillRecordsService, Cane360.Application.MillRecords.MillRecordsService>();
-        builder.Services.AddScoped<Cane360.Application.Administration.AdministrationService>();
+        builder.Services.AddScoped<IPayrollSettlementService, PayrollSettlementService>();
+        builder.Services.AddScoped<IFinanceService, FinanceService>();
+        builder.Services.AddScoped<IPayrollCostProjectionService, PayrollCostProjectionService>();
+        builder.Services.AddScoped<IMillRecordsService, MillRecordsService>();
+        builder.Services.AddScoped<AdministrationService>();
 
-        builder.Services.AddMediatR(cfg => {
+        builder.Services.AddMediatR(cfg =>
+        {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             cfg.AddOpenRequestPreProcessor(typeof(LoggingBehaviour<>));
             cfg.AddOpenBehavior(typeof(UnhandledExceptionBehaviour<,>));

@@ -19,8 +19,8 @@ public sealed class InputRequest : BaseAuditableEntity
         Version = 1;
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid FieldId { get; private set; }
     public Guid CropCycleId { get; private set; }
     public Guid ActivityId { get; private set; }
@@ -40,7 +40,7 @@ public sealed class InputRequest : BaseAuditableEntity
         Guid activityId, DateOnly operationalDate, string requestedByUserId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestedByUserId);
-        return new(tenantId, farmId, fieldId, cropCycleId, activityId, operationalDate, requestedByUserId);
+        return new InputRequest(tenantId, farmId, fieldId, cropCycleId, activityId, operationalDate, requestedByUserId);
     }
 
     public InputRequestLine AddLine(InventoryItem item, InventoryApplicationRule rule,
@@ -49,8 +49,11 @@ public sealed class InputRequest : BaseAuditableEntity
     {
         RequireEditable(expectedVersion);
         if (_lines.Any(line => line.InventoryItemId == item.Id))
+        {
             throw new InvalidOperationException("An input request may contain an item only once.");
-        var line = InputRequestLine.Create(TenantId, FarmId, Id, _lines.Count + 1, item, rule,
+        }
+
+        InputRequestLine line = InputRequestLine.Create(TenantId, FarmId, Id, _lines.Count + 1, item, rule,
             plannedCoverage, requestedQuantity, availableQuantitySnapshot, estimatedUnitCostUsd);
         _lines.Add(line);
         Version++;
@@ -61,11 +64,18 @@ public sealed class InputRequest : BaseAuditableEntity
         decimal alreadyIssuedQuantity, long expectedVersion)
     {
         RequireEditable(expectedVersion);
-        if (alreadyIssuedQuantity > 0) throw new InvalidOperationException("Approved request lines are immutable after the first posted issue.");
-        var line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
-            ?? throw new InvalidOperationException("The request line was not found.");
+        if (alreadyIssuedQuantity > 0)
+        {
+            throw new InvalidOperationException("Approved request lines are immutable after the first posted issue.");
+        }
+
+        InputRequestLine line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
+                                ?? throw new InvalidOperationException("The request line was not found.");
         if (requestedQuantity < alreadyIssuedQuantity)
+        {
             throw new InvalidOperationException("Requested quantity cannot be lower than already-issued quantity.");
+        }
+
         line.ChangeRequestedQuantity(requestedQuantity, rule);
         Status = InputRequestStatus.Draft;
         RejectionReason = null;
@@ -75,8 +85,16 @@ public sealed class InputRequest : BaseAuditableEntity
     public void Submit(DateTimeOffset submittedAt, string idempotencyKey, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != InputRequestStatus.Draft) throw new InvalidOperationException("Only a draft request can be submitted.");
-        if (_lines.Count == 0) throw new InvalidOperationException("At least one input line is required.");
+        if (Status != InputRequestStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft request can be submitted.");
+        }
+
+        if (_lines.Count == 0)
+        {
+            throw new InvalidOperationException("At least one input line is required.");
+        }
+
         Status = InputRequestStatus.Submitted;
         SubmittedAt = submittedAt;
         SubmissionIdempotencyKey = idempotencyKey.Trim();
@@ -88,16 +106,23 @@ public sealed class InputRequest : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status != InputRequestStatus.Draft)
+        {
             throw new InvalidOperationException("Submission snapshots can be refreshed only on a draft request.");
-        var line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
-            ?? throw new InvalidOperationException("The request line was not found.");
+        }
+
+        InputRequestLine line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
+                                ?? throw new InvalidOperationException("The request line was not found.");
         line.RefreshSubmissionSnapshots(availableQuantity, estimatedUnitCostUsd);
     }
 
     public void OpenApproval(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != InputRequestStatus.Submitted) throw new InvalidOperationException("Only a submitted request can enter approval.");
+        if (Status != InputRequestStatus.Submitted)
+        {
+            throw new InvalidOperationException("Only a submitted request can enter approval.");
+        }
+
         Status = InputRequestStatus.PendingApproval;
         Version++;
     }
@@ -105,9 +130,16 @@ public sealed class InputRequest : BaseAuditableEntity
     public void Decide(ApprovalOutcome outcome, string? reason, DateTimeOffset decidedAt, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status != InputRequestStatus.PendingApproval) throw new InvalidOperationException("This request is not pending approval.");
+        if (Status != InputRequestStatus.PendingApproval)
+        {
+            throw new InvalidOperationException("This request is not pending approval.");
+        }
+
         if (outcome == ApprovalOutcome.Rejected && string.IsNullOrWhiteSpace(reason))
+        {
             throw new InvalidOperationException("A rejection reason is required.");
+        }
+
         Status = outcome == ApprovalOutcome.Approved ? InputRequestStatus.Approved : InputRequestStatus.Rejected;
         RejectionReason = outcome == ApprovalOutcome.Rejected ? reason!.Trim() : null;
         DecidedAt = decidedAt;
@@ -118,8 +150,11 @@ public sealed class InputRequest : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status is not (InputRequestStatus.Approved or InputRequestStatus.PartiallyIssued))
+        {
             throw new InvalidOperationException("Only an approved request can be issued.");
-        var totalApproved = _lines.Sum(line => line.RequestedQuantity);
+        }
+
+        decimal totalApproved = _lines.Sum(line => line.RequestedQuantity);
         Status = totalIssued >= totalApproved ? InputRequestStatus.FullyIssued : InputRequestStatus.PartiallyIssued;
         Version++;
     }
@@ -128,8 +163,11 @@ public sealed class InputRequest : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status is not (InputRequestStatus.PartiallyIssued or InputRequestStatus.FullyIssued))
+        {
             throw new InvalidOperationException("Only an issued request can record an issue reversal.");
-        var totalApproved = _lines.Sum(line => line.RequestedQuantity);
+        }
+
+        decimal totalApproved = _lines.Sum(line => line.RequestedQuantity);
         Status = totalIssued <= 0 ? InputRequestStatus.Approved :
             totalIssued >= totalApproved ? InputRequestStatus.FullyIssued : InputRequestStatus.PartiallyIssued;
         Version++;
@@ -139,26 +177,46 @@ public sealed class InputRequest : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status is not (InputRequestStatus.Draft or InputRequestStatus.Submitted))
+        {
             throw new InvalidOperationException("Only a draft or submitted request can be cancelled.");
-        if (string.IsNullOrWhiteSpace(reason)) throw new InvalidOperationException("A cancellation reason is required.");
+        }
+
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("A cancellation reason is required.");
+        }
+
         Status = InputRequestStatus.Cancelled;
         CancellationReason = reason.Trim();
         Version++;
     }
 
-    public bool IsDecisionRetry(long subjectVersion) => Version > subjectVersion && DecidedAt.HasValue;
-    public bool IsSubmissionRetry(string key) => Status is not InputRequestStatus.Draft && SubmissionIdempotencyKey == key;
+    public bool IsDecisionRetry(long subjectVersion)
+    {
+        return Version > subjectVersion && DecidedAt.HasValue;
+    }
+
+    public bool IsSubmissionRetry(string key)
+    {
+        return Status is not InputRequestStatus.Draft && SubmissionIdempotencyKey == key;
+    }
 
     private void RequireEditable(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status is not (InputRequestStatus.Draft or InputRequestStatus.Submitted or InputRequestStatus.PendingApproval or InputRequestStatus.Approved or InputRequestStatus.Rejected))
+        if (Status is not (InputRequestStatus.Draft or InputRequestStatus.Submitted
+            or InputRequestStatus.PendingApproval or InputRequestStatus.Approved or InputRequestStatus.Rejected))
+        {
             throw new InvalidOperationException("This request can no longer be edited.");
+        }
     }
 
     private void RequireVersion(long expectedVersion)
     {
         if (Version != expectedVersion)
-            throw new InvalidOperationException("This input request changed after it was loaded. Refresh and try again.");
+        {
+            throw new InvalidOperationException(
+                "This input request changed after it was loaded. Refresh and try again.");
+        }
     }
 }

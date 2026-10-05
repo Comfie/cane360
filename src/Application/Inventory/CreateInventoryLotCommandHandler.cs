@@ -1,8 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class CreateInventoryLotCommandHandler(
@@ -14,12 +9,12 @@ public sealed class CreateInventoryLotCommandHandler(
     public async Task<InventoryLotDto> Handle(
         CreateInventoryLotCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
-        var item = await inventoryRepository.GetItemAsync(
-            tenant.Id, farm.Id, request.InventoryItemId, false, cancellationToken)
-            ?? throw new NotFoundException(request.InventoryItemId.ToString(), "Inventory item");
-        var lot = InventoryAccess.ApplyDomainAction(nameof(request.Code), () =>
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
+        InventoryItem item = await inventoryRepository.GetItemAsync(
+                                 tenant.Id, farm.Id, request.InventoryItemId, false, cancellationToken)
+                             ?? throw new NotFoundException(request.InventoryItemId.ToString(), "Inventory item");
+        InventoryLot lot = InventoryAccess.ApplyDomainAction(nameof(request.Code), () =>
             InventoryLot.Create(tenant.Id, farm.Id, item, request.Code, request.ExpiryDate));
         inventoryRepository.Add(lot);
         inventoryRepository.Add(StockPosition.Create(tenant.Id, farm.Id, farm.Store.Id, item.Id, lot.Id));

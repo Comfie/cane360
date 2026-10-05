@@ -18,7 +18,13 @@ public static class CsvCell
         return $"\"{text.Replace("\"", "\"\"", StringComparison.Ordinal)}\"";
     }
 
-    public static string Number(decimal? value) => value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+    public static string Number(decimal? value)
+    {
+        return value?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+    }
 
-    public static string Date(DateOnly value) => value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    public static string Date(DateOnly value)
+    {
+        return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
 }

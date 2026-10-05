@@ -13,10 +13,14 @@ internal sealed class BudgetConfiguration : IEntityTypeConfiguration<Budget>
         builder.ToTable("Budgets", "finance", table =>
         {
             table.HasCheckConstraint("CK_Budgets_Version", "\"Version\" > 0");
-            table.HasCheckConstraint("CK_Budgets_ReportingArea", "\"ReportingAreaHa\" IS NULL OR \"ReportingAreaHa\" > 0");
-            table.HasCheckConstraint("CK_Budgets_ExpectedProduction", "\"ExpectedProductionTonnes\" IS NULL OR \"ExpectedProductionTonnes\" > 0");
-            table.HasCheckConstraint("CK_Budgets_Lifecycle", "(\"Status\" = 'Draft' AND \"SubmittedByUserId\" IS NULL AND \"SubmittedAt\" IS NULL AND \"ApprovedAt\" IS NULL) OR (\"Status\" = 'Submitted' AND \"SubmittedByUserId\" IS NOT NULL AND \"SubmittedAt\" IS NOT NULL AND \"ApprovedAt\" IS NULL) OR (\"Status\" IN ('Approved', 'Superseded') AND \"SubmittedByUserId\" IS NOT NULL AND \"SubmittedAt\" IS NOT NULL AND \"ApprovedAt\" IS NOT NULL)");
-            table.HasCheckConstraint("CK_Budgets_ApprovalIdentity", "(\"ApprovedAt\" IS NULL AND \"ApprovedByUserId\" IS NULL AND \"ApprovalIdempotencyKey\" IS NULL) OR (\"ApprovedAt\" IS NOT NULL AND \"ApprovedByUserId\" IS NOT NULL AND \"ApprovalIdempotencyKey\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_Budgets_ReportingArea",
+                "\"ReportingAreaHa\" IS NULL OR \"ReportingAreaHa\" > 0");
+            table.HasCheckConstraint("CK_Budgets_ExpectedProduction",
+                "\"ExpectedProductionTonnes\" IS NULL OR \"ExpectedProductionTonnes\" > 0");
+            table.HasCheckConstraint("CK_Budgets_Lifecycle",
+                "(\"Status\" = 'Draft' AND \"SubmittedByUserId\" IS NULL AND \"SubmittedAt\" IS NULL AND \"ApprovedAt\" IS NULL) OR (\"Status\" = 'Submitted' AND \"SubmittedByUserId\" IS NOT NULL AND \"SubmittedAt\" IS NOT NULL AND \"ApprovedAt\" IS NULL) OR (\"Status\" IN ('Approved', 'Superseded') AND \"SubmittedByUserId\" IS NOT NULL AND \"SubmittedAt\" IS NOT NULL AND \"ApprovedAt\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_Budgets_ApprovalIdentity",
+                "(\"ApprovedAt\" IS NULL AND \"ApprovedByUserId\" IS NULL AND \"ApprovalIdempotencyKey\" IS NULL) OR (\"ApprovedAt\" IS NOT NULL AND \"ApprovedByUserId\" IS NOT NULL AND \"ApprovalIdempotencyKey\" IS NOT NULL)");
         });
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();

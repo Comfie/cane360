@@ -67,12 +67,15 @@ public sealed class WorkScope : BaseEntity
         string sectionName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sectionName);
-        var display = string.Join(' ', sectionName.Trim().Split(
+        string display = string.Join(' ', sectionName.Trim().Split(
             ' ', StringSplitOptions.RemoveEmptyEntries));
         return new WorkScope(
             workRecordId, tenantId, farmId, activityId, WorkScopeType.NamedSection,
             null, null, null, display, display.ToUpperInvariant());
     }
 
-    internal void Supersede(DateTimeOffset supersededAt) => SupersededAt = supersededAt;
+    internal void Supersede(DateTimeOffset supersededAt)
+    {
+        SupersededAt = supersededAt;
+    }
 }

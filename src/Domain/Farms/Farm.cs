@@ -1,6 +1,6 @@
-namespace Cane360.Domain.Farms;
-
 using Cane360.Domain.Activities;
+
+namespace Cane360.Domain.Farms;
 
 public sealed class Farm : BaseAuditableEntity
 {
@@ -82,13 +82,13 @@ public sealed class Farm : BaseAuditableEntity
         string irrigationMethod,
         string? soilNotes)
     {
-        var normalisedCode = NormaliseCode(code);
+        string normalisedCode = NormaliseCode(code);
         if (_fields.Any(field => field.Status == RecordStatus.Active && field.Code == normalisedCode))
         {
             throw new InvalidOperationException($"Field code '{normalisedCode}' is already in use on this farm.");
         }
 
-        var field = Field.Create(
+        Field field = Field.Create(
             Id,
             normalisedCode,
             name,
@@ -104,7 +104,7 @@ public sealed class Farm : BaseAuditableEntity
 
     public Person AddPerson(string displayName, string? phone, DateOnly activeFrom)
     {
-        var person = Person.Create(Id, displayName, phone, activeFrom);
+        Person person = Person.Create(Id, displayName, phone, activeFrom);
         _persons.Add(person);
         return person;
     }
@@ -147,8 +147,9 @@ public sealed class Farm : BaseAuditableEntity
         }
 
         if (role == PersonRole.FarmManager && isPrimary && _persons.Any(candidate =>
-            candidate.RoleAssignments.Any(assignment =>
-                assignment.Role == PersonRole.FarmManager && assignment.IsPrimary && assignment.EffectiveTo is null)))
+                candidate.RoleAssignments.Any(assignment =>
+                    assignment.Role == PersonRole.FarmManager && assignment.IsPrimary &&
+                    assignment.EffectiveTo is null)))
         {
             throw new InvalidOperationException("This farm already has a current primary farm manager.");
         }
@@ -171,8 +172,9 @@ public sealed class Farm : BaseAuditableEntity
         }
 
         if (role == PersonRole.FarmManager && isPrimary && _persons.Any(candidate =>
-            candidate != person && candidate.RoleAssignments.Any(assignment =>
-                assignment.Role == PersonRole.FarmManager && assignment.IsPrimary && assignment.EffectiveTo is null)))
+                candidate != person && candidate.RoleAssignments.Any(assignment =>
+                    assignment.Role == PersonRole.FarmManager && assignment.IsPrimary &&
+                    assignment.EffectiveTo is null)))
         {
             throw new InvalidOperationException("This farm already has a current primary farm manager.");
         }
@@ -181,5 +183,8 @@ public sealed class Farm : BaseAuditableEntity
             displayName, phone, role, isPrimary, roleEffectiveFrom, expectedVersion);
     }
 
-    private static string NormaliseCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormaliseCode(string code)
+    {
+        return code.Trim().ToUpperInvariant();
+    }
 }

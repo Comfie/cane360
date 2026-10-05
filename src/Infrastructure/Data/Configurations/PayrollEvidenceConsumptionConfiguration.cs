@@ -9,10 +9,18 @@ internal sealed class PayrollEvidenceConsumptionConfiguration : IEntityTypeConfi
 {
     public void Configure(EntityTypeBuilder<PayrollEvidenceConsumption> builder)
     {
-        builder.ToTable("PayrollEvidenceConsumptions", "payroll"); builder.HasKey(x => x.Id); builder.Property(x => x.Id).ValueGeneratedNever(); builder.HasAlternateKey(x => new { x.Id, x.TenantId, x.FarmId });
-        builder.HasOne<PayrollRun>().WithMany().HasForeignKey(x => new { x.PayrollRunId, x.TenantId, x.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<PayrollCalculation>().WithMany().HasForeignKey(x => new { x.PayrollCalculationId, x.TenantId, x.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<WorkRecord>().WithMany().HasForeignKey(x => new { x.EvidenceId, x.TenantId, x.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(x => x.EvidenceId).IsUnique(); builder.HasIndex(x => new { x.PayrollRunId, x.PayrollCalculationId });
+        builder.ToTable("PayrollEvidenceConsumptions", "payroll");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedNever();
+        builder.HasAlternateKey(x => new { x.Id, x.TenantId, x.FarmId });
+        builder.HasOne<PayrollRun>().WithMany().HasForeignKey(x => new { x.PayrollRunId, x.TenantId, x.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<PayrollCalculation>().WithMany()
+            .HasForeignKey(x => new { x.PayrollCalculationId, x.TenantId, x.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<WorkRecord>().WithMany().HasForeignKey(x => new { x.EvidenceId, x.TenantId, x.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.EvidenceId).IsUnique();
+        builder.HasIndex(x => new { x.PayrollRunId, x.PayrollCalculationId });
     }
 }

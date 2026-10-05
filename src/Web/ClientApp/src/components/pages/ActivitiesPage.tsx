@@ -1,281 +1,578 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { useDialogFocus } from '../useDialogFocus';
-import { CalendarDays, ChevronLeft, ChevronRight, ClipboardCheck, List, Plus, Sheet, TriangleAlert, X } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import {type FormEvent, type ReactNode, useEffect, useMemo, useState} from 'react';
+import {useDialogFocus} from '../useDialogFocus';
 import {
-  CreateActivityTypeRequest,
-  FarmPersonnelClient,
-  type ActivityDetailsDto,
-  type ActivityListItemDto,
-  type ActivityTypeDto,
-  type FieldDto,
-  type PersonDto,
-  type PersonnelRegisterDto,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    ClipboardCheck,
+    List,
+    Plus,
+    Sheet,
+    TriangleAlert,
+    X
+} from 'lucide-react';
+import {useSearchParams} from 'react-router-dom';
+import {
+    type ActivityDetailsDto,
+    type ActivityListItemDto,
+    type ActivityTypeDto,
+    CreateActivityTypeRequest,
+    FarmPersonnelClient,
+    type FieldDto,
+    type PersonDto,
+    type PersonnelRegisterDto,
 } from '../../web-api-client';
-import { DatePicker } from '../DatePicker';
-import { getApiError, useFarmSetup } from '../farm-setup/farmSetupApi';
-import { LoadingState } from '../LoadingState';
-import { ActivityInputsPanel } from '../inventory/ActivityInputsPanel';
-import { PageHeader } from '../PageHeader';
-import { ValidationError } from '../ValidationError';
+import {DatePicker} from '../DatePicker';
+import {getApiError, useFarmSetup} from '../farm-setup/farmSetupApi';
+import {LoadingState} from '../LoadingState';
+import {ActivityInputsPanel} from '../inventory/ActivityInputsPanel';
+import {PageHeader} from '../PageHeader';
+import {ValidationError} from '../ValidationError';
 import {
-  activitiesClient,
-  activityTypesClient,
-  addSourceReference,
-  createActivity,
-  recordActual,
-  transitionActivity,
+    activitiesClient,
+    activityTypesClient,
+    addSourceReference,
+    createActivity,
+    recordActual,
+    transitionActivity,
 } from '../activities/activityApi';
-import { formatActivityStatus, groupActivitiesByDate, monthGridDates, orderedActions, quantityLabel } from '../activities/activityView';
+import {
+    formatActivityStatus,
+    groupActivitiesByDate,
+    monthGridDates,
+    orderedActions,
+    quantityLabel
+} from '../activities/activityView';
 
 const personnelClient = new FarmPersonnelClient();
 const timelinePageSize = 6;
 
 export function ActivitiesPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const linkedFieldId = searchParams.get('fieldId') ?? '';
-  const linkedCropCycleId = searchParams.get('cropCycleId') ?? '';
-  const { setup, error: setupError, isLoading: setupLoading } = useFarmSetup();
-  const [activities, setActivities] = useState<ActivityListItemDto[]>([]);
-  const [types, setTypes] = useState<ActivityTypeDto[]>([]);
-  const [personnel, setPersonnel] = useState<PersonnelRegisterDto | null>(null);
-  const [selected, setSelected] = useState<ActivityDetailsDto | null>(null);
-  const [view, setView] = useState<'list' | 'calendar'>('list');
-  const [showCreate, setShowCreate] = useState(false);
-  const [showTypeForm, setShowTypeForm] = useState(false);
-  const [filters, setFilters] = useState<ActivityFilters>({ field: linkedFieldId, cropCycle: linkedCropCycleId, type: '', status: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const linkedFieldId = searchParams.get('fieldId') ?? '';
+    const linkedCropCycleId = searchParams.get('cropCycleId') ?? '';
+    const {setup, error: setupError, isLoading: setupLoading} = useFarmSetup();
+    const [activities, setActivities] = useState<ActivityListItemDto[]>([]);
+    const [types, setTypes] = useState<ActivityTypeDto[]>([]);
+    const [personnel, setPersonnel] = useState<PersonnelRegisterDto | null>(null);
+    const [selected, setSelected] = useState<ActivityDetailsDto | null>(null);
+    const [view, setView] = useState<'list' | 'calendar'>('list');
+    const [showCreate, setShowCreate] = useState(false);
+    const [showTypeForm, setShowTypeForm] = useState(false);
+    const [filters, setFilters] = useState<ActivityFilters>({
+        field: linkedFieldId,
+        cropCycle: linkedCropCycleId,
+        type: '',
+        status: ''
+    });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
-  const reload = async () => {
-    try {
-      const result = await activitiesClient.getActivities(
-        undefined, undefined, undefined, undefined, undefined, undefined, 1, 100);
-      setActivities(result.items);
-    } catch (requestError) { setError(getApiError(requestError)); }
-  };
+    const reload = async () => {
+        try {
+            const result = await activitiesClient.getActivities(
+                undefined, undefined, undefined, undefined, undefined, undefined, 1, 100);
+            setActivities(result.items);
+        } catch (requestError) {
+            setError(getApiError(requestError));
+        }
+    };
 
-  useEffect(() => {
-    let current = true;
-    Promise.all([activitiesClient.getActivities(undefined, undefined, undefined, undefined, undefined, undefined, 1, 100), activityTypesClient.getActivityTypes(), personnelClient.getFarmPersonnel()])
-      .then(([activityResult, typeResult, personnelResult]) => {
-        if (!current) return;
-        setActivities(activityResult.items); setTypes(typeResult); setPersonnel(personnelResult);
-      })
-      .catch((requestError) => { if (current) setError(getApiError(requestError)); })
-      .finally(() => { if (current) setLoading(false); });
-    return () => { current = false; };
-  }, []);
+    useEffect(() => {
+        let current = true;
+        Promise.all([activitiesClient.getActivities(undefined, undefined, undefined, undefined, undefined, undefined, 1, 100), activityTypesClient.getActivityTypes(), personnelClient.getFarmPersonnel()])
+            .then(([activityResult, typeResult, personnelResult]) => {
+                if (!current) return;
+                setActivities(activityResult.items);
+                setTypes(typeResult);
+                setPersonnel(personnelResult);
+            })
+            .catch((requestError) => {
+                if (current) setError(getApiError(requestError));
+            })
+            .finally(() => {
+                if (current) setLoading(false);
+            });
+        return () => {
+            current = false;
+        };
+    }, []);
 
-  const fields = setup?.farm?.fields ?? [];
-  const supervisors = personnel?.persons.filter((person) =>
-    person.status === 'Active' && person.roles.some((role) => role.role === 'Supervisor' && !role.effectiveTo)) ?? [];
-  const activeTypes = types.filter((type) => type.status === 'Active');
-  const visibleActivities = useMemo(() => activities.filter((activity) =>
-    (!filters.field || activity.fieldId === filters.field) &&
-    (!filters.cropCycle || activity.cropCycleId === filters.cropCycle) &&
-    (!filters.type || activity.activityTypeId === filters.type) &&
-    (!filters.status || activity.status === filters.status)), [activities, filters]);
-  const grouped = useMemo(() => groupActivitiesByDate(visibleActivities), [visibleActivities]);
+    const fields = setup?.farm?.fields ?? [];
+    const supervisors = personnel?.persons.filter((person) =>
+        person.status === 'Active' && person.roles.some((role) => role.role === 'Supervisor' && !role.effectiveTo)) ?? [];
+    const activeTypes = types.filter((type) => type.status === 'Active');
+    const visibleActivities = useMemo(() => activities.filter((activity) =>
+        (!filters.field || activity.fieldId === filters.field) &&
+        (!filters.cropCycle || activity.cropCycleId === filters.cropCycle) &&
+        (!filters.type || activity.activityTypeId === filters.type) &&
+        (!filters.status || activity.status === filters.status)), [activities, filters]);
+    const grouped = useMemo(() => groupActivitiesByDate(visibleActivities), [visibleActivities]);
 
-  if (setupLoading || loading) return <LoadingState label="Loading the field diary" />;
-  if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent />;
+    if (setupLoading || loading) return <LoadingState label="Loading the field diary"/>;
+    if (!setup) return <ValidationError title="Activities unavailable" message={setupError || error} persistent/>;
 
-  const openDetails = async (id: string) => {
-    try { setSelected(await activitiesClient.activities(id)); }
-    catch (requestError) { setError(getApiError(requestError)); }
-  };
+    const openDetails = async (id: string) => {
+        try {
+            setSelected(await activitiesClient.activities(id));
+        } catch (requestError) {
+            setError(getApiError(requestError));
+        }
+    };
 
-  return (
-    <div className="page-stack">
-      <PageHeader eyebrow="Field diary" title="Activities" description="Plan field work, capture what happened, and keep each verification step traceable.">
-        <div className="page-actions"><button type="button" className="secondary-action" onClick={() => { setError(''); setShowTypeForm(true); }}>Activity types</button><button type="button" className="primary-action" onClick={() => { setError(''); setShowCreate(true); }}><Plus size={17} /> Record activity</button></div>
-      </PageHeader>
-      <ValidationError message={error} />
+    return (
+        <div className="page-stack">
+            <PageHeader eyebrow="Field diary" title="Activities"
+                        description="Plan field work, capture what happened, and keep each verification step traceable.">
+                <div className="page-actions">
+                    <button type="button" className="secondary-action" onClick={() => {
+                        setError('');
+                        setShowTypeForm(true);
+                    }}>Activity types
+                    </button>
+                    <button type="button" className="primary-action" onClick={() => {
+                        setError('');
+                        setShowCreate(true);
+                    }}><Plus size={17}/> Record activity
+                    </button>
+                </div>
+            </PageHeader>
+            <ValidationError message={error}/>
 
-      <section className="activity-toolbar record-panel" aria-label="Activity filters">
-        {filters.cropCycle && <div className="linked-context"><span><strong>Crop-cycle view</strong> Showing activities for {fields.find((field) => field.id === filters.field)?.name ?? 'the selected field'}.</span><button type="button" className="text-action" onClick={() => { setFilters({ ...filters, field: '', cropCycle: '' }); setSearchParams({}, { replace: true }); }}>Show all activities</button></div>}
-        <div className="activity-filters">
-          <label>Field<select value={filters.field} onChange={(event) => setFilters({ ...filters, field: event.target.value, cropCycle: '' })}><option value="">All fields</option>{fields.map((field) => <option key={field.id} value={field.id}>{field.code} · {field.name}</option>)}</select></label>
-          <label>Activity type<select value={filters.type} onChange={(event) => setFilters({ ...filters, type: event.target.value })}><option value="">All types</option>{types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
-          <label>Status<select value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}><option value="">All statuses</option>{['Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled'].map((status) => <option key={status} value={status}>{formatActivityStatus(status)}</option>)}</select></label>
+            <section className="activity-toolbar record-panel" aria-label="Activity filters">
+                {filters.cropCycle && <div className="linked-context"><span><strong>Crop-cycle view</strong> Showing activities for {fields.find((field) => field.id === filters.field)?.name ?? 'the selected field'}.</span>
+                    <button type="button" className="text-action" onClick={() => {
+                        setFilters({...filters, field: '', cropCycle: ''});
+                        setSearchParams({}, {replace: true});
+                    }}>Show all activities
+                    </button>
+                </div>}
+                <div className="activity-filters">
+                    <label>Field<select value={filters.field} onChange={(event) => setFilters({
+                        ...filters,
+                        field: event.target.value,
+                        cropCycle: ''
+                    })}>
+                        <option value="">All fields</option>
+                        {fields.map((field) => <option key={field.id}
+                                                       value={field.id}>{field.code} · {field.name}</option>)}</select></label>
+                    <label>Activity type<select value={filters.type} onChange={(event) => setFilters({
+                        ...filters,
+                        type: event.target.value
+                    })}>
+                        <option value="">All types</option>
+                        {types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}
+                    </select></label>
+                    <label>Status<select value={filters.status}
+                                         onChange={(event) => setFilters({...filters, status: event.target.value})}>
+                        <option value="">All statuses</option>
+                        {['Draft', 'Planned', 'InProgress', 'AwaitingVerification', 'ManagerConfirmation', 'Completed', 'Closed', 'Cancelled'].map((status) =>
+                            <option key={status} value={status}>{formatActivityStatus(status)}</option>)}
+                    </select></label>
+                </div>
+                <div className="view-toggle" aria-label="View">
+                    <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><List
+                        size={16}/> List
+                    </button>
+                    <button type="button" aria-pressed={view === 'calendar'} onClick={() => setView('calendar')}>
+                        <CalendarDays size={16}/> Calendar
+                    </button>
+                </div>
+            </section>
+
+            {visibleActivities.length === 0 ?
+                <section className="record-panel activity-empty"><ClipboardCheck size={28}/><h2>No activities match this
+                    view</h2><p>Record planned or unplanned work against an Active or Ready-for-harvest crop cycle.</p>
+                </section> : view === 'list' ? (
+                    <section className="activity-list" aria-label="Activity list">{visibleActivities.map((activity) =>
+                        <ActivityRow key={activity.id} activity={activity} onOpen={openDetails}/>)}</section>
+                ) : <ActivityCalendar groups={grouped} onOpen={openDetails}/>}
+
+            <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational
+                evidence</strong><span><Sheet size={15}/> Source references, confirmed labour evidence, and controlled input requests appear in the diary. Document upload remains deferred.</span>
+            </section>
+
+            {showCreate && <ActivityDialog title="Record activity" onClose={() => setShowCreate(false)}>
+                <CreateActivityForm fields={fields} types={activeTypes} supervisors={supervisors}
+                                    onSaved={async (details) => {
+                                        setShowCreate(false);
+                                        setSelected(details);
+                                        await reload();
+                                    }} onError={setError}/>
+            </ActivityDialog>}
+            {showTypeForm && <ActivityDialog title="Activity types" onClose={() => setShowTypeForm(false)}>
+                <ActivityTypeForm types={types} onSaved={(type) => setTypes((current) => [...current, type])}
+                                  onError={setError}/>
+            </ActivityDialog>}
+            {selected && <ActivityDialog title={selected.activity.activityTypeName} onClose={() => setSelected(null)}>
+                <ActivityOverview details={selected} onChanged={async (details) => {
+                    setSelected(details);
+                    await reload();
+                }} onError={setError}/>
+            </ActivityDialog>}
         </div>
-        <div className="view-toggle" aria-label="View"><button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}><List size={16} /> List</button><button type="button" aria-pressed={view === 'calendar'} onClick={() => setView('calendar')}><CalendarDays size={16} /> Calendar</button></div>
-      </section>
-
-      {visibleActivities.length === 0 ? <section className="record-panel activity-empty"><ClipboardCheck size={28} /><h2>No activities match this view</h2><p>Record planned or unplanned work against an Active or Ready-for-harvest crop cycle.</p></section> : view === 'list' ? (
-        <section className="activity-list" aria-label="Activity list">{visibleActivities.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={openDetails} />)}</section>
-      ) : <ActivityCalendar groups={grouped} onOpen={openDetails} />}
-
-      <section className="unavailable-strip" aria-label="Evidence capabilities"><strong>Operational evidence</strong><span><Sheet size={15} /> Source references, confirmed labour evidence, and controlled input requests appear in the diary. Document upload remains deferred.</span></section>
-
-      {showCreate && <ActivityDialog title="Record activity" onClose={() => setShowCreate(false)}>
-        <CreateActivityForm fields={fields} types={activeTypes} supervisors={supervisors} onSaved={async (details) => { setShowCreate(false); setSelected(details); await reload(); }} onError={setError} />
-      </ActivityDialog>}
-      {showTypeForm && <ActivityDialog title="Activity types" onClose={() => setShowTypeForm(false)}>
-        <ActivityTypeForm types={types} onSaved={(type) => setTypes((current) => [...current, type])} onError={setError} />
-      </ActivityDialog>}
-      {selected && <ActivityDialog title={selected.activity.activityTypeName} onClose={() => setSelected(null)}>
-        <ActivityOverview details={selected} onChanged={async (details) => { setSelected(details); await reload(); }} onError={setError} />
-      </ActivityDialog>}
-    </div>
-  );
+    );
 }
 
 interface ActivityFilters {
-  field: string;
-  cropCycle: string;
-  type: string;
-  status: string;
+    field: string;
+    cropCycle: string;
+    type: string;
+    status: string;
 }
 
 interface ActivityRowProps {
-  activity: ActivityListItemDto;
-  onOpen: (id: string) => void;
+    activity: ActivityListItemDto;
+    onOpen: (id: string) => void;
 }
 
-function ActivityRow({ activity, onOpen }: ActivityRowProps) {
-  return <button type="button" className="activity-row" onClick={() => onOpen(activity.id)}>
-    <span className="activity-date"><small>{activity.actualAt ? 'Worked' : 'Planned'}</small><strong>{formatDate(activity.actualAt?.slice(0, 10) ?? activity.plannedDate)}</strong></span>
-    <span className="activity-main"><span><strong>{activity.activityTypeName}</strong><em className={`status-pill status-${activity.status.toLowerCase()}`}>{formatActivityStatus(activity.status)}</em>{activity.isRetrospective && <em className="late-flag"><TriangleAlert size={13} /> {activity.entryDelayDays}d late</em>}</span><small>{activity.fieldCode} · {activity.supervisorName} · {activity.kind}</small></span>
-    <span className="activity-coverage">{coverage(activity)}</span>
-  </button>;
+function ActivityRow({activity, onOpen}: ActivityRowProps) {
+    return <button type="button" className="activity-row" onClick={() => onOpen(activity.id)}>
+        <span
+            className="activity-date"><small>{activity.actualAt ? 'Worked' : 'Planned'}</small><strong>{formatDate(activity.actualAt?.slice(0, 10) ?? activity.plannedDate)}</strong></span>
+        <span className="activity-main"><span><strong>{activity.activityTypeName}</strong><em
+            className={`status-pill status-${activity.status.toLowerCase()}`}>{formatActivityStatus(activity.status)}</em>{activity.isRetrospective &&
+            <em className="late-flag"><TriangleAlert size={13}/> {activity.entryDelayDays}d
+                late</em>}</span><small>{activity.fieldCode} · {activity.supervisorName} · {activity.kind}</small></span>
+        <span className="activity-coverage">{coverage(activity)}</span>
+    </button>;
 }
 
 interface ActivityCalendarProps {
-  groups: Record<string, ActivityListItemDto[]>;
-  onOpen: (id: string) => void;
+    groups: Record<string, ActivityListItemDto[]>;
+    onOpen: (id: string) => void;
 }
 
-function ActivityCalendar({ groups, onOpen }: ActivityCalendarProps) {
-  const datedKeys = Object.keys(groups).filter((date) => date !== 'Unscheduled').sort();
-  const [cursor, setCursor] = useState(() => new Date(`${datedKeys[datedKeys.length - 1] ?? harareToday()}T00:00:00`));
-  const dates = monthGridDates(cursor.getFullYear(), cursor.getMonth());
-  const monthLabel = new Intl.DateTimeFormat('en-ZW', { month: 'long', year: 'numeric' }).format(cursor);
-  const moveMonth = (offset: number) => setCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
-  return <>
-    <section className="desktop-month" aria-label={`Activity calendar for ${monthLabel}`}>
-      <header className="activity-calendar-header"><h2>{monthLabel}</h2><div><button type="button" onClick={() => moveMonth(-1)} aria-label="Previous month"><ChevronLeft size={17} /></button><button type="button" onClick={() => moveMonth(1)} aria-label="Next month"><ChevronRight size={17} /></button></div></header>
-      <div className="month-weekdays" aria-hidden="true">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <span key={day}>{day}</span>)}</div>
-      <div className="month-grid">{dates.map((date, index) => date ? <div className="month-day" key={date}><time dateTime={date}>{Number(date.slice(-2))}</time>{(groups[date] ?? []).map((activity) => <button type="button" key={activity.id} onClick={() => onOpen(activity.id)}><strong>{activity.activityTypeName}</strong><small>{activity.fieldCode} · {formatActivityStatus(activity.status)}</small></button>)}</div> : <div className="month-day is-outside" aria-hidden="true" key={`empty-${index}`} />)}</div>
-      {groups.Unscheduled?.length > 0 && <div className="calendar-unscheduled"><strong>Unscheduled drafts</strong>{groups.Unscheduled.map((activity) => <button type="button" key={activity.id} onClick={() => onOpen(activity.id)}>{activity.activityTypeName} · {activity.fieldCode}</button>)}</div>}
-    </section>
-    <section className="diary-agenda mobile-agenda" aria-label="Activity agenda">{Object.entries(groups).map(([date, items]) => <div className="agenda-day" key={date}><time>{formatDate(date)}</time><div>{items.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={onOpen} />)}</div></div>)}</section>
-  </>;
+function ActivityCalendar({groups, onOpen}: ActivityCalendarProps) {
+    const datedKeys = Object.keys(groups).filter((date) => date !== 'Unscheduled').sort();
+    const [cursor, setCursor] = useState(() => new Date(`${datedKeys[datedKeys.length - 1] ?? harareToday()}T00:00:00`));
+    const dates = monthGridDates(cursor.getFullYear(), cursor.getMonth());
+    const monthLabel = new Intl.DateTimeFormat('en-ZW', {month: 'long', year: 'numeric'}).format(cursor);
+    const moveMonth = (offset: number) => setCursor((current) => new Date(current.getFullYear(), current.getMonth() + offset, 1));
+    return <>
+        <section className="desktop-month" aria-label={`Activity calendar for ${monthLabel}`}>
+            <header className="activity-calendar-header"><h2>{monthLabel}</h2>
+                <div>
+                    <button type="button" onClick={() => moveMonth(-1)} aria-label="Previous month"><ChevronLeft
+                        size={17}/></button>
+                    <button type="button" onClick={() => moveMonth(1)} aria-label="Next month"><ChevronRight size={17}/>
+                    </button>
+                </div>
+            </header>
+            <div className="month-weekdays"
+                 aria-hidden="true">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <span
+                key={day}>{day}</span>)}</div>
+            <div className="month-grid">{dates.map((date, index) => date ? <div className="month-day" key={date}>
+                    <time dateTime={date}>{Number(date.slice(-2))}</time>
+                    {(groups[date] ?? []).map((activity) => <button type="button" key={activity.id}
+                                                                    onClick={() => onOpen(activity.id)}>
+                        <strong>{activity.activityTypeName}</strong><small>{activity.fieldCode} · {formatActivityStatus(activity.status)}</small>
+                    </button>)}</div> :
+                <div className="month-day is-outside" aria-hidden="true" key={`empty-${index}`}/>)}</div>
+            {groups.Unscheduled?.length > 0 && <div className="calendar-unscheduled"><strong>Unscheduled
+                drafts</strong>{groups.Unscheduled.map((activity) => <button type="button" key={activity.id}
+                                                                             onClick={() => onOpen(activity.id)}>{activity.activityTypeName} · {activity.fieldCode}</button>)}
+            </div>}
+        </section>
+        <section className="diary-agenda mobile-agenda"
+                 aria-label="Activity agenda">{Object.entries(groups).map(([date, items]) => <div className="agenda-day"
+                                                                                                  key={date}>
+            <time>{formatDate(date)}</time>
+            <div>{items.map((activity) => <ActivityRow key={activity.id} activity={activity} onOpen={onOpen}/>)}</div>
+        </div>)}</section>
+    </>;
 }
 
 interface ActivityDialogProps {
-  title: string;
-  onClose: () => void;
-  children: ReactNode;
+    title: string;
+    onClose: () => void;
+    children: ReactNode;
 }
 
-function ActivityDialog({ title, onClose, children }: ActivityDialogProps) {
-  const dialogRef = useDialogFocus<HTMLDialogElement>(onClose);
-  return <dialog open className="activity-dialog" ref={dialogRef} aria-modal="true" aria-label={title}><article><header><div><span className="eyebrow">Field diary</span><h2>{title}</h2></div><button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X /></button></header>{children}</article></dialog>;
+function ActivityDialog({title, onClose, children}: ActivityDialogProps) {
+    const dialogRef = useDialogFocus<HTMLDialogElement>(onClose);
+    return <dialog open className="activity-dialog" ref={dialogRef} aria-modal="true" aria-label={title}>
+        <article>
+            <header>
+                <div><span className="eyebrow">Field diary</span><h2>{title}</h2></div>
+                <button type="button" className="dialog-close" onClick={onClose} aria-label="Close"><X/></button>
+            </header>
+            {children}</article>
+    </dialog>;
 }
 
 interface CreateActivityFormProps {
-  fields: FieldDto[];
-  types: ActivityTypeDto[];
-  supervisors: PersonDto[];
-  onSaved: (details: ActivityDetailsDto) => void | Promise<void>;
-  onError: (message: string) => void;
+    fields: FieldDto[];
+    types: ActivityTypeDto[];
+    supervisors: PersonDto[];
+    onSaved: (details: ActivityDetailsDto) => void | Promise<void>;
+    onError: (message: string) => void;
 }
 
-function CreateActivityForm({ fields, types, supervisors, onSaved, onError }: CreateActivityFormProps) {
-  const [fieldId, setFieldId] = useState('');
-  const [kind, setKind] = useState<'Planned' | 'Unplanned'>('Planned');
-  const [saving, setSaving] = useState(false);
-  const field = fields.find((item) => item.id === fieldId);
-  const validTypes = types.filter((type) => kind === 'Planned' ? type.supportsPlanned : type.supportsUnplanned);
-  const save = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); onError('');
-    try { onSaved(await createActivity({ fieldId, cropCycleId: field?.currentCropCycle?.id ?? '', activityTypeId: String(data.get('activityTypeId')), kind, plannedDate: kind === 'Planned' ? String(data.get('plannedDate')) : undefined, supervisorPersonId: String(data.get('supervisorPersonId')) })); }
-    catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
-  };
-  return <form className="activity-form" onSubmit={save}><fieldset className="form-grid">
-    <label>Work kind<select value={kind} onChange={(event) => setKind(event.target.value === 'Unplanned' ? 'Unplanned' : 'Planned')}><option>Planned</option><option>Unplanned</option></select></label>
-    <label>Field<select required value={fieldId} onChange={(event) => setFieldId(event.target.value)}><option value="">Select field</option>{fields.filter((item) => ['Active', 'ReadyForHarvest'].includes(item.currentCropCycle?.status ?? '')).map((item) => <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label>
-    <label>Activity type<select name="activityTypeId" required defaultValue=""><option value="">Select type</option>{validTypes.map((type) => <option key={type.id} value={type.id}>{type.name} · {type.quantityBasis}</option>)}</select></label>
-    <label>Responsible supervisor<select name="supervisorPersonId" required defaultValue=""><option value="">Select supervisor</option>{supervisors.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}</select></label>
-    {kind === 'Planned' && <label>Planned date<DatePicker name="plannedDate" defaultValue={harareToday()} required /></label>}
-  </fieldset><p className="context-note">Unplanned work needs actual work details before it can move from Draft to Planned.</p><footer className="form-actions"><span /><button disabled={saving || !field?.currentCropCycle}>{saving ? 'Recording…' : 'Record activity'}</button></footer></form>;
+function CreateActivityForm({fields, types, supervisors, onSaved, onError}: CreateActivityFormProps) {
+    const [fieldId, setFieldId] = useState('');
+    const [kind, setKind] = useState<'Planned' | 'Unplanned'>('Planned');
+    const [saving, setSaving] = useState(false);
+    const field = fields.find((item) => item.id === fieldId);
+    const validTypes = types.filter((type) => kind === 'Planned' ? type.supportsPlanned : type.supportsUnplanned);
+    const save = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        setSaving(true);
+        onError('');
+        try {
+            onSaved(await createActivity({
+                fieldId,
+                cropCycleId: field?.currentCropCycle?.id ?? '',
+                activityTypeId: String(data.get('activityTypeId')),
+                kind,
+                plannedDate: kind === 'Planned' ? String(data.get('plannedDate')) : undefined,
+                supervisorPersonId: String(data.get('supervisorPersonId'))
+            }));
+        } catch (requestError) {
+            onError(getApiError(requestError));
+        } finally {
+            setSaving(false);
+        }
+    };
+    return <form className="activity-form" onSubmit={save}>
+        <fieldset className="form-grid">
+            <label>Work kind<select value={kind}
+                                    onChange={(event) => setKind(event.target.value === 'Unplanned' ? 'Unplanned' : 'Planned')}>
+                <option>Planned</option>
+                <option>Unplanned</option>
+            </select></label>
+            <label>Field<select required value={fieldId} onChange={(event) => setFieldId(event.target.value)}>
+                <option value="">Select field</option>
+                {fields.filter((item) => ['Active', 'ReadyForHarvest'].includes(item.currentCropCycle?.status ?? '')).map((item) =>
+                    <option key={item.id} value={item.id}>{item.code} · {item.name}</option>)}</select></label>
+            <label>Activity type<select name="activityTypeId" required defaultValue="">
+                <option value="">Select type</option>
+                {validTypes.map((type) => <option key={type.id}
+                                                  value={type.id}>{type.name} · {type.quantityBasis}</option>)}</select></label>
+            <label>Responsible supervisor<select name="supervisorPersonId" required defaultValue="">
+                <option value="">Select supervisor</option>
+                {supervisors.map((person) => <option key={person.id} value={person.id}>{person.displayName}</option>)}
+            </select></label>
+            {kind === 'Planned' &&
+                <label>Planned date<DatePicker name="plannedDate" defaultValue={harareToday()} required/></label>}
+        </fieldset>
+        <p className="context-note">Unplanned work needs actual work details before it can move from Draft to
+            Planned.</p>
+        <footer className="form-actions"><span/>
+            <button disabled={saving || !field?.currentCropCycle}>{saving ? 'Recording…' : 'Record activity'}</button>
+        </footer>
+    </form>;
 }
 
 interface ActivityTypeFormProps {
-  types: ActivityTypeDto[];
-  onSaved: (type: ActivityTypeDto) => void;
-  onError: (message: string) => void;
+    types: ActivityTypeDto[];
+    onSaved: (type: ActivityTypeDto) => void;
+    onError: (message: string) => void;
 }
 
-function ActivityTypeForm({ types, onSaved, onError }: ActivityTypeFormProps) {
-  const [saving, setSaving] = useState(false);
-  const save = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); onError('');
-    const supportsPlanned = data.get('supportsPlanned') === 'on';
-    const supportsUnplanned = data.get('supportsUnplanned') === 'on';
-    if (!supportsPlanned && !supportsUnplanned) {
-      setSaving(false); onError('Select Planned, Unplanned, or both.'); return;
-    }
-    try {
-      const type = await activityTypesClient.createActivityTypes(new CreateActivityTypeRequest({
-        code: String(data.get('code')).trim(),
-        name: String(data.get('name')).trim(),
-        supportsPlanned,
-        supportsUnplanned,
-        quantityBasis: String(data.get('quantityBasis')),
-      }));
-      form.reset(); onSaved(type);
-    } catch (requestError) { onError(getApiError(requestError)); } finally { setSaving(false); }
-  };
-  return <div className="activity-form"><form onSubmit={save}><div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*" required /></label><label>Name<input name="name" maxLength={100} required /></label><label>Coverage basis<select name="quantityBasis"><option value="None">No quantity</option><option value="Hectares">Hectares</option><option value="StandardLines">Standard lines</option></select></label><div className="planning-modes"><label className="toggle-control"><input type="checkbox" name="supportsPlanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Planned</span></label><label className="toggle-control"><input type="checkbox" name="supportsUnplanned" /><span className="toggle-control-track" aria-hidden="true" /><span>Unplanned</span></label></div></div><button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button></form><div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) => <span key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div></div>;
+function ActivityTypeForm({types, onSaved, onError}: ActivityTypeFormProps) {
+    const [saving, setSaving] = useState(false);
+    const save = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        setSaving(true);
+        onError('');
+        const supportsPlanned = data.get('supportsPlanned') === 'on';
+        const supportsUnplanned = data.get('supportsUnplanned') === 'on';
+        if (!supportsPlanned && !supportsUnplanned) {
+            setSaving(false);
+            onError('Select Planned, Unplanned, or both.');
+            return;
+        }
+        try {
+            const type = await activityTypesClient.createActivityTypes(new CreateActivityTypeRequest({
+                code: String(data.get('code')).trim(),
+                name: String(data.get('name')).trim(),
+                supportsPlanned,
+                supportsUnplanned,
+                quantityBasis: String(data.get('quantityBasis')),
+            }));
+            form.reset();
+            onSaved(type);
+        } catch (requestError) {
+            onError(getApiError(requestError));
+        } finally {
+            setSaving(false);
+        }
+    };
+    return <div className="activity-form">
+        <form onSubmit={save}>
+            <div className="form-grid"><label>Code<input name="code" maxLength={24} pattern="[A-Za-z0-9][A-Za-z0-9_-]*"
+                                                         required/></label><label>Name<input name="name" maxLength={100}
+                                                                                             required/></label><label>Coverage
+                basis<select name="quantityBasis">
+                    <option value="None">No quantity</option>
+                    <option value="Hectares">Hectares</option>
+                    <option value="StandardLines">Standard lines</option>
+                </select></label>
+                <div className="planning-modes"><label className="toggle-control"><input type="checkbox"
+                                                                                         name="supportsPlanned"/><span
+                    className="toggle-control-track" aria-hidden="true"/><span>Planned</span></label><label
+                    className="toggle-control"><input type="checkbox" name="supportsUnplanned"/><span
+                    className="toggle-control-track" aria-hidden="true"/><span>Unplanned</span></label></div>
+            </div>
+            <button disabled={saving}>{saving ? 'Adding…' : 'Add activity type'}</button>
+        </form>
+        <div className="type-register">{types.length === 0 ? <p>No activity types configured.</p> : types.map((type) =>
+            <span
+                key={type.id}><strong>{type.code}</strong> {type.name}<small>{type.quantityBasis} · {type.status}</small></span>)}</div>
+    </div>;
 }
 
 interface ActivityOverviewProps {
-  details: ActivityDetailsDto;
-  onChanged: (details: ActivityDetailsDto) => void | Promise<void>;
-  onError: (message: string) => void;
+    details: ActivityDetailsDto;
+    onChanged: (details: ActivityDetailsDto) => void | Promise<void>;
+    onError: (message: string) => void;
 }
 
-function ActivityOverview({ details, onChanged, onError }: ActivityOverviewProps) {
-  const activity = details.activity;
-  const [saving, setSaving] = useState(false);
-  const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
-  const [timelinePage, setTimelinePage] = useState(0);
-  useEffect(() => setTimelinePage(0), [activity.id]);
-  const run = async (action: string, reason?: string) => { setSaving(true); onError(''); try { onChanged(await transitionActivity(activity.id, action, activity.version, reason)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
-  const saveActual = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const data = new FormData(event.currentTarget); setSaving(true); try { onChanged(await recordActual(activity.id, activity.version, String(data.get('actualAt')), activity.quantityBasis === 'None' ? undefined : Number(data.get('actualQuantity')), String(data.get('lateEntryReason')).trim() || undefined)); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
-  const saveReference = async (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const form = event.currentTarget; const data = new FormData(form); setSaving(true); try { onChanged(await addSourceReference(activity.id, activity.version, String(data.get('reference')).trim(), String(data.get('capturedDate')))); form.reset(); } catch (requestError: unknown) { onError(getApiError(requestError)); } finally { setSaving(false); } };
-  const timelinePageCount = Math.max(1, Math.ceil(details.timeline.length / timelinePageSize));
-  const currentTimelinePage = Math.min(timelinePage, timelinePageCount - 1);
-  const timelineStart = currentTimelinePage * timelinePageSize;
-  const visibleTimeline = details.timeline.slice(timelineStart, timelineStart + timelinePageSize);
-  const timelineEnd = timelineStart + visibleTimeline.length;
-  return <div className="activity-overview">
-    <div className="overview-facts"><span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span></div>
-    {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18} /><div><strong>Retrospective entry · {activity.entryDelayDays} calendar days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span></div></div>}
-    <ActivityInputsPanel activityId={activity.id} activityStatus={activity.status} onError={onError} />
-    {['Draft', 'Planned', 'InProgress'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3><div className="form-grid"><label>When work happened<DatePicker name="actualAt" type="datetime-local" required value={actualAtValue} onChange={setActualAtValue} /></label>{activity.quantityBasis !== 'None' && <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number" min="0.0001" step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'} required defaultValue={activity.actualQuantity} /></label>}<label className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason} /></label></div><button disabled={saving}>Save actual work</button></form>}
-    <section className="lifecycle-actions"><h3>Next action</h3>{orderedActions(details.allowedTransitions).map((action) => <button key={action} type="button" className={action === 'Cancelled' ? 'secondary outline' : 'secondary-action'} disabled={saving} onClick={() => run(action, action === 'Cancelled' ? window.prompt('Cancellation reason') || '' : undefined)}>{action === 'ManagerConfirmation' ? 'Supervisor verified' : formatActivityStatus(action)}</button>)}{Object.values(details.blockedTransitions).map((message) => <p className="context-note" key={message}>{message}</p>)}</section>
-    {!['Closed', 'Cancelled'].includes(activity.status) && <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3><div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required placeholder="e.g. Field sheet FS-204" /></label><label>Captured date<DatePicker name="capturedDate" defaultValue={harareToday()} required /></label></div><button disabled={saving}>Add reference</button><small>Metadata only. Document and photo upload is unavailable.</small></form>}
-    <section className="diary-timeline">
-      <header><h3>Chronological diary</h3><small aria-live="polite">{details.timeline.length === 0 ? 'No entries' : `${timelineStart + 1}–${timelineEnd} of ${details.timeline.length}`} · newest first</small></header>
-      {visibleTimeline.map((event) => <article key={`${event.type}-${event.id}`}><span className="timeline-dot" /><div><small>{formatDateTime(event.eventAt)}</small><strong>{event.title}</strong><p>{event.detail}</p><span>Entered by {event.enteredBy}{event.operationalActor ? ` · operational actor ${event.operationalActor}` : ''}</span>{event.reason && <em>{event.reason}</em>}</div></article>)}
-      {timelinePageCount > 1 && <nav className="diary-pagination" aria-label="Chronological diary pages"><button type="button" className="secondary-action" disabled={currentTimelinePage === 0} onClick={() => setTimelinePage(currentTimelinePage - 1)}>Newer</button><span>Page {currentTimelinePage + 1} of {timelinePageCount}</span><button type="button" className="secondary-action" disabled={currentTimelinePage === timelinePageCount - 1} onClick={() => setTimelinePage(currentTimelinePage + 1)}>Older</button></nav>}
-    </section>
-  </div>;
+function ActivityOverview({details, onChanged, onError}: ActivityOverviewProps) {
+    const activity = details.activity;
+    const [saving, setSaving] = useState(false);
+    const [actualAtValue, setActualAtValue] = useState(activity.actualAt?.slice(0, 16) || harareNow());
+    const [timelinePage, setTimelinePage] = useState(0);
+    useEffect(() => setTimelinePage(0), [activity.id]);
+    const run = async (action: string, reason?: string) => {
+        setSaving(true);
+        onError('');
+        try {
+            onChanged(await transitionActivity(activity.id, action, activity.version, reason));
+        } catch (requestError: unknown) {
+            onError(getApiError(requestError));
+        } finally {
+            setSaving(false);
+        }
+    };
+    const saveActual = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        setSaving(true);
+        try {
+            onChanged(await recordActual(activity.id, activity.version, String(data.get('actualAt')), activity.quantityBasis === 'None' ? undefined : Number(data.get('actualQuantity')), String(data.get('lateEntryReason')).trim() || undefined));
+        } catch (requestError: unknown) {
+            onError(getApiError(requestError));
+        } finally {
+            setSaving(false);
+        }
+    };
+    const saveReference = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const data = new FormData(form);
+        setSaving(true);
+        try {
+            onChanged(await addSourceReference(activity.id, activity.version, String(data.get('reference')).trim(), String(data.get('capturedDate'))));
+            form.reset();
+        } catch (requestError: unknown) {
+            onError(getApiError(requestError));
+        } finally {
+            setSaving(false);
+        }
+    };
+    const timelinePageCount = Math.max(1, Math.ceil(details.timeline.length / timelinePageSize));
+    const currentTimelinePage = Math.min(timelinePage, timelinePageCount - 1);
+    const timelineStart = currentTimelinePage * timelinePageSize;
+    const visibleTimeline = details.timeline.slice(timelineStart, timelineStart + timelinePageSize);
+    const timelineEnd = timelineStart + visibleTimeline.length;
+    return <div className="activity-overview">
+        <div className="overview-facts">
+            <span><small>Status</small><strong>{formatActivityStatus(activity.status)}</strong></span><span><small>Field</small><strong>{activity.fieldCode} · {activity.fieldName}</strong></span><span><small>Supervisor</small><strong>{activity.supervisorName}</strong></span><span><small>Coverage</small><strong>{coverage(activity)}</strong></span>
+        </div>
+        {activity.isRetrospective && <div className="late-callout"><TriangleAlert size={18}/>
+            <div><strong>Retrospective entry · {activity.entryDelayDays} calendar
+                days</strong><span>{activity.lateEntryReason || 'Entered within the two-day reason-free window.'}</span>
+            </div>
+        </div>}
+        <ActivityInputsPanel activityId={activity.id} activityStatus={activity.status} onError={onError}/>
+        {['Draft', 'Planned', 'InProgress'].includes(activity.status) &&
+            <form className="subrecord-form" onSubmit={saveActual}><h3>Actual work</h3>
+                <div className="form-grid"><label>When work happened<DatePicker name="actualAt" type="datetime-local"
+                                                                                required value={actualAtValue}
+                                                                                onChange={setActualAtValue}/></label>{activity.quantityBasis !== 'None' &&
+                    <label>{quantityLabel(activity.quantityBasis)}<input name="actualQuantity" type="number"
+                                                                         min="0.0001"
+                                                                         step={activity.quantityBasis === 'StandardLines' ? '1' : '0.0001'}
+                                                                         required
+                                                                         defaultValue={activity.actualQuantity}/></label>}<label
+                    className="is-wide">Late-entry reason <small>Required after 2 days</small><textarea
+                    name="lateEntryReason" maxLength={500} defaultValue={activity.lateEntryReason}/></label></div>
+                <button disabled={saving}>Save actual work</button>
+            </form>}
+        <section className="lifecycle-actions"><h3>Next
+            action</h3>{orderedActions(details.allowedTransitions).map((action) => <button key={action} type="button"
+                                                                                           className={action === 'Cancelled' ? 'secondary outline' : 'secondary-action'}
+                                                                                           disabled={saving}
+                                                                                           onClick={() => run(action, action === 'Cancelled' ? window.prompt('Cancellation reason') || '' : undefined)}>{action === 'ManagerConfirmation' ? 'Supervisor verified' : formatActivityStatus(action)}</button>)}{Object.values(details.blockedTransitions).map((message) =>
+            <p className="context-note" key={message}>{message}</p>)}</section>
+        {!['Closed', 'Cancelled'].includes(activity.status) &&
+            <form className="subrecord-form" onSubmit={saveReference}><h3>Source reference</h3>
+                <div className="form-grid"><label>Source-sheet reference<input name="reference" maxLength={160} required
+                                                                               placeholder="e.g. Field sheet FS-204"/></label><label>Captured
+                    date<DatePicker name="capturedDate" defaultValue={harareToday()} required/></label></div>
+                <button disabled={saving}>Add reference</button>
+                <small>Metadata only. Document and photo upload is unavailable.</small></form>}
+        <section className="diary-timeline">
+            <header><h3>Chronological diary</h3><small
+                aria-live="polite">{details.timeline.length === 0 ? 'No entries' : `${timelineStart + 1}–${timelineEnd} of ${details.timeline.length}`} ·
+                newest first</small></header>
+            {visibleTimeline.map((event) => <article key={`${event.type}-${event.id}`}><span className="timeline-dot"/>
+                <div><small>{formatDateTime(event.eventAt)}</small><strong>{event.title}</strong><p>{event.detail}</p>
+                    <span>Entered by {event.enteredBy}{event.operationalActor ? ` · operational actor ${event.operationalActor}` : ''}</span>{event.reason &&
+                        <em>{event.reason}</em>}</div>
+            </article>)}
+            {timelinePageCount > 1 && <nav className="diary-pagination" aria-label="Chronological diary pages">
+                <button type="button" className="secondary-action" disabled={currentTimelinePage === 0}
+                        onClick={() => setTimelinePage(currentTimelinePage - 1)}>Newer
+                </button>
+                <span>Page {currentTimelinePage + 1} of {timelinePageCount}</span>
+                <button type="button" className="secondary-action"
+                        disabled={currentTimelinePage === timelinePageCount - 1}
+                        onClick={() => setTimelinePage(currentTimelinePage + 1)}>Older
+                </button>
+            </nav>}
+        </section>
+    </div>;
 }
 
-function coverage(activity: ActivityListItemDto): string { if (activity.quantityBasis === 'None') return 'No quantity'; if (activity.actualQuantity == null) return activity.quantityBasis === 'Hectares' ? 'ha pending' : 'lines pending'; return activity.quantityBasis === 'Hectares' ? `${activity.actualQuantity.toLocaleString()} ha` : `${activity.actualQuantity.toLocaleString()} lines${activity.lineContextUnavailable ? ' · context unavailable' : ''}`; }
-function formatDate(value: string | undefined): string { if (!value || value === 'Unscheduled') return 'Unscheduled'; return new Intl.DateTimeFormat('en-ZW', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T00:00:00`)); }
-function formatDateTime(value: string): string { return new Intl.DateTimeFormat('en-ZW', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
-function harareToday(): string { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function coverage(activity: ActivityListItemDto): string {
+    if (activity.quantityBasis === 'None') return 'No quantity';
+    if (activity.actualQuantity == null) return activity.quantityBasis === 'Hectares' ? 'ha pending' : 'lines pending';
+    return activity.quantityBasis === 'Hectares' ? `${activity.actualQuantity.toLocaleString()} ha` : `${activity.actualQuantity.toLocaleString()} lines${activity.lineContextUnavailable ? ' · context unavailable' : ''}`;
+}
+
+function formatDate(value: string | undefined): string {
+    if (!value || value === 'Unscheduled') return 'Unscheduled';
+    return new Intl.DateTimeFormat('en-ZW', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    }).format(new Date(`${value}T00:00:00`));
+}
+
+function formatDateTime(value: string): string {
+    return new Intl.DateTimeFormat('en-ZW', {dateStyle: 'medium', timeStyle: 'short'}).format(new Date(value));
+}
+
+function harareToday(): string {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Africa/Harare',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(new Date());
+}
+
 function harareNow() {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-  }).formatToParts(new Date());
-  const part = (type: string): string | undefined => parts.find((item) => item.type === type)?.value;
-  return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Africa/Harare', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date());
+    const part = (type: string): string | undefined => parts.find((item) => item.type === type)?.value;
+    return `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}`;
 }

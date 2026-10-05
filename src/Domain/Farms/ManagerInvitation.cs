@@ -20,7 +20,7 @@ public sealed class ManagerInvitation : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public Guid PersonId { get; private set; }
     public string TokenHash { get; private set; } = string.Empty;
-    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTimeOffset ExpiresAt { get; }
     public string CreatedByUserId { get; private set; } = string.Empty;
     public string SecurityRole { get; private set; } = string.Empty;
     public DateTimeOffset? RevokedAt { get; private set; }
@@ -35,15 +35,26 @@ public sealed class ManagerInvitation : BaseAuditableEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(tokenHash);
         ArgumentException.ThrowIfNullOrWhiteSpace(createdByUserId);
         if (!TenantSecurityRoles.IsInvitable(securityRole))
+        {
             throw new ArgumentException("Invitations may only grant FarmManager or Supervisor.", nameof(securityRole));
-        return new(tenantId, farmId, personId, tokenHash, expiresAt, createdByUserId, securityRole);
+        }
+
+        return new ManagerInvitation(tenantId, farmId, personId, tokenHash, expiresAt, createdByUserId, securityRole);
     }
 
     public void Revoke(DateTimeOffset revokedAt, string userId, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (RedeemedAt.HasValue) throw new InvalidOperationException("A redeemed invitation cannot be revoked.");
-        if (RevokedAt.HasValue) return;
+        if (RedeemedAt.HasValue)
+        {
+            throw new InvalidOperationException("A redeemed invitation cannot be revoked.");
+        }
+
+        if (RevokedAt.HasValue)
+        {
+            return;
+        }
+
         RevokedAt = revokedAt;
         RevokedByUserId = userId.Trim();
         Version++;
@@ -51,9 +62,21 @@ public sealed class ManagerInvitation : BaseAuditableEntity
 
     public void Redeem(DateTimeOffset redeemedAt, string userId)
     {
-        if (RevokedAt.HasValue) throw new InvalidOperationException("This manager invitation was revoked.");
-        if (RedeemedAt.HasValue) throw new InvalidOperationException("This manager invitation has already been used.");
-        if (redeemedAt > ExpiresAt) throw new InvalidOperationException("This manager invitation has expired.");
+        if (RevokedAt.HasValue)
+        {
+            throw new InvalidOperationException("This manager invitation was revoked.");
+        }
+
+        if (RedeemedAt.HasValue)
+        {
+            throw new InvalidOperationException("This manager invitation has already been used.");
+        }
+
+        if (redeemedAt > ExpiresAt)
+        {
+            throw new InvalidOperationException("This manager invitation has expired.");
+        }
+
         RedeemedAt = redeemedAt;
         RedeemedByUserId = userId.Trim();
         Version++;
@@ -61,6 +84,9 @@ public sealed class ManagerInvitation : BaseAuditableEntity
 
     private void RequireVersion(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This invitation changed after it was loaded.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This invitation changed after it was loaded.");
+        }
     }
 }

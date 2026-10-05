@@ -10,7 +10,10 @@ public sealed class InputRequestLine : BaseEntity
         decimal availableQuantitySnapshot, decimal? estimatedUnitCostUsd)
     {
         if (plannedCoverage <= 0 || requestedQuantity <= 0)
+        {
             throw new InvalidOperationException("Planned coverage and requested quantity must be positive.");
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         InputRequestId = requestId;
@@ -34,7 +37,8 @@ public sealed class InputRequestLine : BaseEntity
         ApprovalRequirement = rule.ApprovalFor(RequestedQuantity, PlannedQuantity);
         AvailableQuantitySnapshot = Round(availableQuantitySnapshot);
         EstimatedUnitCostUsdSnapshot = estimatedUnitCostUsd.HasValue ? Round(estimatedUnitCostUsd.Value) : null;
-        EstimatedValueUsdSnapshot = estimatedUnitCostUsd.HasValue ? Round(RequestedQuantity * estimatedUnitCostUsd.Value) : null;
+        EstimatedValueUsdSnapshot =
+            estimatedUnitCostUsd.HasValue ? Round(RequestedQuantity * estimatedUnitCostUsd.Value) : null;
     }
 
     public Guid TenantId { get; private set; }
@@ -53,7 +57,7 @@ public sealed class InputRequestLine : BaseEntity
     public ApplicationCoverageBasis CoverageBasisSnapshot { get; private set; }
     public decimal PlannedCoverage { get; private set; }
     public decimal PlannedRate { get; private set; }
-    public decimal PlannedQuantity { get; private set; }
+    public decimal PlannedQuantity { get; }
     public decimal RequestedQuantity { get; private set; }
     public decimal LowerTolerancePercent { get; private set; }
     public decimal UpperTolerancePercent { get; private set; }
@@ -65,13 +69,20 @@ public sealed class InputRequestLine : BaseEntity
     internal static InputRequestLine Create(
         Guid tenantId, Guid farmId, Guid requestId, int lineNumber, InventoryItem item,
         InventoryApplicationRule rule, decimal plannedCoverage, decimal requestedQuantity,
-        decimal availableQuantitySnapshot, decimal? estimatedUnitCostUsd) =>
-        new(tenantId, farmId, requestId, lineNumber, item, rule, plannedCoverage, requestedQuantity,
+        decimal availableQuantitySnapshot, decimal? estimatedUnitCostUsd)
+    {
+        return new InputRequestLine(tenantId, farmId, requestId, lineNumber, item, rule, plannedCoverage,
+            requestedQuantity,
             availableQuantitySnapshot, estimatedUnitCostUsd);
+    }
 
     internal void ChangeRequestedQuantity(decimal requestedQuantity, InventoryApplicationRule rule)
     {
-        if (requestedQuantity <= 0) throw new InvalidOperationException("Requested quantity must be positive.");
+        if (requestedQuantity <= 0)
+        {
+            throw new InvalidOperationException("Requested quantity must be positive.");
+        }
+
         RequestedQuantity = Round(requestedQuantity);
         ApprovalRequirement = rule.ApprovalFor(RequestedQuantity, PlannedQuantity);
         EstimatedValueUsdSnapshot = EstimatedUnitCostUsdSnapshot.HasValue
@@ -88,5 +99,8 @@ public sealed class InputRequestLine : BaseEntity
             : null;
     }
 
-    private static decimal Round(decimal value) => decimal.Round(value, 6, MidpointRounding.AwayFromZero);
+    private static decimal Round(decimal value)
+    {
+        return decimal.Round(value, 6, MidpointRounding.AwayFromZero);
+    }
 }

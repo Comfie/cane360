@@ -6,8 +6,10 @@ public static class TransportValueParser
 {
     private const string DateFormat = "yyyy-MM-dd";
 
-    public static bool TryParseDateOnly(string? value, out DateOnly result) =>
-        DateOnly.TryParseExact(value, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+    public static bool TryParseDateOnly(string? value, out DateOnly result)
+    {
+        return DateOnly.TryParseExact(value, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out result);
+    }
 
     public static bool TryParseOptionalDateOnly(string? value, out DateOnly? result)
     {
@@ -17,7 +19,7 @@ public static class TransportValueParser
             return true;
         }
 
-        if (!TryParseDateOnly(value, out var parsed))
+        if (!TryParseDateOnly(value, out DateOnly parsed))
         {
             return false;
         }
@@ -54,12 +56,12 @@ public static class TransportValueParser
             return false;
         }
 
-        var suffix = value.AsSpan(value.Length - 6);
-        return (suffix[0] is '+' or '-') &&
-            char.IsAsciiDigit(suffix[1]) &&
-            char.IsAsciiDigit(suffix[2]) &&
-            suffix[3] == ':' &&
-            char.IsAsciiDigit(suffix[4]) &&
-            char.IsAsciiDigit(suffix[5]);
+        ReadOnlySpan<char> suffix = value.AsSpan(value.Length - 6);
+        return suffix[0] is '+' or '-' &&
+               char.IsAsciiDigit(suffix[1]) &&
+               char.IsAsciiDigit(suffix[2]) &&
+               suffix[3] == ':' &&
+               char.IsAsciiDigit(suffix[4]) &&
+               char.IsAsciiDigit(suffix[5]);
     }
 }

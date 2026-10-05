@@ -1,113 +1,127 @@
-import {
-  CreateInventoryItemRequest,
-  CreateInventoryLotRequest,
-  CreateStockReceiptLineRequest,
-  CreateStockReceiptRequest,
-  CreateSupplierRequest,
-  CreateUnitOfMeasureRequest,
-  DecideOpeningBalanceRequest,
-  InventoryClient,
-  PostStockReceiptRequest,
-  ReverseStockReceiptRequest,
-  UpdateSupplierRequest,
-  VersionedInventoryRequest,
-  CreateStockCountRequest,
-} from '../../web-api-client';
 import type {
-  ICreateInventoryItemRequest,
-  ICreateInventoryLotRequest,
-  ICreateStockCountRequest,
-  ICreateStockReceiptLineRequest,
-  ICreateSupplierRequest,
-  ICreateUnitOfMeasureRequest,
-  IUpdateSupplierRequest,
-  StockAdjustmentDto,
-  StockCountDto,
+    ICreateInventoryItemRequest,
+    ICreateInventoryLotRequest,
+    ICreateStockCountRequest,
+    ICreateStockReceiptLineRequest,
+    ICreateSupplierRequest,
+    ICreateUnitOfMeasureRequest,
+    IUpdateSupplierRequest,
+    StockAdjustmentDto,
+    StockCountDto,
+} from '../../web-api-client';
+import {
+    CreateInventoryItemRequest,
+    CreateInventoryLotRequest,
+    CreateStockCountRequest,
+    CreateStockReceiptLineRequest,
+    CreateStockReceiptRequest,
+    CreateSupplierRequest,
+    CreateUnitOfMeasureRequest,
+    DecideOpeningBalanceRequest,
+    InventoryClient,
+    PostStockReceiptRequest,
+    ReverseStockReceiptRequest,
+    UpdateSupplierRequest,
+    VersionedInventoryRequest,
 } from '../../web-api-client';
 
 export const inventoryClient = new InventoryClient();
 
 interface StockReceiptValues {
-  receiptType: string;
-  supplierId: string | undefined;
-  receiptDate: string;
-  receivedByPersonId: string | undefined;
-  sourceReference: string;
-  reason: string | undefined;
-  lateEntryReason: string | undefined;
-  lines: readonly ICreateStockReceiptLineRequest[];
+    receiptType: string;
+    supplierId: string | undefined;
+    receiptDate: string;
+    receivedByPersonId: string | undefined;
+    sourceReference: string;
+    reason: string | undefined;
+    lateEntryReason: string | undefined;
+    lines: readonly ICreateStockReceiptLineRequest[];
 }
 
 export function createUnit(values: ICreateUnitOfMeasureRequest) {
-  return inventoryClient.createUnitInventory(new CreateUnitOfMeasureRequest(values));
+    return inventoryClient.createUnitInventory(new CreateUnitOfMeasureRequest(values));
 }
 
 export function createItem(values: ICreateInventoryItemRequest) {
-  return inventoryClient.items(new CreateInventoryItemRequest(values));
+    return inventoryClient.items(new CreateInventoryItemRequest(values));
 }
 
 export function createSupplier(values: ICreateSupplierRequest) {
-  return inventoryClient.suppliersPOST(new CreateSupplierRequest(values));
+    return inventoryClient.suppliersPOST(new CreateSupplierRequest(values));
 }
 
 export function updateSupplier(supplierId: string, values: IUpdateSupplierRequest) {
-  return inventoryClient.suppliersPUT(supplierId, new UpdateSupplierRequest(values));
+    return inventoryClient.suppliersPUT(supplierId, new UpdateSupplierRequest(values));
 }
 
 export function archiveSupplier(supplierId: string, expectedVersion: number) {
-  return inventoryClient.archiveSupplierInventory(supplierId, new VersionedInventoryRequest({ expectedVersion }));
+    return inventoryClient.archiveSupplierInventory(supplierId, new VersionedInventoryRequest({expectedVersion}));
 }
 
 export function unarchiveSupplier(supplierId: string, expectedVersion: number) {
-  return inventoryClient.unarchive(supplierId, new VersionedInventoryRequest({ expectedVersion }));
+    return inventoryClient.unarchive(supplierId, new VersionedInventoryRequest({expectedVersion}));
 }
 
 export function createLot(values: ICreateInventoryLotRequest) {
-  return inventoryClient.lots(new CreateInventoryLotRequest(values));
+    return inventoryClient.lots(new CreateInventoryLotRequest(values));
 }
 
 export function createReceipt(values: StockReceiptValues) {
-  return inventoryClient.receiptsPOST(new CreateStockReceiptRequest({
-    ...values,
-    lines: values.lines.map((line) => new CreateStockReceiptLineRequest(line)),
-  }));
+    return inventoryClient.receiptsPOST(new CreateStockReceiptRequest({
+        ...values,
+        lines: values.lines.map((line) => new CreateStockReceiptLineRequest(line)),
+    }));
 }
 
 export function submitOpeningBalance(receiptId: string, expectedVersion: number) {
-  return inventoryClient.submitOpeningBalance(receiptId, new VersionedInventoryRequest({ expectedVersion }));
+    return inventoryClient.submitOpeningBalance(receiptId, new VersionedInventoryRequest({expectedVersion}));
 }
 
 export function decideOpeningBalance(receiptId: string, expectedVersion: number, outcome: 'Approved' | 'Rejected', reason: string | undefined) {
-  return inventoryClient.openingBalanceDecision(receiptId, new DecideOpeningBalanceRequest({
-    expectedVersion,
-    outcome,
-    reason,
-    idempotencyKey: operationKey('opening-decision'),
-  }));
+    return inventoryClient.openingBalanceDecision(receiptId, new DecideOpeningBalanceRequest({
+        expectedVersion,
+        outcome,
+        reason,
+        idempotencyKey: operationKey('opening-decision'),
+    }));
 }
 
 export function postReceipt(receiptId: string, expectedVersion: number) {
-  return inventoryClient.postReceiptInventory(receiptId, new PostStockReceiptRequest({
-    expectedVersion,
-    idempotencyKey: operationKey('receipt-post'),
-  }));
+    return inventoryClient.postReceiptInventory(receiptId, new PostStockReceiptRequest({
+        expectedVersion,
+        idempotencyKey: operationKey('receipt-post'),
+    }));
 }
 
 export function reverseReceipt(receiptId: string, expectedVersion: number, reason: string) {
-  return inventoryClient.reverseReceiptInventory(receiptId, new ReverseStockReceiptRequest({
-    expectedVersion,
-    reason,
-    idempotencyKey: operationKey('receipt-reversal'),
-  }));
+    return inventoryClient.reverseReceiptInventory(receiptId, new ReverseStockReceiptRequest({
+        expectedVersion,
+        reason,
+        idempotencyKey: operationKey('receipt-reversal'),
+    }));
 }
 
-export function createStockCount(values: ICreateStockCountRequest) { return inventoryClient.createCountInventory(new CreateStockCountRequest(values)); }
-export function startStockCount(countId: string, expectedVersion: number) { return inventoryClient.start(countId, new VersionedInventoryRequest({ expectedVersion })); }
-export function reviewStockCount(countId: string, expectedVersion: number) { return inventoryClient.review(countId, new VersionedInventoryRequest({ expectedVersion })); }
-export function getStockCounts(): Promise<StockCountDto[]> { return inventoryClient.getCountsInventory(); }
-export function getStockAdjustments(): Promise<StockAdjustmentDto[]> { return inventoryClient.getAdjustmentsInventory(); }
+export function createStockCount(values: ICreateStockCountRequest) {
+    return inventoryClient.createCountInventory(new CreateStockCountRequest(values));
+}
+
+export function startStockCount(countId: string, expectedVersion: number) {
+    return inventoryClient.start(countId, new VersionedInventoryRequest({expectedVersion}));
+}
+
+export function reviewStockCount(countId: string, expectedVersion: number) {
+    return inventoryClient.review(countId, new VersionedInventoryRequest({expectedVersion}));
+}
+
+export function getStockCounts(): Promise<StockCountDto[]> {
+    return inventoryClient.getCountsInventory();
+}
+
+export function getStockAdjustments(): Promise<StockAdjustmentDto[]> {
+    return inventoryClient.getAdjustmentsInventory();
+}
 
 export function operationKey(operation: string): string {
-  const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  return `p5a-ui-${operation}-${random}`;
+    const random = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `p5a-ui-${operation}-${random}`;
 }

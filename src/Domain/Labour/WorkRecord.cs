@@ -46,19 +46,19 @@ public sealed class WorkRecord : BaseAuditableEntity
         Status = WorkRecordStatus.Draft;
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid AttendanceId { get; private set; }
     public Guid WorkerProfileId { get; private set; }
     public Guid FieldId { get; private set; }
     public DateOnly WorkDate { get; private set; }
-    public PayBasis PayBasis { get; private set; }
+    public PayBasis PayBasis { get; }
     public Guid WorkerRateId { get; private set; }
-    public decimal AppliedRateUsd { get; private set; }
+    public decimal AppliedRateUsd { get; }
     public DateOnly RateEffectiveFrom { get; private set; }
     public DateOnly? RateEffectiveTo { get; private set; }
     public Guid? RateActivityTypeId { get; private set; }
-    public decimal? Quantity { get; private set; }
+    public decimal? Quantity { get; }
     public decimal? CalculatedAmountUsd { get; private set; }
     public DateTimeOffset EnteredAt { get; private set; }
     public string EnteredByUserId { get; private set; } = string.Empty;
@@ -96,7 +96,7 @@ public sealed class WorkRecord : BaseAuditableEntity
             throw new InvalidOperationException("At least one activity is required.");
         }
 
-        var isPiece = rate.Basis is PayBasis.Hectare or PayBasis.StandardLine;
+        bool isPiece = rate.Basis is PayBasis.Hectare or PayBasis.StandardLine;
         if (isPiece && activityIds.Distinct().Count() != 1)
         {
             throw new InvalidOperationException("Piece work must reference exactly one activity.");
@@ -122,15 +122,12 @@ public sealed class WorkRecord : BaseAuditableEntity
             throw new InvalidOperationException("A late-entry reason is required after two calendar days.");
         }
 
-        var record = new WorkRecord(
+        WorkRecord record = new(
             tenantId, farmId, attendanceId, workerProfileId, fieldId, workDate,
             rate.Basis, rate.Id, rate.RateUsd, rate.EffectiveFrom, rate.EffectiveTo,
             rate.ActivityTypeId, quantity, enteredAt, enteredByUserId,
-            lateEntryReason, entryDelayDays)
-        {
-            CorrectsWorkRecordId = correctsWorkRecordId
-        };
-        foreach (var activityId in activityIds.Distinct())
+            lateEntryReason, entryDelayDays) { CorrectsWorkRecordId = correctsWorkRecordId };
+        foreach (Guid activityId in activityIds.Distinct())
         {
             record._activities.Add(WorkRecordActivity.Create(
                 record.Id, tenantId, farmId, fieldId, activityId));
@@ -207,7 +204,11 @@ public sealed class WorkRecord : BaseAuditableEntity
         SupersededAt = cancelledAt;
         SupersededByUserId = cancelledByUserId.Trim();
         CorrectionReason = reason.Trim();
-        foreach (var scope in _scopes) scope.Supersede(cancelledAt);
+        foreach (WorkScope scope in _scopes)
+        {
+            scope.Supersede(cancelledAt);
+        }
+
         Version++;
     }
 
@@ -225,7 +226,11 @@ public sealed class WorkRecord : BaseAuditableEntity
         SupersededAt = supersededAt;
         SupersededByUserId = supersededByUserId.Trim();
         CorrectionReason = reason.Trim();
-        foreach (var scope in _scopes) scope.Supersede(supersededAt);
+        foreach (WorkScope scope in _scopes)
+        {
+            scope.Supersede(supersededAt);
+        }
+
         Version++;
     }
 
@@ -245,6 +250,8 @@ public sealed class WorkRecord : BaseAuditableEntity
         }
     }
 
-    private static decimal RoundMoney(decimal amount) =>
-        decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+    private static decimal RoundMoney(decimal amount)
+    {
+        return decimal.Round(amount, 2, MidpointRounding.AwayFromZero);
+    }
 }

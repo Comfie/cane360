@@ -29,8 +29,8 @@ public sealed class OperationalTransaction : BaseEntity
         CorrelationId = correlationId.Trim();
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public OperationalTransactionType Type { get; private set; }
     public OperationalFinanceCategory Category { get; private set; }
     public DateOnly EventDate { get; private set; }
@@ -59,9 +59,11 @@ public sealed class OperationalTransaction : BaseEntity
     public static OperationalTransaction Create(Guid tenantId, Guid farmId,
         OperationalTransactionType type, OperationalFinanceCategory category, DateOnly eventDate,
         string payeeOrPayer, decimal amountUsd, string? sourceReference, string? notes,
-        string createdByUserId, DateTimeOffset createdAt, string correlationId) =>
-        new(tenantId, farmId, type, category, eventDate, payeeOrPayer, amountUsd,
+        string createdByUserId, DateTimeOffset createdAt, string correlationId)
+    {
+        return new OperationalTransaction(tenantId, farmId, type, category, eventDate, payeeOrPayer, amountUsd,
             sourceReference, notes, createdByUserId, createdAt, correlationId);
+    }
 
     public void Update(OperationalTransactionType type, OperationalFinanceCategory category,
         DateOnly eventDate, string payeeOrPayer, decimal amountUsd, string? sourceReference,
@@ -85,9 +87,15 @@ public sealed class OperationalTransaction : BaseEntity
     {
         RequireDraft(expectedVersion);
         if (allocations.Any(x => x.OperationalTransactionId != Id || x.TenantId != TenantId || x.FarmId != FarmId))
+        {
             throw new InvalidOperationException("Every allocation must belong to this transaction, tenant, and farm.");
+        }
+
         if (allocations.Sum(x => x.AmountUsd) != AmountUsd)
+        {
             throw new InvalidOperationException("Allocations must reconcile exactly to the transaction amount.");
+        }
+
         _allocations.Clear();
         _allocations.AddRange(allocations);
         Version++;
@@ -100,9 +108,15 @@ public sealed class OperationalTransaction : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         if (_allocations.Count == 0 || _allocations.Sum(x => x.AmountUsd) != AmountUsd)
+        {
             throw new InvalidOperationException("Allocations must reconcile exactly before posting.");
+        }
+
         if (isClosedCycleCorrection && string.IsNullOrWhiteSpace(correctionReason))
+        {
             throw new InvalidOperationException("A closed-cycle correction requires a reason.");
+        }
+
         Status = OperationalTransactionStatus.Posted;
         PostedByUserId = userId.Trim();
         PostedAt = at;
@@ -125,10 +139,13 @@ public sealed class OperationalTransaction : BaseEntity
         string reason, string userId, DateTimeOffset at, string idempotencyKey, string correlationId)
     {
         if (original.Status != OperationalTransactionStatus.Posted)
+        {
             throw new InvalidOperationException("Only a posted transaction can be reversed.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
-        var reversal = new OperationalTransaction(original.TenantId, original.FarmId, original.Type,
+        OperationalTransaction reversal = new(original.TenantId, original.FarmId, original.Type,
             original.Category, original.EventDate, original.PayeeOrPayer, original.AmountUsd,
             original.SourceReference, original.Notes, userId, at, correlationId)
         {
@@ -143,27 +160,44 @@ public sealed class OperationalTransaction : BaseEntity
             IsClosedCycleCorrection = false,
             Version = 1
         };
-        foreach (var allocation in original.Allocations)
+        foreach (TransactionAllocation allocation in original.Allocations)
+        {
             reversal._allocations.Add(TransactionAllocation.Create(original.TenantId,
                 original.FarmId, reversal.Id, allocation.CropCycleId, allocation.FieldId,
                 allocation.Category, allocation.AmountUsd, allocation.AllocationType, at));
+        }
+
         return reversal;
     }
 
     private void RequireDraft(long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This transaction changed after it was loaded. Refresh and try again.");
+        }
+
         if (Status != OperationalTransactionStatus.Draft)
+        {
             throw new InvalidOperationException("Posted, reversed, or cancelled transactions are immutable.");
+        }
     }
 
     private static void ValidateAmount(decimal amountUsd)
     {
-        if (amountUsd <= 0) throw new ArgumentOutOfRangeException(nameof(amountUsd), "Amount must be positive.");
+        if (amountUsd <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amountUsd), "Amount must be positive.");
+        }
+
         if (decimal.Round(amountUsd, 2, MidpointRounding.AwayFromZero) != amountUsd)
+        {
             throw new ArgumentException("USD amounts support at most two decimal places.", nameof(amountUsd));
+        }
     }
 
-    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Clean(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

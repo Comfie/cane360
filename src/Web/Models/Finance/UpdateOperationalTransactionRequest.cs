@@ -1,5 +1,11 @@
 namespace Cane360.Web.Models.Finance;
 
-public sealed record UpdateOperationalTransactionRequest(string Type, string Category,
-    string EventDate, string PayeeOrPayer, decimal AmountUsd, string? SourceReference,
-    string? Notes, long ExpectedVersion);
+public sealed record UpdateOperationalTransactionRequest(
+    string Type,
+    string Category,
+    string EventDate,
+    string PayeeOrPayer,
+    decimal AmountUsd,
+    string? SourceReference,
+    string? Notes,
+    long ExpectedVersion);

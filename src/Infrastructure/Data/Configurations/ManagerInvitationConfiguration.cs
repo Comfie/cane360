@@ -25,9 +25,12 @@ internal sealed class ManagerInvitationConfiguration : IEntityTypeConfiguration<
             .HasPrincipalKey(farm => new { farm.Id, farm.TenantId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Person>().WithMany().HasForeignKey(entity => new { entity.PersonId, entity.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.RevokedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.RedeemedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.RevokedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.RedeemedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => entity.TokenHash).IsUnique();
         builder.HasIndex(entity => new { entity.TenantId, entity.PersonId }).IsUnique()
             .HasFilter("\"RevokedAt\" IS NULL AND \"RedeemedAt\" IS NULL");

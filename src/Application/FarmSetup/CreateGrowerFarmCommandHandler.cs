@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.FarmSetup;
 
 public sealed class CreateGrowerFarmCommandHandler(
@@ -10,8 +8,8 @@ public sealed class CreateGrowerFarmCommandHandler(
         CreateGrowerFarmCommand request,
         CancellationToken cancellationToken)
     {
-        var userId = FarmSetupValidation.RequireUserId(user);
-        var existingTenant = await repository.GetTenantForUserAsync(userId, false, cancellationToken);
+        string userId = FarmSetupValidation.RequireUserId(user);
+        Tenant? existingTenant = await repository.GetTenantForUserAsync(userId, false, cancellationToken);
 
         if (existingTenant is not null)
         {
@@ -20,7 +18,7 @@ public sealed class CreateGrowerFarmCommandHandler(
                 "This grower already has an active farm.");
         }
 
-        var tenant = Tenant.CreateForGrower(userId, request.GrowerDisplayName, request.GrowerPhone);
+        Tenant tenant = Tenant.CreateForGrower(userId, request.GrowerDisplayName, request.GrowerPhone);
         tenant.CreateFarm(
             request.FarmCode,
             request.FarmName,

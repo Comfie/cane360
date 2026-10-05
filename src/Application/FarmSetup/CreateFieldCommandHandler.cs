@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.FarmSetup;
 
 public sealed class CreateFieldCommandHandler(
@@ -10,9 +8,9 @@ public sealed class CreateFieldCommandHandler(
         CreateFieldCommand request,
         CancellationToken cancellationToken)
     {
-        var userId = FarmSetupValidation.RequireUserId(user);
-        var tenant = await repository.GetTenantForUserAsync(userId, true, cancellationToken);
-        var farm = tenant?.ActiveFarm ?? throw new NotFoundException(userId, "Active farm");
+        string userId = FarmSetupValidation.RequireUserId(user);
+        Tenant? tenant = await repository.GetTenantForUserAsync(userId, true, cancellationToken);
+        Farm farm = tenant?.ActiveFarm ?? throw new NotFoundException(userId, "Active farm");
 
         if (farm.Fields.Any(field =>
                 field.Status == RecordStatus.Active &&

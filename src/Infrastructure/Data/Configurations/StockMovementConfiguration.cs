@@ -1,4 +1,4 @@
-using Cane360.Domain.Farms;
+using Cane360.Domain.Activities;
 using Cane360.Domain.Inventory;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +13,12 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.ToTable("StockMovements", "inventory", table =>
         {
             table.HasCheckConstraint("CK_StockMovements_NonzeroQuantity", "\"SignedQuantity\" <> 0");
-            table.HasCheckConstraint("CK_StockMovements_Signs", "sign(\"SignedQuantity\") = sign(\"SignedValueUsd\") OR \"SignedValueUsd\" = 0");
-            table.HasCheckConstraint("CK_StockMovements_Reversal", "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal', 'ReturnReversal', 'AdjustmentReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
-            table.HasCheckConstraint("CK_StockMovements_OneSource", "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\", \"StockReturnLineId\", \"StockAdjustmentId\") = 1");
+            table.HasCheckConstraint("CK_StockMovements_Signs",
+                "sign(\"SignedQuantity\") = sign(\"SignedValueUsd\") OR \"SignedValueUsd\" = 0");
+            table.HasCheckConstraint("CK_StockMovements_Reversal",
+                "(\"MovementType\" IN ('ReceiptReversal', 'IssueReversal', 'ReturnReversal', 'AdjustmentReversal')) = (\"ReversalOfStockMovementId\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_StockMovements_OneSource",
+                "num_nonnulls(\"StockReceiptLineId\", \"StockIssueLineId\", \"StockReturnLineId\", \"StockAdjustmentId\") = 1");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -31,8 +34,10 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.Property(entity => entity.PostedByUserId).HasMaxLength(450).IsRequired();
         builder.Property(entity => entity.PostingSequence).UseIdentityAlwaysColumn();
         builder.Property(entity => entity.PostingIdentity).HasMaxLength(120).IsRequired();
-        builder.HasOne<StockPosition>().WithMany().HasForeignKey(entity => new { entity.StockPositionId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(position => new { position.Id, position.TenantId, position.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockPosition>().WithMany()
+            .HasForeignKey(entity => new { entity.StockPositionId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(position => new { position.Id, position.TenantId, position.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<StockReceiptLine>().WithMany()
             .HasForeignKey(entity => new { entity.StockReceiptLineId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId })
@@ -45,16 +50,29 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
             .HasForeignKey(entity => new { entity.StockReturnLineId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockAdjustment>().WithMany().HasForeignKey(entity => new { entity.StockAdjustmentId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(adjustment => new { adjustment.Id, adjustment.TenantId, adjustment.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockMovement>().WithMany().HasForeignKey(entity => entity.ReversalOfStockMovementId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<Cane360.Domain.Activities.Person>().WithMany()
+        builder.HasOne<StockAdjustment>().WithMany()
+            .HasForeignKey(entity => new { entity.StockAdjustmentId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(adjustment => new { adjustment.Id, adjustment.TenantId, adjustment.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockMovement>().WithMany().HasForeignKey(entity => entity.ReversalOfStockMovementId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.PostedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<Person>().WithMany()
             .HasForeignKey(entity => new { entity.OperationalPersonId, entity.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => entity.PostingIdentity).IsUnique();
-        builder.HasIndex(entity => entity.ReversalOfStockMovementId).IsUnique().HasFilter("\"ReversalOfStockMovementId\" IS NOT NULL");
-        builder.HasIndex(entity => new { entity.TenantId, entity.FarmId, entity.StoreId, entity.InventoryItemId, entity.InventoryLotId, entity.PostingSequence });
+        builder.HasIndex(entity => entity.ReversalOfStockMovementId).IsUnique()
+            .HasFilter("\"ReversalOfStockMovementId\" IS NOT NULL");
+        builder.HasIndex(entity => new
+        {
+            entity.TenantId,
+            entity.FarmId,
+            entity.StoreId,
+            entity.InventoryItemId,
+            entity.InventoryLotId,
+            entity.PostingSequence
+        });
         builder.HasIndex(entity => new { entity.StockPositionId, entity.PostingSequence });
         builder.HasIndex(entity => entity.StockReceiptLineId);
         builder.HasIndex(entity => entity.StockIssueLineId);

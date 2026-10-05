@@ -1,83 +1,195 @@
 using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
 
 namespace Cane360.Application.Common.Interfaces;
 
 public interface IInventoryRepository
 {
-    Task<IReadOnlyList<UnitOfMeasure>> GetUnitsAsync(Guid tenantId, bool trackChanges, CancellationToken cancellationToken);
-    Task<UnitOfMeasure?> GetUnitAsync(Guid tenantId, Guid unitId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InventoryItem>> GetItemsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
-    Task<InventoryItem?> GetItemAsync(Guid tenantId, Guid farmId, Guid itemId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<Supplier>> GetSuppliersAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
-    Task<Supplier?> GetSupplierAsync(Guid tenantId, Guid farmId, Guid supplierId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InventoryLot>> GetLotsAsync(Guid tenantId, Guid farmId, Guid? itemId, bool trackChanges, CancellationToken cancellationToken);
-    Task<InventoryLot?> GetLotAsync(Guid tenantId, Guid farmId, Guid lotId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockReceipt>> GetReceiptsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockReceipt?> GetReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockMovement>> GetMovementsAsync(Guid tenantId, Guid farmId, Guid? itemId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetStockOnHandAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockCount>> GetStockCountsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockCount?> GetStockCountAsync(Guid tenantId, Guid farmId, Guid countId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockCountLine?> GetStockCountLineAsync(Guid tenantId, Guid farmId, Guid lineId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockCount?> GetActiveStockCountAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
-    Task<long> GetHighestPostingSequenceAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetNonZeroStockAtCutoffAsync(Guid tenantId, Guid farmId, Guid storeId, long cutoffPostingSequence, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockAdjustment>> GetStockAdjustmentsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockAdjustment?> GetStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, bool trackChanges, CancellationToken cancellationToken);
-    Task<ApprovalDecision?> GetStockAdjustmentApprovalAsync(Guid adjustmentId, long subjectVersion, CancellationToken cancellationToken);
-    Task<bool> HasLaterStockPositionMovementsAsync(Guid stockPositionId, long postingSequence, CancellationToken cancellationToken);
-    Task<LeakageReportingSource> GetLeakageReportingSourceAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
-    Task<ApprovalDecision?> GetOpeningApprovalAsync(Guid receiptId, long subjectVersion, CancellationToken cancellationToken);
-    Task<StockPosition?> GetPositionAsync(Guid tenantId, Guid farmId, Guid storeId, Guid itemId, Guid? lotId, bool trackChanges, CancellationToken cancellationToken);
+    Task<IReadOnlyList<UnitOfMeasure>> GetUnitsAsync(Guid tenantId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<UnitOfMeasure?> GetUnitAsync(Guid tenantId, Guid unitId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InventoryItem>> GetItemsAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<InventoryItem?> GetItemAsync(Guid tenantId, Guid farmId, Guid itemId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Supplier>> GetSuppliersAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<Supplier?> GetSupplierAsync(Guid tenantId, Guid farmId, Guid supplierId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InventoryLot>> GetLotsAsync(Guid tenantId, Guid farmId, Guid? itemId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<InventoryLot?> GetLotAsync(Guid tenantId, Guid farmId, Guid lotId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockReceipt>> GetReceiptsAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockReceipt?> GetReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockMovement>> GetMovementsAsync(Guid tenantId, Guid farmId, Guid? itemId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetStockOnHandAsync(Guid tenantId,
+        Guid farmId, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockCount>> GetStockCountsAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockCount?> GetStockCountAsync(Guid tenantId, Guid farmId, Guid countId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockCountLine?> GetStockCountLineAsync(Guid tenantId, Guid farmId, Guid lineId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockCount?> GetActiveStockCountAsync(Guid tenantId, Guid farmId, Guid storeId,
+        CancellationToken cancellationToken);
+
+    Task<long> GetHighestPostingSequenceAsync(Guid tenantId, Guid farmId, Guid storeId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)>> GetNonZeroStockAtCutoffAsync(
+        Guid tenantId, Guid farmId, Guid storeId, long cutoffPostingSequence, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockAdjustment>> GetStockAdjustmentsAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockAdjustment?> GetStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<ApprovalDecision?> GetStockAdjustmentApprovalAsync(Guid adjustmentId, long subjectVersion,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasLaterStockPositionMovementsAsync(Guid stockPositionId, long postingSequence,
+        CancellationToken cancellationToken);
+
+    Task<LeakageReportingSource> GetLeakageReportingSourceAsync(Guid tenantId, Guid farmId,
+        CancellationToken cancellationToken);
+
+    Task<ApprovalDecision?> GetOpeningApprovalAsync(Guid receiptId, long subjectVersion,
+        CancellationToken cancellationToken);
+
+    Task<StockPosition?> GetPositionAsync(Guid tenantId, Guid farmId, Guid storeId, Guid itemId, Guid? lotId,
+        bool trackChanges, CancellationToken cancellationToken);
+
     Task<StockLedgerSnapshot> GetPositionSnapshotAsync(Guid positionId, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockMovement>> GetReceiptMovementsAsync(Guid receiptId, CancellationToken cancellationToken);
-    Task<bool> HasLaterPositionMovementsAsync(IReadOnlyCollection<StockMovement> originals, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InventoryApplicationRule>> GetRulesAsync(Guid tenantId, Guid farmId, CancellationToken cancellationToken);
+
+    Task<bool> HasLaterPositionMovementsAsync(IReadOnlyCollection<StockMovement> originals,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InventoryApplicationRule>> GetRulesAsync(Guid tenantId, Guid farmId,
+        CancellationToken cancellationToken);
+
     Task<InventoryApplicationRule?> GetRuleAsync(Guid tenantId, Guid farmId, Guid ruleId,
         bool trackChanges, CancellationToken cancellationToken);
-    Task<InventoryApplicationRule?> GetEffectiveRuleAsync(Guid tenantId, Guid farmId, Guid itemId, Guid activityTypeId, DateOnly date, CancellationToken cancellationToken);
-    Task<(decimal Quantity, decimal ValueUsd)> GetItemStockSnapshotAsync(Guid tenantId, Guid farmId, Guid itemId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InputRequest>> GetInputRequestsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
-    Task<InputRequest?> GetInputRequestAsync(Guid tenantId, Guid farmId, Guid requestId, bool trackChanges, CancellationToken cancellationToken);
-    Task<ApprovalDecision?> GetInputRequestApprovalAsync(Guid requestId, long subjectVersion, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockIssue>> GetStockIssuesAsync(Guid tenantId, Guid farmId, Guid? requestId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockIssue?> GetStockIssueAsync(Guid tenantId, Guid farmId, Guid issueId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockIssueLine?> GetStockIssueLineAsync(Guid tenantId, Guid farmId, Guid issueLineId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<FieldReceipt>> GetFieldReceiptsAsync(Guid tenantId, Guid farmId, Guid? issueId, bool trackChanges, CancellationToken cancellationToken);
-    Task<FieldReceipt?> GetFieldReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InputApplication>> GetInputApplicationsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
-    Task<InputApplication?> GetInputApplicationAsync(Guid tenantId, Guid farmId, Guid applicationId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<StockReturn>> GetStockReturnsAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
-    Task<StockReturn?> GetStockReturnAsync(Guid tenantId, Guid farmId, Guid returnId, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<InventoryLoss>> GetInventoryLossesAsync(Guid tenantId, Guid farmId, Guid? activityId, bool trackChanges, CancellationToken cancellationToken);
-    Task<InventoryLoss?> GetInventoryLossAsync(Guid tenantId, Guid farmId, Guid lossId, bool trackChanges, CancellationToken cancellationToken);
-    Task<ApprovalDecision?> GetInventoryLossApprovalAsync(Guid lossId, long subjectVersion, CancellationToken cancellationToken);
+
+    Task<InventoryApplicationRule?> GetEffectiveRuleAsync(Guid tenantId, Guid farmId, Guid itemId, Guid activityTypeId,
+        DateOnly date, CancellationToken cancellationToken);
+
+    Task<(decimal Quantity, decimal ValueUsd)> GetItemStockSnapshotAsync(Guid tenantId, Guid farmId, Guid itemId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InputRequest>> GetInputRequestsAsync(Guid tenantId, Guid farmId, Guid? activityId,
+        bool trackChanges, CancellationToken cancellationToken);
+
+    Task<InputRequest?> GetInputRequestAsync(Guid tenantId, Guid farmId, Guid requestId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<ApprovalDecision?> GetInputRequestApprovalAsync(Guid requestId, long subjectVersion,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockIssue>> GetStockIssuesAsync(Guid tenantId, Guid farmId, Guid? requestId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockIssue?> GetStockIssueAsync(Guid tenantId, Guid farmId, Guid issueId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<StockIssueLine?> GetStockIssueLineAsync(Guid tenantId, Guid farmId, Guid issueLineId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<FieldReceipt>> GetFieldReceiptsAsync(Guid tenantId, Guid farmId, Guid? issueId,
+        bool trackChanges, CancellationToken cancellationToken);
+
+    Task<FieldReceipt?> GetFieldReceiptAsync(Guid tenantId, Guid farmId, Guid receiptId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InputApplication>> GetInputApplicationsAsync(Guid tenantId, Guid farmId, Guid? activityId,
+        bool trackChanges, CancellationToken cancellationToken);
+
+    Task<InputApplication?> GetInputApplicationAsync(Guid tenantId, Guid farmId, Guid applicationId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<StockReturn>> GetStockReturnsAsync(Guid tenantId, Guid farmId, Guid? activityId,
+        bool trackChanges, CancellationToken cancellationToken);
+
+    Task<StockReturn?> GetStockReturnAsync(Guid tenantId, Guid farmId, Guid returnId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<InventoryLoss>> GetInventoryLossesAsync(Guid tenantId, Guid farmId, Guid? activityId,
+        bool trackChanges, CancellationToken cancellationToken);
+
+    Task<InventoryLoss?> GetInventoryLossAsync(Guid tenantId, Guid farmId, Guid lossId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<ApprovalDecision?> GetInventoryLossApprovalAsync(Guid lossId, long subjectVersion,
+        CancellationToken cancellationToken);
+
     Task<decimal> GetFieldReceivedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
     Task<decimal> GetConfirmedAppliedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
     Task<decimal> GetPostedReturnedQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
     Task<decimal> GetApprovedLossQuantityAsync(Guid issueLineId, CancellationToken cancellationToken);
-    Task<bool> HasBlockingInventoryExceptionAsync(Guid tenantId, Guid farmId, Guid activityId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<ControlException>> GetControlExceptionsAsync(Guid tenantId, Guid farmId, Guid? activityId, CancellationToken cancellationToken);
-    Task<ControlException?> GetOpenControlExceptionAsync(Guid tenantId, Guid farmId, Guid issueLineId, CancellationToken cancellationToken);
-    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionAsync(Guid tenantId, Guid farmId, Guid correctionId, bool trackChanges, CancellationToken cancellationToken);
-    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionByKeyAsync(Guid tenantId, Guid farmId, string idempotencyKey, bool trackChanges, CancellationToken cancellationToken);
-    Task<ApprovalDecision?> GetFieldAccountabilityCorrectionApprovalAsync(Guid correctionId, long subjectVersion, CancellationToken cancellationToken);
-    Task<bool> HasOperationalCostPostingAsync(Guid applicationLineId, OperationalCostCategory category, CancellationToken cancellationToken);
-    Task<IReadOnlyList<OperationalCostPosting>> GetActiveOperationalCostPostingsAsync(Guid? applicationLineId, Guid? inventoryLossId, CancellationToken cancellationToken);
+
+    Task<bool> HasBlockingInventoryExceptionAsync(Guid tenantId, Guid farmId, Guid activityId,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<ControlException>> GetControlExceptionsAsync(Guid tenantId, Guid farmId, Guid? activityId,
+        CancellationToken cancellationToken);
+
+    Task<ControlException?> GetOpenControlExceptionAsync(Guid tenantId, Guid farmId, Guid issueLineId,
+        CancellationToken cancellationToken);
+
+    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionAsync(Guid tenantId, Guid farmId,
+        Guid correctionId, bool trackChanges, CancellationToken cancellationToken);
+
+    Task<FieldAccountabilityCorrection?> GetFieldAccountabilityCorrectionByKeyAsync(Guid tenantId, Guid farmId,
+        string idempotencyKey, bool trackChanges, CancellationToken cancellationToken);
+
+    Task<ApprovalDecision?> GetFieldAccountabilityCorrectionApprovalAsync(Guid correctionId, long subjectVersion,
+        CancellationToken cancellationToken);
+
+    Task<bool> HasOperationalCostPostingAsync(Guid applicationLineId, OperationalCostCategory category,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<OperationalCostPosting>> GetActiveOperationalCostPostingsAsync(Guid? applicationLineId,
+        Guid? inventoryLossId, CancellationToken cancellationToken);
+
     Task<bool> HasConfirmedApplicationForFieldReceiptAsync(Guid fieldReceiptId, CancellationToken cancellationToken);
     Task<decimal> GetPostedIssueQuantityAsync(Guid requestLineId, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockMovement>> GetIssueMovementsAsync(Guid issueId, CancellationToken cancellationToken);
     Task<IReadOnlyList<StockMovement>> GetReturnMovementsAsync(Guid stockReturnId, CancellationToken cancellationToken);
     Task<bool> HasDependentFieldAccountabilityAsync(Guid issueId, CancellationToken cancellationToken);
-    Task<ManagerInvitation?> GetManagerInvitationByHashAsync(string tokenHash, bool trackChanges, CancellationToken cancellationToken);
-    Task<IReadOnlyList<ManagerInvitation>> GetManagerInvitationsAsync(Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken);
+
+    Task<ManagerInvitation?> GetManagerInvitationByHashAsync(string tokenHash, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<ManagerInvitation>> GetManagerInvitationsAsync(Guid tenantId, Guid farmId, bool trackChanges,
+        CancellationToken cancellationToken);
 
     Task<IInventoryTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken);
     void ResetTrackedChanges();
     Task LockStoreAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
-    Task EnsureStorePostingNotFrozenAsync(Guid tenantId, Guid farmId, Guid storeId, CancellationToken cancellationToken);
+
+    Task EnsureStorePostingNotFrozenAsync(Guid tenantId, Guid farmId, Guid storeId,
+        CancellationToken cancellationToken);
+
     Task LockStockCountAsync(Guid tenantId, Guid farmId, Guid countId, CancellationToken cancellationToken);
     Task LockStockAdjustmentAsync(Guid tenantId, Guid farmId, Guid adjustmentId, CancellationToken cancellationToken);
     Task LockReceiptSourceAsync(Guid tenantId, Guid farmId, Guid receiptId, CancellationToken cancellationToken);

@@ -1,6 +1,5 @@
 using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,8 +12,10 @@ internal sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Inve
         builder.ToTable("InventoryItems", "inventory", table =>
         {
             table.HasCheckConstraint("CK_InventoryItems_Status", "\"Status\" IN ('Active', 'Archived')");
-            table.HasCheckConstraint("CK_InventoryItems_ReorderLevel", "\"ReorderLevel\" IS NULL OR \"ReorderLevel\" >= 0");
-            table.HasCheckConstraint("CK_InventoryItems_ExpiryRequiresLots", "\"LotTrackingPolicy\" <> 'None' OR \"ExpiryPolicy\" = 'None'");
+            table.HasCheckConstraint("CK_InventoryItems_ReorderLevel",
+                "\"ReorderLevel\" IS NULL OR \"ReorderLevel\" >= 0");
+            table.HasCheckConstraint("CK_InventoryItems_ExpiryRequiresLots",
+                "\"LotTrackingPolicy\" <> 'None' OR \"ExpiryPolicy\" = 'None'");
             table.HasCheckConstraint("CK_InventoryItems_CostingMethod", "\"CostingMethod\" = 'MovingWeightedAverage'");
         });
         builder.HasKey(entity => entity.Id);

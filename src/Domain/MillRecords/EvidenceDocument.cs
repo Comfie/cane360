@@ -9,12 +9,19 @@ public sealed class EvidenceDocument : BaseEntity
         string storageKey, string uploadedByUserId, DateTimeOffset uploadedAt)
     {
         if (weighbridgeTicketId.HasValue == growerStatementId.HasValue)
+        {
             throw new InvalidOperationException("Evidence must belong to exactly one ticket or statement.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(originalFileName);
         ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
         ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
         ArgumentException.ThrowIfNullOrWhiteSpace(uploadedByUserId);
-        if (sizeBytes <= 0) throw new ArgumentOutOfRangeException(nameof(sizeBytes));
+        if (sizeBytes <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sizeBytes));
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         WeighbridgeTicketId = weighbridgeTicketId;
@@ -27,7 +34,7 @@ public sealed class EvidenceDocument : BaseEntity
         UploadedAt = uploadedAt;
     }
 
-    public Guid TenantId { get; private set; }
+    public Guid TenantId { get; }
     public Guid FarmId { get; private set; }
     public Guid? WeighbridgeTicketId { get; private set; }
     public Guid? GrowerStatementId { get; private set; }
@@ -43,20 +50,32 @@ public sealed class EvidenceDocument : BaseEntity
     public void Classify(DocumentCategory category)
     {
         if (category.TenantId != TenantId || !category.Active)
+        {
             throw new InvalidOperationException("The document category must be active in this tenant.");
+        }
+
         if (DocumentCategoryId.HasValue)
+        {
             throw new InvalidOperationException("Evidence classification cannot be changed after upload.");
+        }
+
         DocumentCategoryId = category.Id;
         DocumentCategoryCodeSnapshot = category.Code;
     }
 
     public static EvidenceDocument ForTicket(Guid tenantId, Guid farmId, Guid ticketId,
         string originalFileName, string contentType, long sizeBytes, string storageKey,
-        string userId, DateTimeOffset at) => new(tenantId, farmId, ticketId, null,
-        originalFileName, contentType, sizeBytes, storageKey, userId, at);
+        string userId, DateTimeOffset at)
+    {
+        return new EvidenceDocument(tenantId, farmId, ticketId, null,
+            originalFileName, contentType, sizeBytes, storageKey, userId, at);
+    }
 
     public static EvidenceDocument ForStatement(Guid tenantId, Guid farmId, Guid statementId,
         string originalFileName, string contentType, long sizeBytes, string storageKey,
-        string userId, DateTimeOffset at) => new(tenantId, farmId, null, statementId,
-        originalFileName, contentType, sizeBytes, storageKey, userId, at);
+        string userId, DateTimeOffset at)
+    {
+        return new EvidenceDocument(tenantId, farmId, null, statementId,
+            originalFileName, contentType, sizeBytes, storageKey, userId, at);
+    }
 }

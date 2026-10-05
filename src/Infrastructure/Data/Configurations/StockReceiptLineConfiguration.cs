@@ -1,6 +1,4 @@
-using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,7 +11,8 @@ internal sealed class StockReceiptLineConfiguration : IEntityTypeConfiguration<S
         builder.ToTable("StockReceiptLines", "inventory", table =>
         {
             table.HasCheckConstraint("CK_StockReceiptLines_PositiveQuantity", "\"Quantity\" > 0");
-            table.HasCheckConstraint("CK_StockReceiptLines_NonnegativeCost", "\"UnitCostUsd\" >= 0 AND \"LineValueUsd\" >= 0");
+            table.HasCheckConstraint("CK_StockReceiptLines_NonnegativeCost",
+                "\"UnitCostUsd\" >= 0 AND \"LineValueUsd\" >= 0");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -31,7 +30,8 @@ internal sealed class StockReceiptLineConfiguration : IEntityTypeConfiguration<S
             .HasPrincipalKey(item => new { item.Id, item.TenantId, item.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<InventoryLot>().WithMany()
-            .HasForeignKey(entity => new { entity.InventoryLotId, entity.InventoryItemId, entity.TenantId, entity.FarmId })
+            .HasForeignKey(entity =>
+                new { entity.InventoryLotId, entity.InventoryItemId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(lot => new { lot.Id, lot.InventoryItemId, lot.TenantId, lot.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<UnitOfMeasure>().WithMany()

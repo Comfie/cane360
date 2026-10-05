@@ -15,8 +15,10 @@ public sealed class GrowerProfile : BaseAuditableEntity
     public string DisplayName { get; private set; } = string.Empty;
     public string? Phone { get; private set; }
 
-    internal static GrowerProfile Create(Guid tenantId, string displayName, string? phone) =>
-        new(tenantId, displayName, phone);
+    internal static GrowerProfile Create(Guid tenantId, string displayName, string? phone)
+    {
+        return new GrowerProfile(tenantId, displayName, phone);
+    }
 
     public void Update(string displayName, string? phone)
     {

@@ -17,5 +17,8 @@ public sealed class Store : BaseAuditableEntity
     public string Name { get; private set; } = string.Empty;
     public RecordStatus Status { get; private set; }
 
-    internal static Store Create(Guid farmId) => new(farmId);
+    internal static Store Create(Guid farmId)
+    {
+        return new Store(farmId);
+    }
 }

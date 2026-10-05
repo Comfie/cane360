@@ -29,25 +29,43 @@ public sealed class BudgetLine : BaseEntity
 
     public static BudgetLine Create(Guid tenantId, Guid farmId, Guid budgetId,
         BudgetCategory category, string description, decimal amountUsd, decimal? quantity,
-        string? unit, decimal? unitRateUsd, string? notes, DateTimeOffset createdAt) =>
-        new(tenantId, farmId, budgetId, category, description, amountUsd, quantity, unit,
+        string? unit, decimal? unitRateUsd, string? notes, DateTimeOffset createdAt)
+    {
+        return new BudgetLine(tenantId, farmId, budgetId, category, description, amountUsd, quantity, unit,
             unitRateUsd, notes, createdAt);
+    }
 
     internal void Update(BudgetCategory category, string description, decimal amountUsd,
-        decimal? quantity, string? unit, decimal? unitRateUsd, string? notes) =>
+        decimal? quantity, string? unit, decimal? unitRateUsd, string? notes)
+    {
         SetValues(category, description, amountUsd, quantity, unit, unitRateUsd, notes);
+    }
 
     private void SetValues(BudgetCategory category, string description, decimal amountUsd,
         decimal? quantity, string? unit, decimal? unitRateUsd, string? notes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amountUsd);
-        if (quantity is <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
-        if (unitRateUsd is <= 0) throw new ArgumentOutOfRangeException(nameof(unitRateUsd));
+        if (quantity is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        if (unitRateUsd is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(unitRateUsd));
+        }
+
         if (quantity.HasValue != !string.IsNullOrWhiteSpace(unit))
+        {
             throw new InvalidOperationException("Quantity and unit must be supplied together.");
+        }
+
         if (quantity.HasValue != unitRateUsd.HasValue)
+        {
             throw new InvalidOperationException("Quantity and unit rate must be supplied together.");
+        }
+
         Category = category;
         Description = description.Trim();
         AmountUsd = decimal.Round(amountUsd, 2, MidpointRounding.AwayFromZero);

@@ -17,10 +17,10 @@ public sealed class Person : BaseAuditableEntity
         Status = RecordStatus.Active;
     }
 
-    public Guid FarmId { get; private set; }
+    public Guid FarmId { get; }
     public string DisplayName { get; private set; } = string.Empty;
     public string? Phone { get; private set; }
-    public DateOnly ActiveFrom { get; private set; }
+    public DateOnly ActiveFrom { get; }
     public DateOnly? ActiveTo { get; private set; }
     public RecordStatus Status { get; private set; }
     public long Version { get; private set; }
@@ -44,7 +44,7 @@ public sealed class Person : BaseAuditableEntity
             throw new InvalidOperationException($"This person already has a current {FormatRole(role)} assignment.");
         }
 
-        var assignment = PersonRoleAssignment.Create(FarmId, Id, role, isPrimary, effectiveFrom);
+        PersonRoleAssignment assignment = PersonRoleAssignment.Create(FarmId, Id, role, isPrimary, effectiveFrom);
         _roleAssignments.Add(assignment);
         Version++;
         return assignment;
@@ -70,15 +70,17 @@ public sealed class Person : BaseAuditableEntity
             throw new InvalidOperationException("The role effective date cannot be before the person became active.");
         }
 
-        var currentRoles = _roleAssignments.Where(assignment => assignment.EffectiveTo is null).ToArray();
+        PersonRoleAssignment[] currentRoles =
+            _roleAssignments.Where(assignment => assignment.EffectiveTo is null).ToArray();
         if (currentRoles.Any(assignment => assignment.EffectiveFrom >= roleEffectiveFrom))
         {
-            throw new InvalidOperationException("The role effective date must be after the start date of each current role.");
+            throw new InvalidOperationException(
+                "The role effective date must be after the start date of each current role.");
         }
 
         DisplayName = displayName.Trim();
         Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
-        foreach (var currentRole in currentRoles)
+        foreach (PersonRoleAssignment currentRole in currentRoles)
         {
             currentRole.End(roleEffectiveFrom.AddDays(-1));
         }
@@ -90,8 +92,9 @@ public sealed class Person : BaseAuditableEntity
     public void EndRole(Guid assignmentId, DateOnly effectiveTo, long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        var assignment = _roleAssignments.SingleOrDefault(item => item.Id == assignmentId)
-            ?? throw new InvalidOperationException("The role assignment does not belong to this person.");
+        PersonRoleAssignment assignment = _roleAssignments.SingleOrDefault(item => item.Id == assignmentId)
+                                          ?? throw new InvalidOperationException(
+                                              "The role assignment does not belong to this person.");
         assignment.End(effectiveTo);
         Version++;
     }
@@ -109,7 +112,7 @@ public sealed class Person : BaseAuditableEntity
             throw new InvalidOperationException("The inactive date cannot be before the active date.");
         }
 
-        foreach (var role in _roleAssignments.Where(item => item.EffectiveTo is null))
+        foreach (PersonRoleAssignment role in _roleAssignments.Where(item => item.EffectiveTo is null))
         {
             role.End(activeTo < role.EffectiveFrom ? role.EffectiveFrom : activeTo);
         }
@@ -119,22 +122,28 @@ public sealed class Person : BaseAuditableEntity
         Version++;
     }
 
-    public bool HasEffectiveRole(PersonRole role, DateOnly onDate) =>
-        ActiveFrom <= onDate &&
-        (ActiveTo is null || ActiveTo >= onDate) &&
-        _roleAssignments.Any(assignment => assignment.Role == role && assignment.IsEffective(onDate));
+    public bool HasEffectiveRole(PersonRole role, DateOnly onDate)
+    {
+        return ActiveFrom <= onDate &&
+               (ActiveTo is null || ActiveTo >= onDate) &&
+               _roleAssignments.Any(assignment => assignment.Role == role && assignment.IsEffective(onDate));
+    }
 
     private void RequireVersion(long expectedVersion)
     {
         if (Version != expectedVersion)
         {
-            throw new InvalidOperationException("This personnel record changed after it was loaded. Refresh and try again.");
+            throw new InvalidOperationException(
+                "This personnel record changed after it was loaded. Refresh and try again.");
         }
     }
 
-    private static string FormatRole(PersonRole role) => role switch
+    private static string FormatRole(PersonRole role)
     {
-        PersonRole.FarmManager => "farm-manager",
-        _ => role.ToString().ToLowerInvariant()
-    };
+        return role switch
+        {
+            PersonRole.FarmManager => "farm-manager",
+            _ => role.ToString().ToLowerInvariant()
+        };
+    }
 }

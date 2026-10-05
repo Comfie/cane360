@@ -11,7 +11,7 @@ public sealed class FileSystemEvidenceDocumentStorage : IEvidenceDocumentStorage
     public FileSystemEvidenceDocumentStorage(IConfiguration configuration, IHostEnvironment environment)
     {
         string configured = configuration["EvidenceStorage:RootPath"] ??
-            Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+                            Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
         _root = Path.GetFullPath(configured);
     }
 
@@ -25,7 +25,7 @@ public sealed class FileSystemEvidenceDocumentStorage : IEvidenceDocumentStorage
             FileShare.None, 81920, FileOptions.Asynchronous | FileOptions.WriteThrough);
         await source.CopyToAsync(destination, cancellationToken);
         await destination.FlushAsync(cancellationToken);
-        return new(storageKey, destination.Length);
+        return new StoredEvidence(storageKey, destination.Length);
     }
 
     public Task<Stream> OpenReadAsync(string storageKey, CancellationToken cancellationToken)
@@ -39,10 +39,16 @@ public sealed class FileSystemEvidenceDocumentStorage : IEvidenceDocumentStorage
     private string Resolve(string storageKey)
     {
         if (storageKey.Length != 32 || storageKey.Any(x => !char.IsAsciiHexDigit(x)))
+        {
             throw new InvalidOperationException("The evidence storage identity is invalid.");
+        }
+
         string path = Path.GetFullPath(Path.Combine(_root, storageKey));
         if (!path.StartsWith(_root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
             throw new InvalidOperationException("The evidence storage identity is invalid.");
+        }
+
         return path;
     }
 }

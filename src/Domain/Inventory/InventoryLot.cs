@@ -30,14 +30,17 @@ public sealed class InventoryLot : BaseAuditableEntity
         {
             throw new InvalidOperationException("The item does not belong to this farm.");
         }
+
         if (item.LotTrackingPolicy == LotTrackingPolicy.None)
         {
             throw new InvalidOperationException("This item does not use lots.");
         }
+
         if (item.ExpiryPolicy == ExpiryPolicy.Required && expiryDate is null)
         {
             throw new InvalidOperationException("This item requires a lot expiry date.");
         }
+
         if (item.ExpiryPolicy == ExpiryPolicy.None && expiryDate is not null)
         {
             throw new InvalidOperationException("This item does not use expiry dates.");

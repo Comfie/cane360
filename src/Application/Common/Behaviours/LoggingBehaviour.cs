@@ -1,5 +1,4 @@
-﻿using Cane360.Application.Common.Interfaces;
-using MediatR.Pipeline;
+﻿using MediatR.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace Cane360.Application.Common.Behaviours;
@@ -18,7 +17,7 @@ public class LoggingBehaviour<TRequest> : IRequestPreProcessor<TRequest>
 
     public Task Process(TRequest request, CancellationToken cancellationToken)
     {
-        var requestName = typeof(TRequest).Name;
+        string requestName = typeof(TRequest).Name;
 
         _logger.LogInformation("Cane360 application request {RequestName}; reference {CorrelationId}",
             requestName, _user.CorrelationId);

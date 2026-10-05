@@ -1,9 +1,9 @@
 using Cane360.Application.Administration;
+using Cane360.Application.Common.Exceptions;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.MillRecords;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using Cane360.Application.Common.Exceptions;
 
 namespace Cane360.Infrastructure.Data;
 
@@ -26,7 +26,7 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
                 Email = context.Users.Where(user => user.Id == membership.UserId)
                     .Select(user => user.Email).FirstOrDefault(),
                 PersonName = context.Persons.Where(person => person.Id == membership.PersonId &&
-                    person.FarmId == farmId)
+                                                             person.FarmId == farmId)
                     .Select(person => person.DisplayName).FirstOrDefault()
             }).ToListAsync(cancellationToken);
 
@@ -40,7 +40,7 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
     {
         IQueryable<AuditEvent> query = Filter(tenantId, farmId, filter);
         int count = await query.CountAsync(cancellationToken);
-        var events = await query.OrderByDescending(item => item.OccurredAt)
+        List<AuditEvent> events = await query.OrderByDescending(item => item.OccurredAt)
             .ThenByDescending(item => item.Id)
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
@@ -55,7 +55,11 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
         AuditEvent? audit = await context.AuditEvents.AsNoTracking().SingleOrDefaultAsync(
             item => item.Id == eventId && item.TenantId == tenantId && item.FarmId == farmId,
             cancellationToken);
-        if (audit is null) return null;
+        if (audit is null)
+        {
+            return null;
+        }
+
         return (await MapAsync([audit], tenantId, farmId, cancellationToken))[0];
     }
 
@@ -83,7 +87,10 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public void Add(DocumentCategory category) => context.DocumentCategories.Add(category);
+    public void Add(DocumentCategory category)
+    {
+        context.DocumentCategories.Add(category);
+    }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
@@ -93,8 +100,10 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
             throw new ConflictException("This document category changed after it was loaded.");
         }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException
-            { SqlState: PostgresErrorCodes.UniqueViolation,
-              ConstraintName: "IX_DocumentCategories_TenantId_Code" })
+                                                  {
+                                                      SqlState: PostgresErrorCodes.UniqueViolation,
+                                                      ConstraintName: "IX_DocumentCategories_TenantId_Code"
+                                                  })
         {
             throw new ConflictException("Document category code already exists in this tenant.");
         }
@@ -105,18 +114,41 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
     {
         IQueryable<AuditEvent> query = context.AuditEvents.AsNoTracking()
             .Where(item => item.TenantId == tenantId && item.FarmId == farmId);
-        if (filter.From.HasValue) query = query.Where(item => item.OccurredAt >= filter.From.Value);
-        if (filter.To.HasValue) query = query.Where(item => item.OccurredAt <= filter.To.Value);
+        if (filter.From.HasValue)
+        {
+            query = query.Where(item => item.OccurredAt >= filter.From.Value);
+        }
+
+        if (filter.To.HasValue)
+        {
+            query = query.Where(item => item.OccurredAt <= filter.To.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.Action))
+        {
             query = query.Where(item => item.Action == filter.Action);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.SubjectType))
+        {
             query = query.Where(item => item.SubjectType == filter.SubjectType);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.AuthenticatedUserId))
+        {
             query = query.Where(item => item.AuthenticatedUserId == filter.AuthenticatedUserId);
+        }
+
         if (filter.OperationalPersonId.HasValue)
+        {
             query = query.Where(item => item.OperationalPersonId == filter.OperationalPersonId.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.CorrelationId))
+        {
             query = query.Where(item => item.CorrelationId == filter.CorrelationId);
+        }
+
         return query;
     }
 
@@ -127,10 +159,10 @@ public sealed class AdministrationReadRepository(ApplicationDbContext context) :
         string[] userIds = events.Select(item => item.AuthenticatedUserId).Distinct().ToArray();
         Guid[] personIds = events.Where(item => item.OperationalPersonId.HasValue)
             .Select(item => item.OperationalPersonId!.Value).Distinct().ToArray();
-        var users = await context.Users.AsNoTracking().Where(item => userIds.Contains(item.Id))
+        Dictionary<string, string?> users = await context.Users.AsNoTracking().Where(item => userIds.Contains(item.Id))
             .ToDictionaryAsync(item => item.Id, item => item.Email, cancellationToken);
-        var people = await context.Persons.AsNoTracking().Where(item =>
-            item.FarmId == farmId && personIds.Contains(item.Id))
+        Dictionary<Guid, string> people = await context.Persons.AsNoTracking().Where(item =>
+                item.FarmId == farmId && personIds.Contains(item.Id))
             .ToDictionaryAsync(item => item.Id, item => item.DisplayName, cancellationToken);
         return events.Select(item => new AdministrationAuditDto(item.Id, item.OccurredAt,
             item.SubjectType, item.SubjectId, item.Action, item.AuthenticatedUserId,

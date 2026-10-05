@@ -14,10 +14,14 @@ internal sealed class OperationalTransactionConfiguration : IEntityTypeConfigura
         {
             table.HasCheckConstraint("CK_OperationalTransactions_Amount", "\"AmountUsd\" > 0");
             table.HasCheckConstraint("CK_OperationalTransactions_Type", "\"Type\" IN ('Expense', 'Income')");
-            table.HasCheckConstraint("CK_OperationalTransactions_Category", "\"Category\" IN ('Fuel', 'RepairsAndMaintenance', 'Utilities', 'Transport', 'ContractServices', 'CropInputs', 'CropSales', 'OtherExpense', 'OtherIncome')");
-            table.HasCheckConstraint("CK_OperationalTransactions_Status", "\"Status\" IN ('Draft', 'Posted', 'Cancelled', 'Reversed')");
-            table.HasCheckConstraint("CK_OperationalTransactions_PostedShape", "(\"Status\" = 'Draft' AND \"PostedAt\" IS NULL AND \"PostedByUserId\" IS NULL AND \"PostedIdempotencyKey\" IS NULL AND \"ReversalOfOperationalTransactionId\" IS NULL AND NOT \"IsClosedCycleCorrection\") OR (\"Status\" = 'Cancelled' AND \"PostedAt\" IS NULL AND \"PostedByUserId\" IS NULL AND \"PostedIdempotencyKey\" IS NULL AND \"ReversalOfOperationalTransactionId\" IS NULL AND NOT \"IsClosedCycleCorrection\") OR (\"Status\" = 'Posted' AND \"PostedAt\" IS NOT NULL AND \"PostedByUserId\" IS NOT NULL AND \"PostedIdempotencyKey\" IS NOT NULL AND \"ReversalOfOperationalTransactionId\" IS NULL) OR (\"Status\" = 'Reversed' AND \"PostedAt\" IS NOT NULL AND \"PostedByUserId\" IS NOT NULL AND \"PostedIdempotencyKey\" IS NOT NULL AND \"ReversalOfOperationalTransactionId\" IS NOT NULL AND length(trim(\"ReversalReason\")) > 0 AND \"ReversedAt\" IS NOT NULL AND \"ReversedByUserId\" IS NOT NULL AND NOT \"IsClosedCycleCorrection\")");
-            table.HasCheckConstraint("CK_OperationalTransactions_ClosedCycleCorrection", "(NOT \"IsClosedCycleCorrection\" AND \"ClosedCycleCorrectionReason\" IS NULL AND \"ClosedCycleAuthorizedByUserId\" IS NULL AND \"ClosedCycleAuthorizedAt\" IS NULL) OR (\"IsClosedCycleCorrection\" AND \"Status\" = 'Posted' AND length(trim(\"ClosedCycleCorrectionReason\")) > 0 AND \"ClosedCycleAuthorizedByUserId\" IS NOT NULL AND \"ClosedCycleAuthorizedAt\" IS NOT NULL)");
+            table.HasCheckConstraint("CK_OperationalTransactions_Category",
+                "\"Category\" IN ('Fuel', 'RepairsAndMaintenance', 'Utilities', 'Transport', 'ContractServices', 'CropInputs', 'CropSales', 'OtherExpense', 'OtherIncome')");
+            table.HasCheckConstraint("CK_OperationalTransactions_Status",
+                "\"Status\" IN ('Draft', 'Posted', 'Cancelled', 'Reversed')");
+            table.HasCheckConstraint("CK_OperationalTransactions_PostedShape",
+                "(\"Status\" = 'Draft' AND \"PostedAt\" IS NULL AND \"PostedByUserId\" IS NULL AND \"PostedIdempotencyKey\" IS NULL AND \"ReversalOfOperationalTransactionId\" IS NULL AND NOT \"IsClosedCycleCorrection\") OR (\"Status\" = 'Cancelled' AND \"PostedAt\" IS NULL AND \"PostedByUserId\" IS NULL AND \"PostedIdempotencyKey\" IS NULL AND \"ReversalOfOperationalTransactionId\" IS NULL AND NOT \"IsClosedCycleCorrection\") OR (\"Status\" = 'Posted' AND \"PostedAt\" IS NOT NULL AND \"PostedByUserId\" IS NOT NULL AND \"PostedIdempotencyKey\" IS NOT NULL AND \"ReversalOfOperationalTransactionId\" IS NULL) OR (\"Status\" = 'Reversed' AND \"PostedAt\" IS NOT NULL AND \"PostedByUserId\" IS NOT NULL AND \"PostedIdempotencyKey\" IS NOT NULL AND \"ReversalOfOperationalTransactionId\" IS NOT NULL AND length(trim(\"ReversalReason\")) > 0 AND \"ReversedAt\" IS NOT NULL AND \"ReversedByUserId\" IS NOT NULL AND NOT \"IsClosedCycleCorrection\")");
+            table.HasCheckConstraint("CK_OperationalTransactions_ClosedCycleCorrection",
+                "(NOT \"IsClosedCycleCorrection\" AND \"ClosedCycleCorrectionReason\" IS NULL AND \"ClosedCycleAuthorizedByUserId\" IS NULL AND \"ClosedCycleAuthorizedAt\" IS NULL) OR (\"IsClosedCycleCorrection\" AND \"Status\" = 'Posted' AND length(trim(\"ClosedCycleCorrectionReason\")) > 0 AND \"ClosedCycleAuthorizedByUserId\" IS NOT NULL AND \"ClosedCycleAuthorizedAt\" IS NOT NULL)");
         });
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).ValueGeneratedNever();
@@ -41,15 +45,21 @@ internal sealed class OperationalTransactionConfiguration : IEntityTypeConfigura
         builder.Property(x => x.Version).IsConcurrencyToken();
         builder.HasOne<Farm>().WithMany().HasForeignKey(x => new { x.FarmId, x.TenantId })
             .HasPrincipalKey(x => new { x.Id, x.TenantId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.PostedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ReversedByUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ClosedCycleAuthorizedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.PostedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ReversedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(x => x.ClosedCycleAuthorizedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<OperationalTransaction>().WithMany()
             .HasForeignKey(x => new { x.ReversalOfOperationalTransactionId, x.TenantId, x.FarmId })
             .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasMany(x => x.Allocations).WithOne().HasForeignKey(x => new
-            { x.OperationalTransactionId, x.TenantId, x.FarmId })
+            {
+                x.OperationalTransactionId, x.TenantId, x.FarmId
+            })
             .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.TenantId, x.FarmId, x.CreatedAt });
         builder.HasIndex(x => new { x.TenantId, x.FarmId, x.PostedIdempotencyKey }).IsUnique()

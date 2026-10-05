@@ -1,21 +1,23 @@
-using Cane360.Application.Common.Exceptions;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class RevokeManagerInvitationCommandHandler(
-    IFarmSetupRepository farmRepository, IInventoryRepository inventoryRepository,
-    IUser user, TimeProvider timeProvider) : IRequestHandler<RevokeManagerInvitationCommand>
+    IFarmSetupRepository farmRepository,
+    IInventoryRepository inventoryRepository,
+    IUser user,
+    TimeProvider timeProvider) : IRequestHandler<RevokeManagerInvitationCommand>
 {
     public async Task Handle(RevokeManagerInvitationCommand command, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
-        var userId = InventoryAccess.RequireUserId(user);
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
+        string userId = InventoryAccess.RequireUserId(user);
 
-        var invitation = (await inventoryRepository.GetManagerInvitationsAsync(
-            tenant.Id, farm.Id, true, cancellationToken)).SingleOrDefault(item => item.Id == command.InvitationId)
-            ?? throw new NotFoundException(command.InvitationId.ToString(), "Manager invitation");
-        var now = timeProvider.GetUtcNow();
+        ManagerInvitation invitation = (await inventoryRepository.GetManagerInvitationsAsync(
+                                           tenant.Id, farm.Id, true, cancellationToken))
+                                       .SingleOrDefault(item => item.Id == command.InvitationId)
+                                       ?? throw new NotFoundException(command.InvitationId.ToString(),
+                                           "Manager invitation");
+        DateTimeOffset now = timeProvider.GetUtcNow();
         InventoryAccess.ApplyDomainAction(nameof(command.ExpectedVersion), () =>
             invitation.Revoke(now, userId, command.ExpectedVersion));
         InventoryAudit.Invitation(inventoryRepository, tenant, farm, user, invitation,

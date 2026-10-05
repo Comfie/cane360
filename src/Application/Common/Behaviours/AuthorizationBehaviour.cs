@@ -1,16 +1,14 @@
 ﻿using System.Reflection;
-using Cane360.Application.Common.Exceptions;
-using Cane360.Application.Common.Interfaces;
 using Cane360.Application.Common.Security;
 
 namespace Cane360.Application.Common.Behaviours;
 
-public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> 
+public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly IUser _user;
-    private readonly IIdentityService _identityService;
     private readonly IFarmSetupRepository _farms;
+    private readonly IIdentityService _identityService;
+    private readonly IUser _user;
 
     public AuthorizationBehaviour(
         IUser user,
@@ -22,9 +20,11 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
         _farms = farms;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
-        var authorizeAttributes = request.GetType().GetCustomAttributes<AuthorizeAttribute>();
+        IEnumerable<AuthorizeAttribute> authorizeAttributes =
+            request.GetType().GetCustomAttributes<AuthorizeAttribute>();
 
         if (authorizeAttributes.Any())
         {
@@ -34,7 +34,7 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                 throw new UnauthorizedAccessException();
             }
 
-            var authorizeAttributesWithTenantRoles = authorizeAttributes
+            IEnumerable<AuthorizeAttribute> authorizeAttributesWithTenantRoles = authorizeAttributes
                 .Where(attribute => !string.IsNullOrWhiteSpace(attribute.TenantRoles));
             if (authorizeAttributesWithTenantRoles.Any())
             {
@@ -46,25 +46,26 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
                 }
 
                 if (!authorizeAttributesWithTenantRoles.Any(attribute => attribute.TenantRoles
-                    .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .Contains(role, StringComparer.Ordinal)))
+                        .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                        .Contains(role, StringComparer.Ordinal)))
                 {
                     throw new ForbiddenAccessException();
                 }
             }
 
             // Role-based authorization
-            var authorizeAttributesWithRoles = authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Roles));
+            IEnumerable<AuthorizeAttribute> authorizeAttributesWithRoles =
+                authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Roles));
 
             if (authorizeAttributesWithRoles.Any())
             {
-                var authorized = false;
+                bool authorized = false;
 
-                foreach (var roles in authorizeAttributesWithRoles.Select(a => a.Roles.Split(',')))
+                foreach (string[] roles in authorizeAttributesWithRoles.Select(a => a.Roles.Split(',')))
                 {
-                    foreach (var role in roles)
+                    foreach (string role in roles)
                     {
-                        var isInRole = _user.Roles?.Any(x => role == x)??false;
+                        bool isInRole = _user.Roles?.Any(x => role == x) ?? false;
                         if (isInRole)
                         {
                             authorized = true;
@@ -81,12 +82,13 @@ public class AuthorizationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRe
             }
 
             // Policy-based authorization
-            var authorizeAttributesWithPolicies = authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Policy));
+            IEnumerable<AuthorizeAttribute> authorizeAttributesWithPolicies =
+                authorizeAttributes.Where(a => !string.IsNullOrWhiteSpace(a.Policy));
             if (authorizeAttributesWithPolicies.Any())
             {
-                foreach (var policy in authorizeAttributesWithPolicies.Select(a => a.Policy))
+                foreach (string policy in authorizeAttributesWithPolicies.Select(a => a.Policy))
                 {
-                    var authorized = await _identityService.AuthorizeAsync(_user.Id, policy);
+                    bool authorized = await _identityService.AuthorizeAsync(_user.Id, policy);
 
                     if (!authorized)
                     {

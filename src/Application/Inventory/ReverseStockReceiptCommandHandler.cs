@@ -1,8 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class ReverseStockReceiptCommandHandler(
@@ -15,7 +10,7 @@ public sealed class ReverseStockReceiptCommandHandler(
         ReverseStockReceiptCommand request, CancellationToken cancellationToken)
     {
         const int maximumAttempts = 3;
-        for (var attempt = 1; attempt <= maximumAttempts; attempt++)
+        for (int attempt = 1; attempt <= maximumAttempts; attempt++)
         {
             try
             {
@@ -38,56 +33,68 @@ public sealed class ReverseStockReceiptCommandHandler(
     private async Task<StockReceiptDto> ReverseOnceAsync(
         ReverseStockReceiptCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
-        var userId = InventoryAccess.RequireUserId(user);
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
+        string userId = InventoryAccess.RequireUserId(user);
 
-        await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
+        await using IInventoryTransaction transaction =
+            await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
 
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
-        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
+        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id,
+            cancellationToken);
         await inventoryRepository.LockReceiptSourceAsync(tenant.Id, farm.Id, request.ReceiptId, cancellationToken);
-        var receipt = await inventoryRepository.GetReceiptAsync(
-            tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
-            ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
-        if (receipt.IsReversalRetry(request.IdempotencyKey)) return InventoryMapper.Receipt(tenant, farm, receipt);
-        var originals = await inventoryRepository.GetReceiptMovementsAsync(receipt.Id, cancellationToken);
-        if (originals.Count != receipt.Lines.Count || originals.Any(movement => movement.ReversalOfStockMovementId.HasValue))
+        StockReceipt receipt = await inventoryRepository.GetReceiptAsync(
+                                   tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
+                               ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
+        if (receipt.IsReversalRetry(request.IdempotencyKey))
+        {
+            return InventoryMapper.Receipt(tenant, farm, receipt);
+        }
+
+        IReadOnlyList<StockMovement> originals =
+            await inventoryRepository.GetReceiptMovementsAsync(receipt.Id, cancellationToken);
+        if (originals.Count != receipt.Lines.Count ||
+            originals.Any(movement => movement.ReversalOfStockMovementId.HasValue))
         {
             throw new ConflictException("The original posted movement set is incomplete or already corrected.");
         }
+
         if (await inventoryRepository.HasLaterPositionMovementsAsync(originals, cancellationToken))
         {
             throw new ConflictException(
                 "This receipt has dependent later movements. Use an authorised forward correction chain instead of reversal.");
         }
+
         await inventoryRepository.LockStockPositionsAsync(
             originals.Select(movement => movement.StockPositionId).Distinct().Order().ToArray(), cancellationToken);
-        foreach (var group in originals.GroupBy(movement => movement.StockPositionId))
+        foreach (IGrouping<Guid, StockMovement> group in originals.GroupBy(movement => movement.StockPositionId))
         {
-            var current = await inventoryRepository.GetPositionSnapshotAsync(group.Key, cancellationToken);
-            var nextQuantity = current.Quantity - group.Sum(movement => movement.SignedQuantity);
-            var nextValue = current.ValueUsd - group.Sum(movement => movement.SignedValueUsd);
-            if (nextQuantity < 0 || nextValue < 0 || nextQuantity == 0 && nextValue != 0)
+            StockLedgerSnapshot current =
+                await inventoryRepository.GetPositionSnapshotAsync(group.Key, cancellationToken);
+            decimal nextQuantity = current.Quantity - group.Sum(movement => movement.SignedQuantity);
+            decimal nextValue = current.ValueUsd - group.Sum(movement => movement.SignedValueUsd);
+            if (nextQuantity < 0 || nextValue < 0 || (nextQuantity == 0 && nextValue != 0))
             {
                 throw new ConflictException(
                     "Reversal would create negative or inconsistent stock quantity/value. Use an authorised forward correction chain.");
             }
         }
 
-        var now = timeProvider.GetUtcNow();
+        DateTimeOffset now = timeProvider.GetUtcNow();
         InventoryAccess.ApplyDomainAction(nameof(request.ExpectedVersion), () =>
             receipt.MarkReversed(now, userId, request.IdempotencyKey, request.ExpectedVersion));
-        var lines = receipt.Lines.ToDictionary(line => line.Id);
-        foreach (var original in originals)
+        Dictionary<Guid, StockReceiptLine> lines = receipt.Lines.ToDictionary(line => line.Id);
+        foreach (StockMovement original in originals)
         {
-            var reversal = StockMovement.CreateReversal(
+            StockMovement reversal = StockMovement.CreateReversal(
                 original, lines[original.StockReceiptLineId!.Value], InventoryAccess.HarareDate(now), now, userId,
                 $"movement:{original.Id:N}:reversal");
             inventoryRepository.Add(reversal);
             inventoryRepository.Add(CorrectionRecord.CreateReceiptReversal(
                 tenant.Id, farm.Id, receipt.Id, original.Id, reversal.Id, request.Reason, userId, now));
         }
+
         InventoryAudit.Receipt(inventoryRepository, tenant, farm, user, receipt, "Reversed", now,
             request.Reason, "Posted receipt reversed through linked immutable movements.");
         await inventoryRepository.SaveChangesAsync(cancellationToken);

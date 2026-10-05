@@ -1,13 +1,13 @@
+import type {ICreateCropCycleRequest} from '../../web-api-client';
 import {
-  CancelCropCycleRequest,
-  CreateCropCycleRequest,
-  CreateCropVarietyRequest,
-  CropCyclesClient,
-  CropVarietiesClient,
-  HarvestCropCycleRequest,
-  TransitionCropCycleRequest,
+    CancelCropCycleRequest,
+    CreateCropCycleRequest,
+    CreateCropVarietyRequest,
+    CropCyclesClient,
+    CropVarietiesClient,
+    HarvestCropCycleRequest,
+    TransitionCropCycleRequest,
 } from '../../web-api-client';
-import type { ICreateCropCycleRequest } from '../../web-api-client';
 
 export const cropCyclesClient = new CropCyclesClient();
 export const cropVarietiesClient = new CropVarietiesClient();
@@ -15,31 +15,38 @@ export const cropVarietiesClient = new CropVarietiesClient();
 export type CropCycleTransitionAction = 'Activate' | 'Cancel' | 'ReadyForHarvest' | 'Harvest' | 'Close';
 
 interface CropCycleTransitionValues {
-  reason?: string;
-  harvestDate?: Date;
-  actualTonnes?: number;
+    reason?: string;
+    harvestDate?: Date;
+    actualTonnes?: number;
 }
 
 export function localDate(value: string | File | null): Date {
-  return new Date(`${String(value)}T00:00:00`);
+    return new Date(`${String(value)}T00:00:00`);
 }
 
 export function createCycle(fieldId: string, values: ICreateCropCycleRequest) {
-  return cropCyclesClient.createCropCycles(fieldId, new CreateCropCycleRequest(values));
+    return cropCyclesClient.createCropCycles(fieldId, new CreateCropCycleRequest(values));
 }
 
 export function createVariety(code: string, name: string) {
-  return cropVarietiesClient.createCropVarieties(new CreateCropVarietyRequest({ code, name }));
+    return cropVarietiesClient.createCropVarieties(new CreateCropVarietyRequest({code, name}));
 }
 
 export function transitionCycle(fieldId: string, cycleId: string, action: CropCycleTransitionAction, version: number, values: CropCycleTransitionValues = {}) {
-  if (action === 'Activate') return cropCyclesClient.activate(fieldId, cycleId, new TransitionCropCycleRequest({ expectedVersion: version }));
-  if (action === 'Cancel') return cropCyclesClient.cancelCropCycles(fieldId, cycleId, new CancelCropCycleRequest({ expectedVersion: version, reason: values.reason ?? '' }));
-  if (action === 'ReadyForHarvest') return cropCyclesClient.readyForHarvest(fieldId, cycleId, new TransitionCropCycleRequest({ expectedVersion: version }));
-  if (action === 'Harvest') {
-    if (!values.harvestDate) throw new Error('A harvest date is required.');
-    return cropCyclesClient.harvest(fieldId, cycleId, new HarvestCropCycleRequest({ expectedVersion: version, harvestDate: values.harvestDate, actualTonnes: values.actualTonnes ?? 0 }));
-  }
-  if (action === 'Close') return cropCyclesClient.closeCropCycles(fieldId, cycleId, new TransitionCropCycleRequest({ expectedVersion: version }));
-  throw new Error(`Unknown crop-cycle transition: ${action}`);
+    if (action === 'Activate') return cropCyclesClient.activate(fieldId, cycleId, new TransitionCropCycleRequest({expectedVersion: version}));
+    if (action === 'Cancel') return cropCyclesClient.cancelCropCycles(fieldId, cycleId, new CancelCropCycleRequest({
+        expectedVersion: version,
+        reason: values.reason ?? ''
+    }));
+    if (action === 'ReadyForHarvest') return cropCyclesClient.readyForHarvest(fieldId, cycleId, new TransitionCropCycleRequest({expectedVersion: version}));
+    if (action === 'Harvest') {
+        if (!values.harvestDate) throw new Error('A harvest date is required.');
+        return cropCyclesClient.harvest(fieldId, cycleId, new HarvestCropCycleRequest({
+            expectedVersion: version,
+            harvestDate: values.harvestDate,
+            actualTonnes: values.actualTonnes ?? 0
+        }));
+    }
+    if (action === 'Close') return cropCyclesClient.closeCropCycles(fieldId, cycleId, new TransitionCropCycleRequest({expectedVersion: version}));
+    throw new Error(`Unknown crop-cycle transition: ${action}`);
 }

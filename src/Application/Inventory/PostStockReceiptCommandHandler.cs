@@ -1,8 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class PostStockReceiptCommandHandler(
@@ -15,7 +10,7 @@ public sealed class PostStockReceiptCommandHandler(
         PostStockReceiptCommand request, CancellationToken cancellationToken)
     {
         const int maximumAttempts = 3;
-        for (var attempt = 1; attempt <= maximumAttempts; attempt++)
+        for (int attempt = 1; attempt <= maximumAttempts; attempt++)
         {
             try
             {
@@ -38,49 +33,57 @@ public sealed class PostStockReceiptCommandHandler(
     private async Task<StockReceiptDto> PostOnceAsync(
         PostStockReceiptCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
-        var userId = InventoryAccess.RequireUserId(user);
-        await using var transaction = await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
+        string userId = InventoryAccess.RequireUserId(user);
+        await using IInventoryTransaction transaction =
+            await inventoryRepository.BeginSerializableTransactionAsync(cancellationToken);
 
         await inventoryRepository.LockStoreAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
-        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id, cancellationToken);
+        await inventoryRepository.EnsureStorePostingNotFrozenAsync(tenant.Id, farm.Id, farm.Store.Id,
+            cancellationToken);
         await inventoryRepository.LockReceiptSourceAsync(tenant.Id, farm.Id, request.ReceiptId, cancellationToken);
-        var receipt = await inventoryRepository.GetReceiptAsync(
-            tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
-            ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
-        if (receipt.IsPostingRetry(request.IdempotencyKey)) return InventoryMapper.Receipt(tenant, farm, receipt);
+        StockReceipt receipt = await inventoryRepository.GetReceiptAsync(
+                                   tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
+                               ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
+        if (receipt.IsPostingRetry(request.IdempotencyKey))
+        {
+            return InventoryMapper.Receipt(tenant, farm, receipt);
+        }
+
         if (receipt.ReceiptType == StockReceiptType.OpeningBalance)
         {
-
             if (await inventoryRepository.GetOpeningApprovalAsync(
                     receipt.Id, receipt.Version - 1, cancellationToken) is null)
             {
-                throw InventoryAccess.Failure(nameof(request.ReceiptId), "The exact opening-balance version is not approved.");
+                throw InventoryAccess.Failure(nameof(request.ReceiptId),
+                    "The exact opening-balance version is not approved.");
             }
         }
 
-        var positions = new List<StockPosition>();
-        foreach (var line in receipt.Lines)
+        List<StockPosition> positions = new();
+        foreach (StockReceiptLine line in receipt.Lines)
         {
             positions.Add(await inventoryRepository.GetPositionAsync(
-                tenant.Id, farm.Id, farm.Store.Id, line.InventoryItemId,
-                line.InventoryLotId, false, cancellationToken)
-                ?? throw new NotFoundException(line.InventoryItemId.ToString(), "Stock position"));
+                              tenant.Id, farm.Id, farm.Store.Id, line.InventoryItemId,
+                              line.InventoryLotId, false, cancellationToken)
+                          ?? throw new NotFoundException(line.InventoryItemId.ToString(), "Stock position"));
         }
+
         await inventoryRepository.LockStockPositionsAsync(
             positions.Select(position => position.Id).Distinct().Order().ToArray(), cancellationToken);
 
-        var now = timeProvider.GetUtcNow();
+        DateTimeOffset now = timeProvider.GetUtcNow();
         InventoryAccess.ApplyDomainAction(nameof(request.ExpectedVersion), () =>
             receipt.MarkPosted(now, userId, request.IdempotencyKey, request.ExpectedVersion));
-        foreach (var pair in receipt.Lines.Zip(positions))
+        foreach ((StockReceiptLine First, StockPosition Second) pair in receipt.Lines.Zip(positions))
         {
             inventoryRepository.Add(StockMovement.CreateReceipt(
                 tenant.Id, farm.Id, farm.Store.Id, pair.Second.Id, pair.First,
                 receipt.ReceiptType, receipt.ReceiptDate, now, userId, receipt.ReceivedByPersonId,
                 $"receipt:{pair.First.Id:N}:posted"));
         }
+
         InventoryAudit.Receipt(inventoryRepository, tenant, farm, user, receipt, "Posted", now,
             receipt.LateEntryReason, $"Posted {receipt.ReceiptType} receipt with {receipt.Lines.Count} line(s).");
         await inventoryRepository.SaveChangesAsync(cancellationToken);

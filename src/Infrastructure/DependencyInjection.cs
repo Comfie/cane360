@@ -1,3 +1,4 @@
+using Cane360.Application.Administration;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Infrastructure.Data;
 using Cane360.Infrastructure.Data.Interceptors;
@@ -25,7 +26,7 @@ public static class DependencyInjection
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
-            var connectionString = builder.Configuration.GetConnectionString("Cane360Db");
+            string? connectionString = builder.Configuration.GetConnectionString("Cane360Db");
             Guard.Against.NullOrWhiteSpace(
                 connectionString,
                 message: "Connection string 'Cane360Db' not found.");
@@ -37,7 +38,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
         builder.Services.AddScoped<IFarmSetupRepository, FarmSetupRepository>();
-        builder.Services.AddScoped<Cane360.Application.Administration.IAdministrationReadRepository,
+        builder.Services.AddScoped<IAdministrationReadRepository,
             AdministrationReadRepository>();
         builder.Services.AddScoped<ILabourRepository, LabourRepository>();
         builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
@@ -52,7 +53,9 @@ public static class DependencyInjection
         {
             nationalIdOptions.ValidateOnStart();
         }
-        builder.Services.AddSingleton<IValidateOptions<NationalIdProtectionOptions>, NationalIdProtectionOptionsValidator>();
+
+        builder.Services
+            .AddSingleton<IValidateOptions<NationalIdProtectionOptions>, NationalIdProtectionOptionsValidator>();
         builder.Services.AddSingleton<IWorkerSensitiveDataProtector, WorkerSensitiveDataProtector>();
         builder.Services.AddSingleton<IPaymentRecipientProtector, PaymentRecipientProtector>();
 

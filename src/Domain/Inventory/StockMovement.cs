@@ -78,6 +78,34 @@ public sealed class StockMovement : BaseEntity
         ReversalOfStockMovementId = reversalOfStockMovementId;
     }
 
+    private StockMovement(Guid tenantId, Guid farmId, Guid storeId, Guid positionId, StockReturnLine returnLine,
+        StockMovementType movementType, decimal signedQuantity, decimal signedValueUsd, DateOnly eventDate,
+        DateTimeOffset postedAt, string postedByUserId, Guid? operationalPersonId, string postingIdentity,
+        Guid? reversalOfStockMovementId)
+    {
+        TenantId = tenantId;
+        FarmId = farmId;
+        StoreId = storeId;
+        StockPositionId = positionId;
+        InventoryItemId = returnLine.InventoryItemId;
+        InventoryLotId = returnLine.InventoryLotId;
+        UnitOfMeasureId = returnLine.UnitOfMeasureId;
+        ItemCodeSnapshot = returnLine.ItemCodeSnapshot;
+        ItemNameSnapshot = returnLine.ItemNameSnapshot;
+        LotCodeSnapshot = returnLine.LotCodeSnapshot;
+        UnitCodeSnapshot = returnLine.UnitCodeSnapshot;
+        MovementType = movementType;
+        SignedQuantity = decimal.Round(signedQuantity, 6, MidpointRounding.AwayFromZero);
+        SignedValueUsd = decimal.Round(signedValueUsd, 6, MidpointRounding.AwayFromZero);
+        EventDate = eventDate;
+        PostedAt = postedAt;
+        PostedByUserId = postedByUserId.Trim();
+        OperationalPersonId = operationalPersonId;
+        PostingIdentity = postingIdentity.Trim();
+        StockReturnLineId = returnLine.Id;
+        ReversalOfStockMovementId = reversalOfStockMovementId;
+    }
+
     public Guid TenantId { get; private set; }
     public Guid FarmId { get; private set; }
     public Guid StoreId { get; private set; }
@@ -95,7 +123,7 @@ public sealed class StockMovement : BaseEntity
     public DateOnly EventDate { get; private set; }
     public DateTimeOffset PostedAt { get; private set; }
     public string PostedByUserId { get; private set; } = string.Empty;
-    public Guid? OperationalPersonId { get; private set; }
+    public Guid? OperationalPersonId { get; }
     public long PostingSequence { get; private set; }
     public string PostingIdentity { get; private set; } = string.Empty;
     public Guid? StockReceiptLineId { get; private set; }
@@ -107,23 +135,38 @@ public sealed class StockMovement : BaseEntity
     public static StockMovement CreateAdjustment(StockAdjustment adjustment, DateTimeOffset postedAt,
         string postedByUserId, string postingIdentity, Guid? reversalOfStockMovementId = null, Guid? movementId = null)
     {
-        var movement = new StockMovement
+        StockMovement movement = new()
         {
-            TenantId = adjustment.TenantId, FarmId = adjustment.FarmId, StoreId = adjustment.StoreId,
-            StockPositionId = adjustment.StockPositionId, InventoryItemId = adjustment.InventoryItemId,
-            InventoryLotId = adjustment.InventoryLotId, UnitOfMeasureId = adjustment.UnitOfMeasureId,
-            ItemCodeSnapshot = adjustment.ItemCodeSnapshot, ItemNameSnapshot = adjustment.ItemNameSnapshot,
-            LotCodeSnapshot = adjustment.LotCodeSnapshot, UnitCodeSnapshot = adjustment.UnitCodeSnapshot,
-            MovementType = reversalOfStockMovementId.HasValue ? StockMovementType.AdjustmentReversal : StockMovementType.StockAdjustment,
+            TenantId = adjustment.TenantId,
+            FarmId = adjustment.FarmId,
+            StoreId = adjustment.StoreId,
+            StockPositionId = adjustment.StockPositionId,
+            InventoryItemId = adjustment.InventoryItemId,
+            InventoryLotId = adjustment.InventoryLotId,
+            UnitOfMeasureId = adjustment.UnitOfMeasureId,
+            ItemCodeSnapshot = adjustment.ItemCodeSnapshot,
+            ItemNameSnapshot = adjustment.ItemNameSnapshot,
+            LotCodeSnapshot = adjustment.LotCodeSnapshot,
+            UnitCodeSnapshot = adjustment.UnitCodeSnapshot,
+            MovementType = reversalOfStockMovementId.HasValue
+                ? StockMovementType.AdjustmentReversal
+                : StockMovementType.StockAdjustment,
             // A reversal is represented by a separately created adjustment whose signed quantity and value are
             // already the exact opposites of the original. Negating again here would repeat the original movement.
             SignedQuantity = decimal.Round(adjustment.SignedQuantity, 6, MidpointRounding.AwayFromZero),
             SignedValueUsd = decimal.Round(adjustment.SignedValueUsdSnapshot!.Value, 6, MidpointRounding.AwayFromZero),
-            EventDate = adjustment.EventDate, PostedAt = postedAt, PostedByUserId = postedByUserId.Trim(),
-            PostingIdentity = postingIdentity.Trim(), StockAdjustmentId = adjustment.Id,
+            EventDate = adjustment.EventDate,
+            PostedAt = postedAt,
+            PostedByUserId = postedByUserId.Trim(),
+            PostingIdentity = postingIdentity.Trim(),
+            StockAdjustmentId = adjustment.Id,
             ReversalOfStockMovementId = reversalOfStockMovementId
         };
-        if (movementId.HasValue) movement.Id = movementId.Value;
+        if (movementId.HasValue)
+        {
+            movement.Id = movementId.Value;
+        }
+
         return movement;
     }
 
@@ -138,8 +181,9 @@ public sealed class StockMovement : BaseEntity
         DateTimeOffset postedAt,
         string postedByUserId,
         Guid? operationalPersonId,
-        string postingIdentity) =>
-        new(
+        string postingIdentity)
+    {
+        return new StockMovement(
             tenantId,
             farmId,
             storeId,
@@ -156,6 +200,7 @@ public sealed class StockMovement : BaseEntity
             operationalPersonId,
             postingIdentity,
             null);
+    }
 
     public static StockMovement CreateReversal(
         StockMovement original,
@@ -163,8 +208,9 @@ public sealed class StockMovement : BaseEntity
         DateOnly eventDate,
         DateTimeOffset postedAt,
         string postedByUserId,
-        string postingIdentity) =>
-        new(
+        string postingIdentity)
+    {
+        return new StockMovement(
             original.TenantId,
             original.FarmId,
             original.StoreId,
@@ -179,15 +225,18 @@ public sealed class StockMovement : BaseEntity
             original.OperationalPersonId,
             postingIdentity,
             original.Id);
+    }
 
     public static StockMovement CreateIssue(
         StockIssue issue,
         StockIssueLine line,
         DateTimeOffset postedAt,
         string postedByUserId,
-        string postingIdentity) =>
-        new(issue, line, StockMovementType.StockIssue, -line.Quantity, -line.IssueValueUsd!.Value,
+        string postingIdentity)
+    {
+        return new StockMovement(issue, line, StockMovementType.StockIssue, -line.Quantity, -line.IssueValueUsd!.Value,
             issue.IssueDate, postedAt, postedByUserId, postingIdentity, null);
+    }
 
     public static StockMovement CreateIssueReversal(
         StockMovement original,
@@ -196,38 +245,28 @@ public sealed class StockMovement : BaseEntity
         DateOnly eventDate,
         DateTimeOffset postedAt,
         string postedByUserId,
-        string postingIdentity) =>
-        new(issue, line, StockMovementType.IssueReversal, -original.SignedQuantity,
+        string postingIdentity)
+    {
+        return new StockMovement(issue, line, StockMovementType.IssueReversal, -original.SignedQuantity,
             -original.SignedValueUsd, eventDate, postedAt, postedByUserId, postingIdentity, original.Id);
+    }
 
     public static StockMovement CreateReturn(StockReturn stockReturn, StockReturnLine line,
-        DateTimeOffset postedAt, string postedByUserId, string postingIdentity) =>
-        new(stockReturn.TenantId, stockReturn.FarmId, stockReturn.StoreId, line.StockPositionId, line,
+        DateTimeOffset postedAt, string postedByUserId, string postingIdentity)
+    {
+        return new StockMovement(stockReturn.TenantId, stockReturn.FarmId, stockReturn.StoreId, line.StockPositionId,
+            line,
             StockMovementType.StockReturn, line.Quantity, line.Quantity * line.IssueUnitCostUsdSnapshot,
             stockReturn.ReturnDate, postedAt, postedByUserId, stockReturn.ReceiverPersonId, postingIdentity, null);
+    }
 
     public static StockMovement CreateReturnReversal(StockMovement original, StockReturn stockReturn,
-        StockReturnLine line, DateTimeOffset postedAt, string postedByUserId, string postingIdentity) =>
-        new(stockReturn.TenantId, stockReturn.FarmId, stockReturn.StoreId, line.StockPositionId, line,
+        StockReturnLine line, DateTimeOffset postedAt, string postedByUserId, string postingIdentity)
+    {
+        return new StockMovement(stockReturn.TenantId, stockReturn.FarmId, stockReturn.StoreId, line.StockPositionId,
+            line,
             StockMovementType.ReturnReversal, -original.SignedQuantity, -original.SignedValueUsd,
             stockReturn.ReturnDate, postedAt, postedByUserId, stockReturn.ReceiverPersonId,
             postingIdentity, original.Id);
-
-    private StockMovement(Guid tenantId, Guid farmId, Guid storeId, Guid positionId, StockReturnLine returnLine,
-        StockMovementType movementType, decimal signedQuantity, decimal signedValueUsd, DateOnly eventDate,
-        DateTimeOffset postedAt, string postedByUserId, Guid? operationalPersonId, string postingIdentity,
-        Guid? reversalOfStockMovementId)
-    {
-        TenantId = tenantId; FarmId = farmId; StoreId = storeId; StockPositionId = positionId;
-        InventoryItemId = returnLine.InventoryItemId; InventoryLotId = returnLine.InventoryLotId;
-        UnitOfMeasureId = returnLine.UnitOfMeasureId; ItemCodeSnapshot = returnLine.ItemCodeSnapshot;
-        ItemNameSnapshot = returnLine.ItemNameSnapshot; LotCodeSnapshot = returnLine.LotCodeSnapshot;
-        UnitCodeSnapshot = returnLine.UnitCodeSnapshot; MovementType = movementType;
-        SignedQuantity = decimal.Round(signedQuantity, 6, MidpointRounding.AwayFromZero);
-        SignedValueUsd = decimal.Round(signedValueUsd, 6, MidpointRounding.AwayFromZero);
-        EventDate = eventDate; PostedAt = postedAt; PostedByUserId = postedByUserId.Trim();
-        OperationalPersonId = operationalPersonId; PostingIdentity = postingIdentity.Trim();
-        StockReturnLineId = returnLine.Id;
-        ReversalOfStockMovementId = reversalOfStockMovementId;
     }
 }

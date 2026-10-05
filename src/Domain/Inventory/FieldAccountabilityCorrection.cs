@@ -9,12 +9,27 @@ public sealed class FieldAccountabilityCorrection : BaseAuditableEntity
         string reason, string requestedByUserId, string idempotencyKey, DateTimeOffset requestedAt)
     {
         if (new[] { fieldReceiptId, inputApplicationId, stockReturnId, inventoryLossId }.Count(id => id.HasValue) != 1)
+        {
             throw new InvalidOperationException("A correction must identify exactly one typed original record.");
-        ArgumentException.ThrowIfNullOrWhiteSpace(reason); ArgumentException.ThrowIfNullOrWhiteSpace(requestedByUserId); ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
-        TenantId = tenantId; FarmId = farmId; ActivityId = activityId; FieldReceiptId = fieldReceiptId;
-        InputApplicationId = inputApplicationId; StockReturnId = stockReturnId; InventoryLossId = inventoryLossId;
-        SourceVersion = sourceVersion; Reason = reason.Trim(); RequestedByUserId = requestedByUserId.Trim();
-        RequestIdempotencyKey = idempotencyKey.Trim(); RequestedAt = requestedAt; Status = FieldAccountabilityCorrectionStatus.Requested; Version = 1;
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        ArgumentException.ThrowIfNullOrWhiteSpace(requestedByUserId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
+        TenantId = tenantId;
+        FarmId = farmId;
+        ActivityId = activityId;
+        FieldReceiptId = fieldReceiptId;
+        InputApplicationId = inputApplicationId;
+        StockReturnId = stockReturnId;
+        InventoryLossId = inventoryLossId;
+        SourceVersion = sourceVersion;
+        Reason = reason.Trim();
+        RequestedByUserId = requestedByUserId.Trim();
+        RequestIdempotencyKey = idempotencyKey.Trim();
+        RequestedAt = requestedAt;
+        Status = FieldAccountabilityCorrectionStatus.Requested;
+        Version = 1;
     }
 
     public Guid TenantId { get; private set; }
@@ -35,27 +50,69 @@ public sealed class FieldAccountabilityCorrection : BaseAuditableEntity
     public long Version { get; private set; }
 
     public static FieldAccountabilityCorrection ForFieldReceipt(Guid tenantId, Guid farmId, Guid activityId,
-        Guid fieldReceiptId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at) =>
-        new(tenantId, farmId, activityId, fieldReceiptId, null, null, null, sourceVersion, reason, requestedBy, key, at);
+        Guid fieldReceiptId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at)
+    {
+        return new FieldAccountabilityCorrection(tenantId, farmId, activityId, fieldReceiptId, null, null, null,
+            sourceVersion, reason, requestedBy,
+            key, at);
+    }
+
     public static FieldAccountabilityCorrection ForApplication(Guid tenantId, Guid farmId, Guid activityId,
-        Guid applicationId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at) =>
-        new(tenantId, farmId, activityId, null, applicationId, null, null, sourceVersion, reason, requestedBy, key, at);
+        Guid applicationId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at)
+    {
+        return new FieldAccountabilityCorrection(tenantId, farmId, activityId, null, applicationId, null, null,
+            sourceVersion, reason, requestedBy,
+            key, at);
+    }
+
     public static FieldAccountabilityCorrection ForReturn(Guid tenantId, Guid farmId, Guid activityId,
-        Guid stockReturnId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at) =>
-        new(tenantId, farmId, activityId, null, null, stockReturnId, null, sourceVersion, reason, requestedBy, key, at);
+        Guid stockReturnId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at)
+    {
+        return new FieldAccountabilityCorrection(tenantId, farmId, activityId, null, null, stockReturnId, null,
+            sourceVersion, reason, requestedBy,
+            key, at);
+    }
+
     public static FieldAccountabilityCorrection ForLoss(Guid tenantId, Guid farmId, Guid activityId,
-        Guid lossId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at) =>
-        new(tenantId, farmId, activityId, null, null, null, lossId, sourceVersion, reason, requestedBy, key, at);
+        Guid lossId, long sourceVersion, string reason, string requestedBy, string key, DateTimeOffset at)
+    {
+        return new FieldAccountabilityCorrection(tenantId, farmId, activityId, null, null, null, lossId, sourceVersion,
+            reason, requestedBy, key, at);
+    }
+
     public void Decide(ApprovalOutcome outcome, DateTimeOffset at, long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This correction changed after it was loaded. Refresh and try again.");
-        if (Status != FieldAccountabilityCorrectionStatus.Requested) throw new InvalidOperationException("Only a requested correction can be decided.");
-        Status = outcome == ApprovalOutcome.Approved ? FieldAccountabilityCorrectionStatus.Approved : FieldAccountabilityCorrectionStatus.Rejected; DecidedAt = at; Version++;
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This correction changed after it was loaded. Refresh and try again.");
+        }
+
+        if (Status != FieldAccountabilityCorrectionStatus.Requested)
+        {
+            throw new InvalidOperationException("Only a requested correction can be decided.");
+        }
+
+        Status = outcome == ApprovalOutcome.Approved
+            ? FieldAccountabilityCorrectionStatus.Approved
+            : FieldAccountabilityCorrectionStatus.Rejected;
+        DecidedAt = at;
+        Version++;
     }
+
     public void MarkApplied(DateTimeOffset at, long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This correction changed after it was loaded. Refresh and try again.");
-        if (Status != FieldAccountabilityCorrectionStatus.Approved) throw new InvalidOperationException("Only an approved correction can be applied.");
-        Status = FieldAccountabilityCorrectionStatus.Applied; AppliedAt = at; Version++;
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This correction changed after it was loaded. Refresh and try again.");
+        }
+
+        if (Status != FieldAccountabilityCorrectionStatus.Approved)
+        {
+            throw new InvalidOperationException("Only an approved correction can be applied.");
+        }
+
+        Status = FieldAccountabilityCorrectionStatus.Applied;
+        AppliedAt = at;
+        Version++;
     }
 }

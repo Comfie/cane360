@@ -8,7 +8,11 @@ public sealed class StockIssueLine : BaseEntity
         InputRequestLine requestLine, Guid stockPositionId, Guid? inventoryLotId, string? lotCode,
         decimal quantity)
     {
-        if (quantity <= 0) throw new InvalidOperationException("Issue quantity must be positive.");
+        if (quantity <= 0)
+        {
+            throw new InvalidOperationException("Issue quantity must be positive.");
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         StockIssueId = issueId;
@@ -38,22 +42,37 @@ public sealed class StockIssueLine : BaseEntity
     public string ItemNameSnapshot { get; private set; } = string.Empty;
     public string? LotCodeSnapshot { get; private set; }
     public string UnitCodeSnapshot { get; private set; } = string.Empty;
-    public decimal Quantity { get; private set; }
+    public decimal Quantity { get; }
     public decimal? IssueUnitCostUsd { get; private set; }
     public decimal? IssueValueUsd { get; private set; }
 
     internal static StockIssueLine Create(Guid tenantId, Guid farmId, Guid issueId, int lineNumber,
         InputRequestLine requestLine, Guid stockPositionId, Guid? inventoryLotId, string? lotCode,
-        decimal quantity) =>
-        new(tenantId, farmId, issueId, lineNumber, requestLine, stockPositionId, inventoryLotId, lotCode, quantity);
+        decimal quantity)
+    {
+        return new StockIssueLine(tenantId, farmId, issueId, lineNumber, requestLine, stockPositionId, inventoryLotId,
+            lotCode,
+            quantity);
+    }
 
     public void LockCost(decimal unitCostUsd)
     {
-        if (IssueUnitCostUsd.HasValue) throw new InvalidOperationException("Issue cost has already been locked.");
-        if (unitCostUsd < 0) throw new InvalidOperationException("Issue cost cannot be negative.");
+        if (IssueUnitCostUsd.HasValue)
+        {
+            throw new InvalidOperationException("Issue cost has already been locked.");
+        }
+
+        if (unitCostUsd < 0)
+        {
+            throw new InvalidOperationException("Issue cost cannot be negative.");
+        }
+
         IssueUnitCostUsd = Round(unitCostUsd);
         IssueValueUsd = Round(Quantity * unitCostUsd);
     }
 
-    private static decimal Round(decimal value) => decimal.Round(value, 6, MidpointRounding.AwayFromZero);
+    private static decimal Round(decimal value)
+    {
+        return decimal.Round(value, 6, MidpointRounding.AwayFromZero);
+    }
 }

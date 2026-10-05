@@ -11,7 +11,8 @@ internal sealed class StockIssueLineConfiguration : IEntityTypeConfiguration<Sto
         builder.ToTable("StockIssueLines", "inventory", table =>
         {
             table.HasCheckConstraint("CK_StockIssueLines_Quantity", "\"Quantity\" > 0");
-            table.HasCheckConstraint("CK_StockIssueLines_Cost", "(\"IssueUnitCostUsd\" IS NULL AND \"IssueValueUsd\" IS NULL) OR (\"IssueUnitCostUsd\" >= 0 AND \"IssueValueUsd\" >= 0)");
+            table.HasCheckConstraint("CK_StockIssueLines_Cost",
+                "(\"IssueUnitCostUsd\" IS NULL AND \"IssueValueUsd\" IS NULL) OR (\"IssueUnitCostUsd\" >= 0 AND \"IssueValueUsd\" >= 0)");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -23,11 +24,15 @@ internal sealed class StockIssueLineConfiguration : IEntityTypeConfiguration<Sto
         builder.Property(entity => entity.Quantity).HasPrecision(18, 6);
         builder.Property(entity => entity.IssueUnitCostUsd).HasPrecision(20, 6);
         builder.Property(entity => entity.IssueValueUsd).HasPrecision(20, 6);
-        builder.HasOne<InputRequestLine>().WithMany().HasForeignKey(entity => new { entity.InputRequestLineId, entity.TenantId, entity.FarmId })
+        builder.HasOne<InputRequestLine>().WithMany()
+            .HasForeignKey(entity => new { entity.InputRequestLineId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(line => new { line.Id, line.TenantId, line.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockPosition>().WithMany().HasForeignKey(entity => new { entity.StockPositionId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(position => new { position.Id, position.TenantId, position.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InventoryLot>().WithMany().HasForeignKey(entity => new { entity.InventoryLotId, entity.TenantId, entity.FarmId })
+        builder.HasOne<StockPosition>().WithMany()
+            .HasForeignKey(entity => new { entity.StockPositionId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(position => new { position.Id, position.TenantId, position.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryLot>().WithMany()
+            .HasForeignKey(entity => new { entity.InventoryLotId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(lot => new { lot.Id, lot.TenantId, lot.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<InventoryItem>().WithMany()
             .HasForeignKey(entity => new { entity.InventoryItemId, entity.TenantId, entity.FarmId })
@@ -36,6 +41,7 @@ internal sealed class StockIssueLineConfiguration : IEntityTypeConfiguration<Sto
             .HasForeignKey(entity => new { entity.UnitOfMeasureId, entity.TenantId })
             .HasPrincipalKey(unit => new { unit.Id, unit.TenantId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => new { entity.StockIssueId, entity.LineNumber }).IsUnique();
-        builder.HasIndex(entity => new { entity.StockIssueId, entity.InputRequestLineId, entity.InventoryLotId }).IsUnique();
+        builder.HasIndex(entity => new { entity.StockIssueId, entity.InputRequestLineId, entity.InventoryLotId })
+            .IsUnique();
     }
 }

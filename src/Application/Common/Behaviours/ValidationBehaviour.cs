@@ -1,4 +1,5 @@
-﻿using ValidationException = Cane360.Application.Common.Exceptions.ValidationException;
+﻿using FluentValidation.Results;
+using ValidationException = Cane360.Application.Common.Exceptions.ValidationException;
 
 namespace Cane360.Application.Common.Behaviours;
 
@@ -12,21 +13,24 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
         _validators = validators;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
         if (_validators.Any())
         {
-            var validationResults = await Task.WhenAll(
+            ValidationResult[] validationResults = await Task.WhenAll(
                 _validators.Select(v =>
                     v.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken)));
 
-            var failures = validationResults
+            List<ValidationFailure> failures = validationResults
                 .Where(r => r.Errors.Any())
                 .SelectMany(r => r.Errors)
                 .ToList();
 
             if (failures.Count != 0)
+            {
                 throw new ValidationException(failures);
+            }
         }
 
         return await next();

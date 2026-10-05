@@ -15,22 +15,26 @@ public sealed class NationalIdProtectionOptionsValidator : IValidateOptions<Nati
         if (!options.Keys.TryGetValue(options.ActiveKeyId, out string? encryptionKey) ||
             string.IsNullOrWhiteSpace(encryptionKey))
         {
-            return ValidateOptionsResult.Fail("National-ID protection active key ID does not resolve to a configured key.");
+            return ValidateOptionsResult.Fail(
+                "National-ID protection active key ID does not resolve to a configured key.");
         }
 
         if (!TryDecodeKey(encryptionKey, out byte[] encryptionKeyBytes))
         {
-            return ValidateOptionsResult.Fail("National-ID protection encryption key must be valid Base64 encoding exactly 32 bytes.");
+            return ValidateOptionsResult.Fail(
+                "National-ID protection encryption key must be valid Base64 encoding exactly 32 bytes.");
         }
 
         if (!TryDecodeKey(options.FingerprintKey, out byte[] fingerprintKeyBytes))
         {
-            return ValidateOptionsResult.Fail("National-ID protection fingerprint key must be valid Base64 encoding exactly 32 bytes.");
+            return ValidateOptionsResult.Fail(
+                "National-ID protection fingerprint key must be valid Base64 encoding exactly 32 bytes.");
         }
 
         if (CryptographicOperations.FixedTimeEquals(encryptionKeyBytes, fingerprintKeyBytes))
         {
-            return ValidateOptionsResult.Fail("National-ID protection encryption and fingerprint keys must be different.");
+            return ValidateOptionsResult.Fail(
+                "National-ID protection encryption and fingerprint keys must be different.");
         }
 
         return ValidateOptionsResult.Success;

@@ -31,10 +31,10 @@ public sealed class StockReceipt : BaseAuditableEntity
         Status = StockReceiptStatus.Draft;
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid StoreId { get; private set; }
-    public StockReceiptType ReceiptType { get; private set; }
+    public StockReceiptType ReceiptType { get; }
     public Guid? SupplierId { get; private set; }
     public DateOnly ReceiptDate { get; private set; }
     public Guid? ReceivedByPersonId { get; private set; }
@@ -71,18 +71,22 @@ public sealed class StockReceipt : BaseAuditableEntity
         {
             throw new InvalidOperationException("A purchase receipt requires a supplier.");
         }
+
         if (receiptType == StockReceiptType.OpeningBalance && supplierId is not null)
         {
             throw new InvalidOperationException("An opening balance cannot have a supplier.");
         }
+
         if (receiptType == StockReceiptType.OpeningBalance && string.IsNullOrWhiteSpace(reason))
         {
             throw new InvalidOperationException("An opening balance requires a reason.");
         }
+
         if (entryDelayDays < 0)
         {
             throw new InvalidOperationException("A receipt date cannot be in the future.");
         }
+
         if (entryDelayDays > 2 && string.IsNullOrWhiteSpace(lateEntryReason))
         {
             throw new InvalidOperationException("A late-entry reason is required after two calendar days.");
@@ -109,23 +113,34 @@ public sealed class StockReceipt : BaseAuditableEntity
         {
             throw new InvalidOperationException("The inventory item must be active on this farm.");
         }
-        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity));
-        if (unitCostUsd < 0) throw new ArgumentOutOfRangeException(nameof(unitCostUsd));
+
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(quantity));
+        }
+
+        if (unitCostUsd < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(unitCostUsd));
+        }
+
         if (item.LotTrackingPolicy == LotTrackingPolicy.Required && lot is null)
         {
             throw new InvalidOperationException("This item requires a lot.");
         }
+
         if (item.LotTrackingPolicy == LotTrackingPolicy.None && lot is not null)
         {
             throw new InvalidOperationException("This item does not use lots.");
         }
+
         if (lot is not null &&
             (lot.InventoryItemId != item.Id || lot.FarmId != FarmId || lot.Status != InventoryRecordStatus.Active))
         {
             throw new InvalidOperationException("The lot must be active and belong to this item and farm.");
         }
 
-        var line = StockReceiptLine.Create(
+        StockReceiptLine line = StockReceiptLine.Create(
             Id, TenantId, FarmId, _lines.Count + 1, item, lot, quantity, unitCostUsd);
         _lines.Add(line);
         Version++;
@@ -141,6 +156,7 @@ public sealed class StockReceipt : BaseAuditableEntity
         {
             throw new InvalidOperationException("Only opening balances require submission for approval.");
         }
+
         Status = StockReceiptStatus.PendingApproval;
         Version++;
     }
@@ -152,6 +168,7 @@ public sealed class StockReceipt : BaseAuditableEntity
         {
             throw new InvalidOperationException("This opening balance is not awaiting approval.");
         }
+
         Status = outcome == ApprovalOutcome.Approved
             ? StockReceiptStatus.Approved
             : StockReceiptStatus.Cancelled;
@@ -164,11 +181,12 @@ public sealed class StockReceipt : BaseAuditableEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(postedByUserId);
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         EnsureHasLines();
-        if (ReceiptType == StockReceiptType.Purchase && Status != StockReceiptStatus.Draft ||
-            ReceiptType == StockReceiptType.OpeningBalance && Status != StockReceiptStatus.Approved)
+        if ((ReceiptType == StockReceiptType.Purchase && Status != StockReceiptStatus.Draft) ||
+            (ReceiptType == StockReceiptType.OpeningBalance && Status != StockReceiptStatus.Approved))
         {
             throw new InvalidOperationException("The receipt is not ready to post.");
         }
+
         Status = StockReceiptStatus.Posted;
         PostedAt = postedAt;
         PostedByUserId = postedByUserId.Trim();
@@ -176,7 +194,8 @@ public sealed class StockReceipt : BaseAuditableEntity
         Version++;
     }
 
-    public void MarkReversed(DateTimeOffset reversedAt, string reversedByUserId, string idempotencyKey, long expectedVersion)
+    public void MarkReversed(DateTimeOffset reversedAt, string reversedByUserId, string idempotencyKey,
+        long expectedVersion)
     {
         RequireVersion(expectedVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(reversedByUserId);
@@ -185,6 +204,7 @@ public sealed class StockReceipt : BaseAuditableEntity
         {
             throw new InvalidOperationException("Only a posted receipt can be reversed.");
         }
+
         Status = StockReceiptStatus.Reversed;
         ReversedAt = reversedAt;
         ReversedByUserId = reversedByUserId.Trim();
@@ -192,11 +212,15 @@ public sealed class StockReceipt : BaseAuditableEntity
         Version++;
     }
 
-    public bool IsPostingRetry(string idempotencyKey) =>
-        Status == StockReceiptStatus.Posted && PostingIdempotencyKey == idempotencyKey;
+    public bool IsPostingRetry(string idempotencyKey)
+    {
+        return Status == StockReceiptStatus.Posted && PostingIdempotencyKey == idempotencyKey;
+    }
 
-    public bool IsReversalRetry(string idempotencyKey) =>
-        Status == StockReceiptStatus.Reversed && ReversalIdempotencyKey == idempotencyKey;
+    public bool IsReversalRetry(string idempotencyKey)
+    {
+        return Status == StockReceiptStatus.Reversed && ReversalIdempotencyKey == idempotencyKey;
+    }
 
     private void EnsureDraft()
     {
@@ -208,7 +232,10 @@ public sealed class StockReceipt : BaseAuditableEntity
 
     private void EnsureHasLines()
     {
-        if (_lines.Count == 0) throw new InvalidOperationException("At least one receipt line is required.");
+        if (_lines.Count == 0)
+        {
+            throw new InvalidOperationException("At least one receipt line is required.");
+        }
     }
 
     private void RequireVersion(long expectedVersion)

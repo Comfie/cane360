@@ -48,6 +48,7 @@ Runs the container-independent navigation contract tests.
 by Vite's Node process and must never contain database configuration.
 
 Example:
+
 ```
 VITE_API_URL=https://api.example.com
 ```

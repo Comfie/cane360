@@ -6,8 +6,13 @@ public static class OpenApiDocumentGeneration
 {
     private const string HostAssemblyName = "GetDocument.Insider";
 
-    public static bool IsRequested() => IsRequested(Assembly.GetEntryAssembly()?.GetName().Name);
+    public static bool IsRequested()
+    {
+        return IsRequested(Assembly.GetEntryAssembly()?.GetName().Name);
+    }
 
-    public static bool IsRequested(string? entryAssemblyName) =>
-        string.Equals(entryAssemblyName, HostAssemblyName, StringComparison.Ordinal);
+    public static bool IsRequested(string? entryAssemblyName)
+    {
+        return string.Equals(entryAssemblyName, HostAssemblyName, StringComparison.Ordinal);
+    }
 }

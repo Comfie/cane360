@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.CropCycles;
 
 public sealed class HarvestCropCycleCommandHandler(
@@ -9,10 +7,10 @@ public sealed class HarvestCropCycleCommandHandler(
 {
     public async Task<CropCycleDetailsDto> Handle(HarvestCropCycleCommand request, CancellationToken cancellationToken)
     {
-        var (field, cycle, userId) = await ActivateCropCycleCommandHandler.LoadAsync(
+        (Field field, CropCycle cycle, string userId) = await ActivateCropCycleCommandHandler.LoadAsync(
             repository, user, request.FieldId, request.CropCycleId, request.ExpectedVersion, cancellationToken);
-        var now = timeProvider.GetUtcNow();
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        DateOnly today = DateOnly.FromDateTime(now.UtcDateTime);
         CropCycleAccess.ApplyDomainAction(nameof(request.HarvestDate), () =>
             cycle.RecordHarvest(request.HarvestDate, request.ActualTonnes, today, now, userId));
         await repository.SaveChangesAsync(cancellationToken);

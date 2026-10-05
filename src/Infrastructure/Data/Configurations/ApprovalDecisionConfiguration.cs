@@ -1,4 +1,3 @@
-using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +11,10 @@ internal sealed class ApprovalDecisionConfiguration : IEntityTypeConfiguration<A
     {
         builder.ToTable("ApprovalDecisions", "inventory", table =>
         {
-            table.HasCheckConstraint("CK_ApprovalDecisions_OneSubject", "num_nonnulls(\"StockReceiptId\", \"InputRequestId\", \"InventoryLossId\", \"FieldAccountabilityCorrectionId\", \"StockAdjustmentId\") = 1");
-            table.HasCheckConstraint("CK_ApprovalDecisions_Role", "(\"StockReceiptId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"InputRequestId\" IS NULL OR \"ApproverRole\" IN ('Grower', 'FarmManager')) AND (\"InventoryLossId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"FieldAccountabilityCorrectionId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"StockAdjustmentId\" IS NULL OR \"ApproverRole\" = 'Grower')");
+            table.HasCheckConstraint("CK_ApprovalDecisions_OneSubject",
+                "num_nonnulls(\"StockReceiptId\", \"InputRequestId\", \"InventoryLossId\", \"FieldAccountabilityCorrectionId\", \"StockAdjustmentId\") = 1");
+            table.HasCheckConstraint("CK_ApprovalDecisions_Role",
+                "(\"StockReceiptId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"InputRequestId\" IS NULL OR \"ApproverRole\" IN ('Grower', 'FarmManager')) AND (\"InventoryLossId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"FieldAccountabilityCorrectionId\" IS NULL OR \"ApproverRole\" = 'Grower') AND (\"StockAdjustmentId\" IS NULL OR \"ApproverRole\" = 'Grower')");
         });
         builder.HasKey(entity => entity.Id);
         builder.Property(entity => entity.Id).ValueGeneratedNever();
@@ -22,17 +23,27 @@ internal sealed class ApprovalDecisionConfiguration : IEntityTypeConfiguration<A
         builder.Property(entity => entity.ApproverRole).HasMaxLength(40).IsRequired();
         builder.Property(entity => entity.Reason).HasMaxLength(500);
         builder.Property(entity => entity.IdempotencyKey).HasMaxLength(120).IsRequired();
-        builder.HasOne<StockReceipt>().WithMany().HasForeignKey(entity => new { entity.StockReceiptId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(receipt => new { receipt.Id, receipt.TenantId, receipt.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InputRequest>().WithMany().HasForeignKey(entity => new { entity.InputRequestId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(request => new { request.Id, request.TenantId, request.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InventoryLoss>().WithMany().HasForeignKey(entity => new { entity.InventoryLossId, entity.TenantId, entity.FarmId })
+        builder.HasOne<StockReceipt>().WithMany()
+            .HasForeignKey(entity => new { entity.StockReceiptId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(receipt => new { receipt.Id, receipt.TenantId, receipt.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InputRequest>().WithMany()
+            .HasForeignKey(entity => new { entity.InputRequestId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(request => new { request.Id, request.TenantId, request.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryLoss>().WithMany()
+            .HasForeignKey(entity => new { entity.InventoryLossId, entity.TenantId, entity.FarmId })
             .HasPrincipalKey(loss => new { loss.Id, loss.TenantId, loss.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<FieldAccountabilityCorrection>().WithMany().HasForeignKey(entity => new { entity.FieldAccountabilityCorrectionId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(correction => new { correction.Id, correction.TenantId, correction.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockAdjustment>().WithMany().HasForeignKey(entity => new { entity.StockAdjustmentId, entity.TenantId, entity.FarmId })
-            .HasPrincipalKey(adjustment => new { adjustment.Id, adjustment.TenantId, adjustment.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.ApproverUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FieldAccountabilityCorrection>().WithMany().HasForeignKey(entity =>
+                new { entity.FieldAccountabilityCorrectionId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(correction => new { correction.Id, correction.TenantId, correction.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockAdjustment>().WithMany()
+            .HasForeignKey(entity => new { entity.StockAdjustmentId, entity.TenantId, entity.FarmId })
+            .HasPrincipalKey(adjustment => new { adjustment.Id, adjustment.TenantId, adjustment.FarmId })
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(entity => entity.ApproverUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(entity => entity.IdempotencyKey).IsUnique();
         builder.HasIndex(entity => new { entity.StockReceiptId, entity.SubjectVersion }).IsUnique()
             .HasFilter("\"StockReceiptId\" IS NOT NULL");

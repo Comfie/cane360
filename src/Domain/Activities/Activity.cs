@@ -1,11 +1,9 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Domain.Activities;
 
 public sealed class Activity : BaseAuditableEntity
 {
-    private readonly List<ActivityStatusChange> _statusChanges = [];
     private readonly List<EvidenceLink> _evidenceLinks = [];
+    private readonly List<ActivityStatusChange> _statusChanges = [];
 
     private Activity() { }
 
@@ -21,7 +19,8 @@ public sealed class Activity : BaseAuditableEntity
     {
         if (!activityType.Supports(kind))
         {
-            throw new InvalidOperationException($"This activity type does not support {kind.ToString().ToLowerInvariant()} work.");
+            throw new InvalidOperationException(
+                $"This activity type does not support {kind.ToString().ToLowerInvariant()} work.");
         }
 
         if (kind == ActivityPlanningKind.Planned && plannedDate is null)
@@ -43,17 +42,17 @@ public sealed class Activity : BaseAuditableEntity
         Status = ActivityStatus.Draft;
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid FieldId { get; private set; }
     public Guid CropCycleId { get; private set; }
     public Guid ActivityTypeId { get; private set; }
     public string ActivityTypeCode { get; private set; } = string.Empty;
     public string ActivityTypeName { get; private set; } = string.Empty;
-    public ActivityPlanningKind Kind { get; private set; }
-    public DateOnly? PlannedDate { get; private set; }
+    public ActivityPlanningKind Kind { get; }
+    public DateOnly? PlannedDate { get; }
     public Guid SupervisorPersonId { get; private set; }
-    public ActivityQuantityBasis QuantityBasis { get; private set; }
+    public ActivityQuantityBasis QuantityBasis { get; }
     public DateTimeOffset? ActualAt { get; private set; }
     public decimal? ActualQuantity { get; private set; }
     public Guid? FieldLineProfileId { get; private set; }
@@ -78,8 +77,11 @@ public sealed class Activity : BaseAuditableEntity
         ActivityType activityType,
         ActivityPlanningKind kind,
         DateOnly? plannedDate,
-        Guid supervisorPersonId) =>
-        new(tenantId, farmId, fieldId, cropCycleId, activityType, kind, plannedDate, supervisorPersonId);
+        Guid supervisorPersonId)
+    {
+        return new Activity(tenantId, farmId, fieldId, cropCycleId, activityType, kind, plannedDate,
+            supervisorPersonId);
+    }
 
     public void RecordActualWork(
         DateTimeOffset actualAt,
@@ -113,12 +115,16 @@ public sealed class Activity : BaseAuditableEntity
         }
 
         ValidateQuantity(actualQuantity, fieldReportingHectares, lineProfile);
-        var delayDays = CalendarDayDelay(actualAt, enteredAt);
+        int delayDays = CalendarDayDelay(actualAt, enteredAt);
         if (lateEntryReasonAfterDays is < 0 or > 30)
+        {
             throw new InvalidOperationException("Late-entry threshold is outside the supported range.");
+        }
+
         if (delayDays > lateEntryReasonAfterDays && string.IsNullOrWhiteSpace(lateEntryReason))
         {
-            throw new InvalidOperationException($"A late-entry reason is required when work is entered more than {lateEntryReasonAfterDays} calendar days later.");
+            throw new InvalidOperationException(
+                $"A late-entry reason is required when work is entered more than {lateEntryReasonAfterDays} calendar days later.");
         }
 
         ActualAt = actualAt;
@@ -144,7 +150,7 @@ public sealed class Activity : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(recordedBy);
-        var fromStatus = Status;
+        ActivityStatus fromStatus = Status;
 
         if (!IsAllowedTransition(fromStatus, targetStatus))
         {
@@ -161,14 +167,16 @@ public sealed class Activity : BaseAuditableEntity
 
             if (Kind == ActivityPlanningKind.Unplanned && ActualAt is null)
             {
-                throw new InvalidOperationException("Unplanned work requires actual work details before it can move to Planned.");
+                throw new InvalidOperationException(
+                    "Unplanned work requires actual work details before it can move to Planned.");
             }
         }
 
         if (targetStatus == ActivityStatus.AwaitingVerification &&
             (ActualAt is null || (QuantityBasis != ActivityQuantityBasis.None && ActualQuantity is null)))
         {
-            throw new InvalidOperationException("Actual work and the required quantity must be captured before verification.");
+            throw new InvalidOperationException(
+                "Actual work and the required quantity must be captured before verification.");
         }
 
         if (targetStatus == ActivityStatus.ManagerConfirmation && operationalPersonId is null)
@@ -183,7 +191,8 @@ public sealed class Activity : BaseAuditableEntity
 
         if (targetStatus == ActivityStatus.Closed && !noUnaccountedControlledInput)
         {
-            throw new InvalidOperationException("The activity cannot close while controlled inputs remain unaccounted for.");
+            throw new InvalidOperationException(
+                "The activity cannot close while controlled inputs remain unaccounted for.");
         }
 
         if (targetStatus == ActivityStatus.Closed && !allRequiredLabourVerified)
@@ -193,7 +202,7 @@ public sealed class Activity : BaseAuditableEntity
 
         Status = targetStatus;
         Version++;
-        var change = ActivityStatusChange.Create(
+        ActivityStatusChange change = ActivityStatusChange.Create(
             Id, TenantId, FarmId, fromStatus, targetStatus, recordedAt, recordedBy, operationalPersonId, reason);
         _statusChanges.Add(change);
         return change;
@@ -217,23 +226,27 @@ public sealed class Activity : BaseAuditableEntity
             throw new InvalidOperationException("The source-sheet date cannot be in the future.");
         }
 
-        var link = EvidenceLink.Create(Id, TenantId, FarmId, reference, capturedDate, recordedAt, recordedBy);
+        EvidenceLink link = EvidenceLink.Create(Id, TenantId, FarmId, reference, capturedDate, recordedAt, recordedBy);
         _evidenceLinks.Add(link);
         Version++;
         return link;
     }
 
-    public static bool IsAllowedTransition(ActivityStatus fromStatus, ActivityStatus toStatus) =>
-        (fromStatus, toStatus) switch
+    public static bool IsAllowedTransition(ActivityStatus fromStatus, ActivityStatus toStatus)
+    {
+        return (fromStatus, toStatus) switch
         {
             (ActivityStatus.Draft, ActivityStatus.Planned or ActivityStatus.Cancelled) => true,
             (ActivityStatus.Planned, ActivityStatus.InProgress or ActivityStatus.Cancelled) => true,
             (ActivityStatus.InProgress, ActivityStatus.AwaitingVerification or ActivityStatus.Cancelled) => true,
-            (ActivityStatus.AwaitingVerification, ActivityStatus.ManagerConfirmation or ActivityStatus.InProgress or ActivityStatus.Cancelled) => true,
-            (ActivityStatus.ManagerConfirmation, ActivityStatus.Completed or ActivityStatus.InProgress or ActivityStatus.Cancelled) => true,
+            (ActivityStatus.AwaitingVerification, ActivityStatus.ManagerConfirmation or ActivityStatus.InProgress
+                or ActivityStatus.Cancelled) => true,
+            (ActivityStatus.ManagerConfirmation, ActivityStatus.Completed or ActivityStatus.InProgress
+                or ActivityStatus.Cancelled) => true,
             (ActivityStatus.Completed, ActivityStatus.Closed) => true,
             _ => false
         };
+    }
 
     private void EnsureActualEditable()
     {
@@ -275,21 +288,22 @@ public sealed class Activity : BaseAuditableEntity
 
             if (lineProfile is not null && quantity > lineProfile.EstimatedLineCount)
             {
-                throw new InvalidOperationException("Actual standard lines cannot exceed the field's estimated whole-line count.");
+                throw new InvalidOperationException(
+                    "Actual standard lines cannot exceed the field's estimated whole-line count.");
             }
         }
     }
 
     private static int CalendarDayDelay(DateTimeOffset actualAt, DateTimeOffset enteredAt)
     {
-        var actualDate = HarareDate(actualAt);
-        var enteredDate = HarareDate(enteredAt);
+        DateOnly actualDate = HarareDate(actualAt);
+        DateOnly enteredDate = HarareDate(enteredAt);
         return enteredDate.DayNumber - actualDate.DayNumber;
     }
 
     private static DateOnly HarareDate(DateTimeOffset value)
     {
-        var zone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare");
+        TimeZoneInfo zone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare");
         return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(value, zone).DateTime);
     }
 
@@ -301,11 +315,14 @@ public sealed class Activity : BaseAuditableEntity
         }
     }
 
-    private static string FormatStatus(ActivityStatus status) => status switch
+    private static string FormatStatus(ActivityStatus status)
     {
-        ActivityStatus.InProgress => "In progress",
-        ActivityStatus.AwaitingVerification => "Awaiting verification",
-        ActivityStatus.ManagerConfirmation => "Manager confirmation",
-        _ => status.ToString()
-    };
+        return status switch
+        {
+            ActivityStatus.InProgress => "In progress",
+            ActivityStatus.AwaitingVerification => "Awaiting verification",
+            ActivityStatus.ManagerConfirmation => "Manager confirmation",
+            _ => status.ToString()
+        };
+    }
 }

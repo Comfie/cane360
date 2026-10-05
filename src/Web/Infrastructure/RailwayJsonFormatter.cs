@@ -8,7 +8,7 @@ namespace Cane360.Web.Infrastructure;
 
 public sealed class RailwayJsonFormatter : ITextFormatter
 {
-    private static readonly JsonValueFormatter ValueFormatter = new(typeTagName: null);
+    private static readonly JsonValueFormatter ValueFormatter = new(null);
 
     public void Format(LogEvent logEvent, TextWriter output)
     {
@@ -28,7 +28,8 @@ public sealed class RailwayJsonFormatter : ITextFormatter
             WriteString(output, "exception", logEvent.Exception.ToString());
         }
 
-        foreach ((string name, LogEventPropertyValue value) in logEvent.Properties.OrderBy(property => property.Key, StringComparer.Ordinal))
+        foreach ((string name, LogEventPropertyValue value) in logEvent.Properties.OrderBy(property => property.Key,
+                     StringComparer.Ordinal))
         {
             if (name is "timestamp" or "level" or "message" or "exception")
             {
@@ -51,14 +52,17 @@ public sealed class RailwayJsonFormatter : ITextFormatter
         output.Write(JsonSerializer.Serialize(value));
     }
 
-    private static string MapLevel(LogEventLevel level) => level switch
+    private static string MapLevel(LogEventLevel level)
     {
-        LogEventLevel.Verbose => "debug",
-        LogEventLevel.Debug => "debug",
-        LogEventLevel.Information => "info",
-        LogEventLevel.Warning => "warn",
-        LogEventLevel.Error => "error",
-        LogEventLevel.Fatal => "error",
-        _ => "info"
-    };
+        return level switch
+        {
+            LogEventLevel.Verbose => "debug",
+            LogEventLevel.Debug => "debug",
+            LogEventLevel.Information => "info",
+            LogEventLevel.Warning => "warn",
+            LogEventLevel.Error => "error",
+            LogEventLevel.Fatal => "error",
+            _ => "info"
+        };
+    }
 }

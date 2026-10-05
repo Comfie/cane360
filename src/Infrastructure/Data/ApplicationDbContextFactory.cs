@@ -10,17 +10,17 @@ public sealed class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Ap
 
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
+        IConfigurationRoot configuration = new ConfigurationBuilder()
             .AddUserSecrets(UserSecretsId)
             .AddEnvironmentVariables()
             .Build();
-        var connectionString = configuration.GetConnectionString("Cane360Db");
+        string? connectionString = configuration.GetConnectionString("Cane360Db");
 
         Guard.Against.NullOrWhiteSpace(
             connectionString,
             message: "Connection string 'Cane360Db' not found for EF Core design-time tooling.");
 
-        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+        DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseNpgsql(connectionString)
             .Options;
 

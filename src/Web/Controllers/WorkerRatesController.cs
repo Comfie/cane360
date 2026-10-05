@@ -19,7 +19,8 @@ public sealed class WorkerRatesController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<WorkerDetailsDto>> Create(Guid workerId, CreateWorkerRateRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkerDetailsDto>> Create(Guid workerId, CreateWorkerRateRequest request,
+        CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EffectiveFrom, out DateOnly effectiveFrom) ||
             !TransportValueParser.TryParseOptionalDateOnly(request.EffectiveTo, out DateOnly? effectiveTo))
@@ -39,7 +40,8 @@ public sealed class WorkerRatesController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<WorkerDetailsDto>> End(Guid workerId, Guid rateId, EndWorkerRateRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkerDetailsDto>> End(Guid workerId, Guid rateId, EndWorkerRateRequest request,
+        CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EffectiveTo, out DateOnly effectiveTo))
         {

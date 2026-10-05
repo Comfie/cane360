@@ -1,29 +1,39 @@
-using Cane360.Application.Common.Exceptions;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class SubmitInputRequestCommandHandler(
-    IFarmSetupRepository farmRepository, IInventoryRepository inventoryRepository,
-    IUser user, TimeProvider timeProvider) : IRequestHandler<SubmitInputRequestCommand>
+    IFarmSetupRepository farmRepository,
+    IInventoryRepository inventoryRepository,
+    IUser user,
+    TimeProvider timeProvider) : IRequestHandler<SubmitInputRequestCommand>
 {
     public async Task Handle(SubmitInputRequestCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
 
-        var inputRequest = await inventoryRepository.GetInputRequestAsync(tenant.Id, farm.Id,
-            request.InputRequestId, true, cancellationToken)
-            ?? throw new NotFoundException(request.InputRequestId.ToString(), "Input request");
-        if (inputRequest.IsSubmissionRetry(request.IdempotencyKey)) return;
-        var activity = InventoryAccess.RequireOperationalActivity(farm, inputRequest.ActivityId);
-        foreach (var line in inputRequest.Lines)
+        InputRequest inputRequest = await inventoryRepository.GetInputRequestAsync(tenant.Id, farm.Id,
+                                        request.InputRequestId, true, cancellationToken)
+                                    ?? throw new NotFoundException(request.InputRequestId.ToString(), "Input request");
+        if (inputRequest.IsSubmissionRetry(request.IdempotencyKey))
         {
-            var effective = await inventoryRepository.GetEffectiveRuleAsync(tenant.Id, farm.Id,
-                line.InventoryItemId, activity.Activity.ActivityTypeId, inputRequest.OperationalDate, cancellationToken);
-            if (effective is null || effective.Id != line.InventoryApplicationRuleId || effective.Version != line.RuleVersionSnapshot)
+            return;
+        }
+
+        (Field Field, CropCycle Cycle, Activity Activity) activity =
+            InventoryAccess.RequireOperationalActivity(farm, inputRequest.ActivityId);
+        foreach (InputRequestLine line in inputRequest.Lines)
+        {
+            InventoryApplicationRule? effective = await inventoryRepository.GetEffectiveRuleAsync(tenant.Id, farm.Id,
+                line.InventoryItemId, activity.Activity.ActivityTypeId, inputRequest.OperationalDate,
+                cancellationToken);
+            if (effective is null || effective.Id != line.InventoryApplicationRuleId ||
+                effective.Version != line.RuleVersionSnapshot)
+            {
                 throw InventoryAccess.Failure(nameof(request.InputRequestId),
                     $"The effective application rule for {line.ItemCodeSnapshot} changed or is missing. Return the request to draft and refresh it.");
-            var stock = await inventoryRepository.GetItemStockSnapshotAsync(
+            }
+
+            (decimal Quantity, decimal ValueUsd) stock = await inventoryRepository.GetItemStockSnapshotAsync(
                 tenant.Id, farm.Id, line.InventoryItemId, cancellationToken);
             decimal? average = stock.Quantity > 0 && stock.ValueUsd >= 0
                 ? decimal.Round(stock.ValueUsd / stock.Quantity, 6, MidpointRounding.AwayFromZero)
@@ -31,7 +41,8 @@ public sealed class SubmitInputRequestCommandHandler(
             InventoryAccess.ApplyDomainAction(nameof(request.InputRequestId), () =>
                 inputRequest.RefreshSubmissionSnapshot(line.Id, stock.Quantity, average, inputRequest.Version));
         }
-        var now = timeProvider.GetUtcNow();
+
+        DateTimeOffset now = timeProvider.GetUtcNow();
         InventoryAccess.ApplyDomainAction(nameof(request.ExpectedVersion), () =>
             inputRequest.Submit(now, request.IdempotencyKey, request.ExpectedVersion));
         InventoryAccess.ApplyDomainAction(nameof(request.ExpectedVersion), () =>

@@ -10,7 +10,7 @@ public sealed class DatabaseStatusReporter(
 {
     public async Task<int> ReportAsync(CancellationToken cancellationToken = default)
     {
-        var provider = context.Database.ProviderName ?? "Unknown";
+        string provider = context.Database.ProviderName ?? "Unknown";
 
         logger.LogInformation(
             "Database status check started for Environment={Environment}, Provider={Provider}.",
@@ -25,15 +25,17 @@ public sealed class DatabaseStatusReporter(
                 return 1;
             }
 
-            var appliedMigrations = (await context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToArray();
-            var pendingMigrations = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToArray();
+            string[] appliedMigrations =
+                (await context.Database.GetAppliedMigrationsAsync(cancellationToken)).ToArray();
+            string[] pendingMigrations =
+                (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToArray();
 
             logger.LogInformation(
                 "Database connection succeeded. Applied migrations: {AppliedCount}. Pending migrations: {PendingCount}.",
                 appliedMigrations.Length,
                 pendingMigrations.Length);
 
-            foreach (var migration in pendingMigrations)
+            foreach (string migration in pendingMigrations)
             {
                 logger.LogWarning("Pending migration: {Migration}", migration);
             }

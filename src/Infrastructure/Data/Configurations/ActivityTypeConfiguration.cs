@@ -1,7 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
-using Cane360.Domain.Farms;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,7 +11,8 @@ internal sealed class ActivityTypeConfiguration : IEntityTypeConfiguration<Activ
         builder.ToTable("ActivityTypes", "activities", table =>
         {
             table.HasCheckConstraint("CK_ActivityTypes_PlanningMode", "\"SupportsPlanned\" OR \"SupportsUnplanned\"");
-            table.HasCheckConstraint("CK_ActivityTypes_QuantityBasis", "\"QuantityBasis\" IN ('None', 'Hectares', 'StandardLines')");
+            table.HasCheckConstraint("CK_ActivityTypes_QuantityBasis",
+                "\"QuantityBasis\" IN ('None', 'Hectares', 'StandardLines')");
             table.HasCheckConstraint("CK_ActivityTypes_Status", "\"Status\" IN ('Active', 'Archived')");
         });
         builder.HasKey(type => type.Id);

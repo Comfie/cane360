@@ -27,19 +27,31 @@ public sealed class DocumentCategory : BaseAuditableEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(code);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (code.Trim().Length > 24 || name.Trim().Length > 100 || description?.Trim().Length > 300)
+        {
             throw new InvalidOperationException("Document category fields exceed supported lengths.");
+        }
+
         return new DocumentCategory(tenantId, code, name, description);
     }
 
     public void Update(string name, string? description, long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This document category changed after it was loaded.");
+        }
+
         if (!Active)
+        {
             throw new InvalidOperationException("An archived category cannot be edited.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (name.Trim().Length > 100 || description?.Trim().Length > 300)
+        {
             throw new InvalidOperationException("Document category fields exceed supported lengths.");
+        }
+
         Name = name.Trim();
         Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
         Version++;
@@ -48,8 +60,15 @@ public sealed class DocumentCategory : BaseAuditableEntity
     public void Archive(long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This document category changed after it was loaded.");
-        if (!Active) return;
+        }
+
+        if (!Active)
+        {
+            return;
+        }
+
         Active = false;
         Version++;
     }

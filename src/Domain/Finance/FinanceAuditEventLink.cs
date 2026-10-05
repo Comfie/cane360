@@ -27,14 +27,28 @@ public sealed class FinanceAuditEventLink : BaseEntity
     public Guid? BudgetId { get; private set; }
     public Guid? BudgetLineId { get; private set; }
 
-    public static FinanceAuditEventLink ForTransaction(Guid audit, Guid tenant, Guid farm, Guid id) =>
-        new(audit, tenant, farm, id, null, null, null, null);
-    public static FinanceAuditEventLink ForAllocation(Guid audit, Guid tenant, Guid farm, Guid id) =>
-        new(audit, tenant, farm, null, id, null, null, null);
-    public static FinanceAuditEventLink ForCostPosting(Guid audit, Guid tenant, Guid farm, Guid id) =>
-        new(audit, tenant, farm, null, null, id, null, null);
-    public static FinanceAuditEventLink ForBudget(Guid audit, Guid tenant, Guid farm, Guid id) =>
-        new(audit, tenant, farm, null, null, null, id, null);
-    public static FinanceAuditEventLink ForBudgetLine(Guid audit, Guid tenant, Guid farm, Guid id) =>
-        new(audit, tenant, farm, null, null, null, null, id);
+    public static FinanceAuditEventLink ForTransaction(Guid audit, Guid tenant, Guid farm, Guid id)
+    {
+        return new FinanceAuditEventLink(audit, tenant, farm, id, null, null, null, null);
+    }
+
+    public static FinanceAuditEventLink ForAllocation(Guid audit, Guid tenant, Guid farm, Guid id)
+    {
+        return new FinanceAuditEventLink(audit, tenant, farm, null, id, null, null, null);
+    }
+
+    public static FinanceAuditEventLink ForCostPosting(Guid audit, Guid tenant, Guid farm, Guid id)
+    {
+        return new FinanceAuditEventLink(audit, tenant, farm, null, null, id, null, null);
+    }
+
+    public static FinanceAuditEventLink ForBudget(Guid audit, Guid tenant, Guid farm, Guid id)
+    {
+        return new FinanceAuditEventLink(audit, tenant, farm, null, null, null, id, null);
+    }
+
+    public static FinanceAuditEventLink ForBudgetLine(Guid audit, Guid tenant, Guid farm, Guid id)
+    {
+        return new FinanceAuditEventLink(audit, tenant, farm, null, null, null, null, id);
+    }
 }

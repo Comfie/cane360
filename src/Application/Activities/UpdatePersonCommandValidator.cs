@@ -1,5 +1,3 @@
-using Cane360.Domain.Activities;
-
 namespace Cane360.Application.Activities;
 
 public sealed class UpdatePersonCommandValidator : AbstractValidator<UpdatePersonCommand>

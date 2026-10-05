@@ -1,6 +1,5 @@
-using Cane360.Domain.Farms;
-using Cane360.Domain.Common;
 using Cane360.Domain.Activities;
+using Cane360.Domain.Farms;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -32,7 +31,7 @@ internal sealed class TenantMembershipConfiguration : IEntityTypeConfiguration<T
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Person>().WithMany()
             .HasForeignKey(membership => new { membership.PersonId, membership.FarmId })
-            .HasPrincipalKey(person => new { PersonId = person.Id, FarmId = person.FarmId })
+            .HasPrincipalKey(person => new { PersonId = person.Id, person.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(membership => new { membership.PersonId, membership.FarmId }).IsUnique()
             .HasFilter("\"PersonId\" IS NOT NULL AND \"Status\" = 'Active'");

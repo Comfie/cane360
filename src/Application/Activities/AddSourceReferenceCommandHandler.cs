@@ -1,6 +1,3 @@
-using Cane360.Domain.Activities;
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.Activities;
 
 public sealed class AddSourceReferenceCommandHandler(
@@ -11,13 +8,13 @@ public sealed class AddSourceReferenceCommandHandler(
 {
     public async Task<ActivityDetailsDto> Handle(AddSourceReferenceCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
-        var farm = ActivityAccess.RequireFarm(tenant);
-        var activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
+        Tenant tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
+        Farm farm = ActivityAccess.RequireFarm(tenant);
+        Activity activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
         ActivityAccess.RequireVersion(activity, request.ExpectedVersion);
-        var field = ActivityAccess.RequireField(farm, activity.FieldId);
+        Field field = ActivityAccess.RequireField(farm, activity.FieldId);
         ActivityAccess.RequireOperationalCycle(field, activity.CropCycleId);
-        var now = timeProvider.GetUtcNow();
+        DateTimeOffset now = timeProvider.GetUtcNow();
         ActivityAccess.ApplyDomainAction(nameof(request.SourceSheetReference), () => activity.AddSourceReference(
             request.SourceSheetReference,
             request.CapturedDate,

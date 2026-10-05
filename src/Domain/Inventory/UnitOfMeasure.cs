@@ -29,7 +29,8 @@ public sealed class UnitOfMeasure : BaseAuditableEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(dimension);
         if (decimalPlaces is < 0 or > 6)
         {
-            throw new ArgumentOutOfRangeException(nameof(decimalPlaces), "Decimal places must be between zero and six.");
+            throw new ArgumentOutOfRangeException(nameof(decimalPlaces),
+                "Decimal places must be between zero and six.");
         }
 
         return new UnitOfMeasure(tenantId, code, name, dimension, decimalPlaces);
@@ -38,7 +39,11 @@ public sealed class UnitOfMeasure : BaseAuditableEntity
     public void Archive(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status == InventoryRecordStatus.Archived) return;
+        if (Status == InventoryRecordStatus.Archived)
+        {
+            return;
+        }
+
         Status = InventoryRecordStatus.Archived;
         Version++;
     }
@@ -47,18 +52,30 @@ public sealed class UnitOfMeasure : BaseAuditableEntity
     {
         RequireVersion(expectedVersion);
         if (Status != InventoryRecordStatus.Active)
+        {
             throw new InvalidOperationException("Archived units cannot be edited.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         if (name.Trim().Length > 80)
+        {
             throw new InvalidOperationException("Unit name cannot exceed 80 characters.");
+        }
+
         Name = name.Trim();
         Version++;
     }
 
     private void RequireVersion(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This unit changed after it was loaded.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This unit changed after it was loaded.");
+        }
     }
 
-    private static string NormalizeCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormalizeCode(string code)
+    {
+        return code.Trim().ToUpperInvariant();
+    }
 }

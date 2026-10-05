@@ -1,6 +1,4 @@
 using System.Globalization;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Activities;
 using Cane360.Application.Activities;
 using Cane360.Domain.Labour;
 
@@ -8,18 +6,21 @@ namespace Cane360.Application.CropCycles;
 
 internal static class CropCycleMapper
 {
-    public static CropCycleCollectionDto MapCollection(Field field) => new(
-        MapField(field),
-        field.CropCycles
-            .OrderByDescending(cycle => cycle.StartDate)
-            .ThenByDescending(cycle => cycle.Created)
-            .Select(MapListItem)
-            .ToArray());
+    public static CropCycleCollectionDto MapCollection(Field field)
+    {
+        return new CropCycleCollectionDto(
+            MapField(field),
+            field.CropCycles
+                .OrderByDescending(cycle => cycle.StartDate)
+                .ThenByDescending(cycle => cycle.Created)
+                .Select(MapListItem)
+                .ToArray());
+    }
 
     public static CropCycleDetailsDto MapDetails(Field field, CropCycle cycle)
     {
-        var allowed = new List<string>();
-        var blocked = new Dictionary<string, string>();
+        List<string> allowed = new();
+        Dictionary<string, string> blocked = new();
 
         switch (cycle.Status)
         {
@@ -34,12 +35,14 @@ internal static class CropCycleMapper
                     blocked["Activate"] =
                         "Close or otherwise complete the field's current cycle before activating this draft.";
                 }
+
                 break;
             case CropCycleStatus.Active:
                 allowed.Add("ReadyForHarvest");
                 break;
             case CropCycleStatus.ReadyForHarvest:
-                if (cycle.Activities.All(activity => activity.Status is ActivityStatus.Closed or ActivityStatus.Cancelled))
+                if (cycle.Activities.All(activity =>
+                        activity.Status is ActivityStatus.Closed or ActivityStatus.Cancelled))
                 {
                     allowed.Add("Harvest");
                 }
@@ -47,6 +50,7 @@ internal static class CropCycleMapper
                 {
                     blocked["Harvest"] = "Close or cancel every activity before recording harvest.";
                 }
+
                 break;
             case CropCycleStatus.Harvested:
                 allowed.Add("Close");
@@ -77,8 +81,8 @@ internal static class CropCycleMapper
         IReadOnlyList<WorkRecord>? labourRecords = null,
         IReadOnlyList<WorkerProfile>? workers = null)
     {
-        var details = MapDetails(field, cycle);
-        var userIds = cycle.Activities
+        CropCycleDetailsDto details = MapDetails(field, cycle);
+        IEnumerable<string> userIds = cycle.Activities
             .SelectMany(activity => activity.StatusChanges.Select(change => change.RecordedBy)
                 .Append(activity.CreatedBy)
                 .Append(activity.ActualEnteredByUserId)
@@ -88,24 +92,31 @@ internal static class CropCycleMapper
             .Cast<string>()
             .Concat((labourRecords ?? []).SelectMany(record => new[]
             {
-                record.EnteredByUserId,
-                record.Verification?.SupervisorVerificationEnteredByUserId,
+                record.EnteredByUserId, record.Verification?.SupervisorVerificationEnteredByUserId,
                 record.Verification?.ManagerConfirmedByUserId
             }).Where(value => !string.IsNullOrWhiteSpace(value)).Cast<string>())
             .Distinct(StringComparer.Ordinal);
-        var users = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var userId in userIds)
+        Dictionary<string, string> users = new(StringComparer.Ordinal);
+        foreach (string userId in userIds)
         {
             users[userId] = await identityService.GetUserNameAsync(userId) ?? "Unknown user";
         }
 
-        string UserName(string? id) => id is not null && users.TryGetValue(id, out var name) ? name : "Unknown user";
-        string? PersonName(Guid? id) => id is null ? null : farm.Persons.SingleOrDefault(person => person.Id == id)?.DisplayName;
-        var activityTimeline = cycle.Activities.SelectMany(activity =>
+        string UserName(string? id)
         {
-            var entries = new List<CropCycleTimelineEventDto>
+            return id is not null && users.TryGetValue(id, out string? name) ? name : "Unknown user";
+        }
+
+        string? PersonName(Guid? id)
+        {
+            return id is null ? null : farm.Persons.SingleOrDefault(person => person.Id == id)?.DisplayName;
+        }
+
+        IEnumerable<CropCycleTimelineEventDto> activityTimeline = cycle.Activities.SelectMany(activity =>
+        {
+            List<CropCycleTimelineEventDto> entries = new()
             {
-                new(
+                new CropCycleTimelineEventDto(
                     activity.Id,
                     "ActivityCreated",
                     $"{activity.ActivityTypeName} activity recorded",
@@ -129,6 +140,7 @@ internal static class CropCycleMapper
                     UserName(activity.ActualEnteredByUserId),
                     PersonName(activity.SupervisorPersonId)));
             }
+
             entries.AddRange(activity.StatusChanges.Select(change => new CropCycleTimelineEventDto(
                 change.Id,
                 "ActivityStatusChange",
@@ -147,20 +159,21 @@ internal static class CropCycleMapper
                 FormatTimestamp(link.RecordedAt),
                 link.SourceSheetReference,
                 null,
-                UserName(link.RecordedBy),
-                null)));
+                UserName(link.RecordedBy))));
             return entries;
         });
-        var cycleActivityIds = cycle.Activities.Select(activity => activity.Id).ToHashSet();
-        var labourTimeline = (labourRecords ?? [])
+        HashSet<Guid> cycleActivityIds = cycle.Activities.Select(activity => activity.Id).ToHashSet();
+        IEnumerable<CropCycleTimelineEventDto> labourTimeline = (labourRecords ?? [])
             .Where(record => record.Activities.Any(link => cycleActivityIds.Contains(link.ActivityId)))
             .GroupBy(record => record.Id)
             .Select(group => group.First())
             .Select(record =>
             {
-                var worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
-                var workerName = worker is null ? "Worker" : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
-                var activityNames = cycle.Activities
+                WorkerProfile? worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
+                string workerName = worker is null
+                    ? "Worker"
+                    : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
+                string[] activityNames = cycle.Activities
                     .Where(activity => record.Activities.Any(link => link.ActivityId == activity.Id))
                     .OrderBy(activity => activity.ActivityTypeName, StringComparer.Ordinal)
                     .ThenBy(activity => activity.ActivityTypeCode, StringComparer.Ordinal)
@@ -172,10 +185,12 @@ internal static class CropCycleMapper
                     "LabourEvidence",
                     $"Labour evidence · {string.Join(", ", activityNames)}",
                     record.WorkDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                    FormatTimestamp(record.Verification?.ManagerConfirmedAt ?? record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
+                    FormatTimestamp(record.Verification?.ManagerConfirmedAt ??
+                                    record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
                     $"{workerName} · {record.PayBasis} · {record.Status}",
                     record.LateEntryReason,
-                    UserName(record.Verification?.ManagerConfirmedByUserId ?? record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
+                    UserName(record.Verification?.ManagerConfirmedByUserId ??
+                             record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
                     record.Verification is null ? null : PersonName(record.Verification.SupervisorPersonId));
             });
 
@@ -190,32 +205,37 @@ internal static class CropCycleMapper
         };
     }
 
-    private static CropCycleFieldDto MapField(Field field) =>
-        new(field.Id, field.Code, field.Name, field.ReportingHectares);
+    private static CropCycleFieldDto MapField(Field field)
+    {
+        return new CropCycleFieldDto(field.Id, field.Code, field.Name, field.ReportingHectares);
+    }
 
-    private static CropCycleListItemDto MapListItem(CropCycle cycle) => new(
-        cycle.Id,
-        cycle.CycleType.ToString(),
-        cycle.RatoonNumber,
-        cycle.CropVarietyId,
-        cycle.Variety,
-        FormatDate(cycle.StartDate),
-        FormatDate(cycle.ExpectedHarvestStart),
-        FormatDate(cycle.ExpectedHarvestEnd),
-        cycle.ExpectedYieldTonnes,
-        cycle.Status.ToString(),
-        cycle.Version,
-        cycle.HarvestResult is null
-            ? null
-            : new HarvestResultDto(
-                FormatDate(cycle.HarvestResult.HarvestDate),
-                cycle.HarvestResult.ActualTonnes));
+    private static CropCycleListItemDto MapListItem(CropCycle cycle)
+    {
+        return new CropCycleListItemDto(
+            cycle.Id,
+            cycle.CycleType.ToString(),
+            cycle.RatoonNumber,
+            cycle.CropVarietyId,
+            cycle.Variety,
+            FormatDate(cycle.StartDate),
+            FormatDate(cycle.ExpectedHarvestStart),
+            FormatDate(cycle.ExpectedHarvestEnd),
+            cycle.ExpectedYieldTonnes,
+            cycle.Status.ToString(),
+            cycle.Version,
+            cycle.HarvestResult is null
+                ? null
+                : new HarvestResultDto(
+                    FormatDate(cycle.HarvestResult.HarvestDate),
+                    cycle.HarvestResult.ActualTonnes));
+    }
 
     private static IReadOnlyList<CropCycleTimelineEventDto> MapTimeline(Field field, CropCycle cycle)
     {
-        var timeline = new List<CropCycleTimelineEventDto>
+        List<CropCycleTimelineEventDto> timeline = new()
         {
-            new(
+            new CropCycleTimelineEventDto(
                 field.Id,
                 "FieldCreated",
                 "Field created",
@@ -254,27 +274,39 @@ internal static class CropCycleMapper
             .ToArray();
     }
 
-    private static string StatusTitle(CropCycleStatus? fromStatus, CropCycleStatus toStatus) =>
-        fromStatus is null
+    private static string StatusTitle(CropCycleStatus? fromStatus, CropCycleStatus toStatus)
+    {
+        return fromStatus is null
             ? $"Cycle recorded as {FormatStatus(toStatus)}"
             : $"Cycle moved to {FormatStatus(toStatus)}";
+    }
 
-    private static string FormatType(CropCycle cycle) => cycle.CycleType switch
+    private static string FormatType(CropCycle cycle)
     {
-        CropCycleType.PlantCane => "plant cane",
-        CropCycleType.Ratoon => $"ratoon {cycle.RatoonNumber}",
-        _ => cycle.CycleType.ToString()
-    };
+        return cycle.CycleType switch
+        {
+            CropCycleType.PlantCane => "plant cane",
+            CropCycleType.Ratoon => $"ratoon {cycle.RatoonNumber}",
+            _ => cycle.CycleType.ToString()
+        };
+    }
 
-    private static string FormatStatus(CropCycleStatus status) => status switch
+    private static string FormatStatus(CropCycleStatus status)
     {
-        CropCycleStatus.ReadyForHarvest => "Ready for harvest",
-        _ => status.ToString()
-    };
+        return status switch
+        {
+            CropCycleStatus.ReadyForHarvest => "Ready for harvest",
+            _ => status.ToString()
+        };
+    }
 
-    private static string FormatDate(DateOnly date) =>
-        date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private static string FormatDate(DateOnly date)
+    {
+        return date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
 
-    private static string FormatTimestamp(DateTimeOffset timestamp) =>
-        timestamp.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
+    private static string FormatTimestamp(DateTimeOffset timestamp)
+    {
+        return timestamp.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture);
+    }
 }

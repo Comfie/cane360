@@ -1,7 +1,4 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Common;
-using Cane360.Domain.Farms;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,7 +10,8 @@ internal sealed class PersonConfiguration : IEntityTypeConfiguration<Person>
     {
         builder.ToTable("Persons", "farm", table =>
         {
-            table.HasCheckConstraint("CK_Persons_ActiveDates", "\"ActiveTo\" IS NULL OR \"ActiveTo\" >= \"ActiveFrom\"");
+            table.HasCheckConstraint("CK_Persons_ActiveDates",
+                "\"ActiveTo\" IS NULL OR \"ActiveTo\" >= \"ActiveFrom\"");
             table.HasCheckConstraint("CK_Persons_Status", "\"Status\" IN ('Active', 'Archived')");
         });
         builder.HasKey(person => person.Id);

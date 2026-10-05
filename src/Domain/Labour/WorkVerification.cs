@@ -24,7 +24,7 @@ public sealed class WorkVerification : BaseEntity
     public Guid TenantId { get; private set; }
     public Guid FarmId { get; private set; }
     public Guid SupervisorPersonId { get; private set; }
-    public DateTimeOffset SupervisorVerifiedAt { get; private set; }
+    public DateTimeOffset SupervisorVerifiedAt { get; }
     public string SupervisorVerificationEnteredByUserId { get; private set; } = string.Empty;
     public DateTimeOffset? ManagerConfirmedAt { get; private set; }
     public string? ManagerConfirmedByUserId { get; private set; }

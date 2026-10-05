@@ -22,12 +22,14 @@ public sealed class PersonRoleAssignment : BaseEntity
     public Guid PersonId { get; private set; }
     public PersonRole Role { get; private set; }
     public bool IsPrimary { get; private set; }
-    public DateOnly EffectiveFrom { get; private set; }
+    public DateOnly EffectiveFrom { get; }
     public DateOnly? EffectiveTo { get; private set; }
 
     internal static PersonRoleAssignment Create(
-        Guid farmId, Guid personId, PersonRole role, bool isPrimary, DateOnly effectiveFrom) =>
-        new(farmId, personId, role, isPrimary, effectiveFrom);
+        Guid farmId, Guid personId, PersonRole role, bool isPrimary, DateOnly effectiveFrom)
+    {
+        return new PersonRoleAssignment(farmId, personId, role, isPrimary, effectiveFrom);
+    }
 
     internal void End(DateOnly effectiveTo)
     {
@@ -44,6 +46,8 @@ public sealed class PersonRoleAssignment : BaseEntity
         EffectiveTo = effectiveTo;
     }
 
-    public bool IsEffective(DateOnly onDate) =>
-        EffectiveFrom <= onDate && (EffectiveTo is null || EffectiveTo >= onDate);
+    public bool IsEffective(DateOnly onDate)
+    {
+        return EffectiveFrom <= onDate && (EffectiveTo is null || EffectiveTo >= onDate);
+    }
 }

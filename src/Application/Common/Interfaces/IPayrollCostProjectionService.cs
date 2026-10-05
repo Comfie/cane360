@@ -6,6 +6,7 @@ public interface IPayrollCostProjectionService
 {
     Task<PayrollCostReconciliationDto> ProjectAsync(Tenant tenant, Farm farm, PayrollRun run,
         PayrollCalculation calculation, IUser user, CancellationToken cancellationToken);
+
     Task<PayrollCostReconciliationDto> ReconcileAsync(Tenant tenant, Farm farm, IUser user,
         CancellationToken cancellationToken);
 }

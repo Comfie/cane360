@@ -1,5 +1,3 @@
-using Cane360.Domain.Activities;
-using Cane360.Domain.Auditing;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
 using Cane360.Infrastructure.Identity;
@@ -15,8 +13,10 @@ internal sealed class AttendanceConfiguration : IEntityTypeConfiguration<Attenda
         builder.ToTable("Attendances", "labour", table =>
         {
             table.HasCheckConstraint("CK_Attendances_Status", "\"Status\" IN ('Present', 'Absent')");
-            table.HasCheckConstraint("CK_Attendances_FieldAllocation", "(\"Status\" = 'Present' AND \"FieldId\" IS NOT NULL) OR (\"Status\" = 'Absent' AND \"FieldId\" IS NULL)");
-            table.HasCheckConstraint("CK_Attendances_EntryDelay", "\"EntryDelayDays\" >= 0 AND (\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0)");
+            table.HasCheckConstraint("CK_Attendances_FieldAllocation",
+                "(\"Status\" = 'Present' AND \"FieldId\" IS NOT NULL) OR (\"Status\" = 'Absent' AND \"FieldId\" IS NULL)");
+            table.HasCheckConstraint("CK_Attendances_EntryDelay",
+                "\"EntryDelayDays\" >= 0 AND (\"EntryDelayDays\" <= 2 OR length(trim(\"LateEntryReason\")) > 0)");
         });
         builder.HasKey(attendance => attendance.Id);
         builder.Property(attendance => attendance.Id).ValueGeneratedNever();
@@ -34,7 +34,8 @@ internal sealed class AttendanceConfiguration : IEntityTypeConfiguration<Attenda
             .HasForeignKey(attendance => new { attendance.FieldId, attendance.FarmId })
             .HasPrincipalKey(field => new { field.Id, field.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(attendance => attendance.EnteredByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(attendance => attendance.EnteredByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(attendance => new { attendance.WorkerProfileId, attendance.WorkDate })
             .IsUnique()
             .HasDatabaseName("UX_Attendances_Worker_WorkDate");

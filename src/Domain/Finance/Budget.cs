@@ -10,7 +10,11 @@ public sealed class Budget : BaseEntity
         string name, decimal? reportingAreaHa, decimal? expectedProductionTonnes, string? notes,
         string createdByUserId, DateTimeOffset createdAt, Guid? supersedesBudgetId)
     {
-        if (version < 1) throw new ArgumentOutOfRangeException(nameof(version));
+        if (version < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(version));
+        }
+
         TenantId = tenantId;
         FarmId = farmId;
         FieldId = fieldId;
@@ -23,8 +27,8 @@ public sealed class Budget : BaseEntity
         SupersedesBudgetId = supersedesBudgetId;
     }
 
-    public Guid TenantId { get; private set; }
-    public Guid FarmId { get; private set; }
+    public Guid TenantId { get; }
+    public Guid FarmId { get; }
     public Guid FieldId { get; private set; }
     public Guid CropCycleId { get; private set; }
     public int Version { get; private set; }
@@ -48,9 +52,12 @@ public sealed class Budget : BaseEntity
     public static Budget CreateDraft(Guid tenantId, Guid farmId, Guid fieldId,
         Guid cropCycleId, int version, string name, decimal? reportingAreaHa,
         decimal? expectedProductionTonnes, string? notes, string createdByUserId,
-        DateTimeOffset createdAt, Guid? supersedesBudgetId = null) => new(tenantId, farmId,
+        DateTimeOffset createdAt, Guid? supersedesBudgetId = null)
+    {
+        return new Budget(tenantId, farmId,
             fieldId, cropCycleId, version, name, reportingAreaHa, expectedProductionTonnes,
             notes, createdByUserId, createdAt, supersedesBudgetId);
+    }
 
     public void UpdateDraft(string name, decimal? reportingAreaHa,
         decimal? expectedProductionTonnes, string? notes, long expectedRowVersion)
@@ -78,7 +85,7 @@ public sealed class Budget : BaseEntity
     {
         RequireDraft(expectedRowVersion);
         BudgetLine line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
-            ?? throw new InvalidOperationException("The budget line does not belong to this budget.");
+                          ?? throw new InvalidOperationException("The budget line does not belong to this budget.");
         line.Update(category, description, amountUsd, quantity, unit, unitRateUsd, notes);
         RowVersion++;
     }
@@ -87,7 +94,7 @@ public sealed class Budget : BaseEntity
     {
         RequireDraft(expectedRowVersion);
         BudgetLine line = _lines.SingleOrDefault(candidate => candidate.Id == lineId)
-            ?? throw new InvalidOperationException("The budget line does not belong to this budget.");
+                          ?? throw new InvalidOperationException("The budget line does not belong to this budget.");
         _lines.Remove(line);
         RowVersion++;
         return line;
@@ -97,7 +104,10 @@ public sealed class Budget : BaseEntity
     {
         RequireDraft(expectedRowVersion);
         if (_lines.Count == 0 || TotalUsd <= 0)
+        {
             throw new InvalidOperationException("A budget requires at least one positive line before submission.");
+        }
+
         Status = BudgetStatus.Submitted;
         SubmittedByUserId = Required(userId);
         SubmittedAt = submittedAt;
@@ -109,7 +119,10 @@ public sealed class Budget : BaseEntity
     {
         RequireVersion(expectedRowVersion);
         if (Status != BudgetStatus.Submitted)
+        {
             throw new InvalidOperationException("Only a submitted budget can be approved.");
+        }
+
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         Status = BudgetStatus.Approved;
         ApprovedByUserId = Required(userId);
@@ -121,7 +134,10 @@ public sealed class Budget : BaseEntity
     public void Supersede()
     {
         if (Status != BudgetStatus.Approved)
+        {
             throw new InvalidOperationException("Only an approved budget can be superseded.");
+        }
+
         Status = BudgetStatus.Superseded;
         RowVersion++;
     }
@@ -130,22 +146,33 @@ public sealed class Budget : BaseEntity
     {
         RequireVersion(expectedRowVersion);
         if (Status != BudgetStatus.Draft)
+        {
             throw new InvalidOperationException("Only a draft budget can be changed.");
+        }
     }
 
     private void RequireVersion(long expectedRowVersion)
     {
         if (RowVersion != expectedRowVersion)
+        {
             throw new InvalidOperationException("The budget changed after it was loaded. Refresh and retry.");
+        }
     }
 
     private void SetDraftDetails(string name, decimal? reportingAreaHa,
         decimal? expectedProductionTonnes, string? notes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        if (reportingAreaHa is <= 0) throw new ArgumentOutOfRangeException(nameof(reportingAreaHa));
+        if (reportingAreaHa is <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(reportingAreaHa));
+        }
+
         if (expectedProductionTonnes is <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(expectedProductionTonnes));
+        }
+
         Name = name.Trim();
         ReportingAreaHa = reportingAreaHa;
         ExpectedProductionTonnes = expectedProductionTonnes;

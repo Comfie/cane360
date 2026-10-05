@@ -1,11 +1,11 @@
-namespace Cane360.Domain.Farms;
-
 using Cane360.Domain.Activities;
+
+namespace Cane360.Domain.Farms;
 
 public sealed class CropCycle : BaseAuditableEntity
 {
-    private readonly List<CropCycleStatusChange> _statusChanges = [];
     private readonly List<Activity> _activities = [];
+    private readonly List<CropCycleStatusChange> _statusChanges = [];
 
     private CropCycle() { }
 
@@ -40,12 +40,12 @@ public sealed class CropCycle : BaseAuditableEntity
             recordedBy));
     }
 
-    public Guid FieldId { get; private set; }
+    public Guid FieldId { get; }
     public CropCycleType CycleType { get; private set; }
     public int? RatoonNumber { get; private set; }
     public Guid? CropVarietyId { get; private set; }
     public string Variety { get; private set; } = string.Empty;
-    public DateOnly StartDate { get; private set; }
+    public DateOnly StartDate { get; }
     public DateOnly ExpectedHarvestStart { get; private set; }
     public DateOnly ExpectedHarvestEnd { get; private set; }
     public decimal ExpectedYieldTonnes { get; private set; }
@@ -145,10 +145,11 @@ public sealed class CropCycle : BaseAuditableEntity
 
         if (_activities.Any(activity => activity.Status is not (ActivityStatus.Closed or ActivityStatus.Cancelled)))
         {
-            throw new InvalidOperationException("All activities must be Closed or Cancelled before harvest can be recorded.");
+            throw new InvalidOperationException(
+                "All activities must be Closed or Cancelled before harvest can be recorded.");
         }
 
-        HarvestResult = global::Cane360.Domain.Farms.HarvestResult.Create(Id, harvestDate, actualTonnes);
+        HarvestResult = HarvestResult.Create(Id, harvestDate, actualTonnes);
         TransitionTo(CropCycleStatus.ReadyForHarvest, CropCycleStatus.Harvested, recordedAt, recordedBy);
     }
 
@@ -171,7 +172,7 @@ public sealed class CropCycle : BaseAuditableEntity
             throw new InvalidOperationException("The crop cycle does not belong to the selected field.");
         }
 
-        var activity = Activity.Create(
+        Activity activity = Activity.Create(
             tenantId, farmId, fieldId, Id, activityType, kind, plannedDate, supervisorPersonId);
         _activities.Add(activity);
         return activity;
@@ -224,9 +225,12 @@ public sealed class CropCycle : BaseAuditableEntity
         }
     }
 
-    private static string FormatStatus(CropCycleStatus status) => status switch
+    private static string FormatStatus(CropCycleStatus status)
     {
-        CropCycleStatus.ReadyForHarvest => "Ready for harvest",
-        _ => status.ToString()
-    };
+        return status switch
+        {
+            CropCycleStatus.ReadyForHarvest => "Ready for harvest",
+            _ => status.ToString()
+        };
+    }
 }

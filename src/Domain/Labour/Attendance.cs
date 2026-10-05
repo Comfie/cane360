@@ -70,7 +70,8 @@ public sealed class Attendance : BaseAuditableEntity
     {
         if (Version != expectedVersion)
         {
-            throw new InvalidOperationException("This attendance record changed after it was loaded. Refresh and try again.");
+            throw new InvalidOperationException(
+                "This attendance record changed after it was loaded. Refresh and try again.");
         }
 
         Validate(status, fieldId, entryDelayDays, lateEntryReason);
@@ -90,7 +91,7 @@ public sealed class Attendance : BaseAuditableEntity
         int entryDelayDays,
         string? lateEntryReason)
     {
-        if ((status == AttendanceStatus.Present) != fieldId.HasValue)
+        if (status == AttendanceStatus.Present != fieldId.HasValue)
         {
             throw new InvalidOperationException(
                 status == AttendanceStatus.Present

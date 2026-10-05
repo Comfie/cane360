@@ -25,8 +25,12 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
         if (!TryOptionalDate(from, out DateOnly? fromDate) || !TryOptionalDate(to, out DateOnly? toDate))
-            return this.DateValidationError("date", multipleDates: true);
-        return Ok(await finance.GetTransactionPageAsync(new(fromDate, toDate, type, category, status,
+        {
+            return this.DateValidationError("date", true);
+        }
+
+        return Ok(await finance.GetTransactionPageAsync(new FinanceTransactionFilter(fromDate, toDate, type, category,
+            status,
             search), page, pageSize, cancellationToken));
     }
 
@@ -44,8 +48,11 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         CreateOperationalTransactionRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
+        {
             return this.DateValidationError(nameof(request.EventDate));
-        OperationalTransactionDto result = await finance.CreateAsync(new(request.Type,
+        }
+
+        OperationalTransactionDto result = await finance.CreateAsync(new CreateOperationalTransactionInput(request.Type,
             request.Category, eventDate, request.PayeeOrPayer, request.AmountUsd,
             request.SourceReference, request.Notes), cancellationToken);
         return CreatedAtAction(nameof(GetTransaction), new { transactionId = result.Id }, result);
@@ -56,8 +63,12 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         UpdateOperationalTransactionRequest request, CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.EventDate, out DateOnly eventDate))
+        {
             return this.DateValidationError(nameof(request.EventDate));
-        return Ok(await finance.UpdateAsync(transactionId, new(request.Type, request.Category,
+        }
+
+        return Ok(await finance.UpdateAsync(transactionId, new UpdateOperationalTransactionInput(request.Type,
+            request.Category,
             eventDate, request.PayeeOrPayer, request.AmountUsd, request.SourceReference,
             request.Notes, request.ExpectedVersion), cancellationToken));
     }
@@ -227,7 +238,10 @@ public sealed class FinanceController(IFinanceService finance) : ControllerBase
         return true;
     }
 
-    private static BudgetLineInput LineInput(BudgetLineRequest request) => new(request.Category,
-        request.Description, request.AmountUsd, request.Quantity, request.Unit,
-        request.UnitRateUsd, request.Notes, request.ExpectedRowVersion);
+    private static BudgetLineInput LineInput(BudgetLineRequest request)
+    {
+        return new BudgetLineInput(request.Category,
+            request.Description, request.AmountUsd, request.Quantity, request.Unit,
+            request.UnitRateUsd, request.Notes, request.ExpectedRowVersion);
+    }
 }

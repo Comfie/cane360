@@ -1,19 +1,25 @@
-import {
-  AttendanceClient,
-  AttendanceEntryRequest,
-  ConfirmWorkRecordRequest,
-  CreateWorkerRateRequest,
-  CreateWorkerRequest,
-  CreateWorkRecordRequest,
-  RecordAttendanceRequest,
-  VerifyWorkRecordRequest,
-  WorkerRatesClient,
-  WorkersClient,
-  WorkRecordsClient,
-  WorkScopeRequest,
+import type {
+    IAttendanceEntryRequest,
+    ICreateWorkerRateRequest,
+    ICreateWorkerRequest,
+    ICreateWorkRecordRequest,
+    IWorkScopeRequest
 } from '../../web-api-client';
-import type { IAttendanceEntryRequest, ICreateWorkerRateRequest, ICreateWorkerRequest, ICreateWorkRecordRequest, IWorkScopeRequest } from '../../web-api-client';
-import { dateOnly } from './labourView';
+import {
+    AttendanceClient,
+    AttendanceEntryRequest,
+    ConfirmWorkRecordRequest,
+    CreateWorkerRateRequest,
+    CreateWorkerRequest,
+    CreateWorkRecordRequest,
+    RecordAttendanceRequest,
+    VerifyWorkRecordRequest,
+    WorkerRatesClient,
+    WorkersClient,
+    WorkRecordsClient,
+    WorkScopeRequest,
+} from '../../web-api-client';
+import {dateOnly} from './labourView';
 
 export const workersClient = new WorkersClient();
 export const ratesClient = new WorkerRatesClient();
@@ -27,62 +33,67 @@ type WorkScopeValues = Pick<IWorkScopeRequest, 'type' | 'startLine' | 'endLine' 
 type CreateWorkRecordValues = Omit<ICreateWorkRecordRequest, 'scope'> & { scope?: WorkScopeValues };
 
 export function createWorker(values: CreateWorkerValues) {
-  return workersClient.createWorkers(new CreateWorkerRequest({
-    personId: undefined,
-    displayName: values.displayName,
-    phone: values.phone,
-    employmentType: values.employmentType,
-    activeFrom: dateOnly(values.activeFrom),
-    nationalId: values.nationalId,
-  }));
+    return workersClient.createWorkers(new CreateWorkerRequest({
+        personId: undefined,
+        displayName: values.displayName,
+        phone: values.phone,
+        employmentType: values.employmentType,
+        activeFrom: dateOnly(values.activeFrom),
+        nationalId: values.nationalId,
+    }));
 }
 
 export function createRate(workerId: string, values: CreateRateValues) {
-  return ratesClient.rates(workerId, new CreateWorkerRateRequest({
-    basis: values.basis,
-    activityTypeId: values.activityTypeId,
-    rateUsd: values.rateUsd,
-    effectiveFrom: dateOnly(values.effectiveFrom),
-    effectiveTo: values.effectiveTo ? dateOnly(values.effectiveTo) : undefined,
-  }));
+    return ratesClient.rates(workerId, new CreateWorkerRateRequest({
+        basis: values.basis,
+        activityTypeId: values.activityTypeId,
+        rateUsd: values.rateUsd,
+        effectiveFrom: dateOnly(values.effectiveFrom),
+        effectiveTo: values.effectiveTo ? dateOnly(values.effectiveTo) : undefined,
+    }));
 }
 
-export function getAttendance(date: string) { return attendanceClient.getAttendance(dateOnly(date)); }
+export function getAttendance(date: string) {
+    return attendanceClient.getAttendance(dateOnly(date));
+}
 
 export function saveAttendance(date: string, lateReason: string | undefined, entries: readonly AttendanceEntryValues[]) {
-  return attendanceClient.recordAttendance(new RecordAttendanceRequest({
-    workDate: dateOnly(date),
-    lateEntryReason: lateReason,
-    entries: entries.map((entry) => new AttendanceEntryRequest({
-      workerId: entry.workerId,
-      status: entry.status,
-      fieldId: entry.fieldId,
-      expectedVersion: entry.expectedVersion,
-    })),
-  }));
+    return attendanceClient.recordAttendance(new RecordAttendanceRequest({
+        workDate: dateOnly(date),
+        lateEntryReason: lateReason,
+        entries: entries.map((entry) => new AttendanceEntryRequest({
+            workerId: entry.workerId,
+            status: entry.status,
+            fieldId: entry.fieldId,
+            expectedVersion: entry.expectedVersion,
+        })),
+    }));
 }
 
 export function createWorkRecord(values: CreateWorkRecordValues) {
-  return workRecordsClient.createWorkRecords(new CreateWorkRecordRequest({
-    workerId: values.workerId,
-    payBasis: values.payBasis,
-    activityIds: values.activityIds,
-    quantity: values.quantity,
-    lateEntryReason: values.lateEntryReason,
-    workDate: dateOnly(values.workDate),
-    scope: values.scope ? new WorkScopeRequest({
-      type: values.scope.type,
-      startLine: values.scope.startLine,
-      endLine: values.scope.endLine,
-      sectionName: values.scope.sectionName,
-    }) : undefined,
-  }));
+    return workRecordsClient.createWorkRecords(new CreateWorkRecordRequest({
+        workerId: values.workerId,
+        payBasis: values.payBasis,
+        activityIds: values.activityIds,
+        quantity: values.quantity,
+        lateEntryReason: values.lateEntryReason,
+        workDate: dateOnly(values.workDate),
+        scope: values.scope ? new WorkScopeRequest({
+            type: values.scope.type,
+            startLine: values.scope.startLine,
+            endLine: values.scope.endLine,
+            sectionName: values.scope.sectionName,
+        }) : undefined,
+    }));
 }
 
 export function verifyWork(workRecordId: string, supervisorPersonId: string, expectedVersion: number) {
-  return workRecordsClient.supervisorVerification(workRecordId, new VerifyWorkRecordRequest({ supervisorPersonId, expectedVersion }));
+    return workRecordsClient.supervisorVerification(workRecordId, new VerifyWorkRecordRequest({
+        supervisorPersonId,
+        expectedVersion
+    }));
 }
 
 export function confirmWork(workRecordId: string, expectedVersion: number) {
-  return workRecordsClient.confirmWorkRecords(workRecordId, new ConfirmWorkRecordRequest({ expectedVersion }));
+    return workRecordsClient.confirmWorkRecords(workRecordId, new ConfirmWorkRecordRequest({expectedVersion}));
 }

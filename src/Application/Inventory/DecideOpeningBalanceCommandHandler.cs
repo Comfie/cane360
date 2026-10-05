@@ -1,8 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 public sealed class DecideOpeningBalanceCommandHandler(
@@ -14,16 +9,16 @@ public sealed class DecideOpeningBalanceCommandHandler(
     public async Task<StockReceiptDto> Handle(
         DecideOpeningBalanceCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
-        var farm = InventoryAccess.RequireFarm(tenant);
-        var userId = InventoryAccess.RequireUserId(user);
+        Tenant tenant = await InventoryAccess.RequireTenantAsync(farmRepository, user, false, cancellationToken);
+        Farm farm = InventoryAccess.RequireFarm(tenant);
+        string userId = InventoryAccess.RequireUserId(user);
 
-        var receipt = await inventoryRepository.GetReceiptAsync(
-            tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
-            ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
-        var outcome = Enum.Parse<ApprovalOutcome>(request.Outcome, true);
-        var now = timeProvider.GetUtcNow();
-        var approval = InventoryAccess.ApplyDomainAction(nameof(request.Outcome), () =>
+        StockReceipt receipt = await inventoryRepository.GetReceiptAsync(
+                                   tenant.Id, farm.Id, request.ReceiptId, true, cancellationToken)
+                               ?? throw new NotFoundException(request.ReceiptId.ToString(), "Stock receipt");
+        ApprovalOutcome outcome = Enum.Parse<ApprovalOutcome>(request.Outcome, true);
+        DateTimeOffset now = timeProvider.GetUtcNow();
+        ApprovalDecision approval = InventoryAccess.ApplyDomainAction(nameof(request.Outcome), () =>
             ApprovalDecision.CreateOpeningBalanceDecision(
                 tenant.Id, farm.Id, receipt.Id, request.ExpectedVersion, outcome,
                 userId, TenantSecurityRoles.Grower, now, request.Reason, request.IdempotencyKey));

@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.FarmSetup;
 
 public sealed class CreateFieldCommandValidator : AbstractValidator<CreateFieldCommand>

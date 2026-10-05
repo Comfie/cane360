@@ -1,6 +1,3 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Activities;
-using Cane360.Domain.Farms;
 using FluentValidation.Results;
 using ApplicationValidationException = Cane360.Application.Common.Exceptions.ValidationException;
 
@@ -8,11 +5,14 @@ namespace Cane360.Application.Activities;
 
 internal static class ActivityAccess
 {
-    public static string RequireUserId(IUser user) => user.Id ?? throw new UnauthorizedAccessException();
+    public static string RequireUserId(IUser user)
+    {
+        return user.Id ?? throw new UnauthorizedAccessException();
+    }
 
     /// <summary>
-    /// Grower or FarmManager only. Use for activity-type, personnel, and line-profile configuration
-    /// and for activity approval transitions, none of which a Supervisor may perform.
+    ///     Grower or FarmManager only. Use for activity-type, personnel, and line-profile configuration
+    ///     and for activity approval transitions, none of which a Supervisor may perform.
     /// </summary>
     public static async Task<Tenant> RequireTenantAsync(
         IFarmSetupRepository repository,
@@ -20,14 +20,14 @@ internal static class ActivityAccess
         bool trackChanges,
         CancellationToken cancellationToken)
     {
-        var userId = RequireUserId(user);
+        string userId = RequireUserId(user);
         return await repository.GetTenantForUserAsync(userId, trackChanges, cancellationToken)
-            ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
+               ?? throw new NotFoundException(userId, "Active grower or farm-manager membership");
     }
 
     /// <summary>
-    /// Grower, FarmManager, or Supervisor. This is the approved Supervisor MVP surface: capturing
-    /// and reading assigned field/activity records. It must never back configuration or approvals.
+    ///     Grower, FarmManager, or Supervisor. This is the approved Supervisor MVP surface: capturing
+    ///     and reading assigned field/activity records. It must never back configuration or approvals.
     /// </summary>
     public static async Task<Tenant> RequireCaptureTenantAsync(
         IFarmSetupRepository repository,
@@ -35,22 +35,26 @@ internal static class ActivityAccess
         bool trackChanges,
         CancellationToken cancellationToken)
     {
-        var userId = RequireUserId(user);
+        string userId = RequireUserId(user);
         return await repository.GetTenantForOperationalUserAsync(userId, trackChanges, cancellationToken)
-            ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
+               ?? throw new NotFoundException(userId, "Active grower, farm-manager, or supervisor membership");
     }
 
-    public static Farm RequireFarm(Tenant tenant) =>
-        tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm");
+    public static Farm RequireFarm(Tenant tenant)
+    {
+        return tenant.ActiveFarm ?? throw new NotFoundException(tenant.Id.ToString(), "Active farm");
+    }
 
-    public static Field RequireField(Farm farm, Guid fieldId) =>
-        farm.Fields.SingleOrDefault(field => field.Id == fieldId)
-        ?? throw new NotFoundException(fieldId.ToString(), "Field");
+    public static Field RequireField(Farm farm, Guid fieldId)
+    {
+        return farm.Fields.SingleOrDefault(field => field.Id == fieldId)
+               ?? throw new NotFoundException(fieldId.ToString(), "Field");
+    }
 
     public static CropCycle RequireOperationalCycle(Field field, Guid cropCycleId)
     {
-        var cycle = field.CropCycles.SingleOrDefault(candidate => candidate.Id == cropCycleId)
-            ?? throw new NotFoundException(cropCycleId.ToString(), "Crop cycle");
+        CropCycle cycle = field.CropCycles.SingleOrDefault(candidate => candidate.Id == cropCycleId)
+                          ?? throw new NotFoundException(cropCycleId.ToString(), "Crop cycle");
         if (!cycle.AcceptsOperationalEntries)
         {
             throw Failure(nameof(cropCycleId), "Activities require an Active or Ready-for-harvest crop cycle.");
@@ -61,7 +65,7 @@ internal static class ActivityAccess
 
     public static Activity RequireActivity(Tenant tenant, Guid activityId)
     {
-        var activity = tenant.ActiveFarm?.Fields
+        Activity? activity = tenant.ActiveFarm?.Fields
             .SelectMany(field => field.CropCycles)
             .SelectMany(cycle => cycle.Activities)
             .SingleOrDefault(candidate => candidate.Id == activityId);
@@ -70,15 +74,15 @@ internal static class ActivityAccess
 
     public static bool CanAccessActivity(Tenant tenant, IUser user, Activity activity)
     {
-        var membership = tenant.Memberships.Single(membership =>
+        TenantMembership membership = tenant.Memberships.Single(membership =>
             membership.UserId == RequireUserId(user) && membership.Status == RecordStatus.Active);
         return membership.SecurityRole != TenantSecurityRoles.Supervisor ||
-            membership.PersonId == activity.SupervisorPersonId;
+               membership.PersonId == activity.SupervisorPersonId;
     }
 
     public static Activity RequireAssignedActivity(Tenant tenant, IUser user, Guid activityId)
     {
-        var activity = RequireActivity(tenant, activityId);
+        Activity activity = RequireActivity(tenant, activityId);
         return CanAccessActivity(tenant, user, activity)
             ? activity
             : throw new NotFoundException(activityId.ToString(), "Assigned activity");
@@ -86,7 +90,7 @@ internal static class ActivityAccess
 
     public static void RequireAssignedSupervisor(Tenant tenant, IUser user, Guid supervisorPersonId)
     {
-        var membership = tenant.Memberships.Single(membership =>
+        TenantMembership membership = tenant.Memberships.Single(membership =>
             membership.UserId == RequireUserId(user) && membership.Status == RecordStatus.Active);
         if (membership.SecurityRole == TenantSecurityRoles.Supervisor &&
             membership.PersonId != supervisorPersonId)
@@ -97,8 +101,8 @@ internal static class ActivityAccess
 
     public static Person RequireSupervisor(Farm farm, Guid personId, DateOnly effectiveDate)
     {
-        var person = farm.Persons.SingleOrDefault(candidate => candidate.Id == personId)
-            ?? throw new NotFoundException(personId.ToString(), "Supervisor");
+        Person person = farm.Persons.SingleOrDefault(candidate => candidate.Id == personId)
+                        ?? throw new NotFoundException(personId.ToString(), "Supervisor");
         if (!person.HasEffectiveRole(PersonRole.Supervisor, effectiveDate))
         {
             throw Failure(nameof(personId), "The selected person must have an effective Supervisor role.");
@@ -115,8 +119,10 @@ internal static class ActivityAccess
         }
     }
 
-    public static ApplicationValidationException Failure(string propertyName, string message) =>
-        new([new ValidationFailure(propertyName, message)]);
+    public static ApplicationValidationException Failure(string propertyName, string message)
+    {
+        return new ApplicationValidationException([new ValidationFailure(propertyName, message)]);
+    }
 
     public static void ApplyDomainAction(string propertyName, Action action)
     {
@@ -136,9 +142,12 @@ internal static class ActivityAccess
 
     public static DateOnly HarareDate(DateTimeOffset value)
     {
-        var zone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare");
+        TimeZoneInfo zone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Harare");
         return DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(value, zone).DateTime);
     }
 
-    public static DateTimeOffset NormalizeUtc(DateTimeOffset value) => value.ToUniversalTime();
+    public static DateTimeOffset NormalizeUtc(DateTimeOffset value)
+    {
+        return value.ToUniversalTime();
+    }
 }

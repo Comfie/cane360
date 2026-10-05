@@ -31,8 +31,10 @@ public sealed class Mill : BaseEntity
     public long Version { get; private set; }
 
     public static Mill Create(Guid tenantId, Guid farmId, string code, string name,
-        string? location, string createdByUserId, DateTimeOffset createdAt) =>
-        new(tenantId, farmId, code, name, location, createdByUserId, createdAt);
+        string? location, string createdByUserId, DateTimeOffset createdAt)
+    {
+        return new Mill(tenantId, farmId, code, name, location, createdByUserId, createdAt);
+    }
 
     public void Update(string code, string name, string? location, long expectedVersion)
     {
@@ -48,7 +50,11 @@ public sealed class Mill : BaseEntity
     public void Deactivate(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (!Active) throw new InvalidOperationException("The mill is already inactive.");
+        if (!Active)
+        {
+            throw new InvalidOperationException("The mill is already inactive.");
+        }
+
         Active = false;
         Version++;
     }
@@ -56,18 +62,30 @@ public sealed class Mill : BaseEntity
     public void Reactivate(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Active) throw new InvalidOperationException("The mill is already active.");
+        if (Active)
+        {
+            throw new InvalidOperationException("The mill is already active.");
+        }
+
         Active = true;
         Version++;
     }
 
-    public static string NormalizeCode(string value) => value.Trim().ToUpperInvariant();
+    public static string NormalizeCode(string value)
+    {
+        return value.Trim().ToUpperInvariant();
+    }
 
     private void RequireVersion(long expectedVersion)
     {
         if (Version != expectedVersion)
+        {
             throw new InvalidOperationException("This mill changed after it was loaded. Refresh and try again.");
+        }
     }
 
-    private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static string? Clean(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 }

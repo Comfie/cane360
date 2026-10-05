@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using Cane360.Application.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Cane360.Application.Common.Behaviours;
@@ -7,8 +6,8 @@ namespace Cane360.Application.Common.Behaviours;
 public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly Stopwatch _timer;
     private readonly ILogger<TRequest> _logger;
+    private readonly Stopwatch _timer;
     private readonly IUser _user;
 
     public PerformanceBehaviour(
@@ -21,21 +20,23 @@ public class PerformanceBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequ
         _user = user;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next,
+        CancellationToken cancellationToken)
     {
         _timer.Start();
 
-        var response = await next();
+        TResponse response = await next();
 
         _timer.Stop();
 
-        var elapsedMilliseconds = _timer.ElapsedMilliseconds;
+        long elapsedMilliseconds = _timer.ElapsedMilliseconds;
 
         if (elapsedMilliseconds > 500)
         {
-            var requestName = typeof(TRequest).Name;
+            string requestName = typeof(TRequest).Name;
 
-            _logger.LogWarning("Cane360 long-running application request {RequestName} completed in {ElapsedMilliseconds} ms; reference {CorrelationId}",
+            _logger.LogWarning(
+                "Cane360 long-running application request {RequestName} completed in {ElapsedMilliseconds} ms; reference {CorrelationId}",
                 requestName, elapsedMilliseconds, _user.CorrelationId);
         }
 

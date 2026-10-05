@@ -1,7 +1,6 @@
 using Cane360.Domain.Activities;
 using Cane360.Domain.Auditing;
 using Cane360.Domain.Farms;
-using Cane360.Domain.Labour;
 using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -31,7 +30,15 @@ internal sealed class AuditEventConfiguration : IEntityTypeConfiguration<AuditEv
             .HasForeignKey(audit => new { audit.OperationalPersonId, audit.FarmId })
             .HasPrincipalKey(person => new { person.Id, person.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(audit => audit.AuthenticatedUserId).OnDelete(DeleteBehavior.Restrict);
-        builder.HasIndex(audit => new { audit.TenantId, audit.FarmId, audit.SubjectType, audit.SubjectId, audit.OccurredAt });
+        builder.HasOne<ApplicationUser>().WithMany().HasForeignKey(audit => audit.AuthenticatedUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(audit => new
+        {
+            audit.TenantId,
+            audit.FarmId,
+            audit.SubjectType,
+            audit.SubjectId,
+            audit.OccurredAt
+        });
     }
 }

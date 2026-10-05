@@ -22,7 +22,7 @@ public sealed class FieldLineProfile : BaseAuditableEntity
     public decimal StandardLineLengthMetres { get; private set; }
     public int EstimatedLineCount { get; private set; }
     public string NumberingScheme { get; private set; } = string.Empty;
-    public DateOnly EffectiveFrom { get; private set; }
+    public DateOnly EffectiveFrom { get; }
     public DateOnly? EffectiveTo { get; private set; }
     public long Version { get; private set; }
 
@@ -36,7 +36,8 @@ public sealed class FieldLineProfile : BaseAuditableEntity
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(standardLineLengthMetres);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(estimatedLineCount);
         ArgumentException.ThrowIfNullOrWhiteSpace(numberingScheme);
-        return new FieldLineProfile(fieldId, standardLineLengthMetres, estimatedLineCount, numberingScheme, effectiveFrom);
+        return new FieldLineProfile(fieldId, standardLineLengthMetres, estimatedLineCount, numberingScheme,
+            effectiveFrom);
     }
 
     internal void End(DateOnly effectiveTo)
@@ -55,6 +56,8 @@ public sealed class FieldLineProfile : BaseAuditableEntity
         Version++;
     }
 
-    public bool IsEffective(DateOnly onDate) =>
-        EffectiveFrom <= onDate && (EffectiveTo is null || EffectiveTo >= onDate);
+    public bool IsEffective(DateOnly onDate)
+    {
+        return EffectiveFrom <= onDate && (EffectiveTo is null || EffectiveTo >= onDate);
+    }
 }

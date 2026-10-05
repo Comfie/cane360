@@ -37,15 +37,17 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
     }
 
     [HttpPost(Name = "CreateWorkRecords")]
-    public async Task<ActionResult<WorkRecordDto>> Create(CreateWorkRecordRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<WorkRecordDto>> Create(CreateWorkRecordRequest request,
+        CancellationToken cancellationToken)
     {
         if (!TransportValueParser.TryParseDateOnly(request.WorkDate, out DateOnly workDate))
         {
             return BadRequest(DateError(nameof(request.WorkDate)));
         }
 
-        var result = await sender.Send(new CreateWorkRecordCommand(request.WorkerId, workDate,
-            request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken);
+        WorkRecordDto result = await sender.Send(new CreateWorkRecordCommand(request.WorkerId, workDate,
+                request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason),
+            cancellationToken);
         return Ok(result);
     }
 
@@ -59,13 +61,22 @@ public sealed class WorkRecordsController(ISender sender) : ControllerBase
     }
 
     [HttpPost("{workRecordId:guid}/manager-confirmation", Name = "ConfirmWorkRecords")]
-    public async Task<ActionResult<WorkRecordDto>> Confirm(Guid workRecordId, ConfirmWorkRecordRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new ConfirmWorkRecordCommand(workRecordId, request.ExpectedVersion), cancellationToken));
+    public async Task<ActionResult<WorkRecordDto>> Confirm(Guid workRecordId, ConfirmWorkRecordRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new ConfirmWorkRecordCommand(workRecordId, request.ExpectedVersion),
+            cancellationToken));
+    }
 
     [HttpPost("{workRecordId:guid}/corrections", Name = "CorrectWorkRecords")]
-    public async Task<ActionResult<WorkRecordDto>> Correct(Guid workRecordId, CorrectWorkRecordRequest request, CancellationToken cancellationToken) =>
-        Ok(await sender.Send(new CorrectWorkRecordCommand(workRecordId, request.ExpectedVersion, request.CorrectionReason,
-            request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason), cancellationToken));
+    public async Task<ActionResult<WorkRecordDto>> Correct(Guid workRecordId, CorrectWorkRecordRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new CorrectWorkRecordCommand(workRecordId, request.ExpectedVersion,
+                request.CorrectionReason,
+                request.PayBasis, request.ActivityIds, request.Quantity, Scope(request.Scope), request.LateEntryReason),
+            cancellationToken));
+    }
 
     private static WorkScopeCommand? Scope(WorkScopeRequest? scope)
     {

@@ -6,7 +6,9 @@ public static class MonthlyPayrollProration
     {
         if (monthlyRateUsd <= 0 || daysInMonth is < 28 or > 31 ||
             verifiedDayNumber < 1 || verifiedDayNumber > daysInMonth)
+        {
             throw new ArgumentOutOfRangeException(nameof(verifiedDayNumber));
+        }
 
         decimal throughDay = decimal.Round(monthlyRateUsd * verifiedDayNumber / daysInMonth,
             2, MidpointRounding.AwayFromZero);

@@ -1,5 +1,4 @@
 using Cane360.Application.Common.Security;
-using Cane360.Domain.Inventory;
 
 namespace Cane360.Application.Inventory;
 

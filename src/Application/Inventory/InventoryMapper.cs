@@ -1,29 +1,36 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 internal static class InventoryMapper
 {
-    public static UnitOfMeasureDto Unit(UnitOfMeasure unit) => new(
-        unit.Id, unit.Code, unit.Name, unit.Dimension, unit.DecimalPlaces, unit.Status.ToString(), unit.Version);
+    public static UnitOfMeasureDto Unit(UnitOfMeasure unit)
+    {
+        return new UnitOfMeasureDto(
+            unit.Id, unit.Code, unit.Name, unit.Dimension, unit.DecimalPlaces, unit.Status.ToString(), unit.Version);
+    }
 
-    public static InventoryItemDto Item(InventoryItem item) => new(
-        item.Id, item.Code, item.Name, item.Category.ToString(), item.StockUnitId, item.StockUnitCode,
-        item.ReorderLevel, item.LotTrackingPolicy.ToString(), item.ExpiryPolicy.ToString(),
-        item.CostingMethod.ToString(), item.Status.ToString(), item.Version);
+    public static InventoryItemDto Item(InventoryItem item)
+    {
+        return new InventoryItemDto(
+            item.Id, item.Code, item.Name, item.Category.ToString(), item.StockUnitId, item.StockUnitCode,
+            item.ReorderLevel, item.LotTrackingPolicy.ToString(), item.ExpiryPolicy.ToString(),
+            item.CostingMethod.ToString(), item.Status.ToString(), item.Version);
+    }
 
-    public static SupplierDto Supplier(Supplier supplier) => new(
-        supplier.Id, supplier.Code, supplier.Name, supplier.Contact, supplier.Status.ToString(), supplier.Version);
+    public static SupplierDto Supplier(Supplier supplier)
+    {
+        return new SupplierDto(
+            supplier.Id, supplier.Code, supplier.Name, supplier.Contact, supplier.Status.ToString(), supplier.Version);
+    }
 
-    public static InventoryLotDto Lot(InventoryLot lot) => new(
-        lot.Id, lot.InventoryItemId, lot.Code, lot.ExpiryDate, lot.Status.ToString(), lot.Version);
+    public static InventoryLotDto Lot(InventoryLot lot)
+    {
+        return new InventoryLotDto(
+            lot.Id, lot.InventoryItemId, lot.Code, lot.ExpiryDate, lot.Status.ToString(), lot.Version);
+    }
 
     public static StockReceiptDto Receipt(Tenant tenant, Farm farm, StockReceipt receipt)
     {
-        var personName = receipt.ReceivedByPersonId.HasValue
+        string? personName = receipt.ReceivedByPersonId.HasValue
             ? farm.Persons.SingleOrDefault(person => person.Id == receipt.ReceivedByPersonId)?.DisplayName
             : null;
         return new StockReceiptDto(
@@ -38,30 +45,42 @@ internal static class InventoryMapper
                 line.UnitCostUsd, line.LineValueUsd)).ToArray());
     }
 
-    public static StockMovementDto Movement(StockMovement movement) => new(
-        movement.Id, movement.PostingSequence, movement.InventoryItemId, movement.InventoryLotId,
-        movement.ItemCodeSnapshot, movement.ItemNameSnapshot, movement.LotCodeSnapshot,
-        movement.UnitCodeSnapshot, movement.MovementType.ToString(), movement.SignedQuantity,
-        movement.SignedValueUsd, movement.EventDate, movement.PostedAt, movement.PostedByUserId,
-        movement.OperationalPersonId, movement.StockReceiptLineId, movement.StockIssueLineId,
-        movement.ReversalOfStockMovementId, movement.StockAdjustmentId);
+    public static StockMovementDto Movement(StockMovement movement)
+    {
+        return new StockMovementDto(
+            movement.Id, movement.PostingSequence, movement.InventoryItemId, movement.InventoryLotId,
+            movement.ItemCodeSnapshot, movement.ItemNameSnapshot, movement.LotCodeSnapshot,
+            movement.UnitCodeSnapshot, movement.MovementType.ToString(), movement.SignedQuantity,
+            movement.SignedValueUsd, movement.EventDate, movement.PostedAt, movement.PostedByUserId,
+            movement.OperationalPersonId, movement.StockReceiptLineId, movement.StockIssueLineId,
+            movement.ReversalOfStockMovementId, movement.StockAdjustmentId);
+    }
 
-    public static StockCountDto Count(StockCount count) => new(count.Id, count.StoreId, count.Status.ToString(),
-        count.EventDate, count.Notes, count.CountingPersons, count.CutoffPostingSequence, count.StartedAt,
-        count.ReviewedAt, count.ClosedAt, count.CancellationReason, count.Version,
-        count.Lines.OrderBy(line => line.ItemCodeSnapshot).ThenBy(line => line.LotCodeSnapshot).Select(line => new StockCountLineDto(
-            line.Id, line.StockPositionId, line.InventoryItemId, line.InventoryLotId, line.ItemCodeSnapshot,
-            line.ItemNameSnapshot, line.LotCodeSnapshot, line.UnitCodeSnapshot, line.ExpectedQuantity,
-            line.ExpectedValueUsd, line.CountedQuantity, line.VarianceQuantity, line.Notes, line.EnteredAt,
-            line.Version, line.PostedStockAdjustmentId)).ToArray());
+    public static StockCountDto Count(StockCount count)
+    {
+        return new StockCountDto(count.Id, count.StoreId, count.Status.ToString(),
+            count.EventDate, count.Notes, count.CountingPersons, count.CutoffPostingSequence, count.StartedAt,
+            count.ReviewedAt, count.ClosedAt, count.CancellationReason, count.Version,
+            count.Lines.OrderBy(line => line.ItemCodeSnapshot).ThenBy(line => line.LotCodeSnapshot).Select(line =>
+                new StockCountLineDto(
+                    line.Id, line.StockPositionId, line.InventoryItemId, line.InventoryLotId, line.ItemCodeSnapshot,
+                    line.ItemNameSnapshot, line.LotCodeSnapshot, line.UnitCodeSnapshot, line.ExpectedQuantity,
+                    line.ExpectedValueUsd, line.CountedQuantity, line.VarianceQuantity, line.Notes, line.EnteredAt,
+                    line.Version, line.PostedStockAdjustmentId)).ToArray());
+    }
 
-    public static StockAdjustmentDto Adjustment(StockAdjustment adjustment) => new(adjustment.Id, adjustment.StoreId,
-        adjustment.StockPositionId, adjustment.StockCountLineId, adjustment.AdjustmentType.ToString(), adjustment.Status.ToString(),
-        adjustment.ItemCodeSnapshot, adjustment.ItemNameSnapshot, adjustment.LotCodeSnapshot, adjustment.UnitCodeSnapshot,
-        adjustment.SignedQuantity, adjustment.ExplicitUnitValueUsd, adjustment.UnitCostUsdSnapshot,
-        adjustment.SignedValueUsdSnapshot, adjustment.Reason, adjustment.EventDate, adjustment.Version,
-        adjustment.StockMovementId, adjustment.ReversalOfStockAdjustmentId, adjustment.ReversalStockAdjustmentId,
-        adjustment.CancellationReason);
+    public static StockAdjustmentDto Adjustment(StockAdjustment adjustment)
+    {
+        return new StockAdjustmentDto(adjustment.Id, adjustment.StoreId,
+            adjustment.StockPositionId, adjustment.StockCountLineId, adjustment.AdjustmentType.ToString(),
+            adjustment.Status.ToString(),
+            adjustment.ItemCodeSnapshot, adjustment.ItemNameSnapshot, adjustment.LotCodeSnapshot,
+            adjustment.UnitCodeSnapshot,
+            adjustment.SignedQuantity, adjustment.ExplicitUnitValueUsd, adjustment.UnitCostUsdSnapshot,
+            adjustment.SignedValueUsdSnapshot, adjustment.Reason, adjustment.EventDate, adjustment.Version,
+            adjustment.StockMovementId, adjustment.ReversalOfStockAdjustmentId, adjustment.ReversalStockAdjustmentId,
+            adjustment.CancellationReason);
+    }
 
     public static InventoryWorkspaceDto Workspace(
         Tenant tenant,
@@ -74,8 +93,8 @@ internal static class InventoryMapper
         IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)> stock,
         IReadOnlyList<StockMovement> movements)
     {
-        var itemMap = items.ToDictionary(item => item.Id);
-        var lotMap = lots.ToDictionary(lot => lot.Id);
+        Dictionary<Guid, InventoryItem> itemMap = items.ToDictionary(item => item.Id);
+        Dictionary<Guid, InventoryLot> lotMap = lots.ToDictionary(lot => lot.Id);
         return new InventoryWorkspaceDto(
             farm.Store.Code,
             farm.Store.Name,
@@ -85,15 +104,15 @@ internal static class InventoryMapper
             lots.Select(Lot).ToArray(),
             receipts.Select(receipt =>
             {
-                var mapped = Receipt(tenant, farm, receipt);
-                var supplierName = receipt.SupplierId.HasValue
+                StockReceiptDto mapped = Receipt(tenant, farm, receipt);
+                string? supplierName = receipt.SupplierId.HasValue
                     ? suppliers.SingleOrDefault(supplier => supplier.Id == receipt.SupplierId)?.Name
                     : null;
                 return mapped with { SupplierName = supplierName };
             }).ToArray(),
             stock.Select(pair =>
             {
-                var item = itemMap[pair.Position.InventoryItemId];
+                InventoryItem item = itemMap[pair.Position.InventoryItemId];
                 InventoryLot? lot = pair.Position.InventoryLotId.HasValue
                     ? lotMap.GetValueOrDefault(pair.Position.InventoryLotId.Value)
                     : null;

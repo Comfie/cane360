@@ -44,6 +44,7 @@ public sealed class AdvanceApproval : BaseEntity
     public DateTimeOffset DecidedAt { get; private set; }
     public string? Reason { get; private set; }
     public string IdempotencyKey { get; private set; } = string.Empty;
+
     public static AdvanceApproval Create(
         Guid advanceId,
         Guid tenantId,
@@ -61,17 +62,23 @@ public sealed class AdvanceApproval : BaseEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(idempotencyKey);
         ArgumentNullException.ThrowIfNull(installments);
         if (amountUsd <= 0m || installments.Count == 0 || installments.Sum(item => item.AmountUsd) != amountUsd)
+        {
             throw new InvalidOperationException("An approval must bind a complete, exact installment schedule.");
-        if (!approved && string.IsNullOrWhiteSpace(reason))
-            throw new InvalidOperationException("A rejection reason is required.");
+        }
 
-        var schedule = string.Join(
+        if (!approved && string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("A rejection reason is required.");
+        }
+
+        string schedule = string.Join(
             ";",
             installments
                 .OrderBy(item => item.Sequence)
-                .Select(item => FormattableString.Invariant($"{item.Sequence}:{item.PayrollPeriodId:N}:{item.AmountUsd:0.00}")));
+                .Select(item =>
+                    FormattableString.Invariant($"{item.Sequence}:{item.PayrollPeriodId:N}:{item.AmountUsd:0.00}")));
 
-        return new(
+        return new AdvanceApproval(
             advanceId,
             tenantId,
             farmId,

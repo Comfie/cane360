@@ -1,6 +1,4 @@
 using System.Globalization;
-using Cane360.Domain.Activities;
-using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
 
 namespace Cane360.Application.Activities;
@@ -20,8 +18,8 @@ internal static class ActivityMapper
 
     public static ActivityListItemDto MapListItem(Farm farm, Activity activity)
     {
-        var field = farm.Fields.Single(item => item.Id == activity.FieldId);
-        var supervisor = farm.Persons.Single(item => item.Id == activity.SupervisorPersonId);
+        Field field = farm.Fields.Single(item => item.Id == activity.FieldId);
+        Person supervisor = farm.Persons.Single(item => item.Id == activity.SupervisorPersonId);
         return new ActivityListItemDto(
             activity.Id,
             activity.FieldId,
@@ -53,12 +51,12 @@ internal static class ActivityMapper
         IReadOnlyList<WorkRecord>? labourRecords = null,
         IReadOnlyList<WorkerProfile>? workers = null)
     {
-        var farm = tenant.ActiveFarm!;
-        var allowed = TransitionTargets
+        Farm farm = tenant.ActiveFarm!;
+        string[] allowed = TransitionTargets
             .Where(target => Activity.IsAllowedTransition(activity.Status, target))
             .Select(target => target.ToString())
             .ToArray();
-        var blocked = new Dictionary<string, string>();
+        Dictionary<string, string> blocked = new();
         if (activity.IsTerminal)
         {
             blocked["Modify"] = $"{FormatStatus(activity.Status)} activities are read-only.";
@@ -68,33 +66,40 @@ internal static class ActivityMapper
             blocked["ActualWork"] = "Return the activity to In progress before changing actual work.";
         }
 
-        var userIds = activity.StatusChanges.Select(change => change.RecordedBy)
+        string[] userIds = activity.StatusChanges.Select(change => change.RecordedBy)
             .Append(activity.CreatedBy)
             .Append(activity.ActualEnteredByUserId)
             .Concat(activity.EvidenceLinks.Select(link => link.RecordedBy))
             .Concat((labourRecords ?? []).SelectMany(record => new[]
             {
-                record.EnteredByUserId,
-                record.Verification?.SupervisorVerificationEnteredByUserId,
+                record.EnteredByUserId, record.Verification?.SupervisorVerificationEnteredByUserId,
                 record.Verification?.ManagerConfirmedByUserId
             }))
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Distinct(StringComparer.Ordinal)
             .Cast<string>()
             .ToArray();
-        var users = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var userId in userIds)
+        Dictionary<string, string> users = new(StringComparer.Ordinal);
+        foreach (string userId in userIds)
         {
             users[userId] = await identityService.GetUserNameAsync(userId) ?? "Unknown user";
         }
 
-        string UserName(string? id) => id is not null && users.TryGetValue(id, out var name) ? name : "Unknown user";
-        string? PersonName(Guid? id) => id is null
-            ? null
-            : farm.Persons.SingleOrDefault(person => person.Id == id)?.DisplayName;
-        var timeline = new List<ActivityTimelineEventDto>
+        string UserName(string? id)
         {
-            new(
+            return id is not null && users.TryGetValue(id, out string? name) ? name : "Unknown user";
+        }
+
+        string? PersonName(Guid? id)
+        {
+            return id is null
+                ? null
+                : farm.Persons.SingleOrDefault(person => person.Id == id)?.DisplayName;
+        }
+
+        List<ActivityTimelineEventDto> timeline = new()
+        {
+            new ActivityTimelineEventDto(
                 activity.Id,
                 "ActivityCreated",
                 $"{activity.Kind} activity recorded",
@@ -144,10 +149,12 @@ internal static class ActivityMapper
             null)));
         timeline.AddRange((labourRecords ?? []).Select(record =>
         {
-            var worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
-            var workerName = worker is null ? "Worker" : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
-            var actor = record.Verification is null ? null : PersonName(record.Verification.SupervisorPersonId);
-            var detail = record.Status == WorkRecordStatus.Confirmed
+            WorkerProfile? worker = workers?.SingleOrDefault(candidate => candidate.Id == record.WorkerProfileId);
+            string workerName = worker is null
+                ? "Worker"
+                : farm.Persons.Single(person => person.Id == worker.PersonId).DisplayName;
+            string? actor = record.Verification is null ? null : PersonName(record.Verification.SupervisorPersonId);
+            string detail = record.Status == WorkRecordStatus.Confirmed
                 ? $"{workerName} · {record.PayBasis} · confirmed labour evidence"
                 : $"{workerName} · {record.PayBasis} · {record.Status}";
             return new ActivityTimelineEventDto(
@@ -155,8 +162,10 @@ internal static class ActivityMapper
                 "LabourEvidence",
                 "Labour evidence recorded",
                 record.WorkDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                FormatTimestamp(record.Verification?.ManagerConfirmedAt ?? record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
-                UserName(record.Verification?.ManagerConfirmedByUserId ?? record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
+                FormatTimestamp(record.Verification?.ManagerConfirmedAt ??
+                                record.Verification?.SupervisorVerifiedAt ?? record.EnteredAt),
+                UserName(record.Verification?.ManagerConfirmedByUserId ??
+                         record.Verification?.SupervisorVerificationEnteredByUserId ?? record.EnteredByUserId),
                 actor,
                 detail,
                 record.LateEntryReason);
@@ -177,24 +186,32 @@ internal static class ActivityMapper
                 UserName(link.RecordedBy))).ToArray());
     }
 
-    public static string Coverage(Activity activity) => activity.QuantityBasis switch
+    public static string Coverage(Activity activity)
     {
-        ActivityQuantityBasis.None => "No quantity basis",
-        ActivityQuantityBasis.Hectares => $"{activity.ActualQuantity:N4} ha",
-        ActivityQuantityBasis.StandardLines when activity.LineContextUnavailable =>
-            $"{activity.ActualQuantity:N0} standard lines · line context unavailable",
-        ActivityQuantityBasis.StandardLines => $"{activity.ActualQuantity:N0} standard lines",
-        _ => string.Empty
-    };
+        return activity.QuantityBasis switch
+        {
+            ActivityQuantityBasis.None => "No quantity basis",
+            ActivityQuantityBasis.Hectares => $"{activity.ActualQuantity:N4} ha",
+            ActivityQuantityBasis.StandardLines when activity.LineContextUnavailable =>
+                $"{activity.ActualQuantity:N0} standard lines · line context unavailable",
+            ActivityQuantityBasis.StandardLines => $"{activity.ActualQuantity:N0} standard lines",
+            _ => string.Empty
+        };
+    }
 
-    public static string FormatStatus(ActivityStatus status) => status switch
+    public static string FormatStatus(ActivityStatus status)
     {
-        ActivityStatus.InProgress => "In progress",
-        ActivityStatus.AwaitingVerification => "Awaiting verification",
-        ActivityStatus.ManagerConfirmation => "Manager confirmation",
-        _ => status.ToString()
-    };
+        return status switch
+        {
+            ActivityStatus.InProgress => "In progress",
+            ActivityStatus.AwaitingVerification => "Awaiting verification",
+            ActivityStatus.ManagerConfirmation => "Manager confirmation",
+            _ => status.ToString()
+        };
+    }
 
-    public static string FormatTimestamp(DateTimeOffset? timestamp) =>
-        timestamp?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty;
+    public static string FormatTimestamp(DateTimeOffset? timestamp)
+    {
+        return timestamp?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty;
+    }
 }

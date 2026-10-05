@@ -9,7 +9,7 @@ public static class ApiRateLimiting
 {
     public static void AddApiRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
-        var limits = configuration.GetSection(ApiRateLimitOptions.SectionName)
+        ApiRateLimitOptions limits = configuration.GetSection(ApiRateLimitOptions.SectionName)
             .Get<ApiRateLimitOptions>() ?? new ApiRateLimitOptions();
         if (limits.UsersPermitLimit < 1 || limits.UsersWindowSeconds < 1 ||
             limits.ExportsPermitLimit < 1 || limits.ExportsWindowSeconds < 1)
@@ -27,16 +27,19 @@ public static class ApiRateLimiting
                     Window(limits.ExportsPermitLimit, limits.ExportsWindowSeconds)));
             options.OnRejected = async (rejected, cancellationToken) =>
             {
-                var context = rejected.HttpContext;
-                var policy = context.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
-                var fallbackSeconds = policy == ApiRateLimitOptions.ExportsPolicy
-                    ? limits.ExportsWindowSeconds : limits.UsersWindowSeconds;
-                var retryAfter = rejected.Lease.TryGetMetadata(MetadataName.RetryAfter,
-                    out TimeSpan delay) ? delay : TimeSpan.FromSeconds(fallbackSeconds);
+                HttpContext context = rejected.HttpContext;
+                string? policy = context.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
+                int fallbackSeconds = policy == ApiRateLimitOptions.ExportsPolicy
+                    ? limits.ExportsWindowSeconds
+                    : limits.UsersWindowSeconds;
+                TimeSpan retryAfter = rejected.Lease.TryGetMetadata(MetadataName.RetryAfter,
+                    out TimeSpan delay)
+                    ? delay
+                    : TimeSpan.FromSeconds(fallbackSeconds);
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.Response.Headers.RetryAfter = Math.Max(1,
                     (int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
-                var problem = new ProblemDetails
+                ProblemDetails problem = new()
                 {
                     Status = StatusCodes.Status429TooManyRequests,
                     Type = "https://www.rfc-editor.org/rfc/rfc6585#section-4",
@@ -44,21 +47,23 @@ public static class ApiRateLimiting
                     Detail = "Try again after the Retry-After interval."
                 };
                 problem.Extensions["traceId"] = context.TraceIdentifier;
-                await context.Response.WriteAsJsonAsync(problem, cancellationToken: cancellationToken);
+                await context.Response.WriteAsJsonAsync(problem, cancellationToken);
             };
         });
     }
 
-    private static FixedWindowRateLimiterOptions Window(int permits, int seconds) => new()
+    private static FixedWindowRateLimiterOptions Window(int permits, int seconds)
     {
-        PermitLimit = permits,
-        Window = TimeSpan.FromSeconds(seconds),
-        QueueLimit = 0,
-        AutoReplenishment = true
-    };
+        return new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permits, Window = TimeSpan.FromSeconds(seconds), QueueLimit = 0, AutoReplenishment = true
+        };
+    }
 
-    private static string ExportKey(HttpContext context) =>
-        context.User.FindFirstValue(ClaimTypes.NameIdentifier) is { Length: > 0 } userId
+    private static string ExportKey(HttpContext context)
+    {
+        return context.User.FindFirstValue(ClaimTypes.NameIdentifier) is { Length: > 0 } userId
             ? $"user:{userId}"
             : "anonymous";
+    }
 }

@@ -1,5 +1,3 @@
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.CropCycles;
 
 public sealed class CreateCropCycleCommandHandler(
@@ -11,13 +9,13 @@ public sealed class CreateCropCycleCommandHandler(
         CreateCropCycleCommand request,
         CancellationToken cancellationToken)
     {
-        var tenant = await CropCycleAccess.RequireTenantAsync(
+        Tenant tenant = await CropCycleAccess.RequireTenantAsync(
             repository, user, true, cancellationToken);
-        var field = CropCycleAccess.RequireField(tenant, request.FieldId);
-        var variety = tenant.CropVarieties.SingleOrDefault(candidate =>
-            candidate.Id == request.CropVarietyId && candidate.Status == RecordStatus.Active)
-            ?? throw new NotFoundException(request.CropVarietyId.ToString(), "Active crop variety");
-        var userId = CropCycleAccess.RequireUserId(user);
+        Field field = CropCycleAccess.RequireField(tenant, request.FieldId);
+        CropVariety variety = tenant.CropVarieties.SingleOrDefault(candidate =>
+                                  candidate.Id == request.CropVarietyId && candidate.Status == RecordStatus.Active)
+                              ?? throw new NotFoundException(request.CropVarietyId.ToString(), "Active crop variety");
+        string userId = CropCycleAccess.RequireUserId(user);
         CropCycle? cropCycle = null;
 
         CropCycleAccess.ApplyDomainAction(nameof(request.CycleType), () =>

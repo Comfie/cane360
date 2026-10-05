@@ -1,4 +1,5 @@
 using Cane360.Domain.Auditing;
+using Cane360.Domain.Farms;
 using Cane360.Domain.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -51,21 +52,43 @@ internal sealed class InventoryAuditEventLinkConfiguration : IEntityTypeConfigur
             .HasForeignKey(link => new { link.StockIssueId, link.TenantId, link.FarmId })
             .HasPrincipalKey(issue => new { issue.Id, issue.TenantId, issue.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<Cane360.Domain.Farms.ManagerInvitation>().WithMany()
+        builder.HasOne<ManagerInvitation>().WithMany()
             .HasForeignKey(link => new { link.ManagerInvitationId, link.TenantId, link.FarmId })
             .HasPrincipalKey(invitation => new { invitation.Id, invitation.TenantId, invitation.FarmId })
             .OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<FieldReceipt>().WithMany().HasForeignKey(link => new { link.FieldReceiptId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InputApplication>().WithMany().HasForeignKey(link => new { link.InputApplicationId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockReturn>().WithMany().HasForeignKey(link => new { link.StockReturnId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InventoryLoss>().WithMany().HasForeignKey(link => new { link.InventoryLossId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<OperationalCostPosting>().WithMany().HasForeignKey(link => new { link.OperationalCostPostingId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<ControlException>().WithMany().HasForeignKey(link => new { link.ControlExceptionId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<CorrectionRecord>().WithMany().HasForeignKey(link => new { link.CorrectionRecordId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<FieldAccountabilityCorrection>().WithMany().HasForeignKey(link => new { link.FieldAccountabilityCorrectionId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockCount>().WithMany().HasForeignKey(link => new { link.StockCountId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<StockAdjustment>().WithMany().HasForeignKey(link => new { link.StockAdjustmentId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
-        builder.HasOne<InventoryLeakageExport>().WithMany().HasForeignKey(link => new { link.InventoryLeakageExportId, link.TenantId, link.FarmId }).HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FieldReceipt>().WithMany()
+            .HasForeignKey(link => new { link.FieldReceiptId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InputApplication>().WithMany()
+            .HasForeignKey(link => new { link.InputApplicationId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockReturn>().WithMany()
+            .HasForeignKey(link => new { link.StockReturnId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryLoss>().WithMany()
+            .HasForeignKey(link => new { link.InventoryLossId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<OperationalCostPosting>().WithMany()
+            .HasForeignKey(link => new { link.OperationalCostPostingId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<ControlException>().WithMany()
+            .HasForeignKey(link => new { link.ControlExceptionId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<CorrectionRecord>().WithMany()
+            .HasForeignKey(link => new { link.CorrectionRecordId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<FieldAccountabilityCorrection>().WithMany()
+            .HasForeignKey(link => new { link.FieldAccountabilityCorrectionId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockCount>().WithMany()
+            .HasForeignKey(link => new { link.StockCountId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<StockAdjustment>().WithMany()
+            .HasForeignKey(link => new { link.StockAdjustmentId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne<InventoryLeakageExport>().WithMany()
+            .HasForeignKey(link => new { link.InventoryLeakageExportId, link.TenantId, link.FarmId })
+            .HasPrincipalKey(x => new { x.Id, x.TenantId, x.FarmId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(link => link.AuditEventId).IsUnique();
         builder.HasIndex(link => new { link.TenantId, link.FarmId, link.StockReceiptId });
         builder.HasIndex(link => new { link.TenantId, link.FarmId, link.InputRequestId });

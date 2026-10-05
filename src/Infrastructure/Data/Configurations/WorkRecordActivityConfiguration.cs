@@ -1,8 +1,5 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

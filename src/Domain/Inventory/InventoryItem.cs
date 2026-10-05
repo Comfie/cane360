@@ -62,7 +62,12 @@ public sealed class InventoryItem : BaseAuditableEntity
         {
             throw new InvalidOperationException("The stock unit must be an active unit in the same tenant.");
         }
-        if (reorderLevel is < 0) throw new ArgumentOutOfRangeException(nameof(reorderLevel));
+
+        if (reorderLevel is < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(reorderLevel));
+        }
+
         if (lotTrackingPolicy == LotTrackingPolicy.None && expiryPolicy != ExpiryPolicy.None)
         {
             throw new InvalidOperationException("Expiry tracking requires lot tracking.");
@@ -75,15 +80,25 @@ public sealed class InventoryItem : BaseAuditableEntity
     public void Archive(long expectedVersion)
     {
         RequireVersion(expectedVersion);
-        if (Status == InventoryRecordStatus.Archived) return;
+        if (Status == InventoryRecordStatus.Archived)
+        {
+            return;
+        }
+
         Status = InventoryRecordStatus.Archived;
         Version++;
     }
 
     private void RequireVersion(long expectedVersion)
     {
-        if (Version != expectedVersion) throw new InvalidOperationException("This inventory item changed after it was loaded.");
+        if (Version != expectedVersion)
+        {
+            throw new InvalidOperationException("This inventory item changed after it was loaded.");
+        }
     }
 
-    private static string NormalizeCode(string code) => code.Trim().ToUpperInvariant();
+    private static string NormalizeCode(string code)
+    {
+        return code.Trim().ToUpperInvariant();
+    }
 }

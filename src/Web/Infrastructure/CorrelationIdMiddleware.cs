@@ -28,6 +28,8 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
         return Guid.NewGuid().ToString("N");
     }
 
-    private static bool IsSafeCharacter(char value) =>
-        char.IsAsciiLetterOrDigit(value) || value is '-' or '_' or '.';
+    private static bool IsSafeCharacter(char value)
+    {
+        return char.IsAsciiLetterOrDigit(value) || value is '-' or '_' or '.';
+    }
 }

@@ -30,6 +30,8 @@ public sealed class WorkRecordActivity : BaseEntity
         Guid tenantId,
         Guid farmId,
         Guid fieldId,
-        Guid activityId) =>
-        new(workRecordId, tenantId, farmId, fieldId, activityId);
+        Guid activityId)
+    {
+        return new WorkRecordActivity(workRecordId, tenantId, farmId, fieldId, activityId);
+    }
 }

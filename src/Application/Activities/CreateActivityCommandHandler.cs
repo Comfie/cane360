@@ -1,6 +1,3 @@
-using Cane360.Domain.Activities;
-using Cane360.Domain.Farms;
-
 namespace Cane360.Application.Activities;
 
 public sealed class CreateActivityCommandHandler(
@@ -11,15 +8,15 @@ public sealed class CreateActivityCommandHandler(
 {
     public async Task<ActivityDetailsDto> Handle(CreateActivityCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
-        var farm = ActivityAccess.RequireFarm(tenant);
-        var field = ActivityAccess.RequireField(farm, request.FieldId);
-        var cycle = ActivityAccess.RequireOperationalCycle(field, request.CropCycleId);
-        var type = tenant.ActivityTypes.SingleOrDefault(candidate =>
-            candidate.Id == request.ActivityTypeId && candidate.Status == RecordStatus.Active)
-            ?? throw new NotFoundException(request.ActivityTypeId.ToString(), "Active activity type");
-        var kind = Enum.Parse<ActivityPlanningKind>(request.Kind, true);
-        var effectiveDate = request.PlannedDate ?? ActivityAccess.HarareDate(timeProvider.GetUtcNow());
+        Tenant tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, true, cancellationToken);
+        Farm farm = ActivityAccess.RequireFarm(tenant);
+        Field field = ActivityAccess.RequireField(farm, request.FieldId);
+        CropCycle cycle = ActivityAccess.RequireOperationalCycle(field, request.CropCycleId);
+        ActivityType type = tenant.ActivityTypes.SingleOrDefault(candidate =>
+                                candidate.Id == request.ActivityTypeId && candidate.Status == RecordStatus.Active)
+                            ?? throw new NotFoundException(request.ActivityTypeId.ToString(), "Active activity type");
+        ActivityPlanningKind kind = Enum.Parse<ActivityPlanningKind>(request.Kind, true);
+        DateOnly effectiveDate = request.PlannedDate ?? ActivityAccess.HarareDate(timeProvider.GetUtcNow());
         ActivityAccess.RequireAssignedSupervisor(tenant, user, request.SupervisorPersonId);
         ActivityAccess.RequireSupervisor(farm, request.SupervisorPersonId, effectiveDate);
         Activity? activity = null;

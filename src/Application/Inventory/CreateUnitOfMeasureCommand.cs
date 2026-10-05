@@ -1,9 +1,7 @@
-using Cane360.Application.Common.Exceptions;
-using Cane360.Domain.Auditing;
-using Cane360.Domain.Farms;
-using Cane360.Domain.Inventory;
-
 namespace Cane360.Application.Inventory;
 
 public sealed record CreateUnitOfMeasureCommand(
-    string Code, string Name, string Dimension, int DecimalPlaces) : IRequest<UnitOfMeasureDto>;
+    string Code,
+    string Name,
+    string Dimension,
+    int DecimalPlaces) : IRequest<UnitOfMeasureDto>;

@@ -1,8 +1,6 @@
 using Cane360.Domain.Activities;
-using Cane360.Domain.Auditing;
 using Cane360.Domain.Farms;
 using Cane360.Domain.Labour;
-using Cane360.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,10 +12,13 @@ internal sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Work
     {
         builder.ToTable("WorkerProfiles", "labour", table =>
         {
-            table.HasCheckConstraint("CK_WorkerProfiles_EmploymentType", "\"EmploymentType\" IN ('Permanent', 'Seasonal', 'Casual', 'Contract', 'TaskBased')");
-            table.HasCheckConstraint("CK_WorkerProfiles_ActiveDates", "\"ActiveTo\" IS NULL OR \"ActiveTo\" >= \"ActiveFrom\"");
+            table.HasCheckConstraint("CK_WorkerProfiles_EmploymentType",
+                "\"EmploymentType\" IN ('Permanent', 'Seasonal', 'Casual', 'Contract', 'TaskBased')");
+            table.HasCheckConstraint("CK_WorkerProfiles_ActiveDates",
+                "\"ActiveTo\" IS NULL OR \"ActiveTo\" >= \"ActiveFrom\"");
             table.HasCheckConstraint("CK_WorkerProfiles_Status", "\"Status\" IN ('Active', 'Archived')");
-            table.HasCheckConstraint("CK_WorkerProfiles_ProtectedNationalId", "octet_length(\"NationalIdCiphertext\") > 0 AND octet_length(\"NationalIdNonce\") = 12 AND octet_length(\"NationalIdTag\") = 16 AND octet_length(\"NationalIdFingerprint\") = 32");
+            table.HasCheckConstraint("CK_WorkerProfiles_ProtectedNationalId",
+                "octet_length(\"NationalIdCiphertext\") > 0 AND octet_length(\"NationalIdNonce\") = 12 AND octet_length(\"NationalIdTag\") = 16 AND octet_length(\"NationalIdFingerprint\") = 32");
         });
         builder.HasKey(worker => worker.Id);
         builder.Property(worker => worker.Id).ValueGeneratedNever();

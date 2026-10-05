@@ -43,8 +43,8 @@ public sealed class StockReceiptLine : BaseEntity
     public DateOnly? ExpiryDateSnapshot { get; private set; }
     public Guid UnitOfMeasureId { get; private set; }
     public string UnitCodeSnapshot { get; private set; } = string.Empty;
-    public decimal Quantity { get; private set; }
-    public decimal UnitCostUsd { get; private set; }
+    public decimal Quantity { get; }
+    public decimal UnitCostUsd { get; }
     public decimal LineValueUsd { get; private set; }
 
     internal static StockReceiptLine Create(
@@ -55,6 +55,8 @@ public sealed class StockReceiptLine : BaseEntity
         InventoryItem item,
         InventoryLot? lot,
         decimal quantity,
-        decimal unitCostUsd) =>
-        new(receiptId, tenantId, farmId, lineNumber, item, lot, quantity, unitCostUsd);
+        decimal unitCostUsd)
+    {
+        return new StockReceiptLine(receiptId, tenantId, farmId, lineNumber, item, lot, quantity, unitCostUsd);
+    }
 }

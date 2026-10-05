@@ -1,5 +1,4 @@
-using Cane360.Domain.Activities;
-using Cane360.Domain.Farms;
+using Cane360.Domain.Labour;
 
 namespace Cane360.Application.Activities;
 
@@ -11,12 +10,13 @@ public sealed class GetActivityDetailsQueryHandler(
 {
     public async Task<ActivityDetailsDto> Handle(GetActivityDetailsQuery request, CancellationToken cancellationToken)
     {
-        var tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
-        var farm = ActivityAccess.RequireFarm(tenant);
-        var activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
-        var records = await labourRepository.GetWorkRecordsAsync(
+        Tenant tenant = await ActivityAccess.RequireCaptureTenantAsync(repository, user, false, cancellationToken);
+        Farm farm = ActivityAccess.RequireFarm(tenant);
+        Activity activity = ActivityAccess.RequireAssignedActivity(tenant, user, request.ActivityId);
+        IReadOnlyList<WorkRecord> records = await labourRepository.GetWorkRecordsAsync(
             tenant.Id, farm.Id, null, null, request.ActivityId, false, cancellationToken);
-        var workers = await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
+        IReadOnlyList<WorkerProfile> workers =
+            await labourRepository.GetWorkersAsync(tenant.Id, farm.Id, false, cancellationToken);
         return await ActivityMapper.MapDetailsAsync(
             tenant, activity, identityService, records, workers);
     }
