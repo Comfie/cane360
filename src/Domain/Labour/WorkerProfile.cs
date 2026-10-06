@@ -50,6 +50,19 @@ public sealed class WorkerProfile : BaseAuditableEntity
     public string NationalIdMask { get; private set; } = string.Empty;
     public long Version { get; private set; }
 
+    public string? EmployeeNumber { get; private set; }
+    public string? Title { get; private set; }
+    public string? FirstName { get; private set; }
+    public string? Surname { get; private set; }
+    public string? Sex { get; private set; }
+    public string? Address { get; private set; }
+    public string? PhotoReference { get; private set; }
+    public string? NextOfKinName { get; private set; }
+    public string? NextOfKinRelationship { get; private set; }
+    public string? NextOfKinPhone { get; private set; }
+    public string? NextOfKinAddress { get; private set; }
+    public DateOnly? DateOfBirth { get; private set; }
+
     public static WorkerProfile Create(
         Guid id,
         Guid tenantId,
@@ -81,6 +94,69 @@ public sealed class WorkerProfile : BaseAuditableEntity
             id, tenantId, farmId, personId, employmentType, activeFrom,
             nationalIdCiphertext, nationalIdNonce, nationalIdTag,
             nationalIdKeyId.Trim(), nationalIdFingerprint, nationalIdMask.Trim());
+    }
+
+    public void UpdateProfile(string? employeeNumber, string? title, string? firstName, string? surname,
+        string? sex, DateOnly? dateOfBirth, string? address, string? photoReference,
+        string? nextOfKinName, string? nextOfKinRelationship, string? nextOfKinPhone, string? nextOfKinAddress,
+        EmploymentType employmentType, DateOnly today, long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        if (dateOfBirth > today)
+        {
+            throw new ArgumentException("Date of birth cannot be in the future.");
+        }
+        if (!Enum.IsDefined(employmentType))
+        {
+            throw new ArgumentException("Employee type is invalid.");
+        }
+        if (string.IsNullOrWhiteSpace(firstName) != string.IsNullOrWhiteSpace(surname))
+        {
+            throw new ArgumentException("Supply both first name and surname, or retain the legacy display name.");
+        }
+        if (!string.IsNullOrWhiteSpace(sex) &&
+            !new[] { "Female", "Male", "Other", "Prefer not to say" }.Contains(sex))
+        {
+            throw new ArgumentException("Sex is invalid.");
+        }
+        string? cleanEmployeeNumber = Clean(employeeNumber, 60);
+        string? cleanTitle = Clean(title, 40);
+        string? cleanFirstName = Clean(firstName, 60);
+        string? cleanSurname = Clean(surname, 59);
+        string? cleanSex = Clean(sex, 40);
+        string? cleanAddress = Clean(address, 240);
+        string? cleanPhotoReference = Clean(photoReference, 240);
+        string? cleanNextOfKinName = Clean(nextOfKinName, 120);
+        string? cleanNextOfKinRelationship = Clean(nextOfKinRelationship, 60);
+        string? cleanNextOfKinPhone = Clean(nextOfKinPhone, 30);
+        string? cleanNextOfKinAddress = Clean(nextOfKinAddress, 240);
+        EmployeeNumber = cleanEmployeeNumber?.ToUpperInvariant();
+        Title = cleanTitle;
+        FirstName = cleanFirstName;
+        Surname = cleanSurname;
+        Sex = cleanSex;
+        Address = cleanAddress;
+        PhotoReference = cleanPhotoReference;
+        NextOfKinName = cleanNextOfKinName;
+        NextOfKinRelationship = cleanNextOfKinRelationship;
+        NextOfKinPhone = cleanNextOfKinPhone;
+        NextOfKinAddress = cleanNextOfKinAddress;
+        DateOfBirth = dateOfBirth;
+        EmploymentType = employmentType;
+        Version++;
+    }
+
+    private static string? Clean(string? value, int maximum)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+        if (value.Trim().Length > maximum)
+        {
+            throw new ArgumentException("Employee profile field exceeds supported length.");
+        }
+        return value.Trim();
     }
 
     public void Archive(DateOnly activeTo, long expectedVersion)

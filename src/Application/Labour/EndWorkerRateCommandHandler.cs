@@ -29,7 +29,7 @@ public sealed class EndWorkerRateCommandHandler(
             timeProvider.GetUtcNow(), LabourAccess.CorrelationId(user), null,
             "Worker rate effective period ended."));
         await labourRepository.SaveChangesAsync(cancellationToken);
-        return new WorkerDetailsDto(LabourMapper.Worker(farm, worker),
+        return LabourMapper.Details(farm, worker,
             rates.Select(item => LabourMapper.Rate(tenant, item)).ToArray());
     }
 }

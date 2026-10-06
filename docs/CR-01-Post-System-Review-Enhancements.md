@@ -2,13 +2,13 @@
 
 ## Requirements lock (CR-01.0)
 
-CR-01.0, CR-01.1 and CR-01.2 are complete. CR-01.2 Git closure is authorized and recorded below; later slices are not authorized.
+CR-01.0, CR-01.1 and CR-01.2 are complete. CR-01.2 Git closure is recorded below. CR-01.3 implementation and validation are authorized without Git closure; CR-01.4 and later slices remain outside the current scope.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
 | CR-01.2 | Field/Crop UX | Complete; implemented, validated and merged into main |
-| CR-01.3 | Employee Master | Not started |
+| CR-01.3 | Employee Master | Implemented and validated; migrated to Railway Development; Git closure not performed |
 | CR-01.4 | Inventory Category Administration | Not started |
 | CR-01.5 | Regression/Integration | Deferred |
 | CR-01.6 | Release Closure | Deferred |
@@ -353,3 +353,118 @@ The 55-file staged set exactly matched the reviewed CR-01.2 manifest. All 89 unr
 Known limitations are unchanged: the application-wide maturity setting requires restart; expected maturity reuses the persisted harvest-window expectation, with explicit draft recalculation and stable historical values; planting/cycle-plan edits are draft-only; manual yield corrections are Harvested-only before closure; physical Field code/areas/reporting source retain existing immutability; crop age uses whole calendar months and the existing UTC date convention. The existing bundle-size advisory remains. No application deployment or authenticated deployment smoke was performed or verified.
 
 CR-01.3 Employee Master, CR-01.4 Inventory Category Administration and new Phase 8 work have NOT started. Git closure is the stopping boundary for this task.
+
+
+## CR-01.3 Employee Master — architecture and implementation
+
+Authorized baseline: `bdd11e94c1f1791b9160f7c14903bd3701564c43`; branch `feature/cr-01-3-employee-master`. CR-01.4 and new Phase 8 work remain out of scope.
+
+The existing `WorkerProfile` extends a farm `Person`. Worker IDs, `labour.WorkerProfiles`, namespaces and operational routes remain. Employee is the business term for master screens; no second Employee aggregate is introduced. Attendance, WorkerRate, WorkRecord and WorkerAdvance/PayrollWorkerLine retain composite Worker/tenant/farm foreign keys. WorkScope/verification/activity links, evidence consumption, payroll calculations and payslip/payment links remain downstream of that unchanged graph.
+
+Reuse Person.DisplayName/Phone, Worker.EmploymentType (all five approved types), ActiveFrom as Employment Date, Active/Archived status, protected National ID, audit metadata and Version. ActiveFrom stays immutable because changing it retroactively would alter labour eligibility; no fabricated employment date is introduced. Profile edits never replace Person roles. A separate expected Person version protects shared name/contact edits.
+
+Add nullable EmployeeNumber, Title, FirstName, Surname, Sex, DateOfBirth, Address, PhotoReference and four next-of-kin fields directly on WorkerProfile. One current next-of-kin contact needs no dependent-contact subsystem. EmployeeNumber is optional, trimmed/uppercased, unique per tenant when present, never a primary key; legacy rows remain null with no backfill. Structured names are optional for legacy/API compatibility and must be supplied together; when supplied their combined value becomes Person.DisplayName. Existing names are never automatically split. Clearing structured fields preserves the supplied legacy display name.
+
+Create remains compact: First Name, Surname, Employee Type, Employment Date and protected National ID; Employee Number and other enrichment are optional through Edit. Existing API clients may still create using DisplayName or PersonId. Full Edit groups identity, employment, contact, next of kin and photo reference. Archived status uses the existing archive operation/date and remains irreversible under existing rules.
+
+National ID AES-GCM storage, farm-scoped HMAC uniqueness, masking, key management and exact Grower-only audited reveal remain. A dedicated Grower-only correction endpoint uses the existing CorrectNationalId domain operation, protects new values, excludes the current worker in duplicate checks, and records no secret values. New profile access uses existing Grower/FarmManager membership scope; Supervisor gains no access and Farm Owner gains no new privilege.
+
+Photograph follows CR-01.1: bounded opaque metadata reference only, no binary, upload service or external-image fetching. An additive migration is required for nullable profile columns and the optional tenant number index. Gates and acceptance results will be recorded after execution.
+
+### CR-01.3 implementation and validation results
+
+Employee business terminology is used in the Labour master tab, register, empty state, Create and Edit/profile controls. Labour navigation and attendance/evidence operational Worker references remain. Create contains exactly First Name, Surname, Employee Type, Employment Date and National ID. Employee Number, contact data and all other enrichment remain optional through Edit. Existing DisplayName/PersonId API creation remains supported. Combined structured names fit the existing 120-character Person limit (FirstName up to 60, Surname up to 59); no legacy values are split or replaced during migration. Operational reads use the current Person name; payroll's existing name/rate/evidence snapshots remain historical.
+
+Full Edit supports Employee Number, Title, paired First Name/Surname, legacy DisplayName, Sex, optional Date of Birth, Employee Type, primary phone, contact address, photograph reference and one next-of-kin name/relationship/phone/address. Employment Date reuses immutable ActiveFrom; status reuses Active/Archived and the existing dated archive command. No reactivation, employment date rewriting, age policy or statutory payroll rule was added.
+
+Existing `/api/workers` routes are retained. Create accepts an optional `profile`. Detail responses add `profile` and `personVersion`; list responses add only optional EmployeeNumber. New PUT `/api/workers/{id}/profile` checks both Worker and shared Person versions. New PUT `/api/workers/{id}/national-id` is Grower-only and calls the existing protected correction operation. The existing reveal route now has a named, typed OpenAPI contract for the generated client, with the same route/payload, exact authorization and requested/succeeded audit behavior. No ciphertext, fingerprint, full National ID or extended personal/kin information was added to list responses.
+
+Profile updates produce `WorkerProfileUpdated`; registrations and archives retain their existing events. Corrections produce `NationalIdCorrected`. Audit messages record the action/actor/subject/correlation and never include ID values or submitted free-text correction reasons. The existing shared repository context saves Person, Worker and audit changes together. FarmManager can create/edit/read under existing membership rules but cannot reveal/correct National ID. Grower permissions are retained, not broadened. Supervisor has no new employee-master access.
+
+Migration: `20261005221527_AddEmployeeMasterEnhancements`. Its 13 forward operations add 12 nullable bounded profile columns to `labour.WorkerProfiles` and one filtered unique `(TenantId, EmployeeNumber)` index. Manual migration, snapshot and forward SQL review found no table rename/drop, foreign-key/primary-key changes, data rewrite, backfill, binary photograph column or other-schema changes. Forward SQL was inspected at `/tmp/cr013-forward.sql`. No rollback was run.
+
+Railway Development was verified before generation at 21 applied / 0 pending, before application at 21 applied / 1 pending (only this migration), and after application at **22 applied / 0 pending**. No prior migration was reapplied, and startup/tests never migrated automatically.
+
+| Gate | Final result |
+| --- | --- |
+| .NET solution build | Passed; 0 warnings/errors |
+| Application tests | 458/458 passed; 0 failures/skips |
+| Web/API tests | 128/128 passed; 0 failures/skips |
+| Focused EmployeeMasterTests | 22/22 passed |
+| Focused Employee API/model/migration tests | 6/6 passed within Web suite |
+| Frontend tests | 125/125 passed, including 7 focused Employee cases |
+| Frontend lint | Passed |
+| Frontend typecheck | Passed |
+| Frontend production build/generated-client name check | Passed; existing bundle-size advisory remains |
+| EF model parity after generation/application | Clean; no pending model changes |
+| Railway labelled pre-migration fixture | 1/1 passed |
+| Railway CR013Acceptance | 8/8 passed; 0 failures/skips |
+| Isolated browser smoke | Passed at 1440, 768, 390 and 360 CSS px |
+| git diff --check | Passed |
+
+The required pre-generation gate passed before migration creation (Application 457, Web 127, frontend 125). After generation the migration safety case increased Web to 128 and all relevant gates passed before application. A final explicit attendance/evidence/payroll name-snapshot regression increased Application to 458 after application; its focused/full runs also passed. An older CR-01.1 scope test was corrected to inspect its immutable released migration rather than classify every future model change as CR-01.1; no test was suppressed.
+
+The pre-migration fixture uses label `AUTOTEST-CR013-LEGACY-5d2acc4407a04ccb91efcf6e1bd04be2`. It inserted only existing Worker columns and established Person, attendance, confirmed activity-linked evidence, rates and payroll-advance relationships before the new columns existed. Post-migration acceptance reads only that uniquely labelled synthetic graph and verifies null enrichment and unchanged links. The fixture is intentionally retained. Every other CR013Acceptance test creates its own uniquely labelled synthetic tenant/run inside an uncommitted transaction and rolls back only that work. Assertions are tenant/farm/ID/run scoped; no real records or global business-table counts are inspected. Constraint checks use transaction savepoints and restore only their own uncommitted writes.
+
+Acceptance verifies legacy Worker identity/eligibility, existing attendance/evidence/activity/payroll-advance links, new core create, structured/profile/DOB/contact/photo/kin persistence, masked reads, audited authorized reveal/correction, duplicate National ID/number rejection, cross-tenant reads and composite foreign-key rejection, same number allowed across tenants, database uniqueness and optimistic concurrency. Application regressions also explicitly retain payroll-line/earning/evidence/attendance IDs and historical payroll name snapshots through employee name edits. All existing attendance, Labour evidence, activity-worker, payroll, audit and monthly-proration suites remain green; payroll calculations were not changed.
+
+The browser smoke used intercepted synthetic API responses, not a real account or deployed Railway app. It verified progressive Create, full Edit/save, Employee Number/kin/photo metadata, masking, authorized reveal/hide and zero page/dialog horizontal overflow at all four widths. Mobile screenshot: `artifacts/cr013-employee-edit-mobile.png` (ignored generated artifact). Actual database persistence/security were tested separately by Railway acceptance.
+
+Known limitations: photograph references only, with no upload/storage service/image fetching; optional Employee Numbers have no automatic generation or legacy backfill; Employment Date remains immutable; Active/Archived status retains existing archive semantics without reactivation; paired structured names must fit Person.DisplayName's existing limit; one current next-of-kin contact; existing bundle-size advisory; no application deployment or live authenticated deployment smoke.
+
+Final design checks: no second Employee aggregate; no changed Worker primary keys; no rewritten attendance/labour/payroll foreign keys; no weaker National ID protection/authorization; legacy null enrichment remains valid with no fabricated data; compact five-field Create and full Edit available; Employee business terminology with Worker internals retained; NSSA/NEC/PAYE untouched. All 89 original unrelated untracked paths were checked against their original SHA-256 hashes and remain unchanged/untracked. Pre-existing Phase 8/administration and unrelated local work are preserved. CR-01.4 has NOT started.
+
+Git stopping state: branch `feature/cr-01-3-employee-master`, HEAD unchanged at `bdd11e94c1f1791b9160f7c14903bd3701564c43`; 25 tracked files modified, 23 new CR-01.3 files untracked, plus the 89 original untracked paths. Index remains empty. No commit, push or merge was performed.
+
+### CR-01.3 changed-file manifest
+
+48 code/test/documentation files, excluding the 89 unrelated files and ignored build/screenshot artifacts.
+
+- `docs/CR-01-Post-System-Review-Enhancements.md`
+- `src/Application/Common/Interfaces/ILabourRepository.cs`
+- `src/Application/Labour/ArchiveWorkerCommandHandler.cs`
+- `src/Application/Labour/CorrectWorkerNationalIdCommand.cs`
+- `src/Application/Labour/CorrectWorkerNationalIdCommandHandler.cs`
+- `src/Application/Labour/CorrectWorkerNationalIdCommandValidator.cs`
+- `src/Application/Labour/CreateWorkerCommand.cs`
+- `src/Application/Labour/CreateWorkerCommandHandler.cs`
+- `src/Application/Labour/CreateWorkerCommandValidator.cs`
+- `src/Application/Labour/CreateWorkerRateCommandHandler.cs`
+- `src/Application/Labour/EndWorkerRateCommandHandler.cs`
+- `src/Application/Labour/GetWorkerDetailsQueryHandler.cs`
+- `src/Application/Labour/LabourMapper.cs`
+- `src/Application/Labour/UpdateWorkerProfileCommand.cs`
+- `src/Application/Labour/UpdateWorkerProfileCommandHandler.cs`
+- `src/Application/Labour/UpdateWorkerProfileCommandValidator.cs`
+- `src/Application/Labour/WorkerDetailsDto.cs`
+- `src/Application/Labour/WorkerListItemDto.cs`
+- `src/Application/Labour/WorkerNumberRules.cs`
+- `src/Application/Labour/WorkerProfileInput.cs`
+- `src/Application/Labour/WorkerProfileInputValidator.cs`
+- `src/Application/Labour/WorkerProfileUpdater.cs`
+- `src/Domain/Activities/Person.cs`
+- `src/Domain/Labour/WorkerProfile.cs`
+- `src/Infrastructure/Data/Configurations/WorkerProfileConfiguration.cs`
+- `src/Infrastructure/Data/LabourRepository.cs`
+- `src/Infrastructure/Data/Migrations/20261005221527_AddEmployeeMasterEnhancements.Designer.cs`
+- `src/Infrastructure/Data/Migrations/20261005221527_AddEmployeeMasterEnhancements.cs`
+- `src/Infrastructure/Data/Migrations/ApplicationDbContextModelSnapshot.cs`
+- `src/Web/ClientApp/package.json`
+- `src/Web/ClientApp/scripts/normalize-generated-client.cjs`
+- `src/Web/ClientApp/src/components/labour/EmployeeProfile.tsx`
+- `src/Web/ClientApp/src/components/labour/employeeForm.ts`
+- `src/Web/ClientApp/src/components/labour/employeeMaster.test.js`
+- `src/Web/ClientApp/src/components/labour/labourApi.ts`
+- `src/Web/ClientApp/src/components/pages/LabourPage.tsx`
+- `src/Web/ClientApp/src/web-api-client.ts`
+- `src/Web/Controllers/WorkersController.cs`
+- `src/Web/Models/Labour/CorrectWorkerNationalIdRequest.cs`
+- `src/Web/Models/Labour/CreateWorkerRequest.cs`
+- `src/Web/Models/Labour/UpdateWorkerProfileRequest.cs`
+- `tests/Application.UnitTests/FarmSetup/FarmProfileModelTests.cs`
+- `tests/Application.UnitTests/Labour/EmployeeMasterTests.cs`
+- `tests/Infrastructure.IntegrationTests/EmployeeMasterAcceptanceFixture.cs`
+- `tests/Infrastructure.IntegrationTests/PostgreSqlEmployeeMasterAcceptanceTests.cs`
+- `tests/Infrastructure.IntegrationTests/PostgreSqlEmployeeMasterPrerequisiteTests.cs`
+- `tests/Web.UnitTests/Controllers/EmployeeMasterControllerTests.cs`
+- `tests/Web.UnitTests/Infrastructure/EmployeeMasterModelTests.cs`

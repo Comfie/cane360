@@ -46,6 +46,21 @@ internal sealed class WorkerProfileConfiguration : IEntityTypeConfiguration<Work
         builder.HasIndex(worker => new { worker.FarmId, worker.NationalIdFingerprint })
             .IsUnique()
             .HasDatabaseName("UX_WorkerProfiles_Farm_NationalIdFingerprint");
+        builder.Property(worker => worker.EmployeeNumber).HasMaxLength(60);
+        builder.Property(worker => worker.Title).HasMaxLength(40);
+        builder.Property(worker => worker.FirstName).HasMaxLength(60);
+        builder.Property(worker => worker.Surname).HasMaxLength(59);
+        builder.Property(worker => worker.Sex).HasMaxLength(40);
+        builder.Property(worker => worker.Address).HasMaxLength(240);
+        builder.Property(worker => worker.PhotoReference).HasMaxLength(240);
+        builder.Property(worker => worker.NextOfKinName).HasMaxLength(120);
+        builder.Property(worker => worker.NextOfKinRelationship).HasMaxLength(60);
+        builder.Property(worker => worker.NextOfKinPhone).HasMaxLength(30);
+        builder.Property(worker => worker.NextOfKinAddress).HasMaxLength(240);
+        builder.Property(worker => worker.DateOfBirth).HasColumnType("date");
+        builder.HasIndex(worker => new { worker.TenantId, worker.EmployeeNumber }).IsUnique()
+            .HasFilter("\"EmployeeNumber\" IS NOT NULL")
+            .HasDatabaseName("UX_WorkerProfiles_Tenant_EmployeeNumber");
         ConfigureAudit(builder);
     }
 

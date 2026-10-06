@@ -31,4 +31,6 @@ for (const method of retainedMethods) {
     const pattern = new RegExp(`    protected ${name}\\(response: Response\\)[\\s\\S]*?(?=\\n    /\\*\\*|\\n})`);
     source = source.replace(pattern, () => method);
 }
+// OpenAPI emits the optional Int64 default as a string; NSwag's property is numeric.
+source = source.replace('this.personVersion = "0";', 'this.personVersion = 0;');
 fs.writeFileSync(clientPath, source);

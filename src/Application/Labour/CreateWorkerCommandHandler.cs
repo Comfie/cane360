@@ -17,7 +17,7 @@ public sealed class CreateWorkerCommandHandler(
         string userId = LabourAccess.RequireUserId(user);
         Person person = request.PersonId.HasValue
             ? LabourAccess.RequirePerson(farm, request.PersonId.Value)
-            : farm.AddPerson(request.DisplayName!, request.Phone, request.ActiveFrom);
+            : farm.AddPerson(WorkerProfileUpdater.Name(request.Profile, request.DisplayName), request.Phone, request.ActiveFrom);
         if (person.Status != RecordStatus.Active || person.ActiveFrom > request.ActiveFrom ||
             person.ActiveTo < request.ActiveFrom)
         {
@@ -40,12 +40,23 @@ public sealed class CreateWorkerCommandHandler(
             workerId, tenant.Id, farm.Id, person.Id, Enum.Parse<EmploymentType>(request.EmploymentType, true),
             request.ActiveFrom, protectedId!.Ciphertext, protectedId.Nonce, protectedId.Tag,
             protectedId.KeyId, protectedId.FarmScopedFingerprint, protectedId.DisplayMask));
+        if (request.Profile is not null)
+        {
+            LabourAccess.ApplyDomainAction(nameof(request.Profile), () =>
+                WorkerProfileUpdater.Apply(worker!, request.Profile, worker!.EmploymentType, timeProvider, worker.Version));
+            if (request.PersonId.HasValue && !string.IsNullOrWhiteSpace(request.Profile.FirstName))
+            {
+                LabourAccess.ApplyDomainAction(nameof(request.Profile), () => person.UpdateIdentity(
+                    WorkerProfileUpdater.Name(request.Profile, person.DisplayName), person.Phone, person.Version));
+            }
+        }
+        await WorkerNumberRules.RequireUniqueAsync(labourRepository, worker!, cancellationToken);
         labourRepository.Add(worker!);
         labourRepository.Add(AuditEvent.Create(tenant.Id, farm.Id, nameof(WorkerProfile), worker!.Id,
             "WorkerRegistered", userId, LabourAccess.SecurityRole(tenant, userId), person.Id,
             timeProvider.GetUtcNow(), LabourAccess.CorrelationId(user), null,
             "Worker registered with protected national-ID evidence."));
         await labourRepository.SaveChangesAsync(cancellationToken);
-        return new WorkerDetailsDto(LabourMapper.Worker(farm, worker), []);
+        return LabourMapper.Details(farm, worker, []);
     }
 }

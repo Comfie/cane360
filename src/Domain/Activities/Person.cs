@@ -89,6 +89,19 @@ public sealed class Person : BaseAuditableEntity
         Version++;
     }
 
+    public void UpdateIdentity(string displayName, string? phone, long expectedVersion)
+    {
+        RequireVersion(expectedVersion);
+        ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
+        if (displayName.Trim().Length > 120 || phone?.Trim().Length > 30)
+        {
+            throw new ArgumentException("Person name or phone exceeds supported length.");
+        }
+        DisplayName = displayName.Trim();
+        Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
+        Version++;
+    }
+
     public void EndRole(Guid assignmentId, DateOnly effectiveTo, long expectedVersion)
     {
         RequireVersion(expectedVersion);

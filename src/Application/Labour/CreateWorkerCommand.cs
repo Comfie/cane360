@@ -6,4 +6,5 @@ public sealed record CreateWorkerCommand(
     string? Phone,
     string EmploymentType,
     DateOnly ActiveFrom,
-    string NationalId) : IRequest<WorkerDetailsDto>;
+    string NationalId,
+    WorkerProfileInput? Profile = null) : IRequest<WorkerDetailsDto>;
