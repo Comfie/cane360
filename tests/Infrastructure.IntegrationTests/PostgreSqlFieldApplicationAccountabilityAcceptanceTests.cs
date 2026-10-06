@@ -231,6 +231,165 @@ public sealed class PostgreSqlFieldApplicationAccountabilityAcceptanceTests
         (await verify.AuditEvents.CountAsync(x => x.TenantId == scenario.TenantId && x.Action == "ManagerConfirmed")).ShouldBe(1);
     }
 
+    [Test]
+    [Category("CR014PostMigration")]
+    public async Task CategoryMetadataLeavesCompleteLedgerAndAccountabilityHistoryUnchanged()
+    {
+        Scenario scenario = await CreateScenarioAsync();
+        Guid fieldReceipt = await RecordReceiptAsync(scenario, 10m);
+        Guid application = await CreateAttestedApplicationAsync(scenario, fieldReceipt, 4m);
+        await ConfirmAsync(scenario, application, "cr014-confirm");
+        Guid stockReturn = await CreateReturnAsync(scenario, 2m);
+        await PostReturnAsync(scenario, stockReturn, "cr014-return");
+        await ReverseReturnAsync(scenario, stockReturn, "cr014-return-reverse");
+        Guid loss = await CreateSubmittedLossAsync(scenario, 2m);
+        await DecideLossAsync(scenario, loss, ApprovalOutcome.Approved, "cr014-loss");
+        Guid correctedApplication = await CreateAttestedApplicationAsync(scenario, fieldReceipt, 1m);
+        await ConfirmAsync(scenario, correctedApplication, "cr014-corrected-confirm");
+        Guid correction = await RequestApplicationCorrectionAsync(scenario, correctedApplication);
+        await DecideCorrectionAsync(scenario, correction, "cr014-correction");
+
+        Dictionary<string, string> before = await CategoryIntegritySnapshotAsync(scenario);
+        InventoryCategoryDto category;
+        await using (ApplicationDbContext context = CreateContext())
+        {
+            InventoryRepository inventory = new(context);
+            InventoryCategory existing = (await inventory.GetCategoriesAsync(scenario.TenantId, false, default))
+                .Single(value => value.Code == "Other");
+            category = await new UpdateInventoryCategoryCommandHandler(new FarmSetupRepository(context), inventory,
+                new AcceptanceUser(scenario.ManagerUserId), TimeProvider.System)
+                .Handle(new(existing.Id, "General farm supplies", "CR-01.4 synthetic rename", 9, existing.Version), default);
+        }
+        await using (ApplicationDbContext context = CreateContext())
+        {
+            category = await new SetInventoryCategoryActiveCommandHandler(new FarmSetupRepository(context),
+                new InventoryRepository(context), new AcceptanceUser(scenario.ManagerUserId), TimeProvider.System)
+                .Handle(new(category.Id, false, category.Version), default);
+            InventoryItem item = await context.InventoryItems.AsNoTracking().SingleAsync(value => value.TenantId == scenario.TenantId);
+            item.Category.ShouldBe("Other");
+            UnitOfMeasure unit = await context.UnitOfMeasures.AsNoTracking().SingleAsync(value => value.TenantId == scenario.TenantId);
+            await Should.ThrowAsync<Cane360.Application.Common.Exceptions.ValidationException>(() =>
+                new CreateInventoryItemCommandHandler(new FarmSetupRepository(context), new InventoryRepository(context),
+                    new AcceptanceUser(scenario.ManagerUserId), TimeProvider.System).Handle(
+                    new("INACTIVE", "Synthetic inactive assignment", "Other", unit.Id, null, "None", "None"), default));
+        }
+        (await CategoryIntegritySnapshotAsync(scenario)).ShouldBe(before);
+        await using (ApplicationDbContext context = CreateContext())
+        {
+            InventoryRepository inventory = new(context);
+            category = await new SetInventoryCategoryActiveCommandHandler(new FarmSetupRepository(context), inventory,
+                new AcceptanceUser(scenario.ManagerUserId), TimeProvider.System).Handle(new(category.Id, true, category.Version), default);
+            InventoryCategoryDto created = await new CreateInventoryCategoryCommandHandler(new FarmSetupRepository(context), inventory,
+                new AcceptanceUser(scenario.ManagerUserId), TimeProvider.System).Handle(new("CR014", "Synthetic custom category", null, 10), default);
+            created.Active.ShouldBeTrue();
+            (await inventory.GetCategoriesAsync(scenario.TenantId, false, default)).ShouldContain(value => value.Id == created.Id);
+            (await context.AuditEvents.AsNoTracking().Where(value => value.TenantId == scenario.TenantId && value.SubjectId == category.Id)
+                .Select(value => value.Action).ToArrayAsync()).ShouldBe(new[] {"Updated", "Deactivated", "Activated"}, ignoreOrder: true);
+            await Should.ThrowAsync<ForbiddenAccessException>(() => new CreateInventoryCategoryCommandHandler(
+                new FarmSetupRepository(context), inventory, new AcceptanceUser(scenario.GrowerUserId), TimeProvider.System)
+                .Handle(new("OWNER", "Owner forbidden", null, 0), default));
+        }
+        (await CategoryIntegritySnapshotAsync(scenario)).ShouldBe(before);
+    }
+
+    [Test]
+    [Category("CR014PostMigration")]
+    public async Task CategoryRepositoryAndCommandsRejectOtherSyntheticTenant()
+    {
+        Scenario own = await CreateScenarioAsync();
+        Scenario other = await CreateScenarioAsync();
+        await using ApplicationDbContext context = CreateContext();
+        InventoryRepository inventory = new(context);
+        InventoryCategory otherCategory = (await inventory.GetCategoriesAsync(other.TenantId, false, default)).First();
+        (await inventory.GetCategoryAsync(own.TenantId, otherCategory.Id, true, default)).ShouldBeNull();
+        (await inventory.GetCategoriesAsync(own.TenantId, false, default)).ShouldAllBe(category => category.TenantId == own.TenantId);
+        await Should.ThrowAsync<Ardalis.GuardClauses.NotFoundException>(() => new UpdateInventoryCategoryCommandHandler(
+            new FarmSetupRepository(context), inventory, new AcceptanceUser(own.ManagerUserId), TimeProvider.System)
+            .Handle(new(otherCategory.Id, "Cross tenant", null, 0, otherCategory.Version), default));
+        await Should.ThrowAsync<Ardalis.GuardClauses.NotFoundException>(() => new SetInventoryCategoryActiveCommandHandler(
+            new FarmSetupRepository(context), inventory, new AcceptanceUser(own.ManagerUserId), TimeProvider.System)
+            .Handle(new(otherCategory.Id, false, otherCategory.Version), default));
+    }
+
+    [Test]
+    [Category("CR014PostMigration")]
+    public async Task CategoryConcurrentEditsRejectLostUpdate()
+    {
+        Scenario scenario = await CreateScenarioAsync();
+        await using ApplicationDbContext first = CreateContext();
+        await using ApplicationDbContext second = CreateContext();
+        InventoryRepository firstRepository = new(first);
+        InventoryRepository secondRepository = new(second);
+        InventoryCategory category = (await firstRepository.GetCategoriesAsync(scenario.TenantId, true, default)).First();
+        InventoryCategory stale = (await secondRepository.GetCategoriesAsync(scenario.TenantId, true, default)).Single(value => value.Id == category.Id);
+        category.Update("First edit", null, 0, category.Version);
+        stale.Update("Second edit", null, 0, stale.Version);
+        await firstRepository.SaveChangesAsync(default);
+        await Should.ThrowAsync<ConflictException>(() => secondRepository.SaveChangesAsync(default));
+    }
+
+    [Test]
+    [Category("CR014PostMigration")]
+    public async Task CategoryDatabaseEnforcesNormalizedUniquenessAndTenantItemReference()
+    {
+        Scenario own = await CreateScenarioAsync();
+        Scenario other = await CreateScenarioAsync();
+        await using (ApplicationDbContext context = CreateContext())
+        {
+            context.InventoryCategories.Add(InventoryCategory.Create(other.TenantId, "OTHERONLY", "Other tenant only"));
+            await context.SaveChangesAsync();
+        }
+        await using (ApplicationDbContext context = CreateContext())
+        await using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            context.InventoryCategories.Add(InventoryCategory.Create(own.TenantId, "UNIQUE", " other "));
+            DbUpdateException exception = await Should.ThrowAsync<DbUpdateException>(() => context.SaveChangesAsync());
+            ((PostgresException)exception.InnerException!).SqlState.ShouldBe(PostgresErrorCodes.UniqueViolation);
+            await transaction.RollbackAsync();
+        }
+        await using (ApplicationDbContext context = CreateContext())
+        await using (var transaction = await context.Database.BeginTransactionAsync())
+        {
+            UnitOfMeasure unit = await context.UnitOfMeasures.SingleAsync(value => value.TenantId == own.TenantId);
+            InventoryItem item = InventoryItem.Create(own.TenantId, own.FarmId, "CROSS", "Synthetic invalid reference",
+                InventoryItemCategory.Other, unit, null, LotTrackingPolicy.None, ExpiryPolicy.None);
+            context.InventoryItems.Add(item);
+            context.Entry(item).Property(value => value.Category).CurrentValue = "OTHERONLY";
+            DbUpdateException exception = await Should.ThrowAsync<DbUpdateException>(() => context.SaveChangesAsync());
+            ((PostgresException)exception.InnerException!).SqlState.ShouldBe(PostgresErrorCodes.ForeignKeyViolation);
+            await transaction.RollbackAsync();
+        }
+    }
+
+    private async Task<Dictionary<string, string>> CategoryIntegritySnapshotAsync(Scenario scenario)
+    {
+        await using ApplicationDbContext context = CreateContext();
+        (await context.Tenants.AsNoTracking().Where(value => value.Id == scenario.TenantId)
+            .Select(value => value.GrowerProfile.DisplayName).SingleAsync()).ShouldStartWith(_runId);
+        Dictionary<string, string> snapshots = new();
+        string[] tables = ["inventory.InventoryItems", "inventory.StockPositions", "inventory.StockReceipts",
+            "inventory.StockReceiptLines", "inventory.StockMovements", "inventory.InputRequests", "inventory.InputRequestLines",
+            "inventory.StockIssues", "inventory.StockIssueLines", "inventory.FieldReceipts", "inventory.FieldReceiptLines",
+            "inventory.InputApplications", "inventory.InputApplicationLines", "inventory.StockReturns", "inventory.StockReturnLines",
+            "inventory.InventoryLosses", "inventory.ApprovalDecisions", "inventory.CorrectionRecords",
+            "inventory.FieldAccountabilityCorrections", "audit.ControlExceptions", "finance.OperationalCostPostings"];
+        await context.Database.OpenConnectionAsync();
+        foreach (string table in tables)
+        {
+            string[] parts = table.Split('.');
+            await using var command = context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = $"SELECT COALESCE(jsonb_agg(to_jsonb(row) ORDER BY row.\"Id\"), '[]'::jsonb)::text FROM {parts[0]}.\"{parts[1]}\" row WHERE row.\"TenantId\" = @tenant";
+            var parameter = command.CreateParameter(); parameter.ParameterName = "tenant"; parameter.Value = scenario.TenantId;
+            command.Parameters.Add(parameter);
+            snapshots.Add(table, (string)(await command.ExecuteScalarAsync())!);
+        }
+        IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)> stock = await new InventoryRepository(context)
+            .GetStockOnHandAsync(scenario.TenantId, scenario.FarmId, default);
+        snapshots.Add("StockOnHand", System.Text.Json.JsonSerializer.Serialize(stock.Select(value => new {
+            value.Position.Id, value.Snapshot.Quantity, value.Snapshot.ValueUsd, value.Snapshot.WeightedAverageUnitCostUsd})));
+        return snapshots;
+    }
+
     private async Task<Scenario> CreateScenarioAsync()
     {
         var label = $"{_runId}-{Guid.NewGuid():N}";

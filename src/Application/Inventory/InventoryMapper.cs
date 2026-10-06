@@ -2,6 +2,9 @@ namespace Cane360.Application.Inventory;
 
 internal static class InventoryMapper
 {
+    public static InventoryCategoryDto Category(InventoryCategory category) =>
+        new(category.Id, category.Code, category.Name, category.Description, category.DisplayOrder, category.Active, category.Version);
+
     public static UnitOfMeasureDto Unit(UnitOfMeasure unit)
     {
         return new UnitOfMeasureDto(
@@ -91,7 +94,9 @@ internal static class InventoryMapper
         IReadOnlyList<InventoryLot> lots,
         IReadOnlyList<StockReceipt> receipts,
         IReadOnlyList<(StockPosition Position, StockLedgerSnapshot Snapshot)> stock,
-        IReadOnlyList<StockMovement> movements)
+        IReadOnlyList<StockMovement> movements,
+        IReadOnlyList<InventoryCategory> categories,
+        bool canManageCategories)
     {
         Dictionary<Guid, InventoryItem> itemMap = items.ToDictionary(item => item.Id);
         Dictionary<Guid, InventoryLot> lotMap = lots.ToDictionary(lot => lot.Id);
@@ -121,6 +126,7 @@ internal static class InventoryMapper
                     item.StockUnitCode, pair.Snapshot.Quantity, pair.Snapshot.ValueUsd,
                     pair.Snapshot.WeightedAverageUnitCostUsd, item.ReorderLevel);
             }).ToArray(),
-            movements.OrderByDescending(movement => movement.PostingSequence).Take(100).Select(Movement).ToArray());
+            movements.OrderByDescending(movement => movement.PostingSequence).Take(100).Select(Movement).ToArray(),
+            categories.Select(Category).ToArray(), canManageCategories);
     }
 }

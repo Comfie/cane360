@@ -7510,6 +7510,345 @@ export class InputControlsClient {
     }
 }
 
+export class InventoryCategoriesClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * List inventory categories
+     * @return OK
+     */
+    listInventoryCategories(): Promise<InventoryCategoryDto[]> {
+        let url_ = this.baseUrl + "/api/inventory/categories";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListInventoryCategories(_response);
+        });
+    }
+
+    protected processListInventoryCategories(response: Response): Promise<InventoryCategoryDto[]> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                if (Array.isArray(resultData200)) {
+                    result200 = [] as any;
+                    for (let item of resultData200)
+                        result200!.push(InventoryCategoryDto.fromJS(item));
+                } else {
+                    result200 = null as any;
+                }
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                let result400: any = null;
+                let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result400 = ValidationProblemDetails.fromJS(resultData400);
+                return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                let result401: any = null;
+                let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result401 = ProblemDetails.fromJS(resultData401);
+                return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                let result403: any = null;
+                let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result403 = ProblemDetails.fromJS(resultData403);
+                return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+                let result404: any = null;
+                let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result404 = ProblemDetails.fromJS(resultData404);
+                return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+                let result409: any = null;
+                let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result409 = ProblemDetails.fromJS(resultData409);
+                return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryCategoryDto[]>(null as any);
+    }
+
+    /**
+     * Create inventory category
+     * @return OK
+     */
+    createInventoryCategory(body: CreateInventoryCategoryRequest): Promise<InventoryCategoryDto> {
+        let url_ = this.baseUrl + "/api/inventory/categories";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateInventoryCategory(_response);
+        });
+    }
+
+    protected processCreateInventoryCategory(response: Response): Promise<InventoryCategoryDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = InventoryCategoryDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                let result400: any = null;
+                let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result400 = ValidationProblemDetails.fromJS(resultData400);
+                return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                let result401: any = null;
+                let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result401 = ProblemDetails.fromJS(resultData401);
+                return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                let result403: any = null;
+                let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result403 = ProblemDetails.fromJS(resultData403);
+                return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+                let result404: any = null;
+                let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result404 = ProblemDetails.fromJS(resultData404);
+                return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+                let result409: any = null;
+                let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result409 = ProblemDetails.fromJS(resultData409);
+                return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryCategoryDto>(null as any);
+    }
+
+    /**
+     * Update inventory category
+     * @return OK
+     */
+    updateInventoryCategory(categoryId: string, body: UpdateInventoryCategoryRequest): Promise<InventoryCategoryDto> {
+        let url_ = this.baseUrl + "/api/inventory/categories/{categoryId}";
+        if (categoryId === undefined || categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' must be defined.");
+        url_ = url_.replace("{categoryId}", encodeURIComponent("" + categoryId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateInventoryCategory(_response);
+        });
+    }
+
+    protected processUpdateInventoryCategory(response: Response): Promise<InventoryCategoryDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = InventoryCategoryDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                let result400: any = null;
+                let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result400 = ValidationProblemDetails.fromJS(resultData400);
+                return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                let result401: any = null;
+                let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result401 = ProblemDetails.fromJS(resultData401);
+                return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                let result403: any = null;
+                let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result403 = ProblemDetails.fromJS(resultData403);
+                return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+                let result404: any = null;
+                let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result404 = ProblemDetails.fromJS(resultData404);
+                return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+                let result409: any = null;
+                let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result409 = ProblemDetails.fromJS(resultData409);
+                return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryCategoryDto>(null as any);
+    }
+
+    /**
+     * Activate or deactivate inventory category
+     * @return OK
+     */
+    setInventoryCategoryActive(categoryId: string, body: SetInventoryCategoryActiveRequest): Promise<InventoryCategoryDto> {
+        let url_ = this.baseUrl + "/api/inventory/categories/{categoryId}/active";
+        if (categoryId === undefined || categoryId === null)
+            throw new globalThis.Error("The parameter 'categoryId' must be defined.");
+        url_ = url_.replace("{categoryId}", encodeURIComponent("" + categoryId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSetInventoryCategoryActive(_response);
+        });
+    }
+
+    protected processSetInventoryCategoryActive(response: Response): Promise<InventoryCategoryDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = InventoryCategoryDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                let result400: any = null;
+                let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result400 = ValidationProblemDetails.fromJS(resultData400);
+                return throwException("Bad Request", status, _responseText, _headers, result400);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                let result401: any = null;
+                let resultData401 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result401 = ProblemDetails.fromJS(resultData401);
+                return throwException("Unauthorized", status, _responseText, _headers, result401);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                let result403: any = null;
+                let resultData403 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result403 = ProblemDetails.fromJS(resultData403);
+                return throwException("Forbidden", status, _responseText, _headers, result403);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+                let result404: any = null;
+                let resultData404 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result404 = ProblemDetails.fromJS(resultData404);
+                return throwException("Not Found", status, _responseText, _headers, result404);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+                let result409: any = null;
+                let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result409 = ProblemDetails.fromJS(resultData409);
+                return throwException("Conflict", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<InventoryCategoryDto>(null as any);
+    }
+}
+
 export class InventoryClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -20553,6 +20892,66 @@ export interface ICreateInventoryApplicationRuleRequest {
     [key: string]: any;
 }
 
+export class CreateInventoryCategoryRequest implements ICreateInventoryCategoryRequest {
+    code!: string;
+    name!: string;
+    description!: string | undefined;
+    displayOrder!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICreateInventoryCategoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.displayOrder = _data["displayOrder"];
+        }
+    }
+
+    static fromJS(data: any): CreateInventoryCategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateInventoryCategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["displayOrder"] = this.displayOrder;
+        return data;
+    }
+}
+
+export interface ICreateInventoryCategoryRequest {
+    code: string;
+    name: string;
+    description: string | undefined;
+    displayOrder: number;
+
+    [key: string]: any;
+}
+
 export class CreateInventoryItemRequest implements ICreateInventoryItemRequest {
     code!: string;
     name!: string;
@@ -25482,6 +25881,78 @@ export interface IInventoryApplicationRuleDto {
     [key: string]: any;
 }
 
+export class InventoryCategoryDto implements IInventoryCategoryDto {
+    id!: string;
+    code!: string;
+    name!: string;
+    description!: string | undefined;
+    displayOrder!: number;
+    active!: boolean;
+    version!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IInventoryCategoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.code = _data["code"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.displayOrder = _data["displayOrder"];
+            this.active = _data["active"];
+            this.version = _data["version"];
+        }
+    }
+
+    static fromJS(data: any): InventoryCategoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new InventoryCategoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["code"] = this.code;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["displayOrder"] = this.displayOrder;
+        data["active"] = this.active;
+        data["version"] = this.version;
+        return data;
+    }
+}
+
+export interface IInventoryCategoryDto {
+    id: string;
+    code: string;
+    name: string;
+    description: string | undefined;
+    displayOrder: number;
+    active: boolean;
+    version: number;
+
+    [key: string]: any;
+}
+
 export class InventoryItemDto implements IInventoryItemDto {
     id!: string;
     code!: string;
@@ -25740,6 +26211,8 @@ export class InventoryWorkspaceDto implements IInventoryWorkspaceDto {
     receipts!: StockReceiptDto[];
     stockOnHand!: StockOnHandDto[];
     recentMovements!: StockMovementDto[];
+    categories!: InventoryCategoryDto[];
+    canManageCategories!: boolean;
 
     [key: string]: any;
 
@@ -25758,6 +26231,7 @@ export class InventoryWorkspaceDto implements IInventoryWorkspaceDto {
             this.receipts = [];
             this.stockOnHand = [];
             this.recentMovements = [];
+            this.categories = [];
         }
     }
 
@@ -25804,6 +26278,12 @@ export class InventoryWorkspaceDto implements IInventoryWorkspaceDto {
                 for (let item of _data["recentMovements"])
                     this.recentMovements!.push(StockMovementDto.fromJS(item));
             }
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(InventoryCategoryDto.fromJS(item));
+            }
+            this.canManageCategories = _data["canManageCategories"];
         }
     }
 
@@ -25857,6 +26337,12 @@ export class InventoryWorkspaceDto implements IInventoryWorkspaceDto {
             for (let item of this.recentMovements)
                 data["recentMovements"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["canManageCategories"] = this.canManageCategories;
         return data;
     }
 }
@@ -25871,6 +26357,8 @@ export interface IInventoryWorkspaceDto {
     receipts: StockReceiptDto[];
     stockOnHand: StockOnHandDto[];
     recentMovements: StockMovementDto[];
+    categories: InventoryCategoryDto[];
+    canManageCategories: boolean;
 
     [key: string]: any;
 }
@@ -31109,6 +31597,58 @@ export interface ISessionSummaryDto {
     [key: string]: any;
 }
 
+export class SetInventoryCategoryActiveRequest implements ISetInventoryCategoryActiveRequest {
+    active!: boolean;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: ISetInventoryCategoryActiveRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.active = _data["active"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): SetInventoryCategoryActiveRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetInventoryCategoryActiveRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["active"] = this.active;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface ISetInventoryCategoryActiveRequest {
+    active: boolean;
+    expectedVersion: number;
+
+    [key: string]: any;
+}
+
 export class SetTransactionAllocationsRequest implements ISetTransactionAllocationsRequest {
     expectedVersion!: number;
     allocations!: TransactionAllocationRequest[];
@@ -33240,6 +33780,66 @@ export interface IUpdateFieldDetailsRequest {
     name: string;
     irrigationMethod: string;
     soilNotes: string | undefined;
+
+    [key: string]: any;
+}
+
+export class UpdateInventoryCategoryRequest implements IUpdateInventoryCategoryRequest {
+    name!: string;
+    description!: string | undefined;
+    displayOrder!: number;
+    expectedVersion!: number;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateInventoryCategoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.displayOrder = _data["displayOrder"];
+            this.expectedVersion = _data["expectedVersion"];
+        }
+    }
+
+    static fromJS(data: any): UpdateInventoryCategoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateInventoryCategoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["displayOrder"] = this.displayOrder;
+        data["expectedVersion"] = this.expectedVersion;
+        return data;
+    }
+}
+
+export interface IUpdateInventoryCategoryRequest {
+    name: string;
+    description: string | undefined;
+    displayOrder: number;
+    expectedVersion: number;
 
     [key: string]: any;
 }

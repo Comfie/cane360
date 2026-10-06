@@ -9,7 +9,7 @@ public sealed class InventoryItem : BaseAuditableEntity
         Guid farmId,
         string code,
         string name,
-        InventoryItemCategory category,
+        string category,
         UnitOfMeasure stockUnit,
         decimal? reorderLevel,
         LotTrackingPolicy lotTrackingPolicy,
@@ -34,7 +34,7 @@ public sealed class InventoryItem : BaseAuditableEntity
     public Guid FarmId { get; private set; }
     public string Code { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
-    public InventoryItemCategory Category { get; private set; }
+    public string Category { get; private set; } = string.Empty;
     public Guid StockUnitId { get; private set; }
     public string StockUnitCode { get; private set; } = string.Empty;
     public string StockUnitName { get; private set; } = string.Empty;
@@ -74,7 +74,23 @@ public sealed class InventoryItem : BaseAuditableEntity
         }
 
         return new InventoryItem(
-            tenantId, farmId, code, name, category, stockUnit, reorderLevel, lotTrackingPolicy, expiryPolicy);
+            tenantId, farmId, code, name, category.ToString(), stockUnit, reorderLevel, lotTrackingPolicy, expiryPolicy);
+    }
+
+    public static InventoryItem Create(
+        Guid tenantId, Guid farmId, string code, string name, InventoryCategory category,
+        UnitOfMeasure stockUnit, decimal? reorderLevel, LotTrackingPolicy lotTrackingPolicy,
+        ExpiryPolicy expiryPolicy)
+    {
+        if (category.TenantId != tenantId || !category.Active)
+        {
+            throw new InvalidOperationException("The category must be active and belong to the same tenant.");
+        }
+
+        InventoryItem item = Create(tenantId, farmId, code, name, InventoryItemCategory.Other,
+            stockUnit, reorderLevel, lotTrackingPolicy, expiryPolicy);
+        item.Category = category.Code;
+        return item;
     }
 
     public void Archive(long expectedVersion)

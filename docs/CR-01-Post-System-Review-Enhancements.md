@@ -2,14 +2,14 @@
 
 ## Requirements lock (CR-01.0)
 
-CR-01.0, CR-01.1, CR-01.2 and CR-01.3 are complete. Git closure records are below; CR-01.4 and later slices remain outside the authorized scope.
+CR-01.0, CR-01.1, CR-01.2 and CR-01.3 are complete. Git closure records are below; CR-01.4 Inventory Category Administration is now implemented; its validation record is below. CR-01.5 remains unstarted.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
 | CR-01.2 | Field/Crop UX | Complete; implemented, validated and merged into main |
 | CR-01.3 | Employee Master | Complete; implemented, validated, migrated to Railway Development and merged into main |
-| CR-01.4 | Inventory Category Administration | Not started |
+| CR-01.4 | Inventory Category Administration | Complete; implemented, validated and migrated to Railway Development; uncommitted |
 | CR-01.5 | Regression/Integration | Deferred |
 | CR-01.6 | Release Closure | Deferred |
 
@@ -505,3 +505,151 @@ The staged feature set exactly matched the reviewed 48-file CR-01.3 manifest. Or
 Known limitations remain unchanged: reference-only photographs with no uploads/storage service; optional Employee Numbers without automatic generation or legacy backfill; immutable ActiveFrom employment date; existing archive semantics without reactivation; paired structured-name length bounded by the existing Person display name; one current next-of-kin contact; existing bundle-size advisory. Earlier browser validation at 1440/768/390/360 px used synthetic intercepted responses. No additional product changes, browser redesign or deployment smoke were part of Git closure. No application deployment was performed or verified; a Git push alone does not establish deployment success.
 
 Main is ready for a normal push after this documentation-only commit; successful push and synchronized final main/origin/main are confirmed in the final user closure report. The feature branch is retained. CR-01.4 and new Phase 8 functionality have NOT started. CR-01.3 Git closure is the stopping boundary.
+
+
+## CR-01.4 — Inventory Category Administration: design before implementation
+
+Authorized baseline: `87148403f5f997bef276f8db0d8e78a84ce8d6cc`; branch `feature/cr-01-4-inventory-categories`. No commit/push/merge is authorized. CR-01.5 remains unstarted.
+
+Existing architecture: InventoryItemCategory is an enum (Fertiliser, Chemical, SeedAndPlantingMaterial, Other), persisted as a 40-character string on InventoryItems. Item creation accepts that string; no item update/recategorization capability exists. Categories are only catalogue classification, not transaction or costing rules. Receipts, issues, field receipts, applications, returns, losses, counts, adjustments, corrections and reversals reference stable item/line IDs and snapshot item/unit/lot details; they do not snapshot categories. Moving weighted average derives quantity/value from StockMovements; issue cost locks at posting; application/loss cost postings use locked issue cost. OperationalCostCategory is an independent enum and remains untouched. Suppliers and units are existing tenant/farm master data. Reports derive ledger/accountability/cost information independently of item category names.
+
+Chosen smallest additive model: InventoryCategory (GUID primary key, tenant ownership, immutable Code, editable Name/Description/DisplayOrder, Active, optimistic Version, existing auditable metadata). Retain InventoryItems.Category column and exact legacy strings as stable codes, with a restrictive composite (Category,TenantId) foreign key to (Code,TenantId). This uses the established tenant reference-data key pattern without an item backfill or ledger rewrite. Domain item creation resolves an active category in the same tenant; no item recategorization is introduced. New codes normalize to uppercase, while the four existing mixed-case enum identifiers are explicitly preserved. Codes are immutable from creation, including before first use. Names are trimmed and tenant-unique by uppercase normalized name (including inactive categories); description max 500, name max 120, display order 0–10000. No hard-delete operation.
+
+Migration is required for the category table and restrictive tenant foreign key. Seed exactly the four existing category options per existing tenant, using exact codes and existing humanized labels (Fertiliser, Chemical, Seed And Planting Material, Other); also preserve any distinct persisted category string verbatim if one exists outside the enum. Each (tenant,code) receives one deterministic GUID derived from tenant/code. No item row changes; no arbitrary reclassification. New tenants receive the same four legacy defaults at explicit tenant creation, never on application startup or reads. No examples such as Fuel/PPE are seeded. Category audit facts use the existing AuditEvent infrastructure and stable category subject ID; no separate audit subsystem.
+
+Category management belongs in Inventory Catalogue using compact existing cards/dialogs. Only FarmManager may administer; Farm Owner retains read access and does not gain administration; supervisors may consume tenant category data. Item creation offers only active categories. Existing inactive item categories remain readable with an inactive label; category deactivation does not archive items or block existing stock operations. Current catalogue names follow current category metadata; existing transaction snapshots and facts remain unchanged.
+
+Integrity strategy: category commands load/save only category master data and append safe AuditEvent facts. No posting handlers, quantity/value algorithms, inventory ledger facts, prior audit facts, or statutory payroll are changed. Focused tests and labelled synthetic Railway before/after assertions must verify quantities, movement facts, locked costs, accountability and OperationalCostPostings. Pre-migration build/test/lint/typecheck/production-build gate must pass before applying the single migration.
+
+Pre-implementation Railway Development status (2026-10-06): 22 applied, 0 pending; latest `20261005221527_AddEmployeeMasterEnhancements`. Validation and acceptance are pending. The Down path explicitly raises an exception instead of dropping configurable category data; rollback is unsupported and requires a forward remediation.
+
+
+### CR-01.4 implementation and validation record
+
+Tenant-owned `inventory.InventoryCategories` is implemented. The GUID primary key and Code are stable from creation. Editable fields are Name (required, trimmed, max 120), Description (optional, max 500), DisplayOrder (0–10000), and Active through an explicit versioned status command. Version is an EF concurrency token. Created/LastModified and actor metadata use existing auditable infrastructure. NormalizedName enforces uppercase/trimmed tenant uniqueness even for inactive categories; a database-generated NormalizedCode enforces case-insensitive tenant code uniqueness. New codes normalize to uppercase (max 40; letters/digits/underscore/hyphen). Legacy mixed-case codes remain exact. No delete operation exists; the restrictive category/item FK also prevents deleting a referenced category at the database boundary.
+
+Items retain the original `Category` column as a stable code. The FK `(Category,TenantId) -> (Code,TenantId)` resolves the category identity in the item's own tenant. This deliberately avoids changing any item row or item/ledger primary key. The legacy enum is retained for default initialization and existing trusted domain fixtures; public item creation resolves a configured, active, same-tenant category. Existing inactive categories remain readable; existing items remain active and their stock workflows remain usable. No item edit or recategorization workflow is introduced. Transaction item/unit/lot snapshots are preserved; current Catalogue category labels follow current category metadata. Existing reports and OperationalCostCategory are untouched.
+
+Authorization reuses MediatR tenant-role attributes and the existing membership infrastructure. Only FarmManager may create/update/activate/deactivate categories. Handlers additionally check the manager membership. Category listing permits active operational tenant members, including supervisors; Inventory workspace/navigation retain their existing visibility restrictions. Farm Owner retains visibility without acquiring category management. Workspace exposes Categories and CanManageCategories for the compact Inventory > Catalogue UI. AuditEvent facts use InventoryCategory as subject type and its stable GUID as SubjectId; Created, Updated, Activated and Deactivated are appended with code/name/status/order summaries. No old audit facts are rewritten and no second audit system is introduced.
+
+API additions (existing Inventory Item contract retained):
+
+| Method | Route | Behavior |
+| --- | --- | --- |
+| GET | `/api/inventory/categories` | Tenant category list, including inactive references |
+| POST | `/api/inventory/categories` | Manager creates category |
+| PUT | `/api/inventory/categories/{categoryId}` | Manager edits name/description/order with ExpectedVersion |
+| POST | `/api/inventory/categories/{categoryId}/active` | Manager sets Active with ExpectedVersion |
+
+Generated TypeScript client was refreshed. Catalogue uses existing compact cards, forms, dialog focus behavior, status pills, edit actions and explicit deactivation confirmation. Code is read-only on edit. Internal IDs, tenant IDs, audit fields and version tokens are not editable controls. New Inventory Item selectors use active configured categories, ordered by DisplayOrder/name. Existing items resolve renamed/inactive labels. Shared SimpleForm awaits save/refresh completion so category errors use the existing error surface. Desktop and 390px mobile screenshots were inspected; no horizontal overflow. Browser API fixtures are synthetic and separate from Railway acceptance.
+
+Migration required: **Yes**, `20261006170131_AddInventoryCategoryAdministration`. One additive migration creates the category table, normalized uniqueness indexes, item category index and restrictive tenant/code FK. Seed maps each exact legacy code to its existing display label:
+
+| Existing item category / immutable code | Initial category name | Order |
+| --- | --- | --- |
+| Fertiliser | Fertiliser | 0 |
+| Chemical | Chemical | 1 |
+| SeedAndPlantingMaterial | Seed And Planting Material | 2 |
+| Other | Other | 3 |
+
+Each existing tenant receives exactly these previously available defaults. Any additional distinct persisted code is preserved verbatim as its own code/name (order 4), never collapsed or arbitrarily remapped. Seed GUID is `md5(tenant UUID text + ':inventory-category:' + exact code)::uuid`, deterministic per tenant/code. Case/name conflicts would abort transactionally rather than merge categories. Newly created tenants initialize the same four defaults only during explicit tenant creation. No Fuel/PPE/etc. business examples are seeded. Existing item rows are never backfilled or rewritten. Manual migration/forward-SQL inspection confirmed no ledger drops, item updates, movement rewrites, quantity/cost changes, historical FK removal, or cross-tenant mapping. SQL is transactional and was applied once after the green gate. Down refuses potentially lossy rollback and performs no drop.
+
+Railway Development: baseline 22 applied/0 pending; immediately before apply 22 applied/1 pending (only this migration); after apply **23 applied/0 pending**. Latest applied is `20261006170131_AddInventoryCategoryAdministration`. No reset, recreation, rollback, cleanup or automatic migration execution was performed.
+
+| Validation | Result |
+| --- | --- |
+| .NET solution build | Passed, 0 warnings / 0 errors |
+| Application tests | 481/481 passed |
+| Web/API tests | 138/138 passed |
+| Focused CR-01.4 Application | 23/23 passed |
+| Focused CR-01.4 API/schema/migration | 10/10 passed |
+| Frontend tests | 132/132 passed, including 7 category checks |
+| Frontend lint / typecheck | Passed / passed |
+| Frontend production build | Passed; existing bundle-size advisory remains |
+| EF model parity | Clean after migration generation |
+| Synthetic legacy fixture before migration | 1/1 passed |
+| CR-01.4 Railway acceptance | 5/5 passed |
+| Browser category checks | 9 passed; desktop and 390px responsive layout inspected |
+| Existing targeted Railway inventory regressions | 15/15 passed |
+
+Focused Railway acceptance covers category creation and audit, rename/description/order updates, deactivation/reactivation, inactive assignment rejection, historical item readability, owner denial, tenant-scoped listing/edit/status, composite FK rejection, normalized-name uniqueness and genuine two-context optimistic concurrency. Legacy fixture `AUTOTEST-CR014-LEGACY-20261006190611-50c0442372314603a7e1d1fd7d6ad78c` (tenant `6ff0d7c6-8d3c-4bb9-a59d-4b28f38e3b3d`) was retained before migration. Exact JSON facts for InventoryItems, StockPositions, StockReceipts, StockReceiptLines and StockMovements matched afterwards; all four legacy categories/labels survived. Stock remained **17 units / USD 46.75 / USD 2.75 average unit cost**.
+
+Strong category-operation acceptance creates a uniquely labelled synthetic tenant with posted receipt and issue, field receipt, confirmed application, posted/reversed return, approved loss, approved accountability correction and cost reversals. It captures entire rows across **21 tables** plus stock quantity/value/moving-average cost, renames/deactivates/reactivates a used category, creates another category, and compares before/after facts exactly. Results: unchanged item identity, balances, receipt relationships, movement quantities/values/counts, locked issue costs, application costs/accountability, returns, losses, correction/reversal references, approvals and OperationalCostPostings. Category metadata/audit additions are the only changes. Constraint tests roll back only their own uncommitted invalid attempts; committed labelled synthetic fixtures remain. No non-test tenant was queried by acceptance assertions or modified by tests.
+
+Known limitations: no category deletion; no item editing/recategorization (existing behavior); immutable codes including unused categories; metadata follows current category display rather than adding category snapshots; no new valuation, reporting, warehouse, lot, expiry, procurement or other inventory capabilities; browser checks use synthetic API responses while persisted backend behavior is separately verified against Railway. Migration rollback is intentionally unsupported. Existing frontend bundle-size advisory remains.
+
+Scope/preservation: no statutory payroll changes, new Phase 8 functionality, general inventory redesign, or CR-01.5 work. All 89 original unrelated untracked files were hash-checked and remain unchanged/untracked. Pre-existing Phase 8 tracked files remain at baseline; the index is empty. No commit/push/merge was performed and HEAD remains the authorized baseline.
+
+Changed/new files:
+
+- `docs/CR-01-Post-System-Review-Enhancements.md`
+- `src/Application/Common/Interfaces/IInventoryRepository.cs`
+- `src/Application/Inventory/CreateInventoryCategoryCommand.cs`
+- `src/Application/Inventory/CreateInventoryCategoryCommandHandler.cs`
+- `src/Application/Inventory/CreateInventoryCategoryCommandValidator.cs`
+- `src/Application/Inventory/CreateInventoryItemCommandHandler.cs`
+- `src/Application/Inventory/CreateInventoryItemCommandValidator.cs`
+- `src/Application/Inventory/GetInventoryCategoriesQuery.cs`
+- `src/Application/Inventory/GetInventoryCategoriesQueryHandler.cs`
+- `src/Application/Inventory/GetInventoryWorkspaceQueryHandler.cs`
+- `src/Application/Inventory/InventoryAudit.cs`
+- `src/Application/Inventory/InventoryCategoryDto.cs`
+- `src/Application/Inventory/InventoryMapper.cs`
+- `src/Application/Inventory/InventoryWorkspaceDto.cs`
+- `src/Application/Inventory/SetInventoryCategoryActiveCommand.cs`
+- `src/Application/Inventory/SetInventoryCategoryActiveCommandHandler.cs`
+- `src/Application/Inventory/SetInventoryCategoryActiveCommandValidator.cs`
+- `src/Application/Inventory/UpdateInventoryCategoryCommand.cs`
+- `src/Application/Inventory/UpdateInventoryCategoryCommandHandler.cs`
+- `src/Application/Inventory/UpdateInventoryCategoryCommandValidator.cs`
+- `src/Domain/Farms/Tenant.cs`
+- `src/Domain/Inventory/InventoryCategory.cs`
+- `src/Domain/Inventory/InventoryItem.cs`
+- `src/Infrastructure/Data/ApplicationDbContext.cs`
+- `src/Infrastructure/Data/Configurations/InventoryCategoryConfiguration.cs`
+- `src/Infrastructure/Data/Configurations/InventoryItemConfiguration.cs`
+- `src/Infrastructure/Data/Configurations/TenantConfiguration.cs`
+- `src/Infrastructure/Data/InventoryRepository.cs`
+- `src/Infrastructure/Data/Migrations/20261006170131_AddInventoryCategoryAdministration.Designer.cs`
+- `src/Infrastructure/Data/Migrations/20261006170131_AddInventoryCategoryAdministration.cs`
+- `src/Infrastructure/Data/Migrations/ApplicationDbContextModelSnapshot.cs`
+- `src/Web/ClientApp/package.json`
+- `src/Web/ClientApp/src/components/inventory/inventoryCategoryApi.ts`
+- `src/Web/ClientApp/src/components/inventory/inventoryCategoryView.test.ts`
+- `src/Web/ClientApp/src/components/inventory/inventoryCategoryView.ts`
+- `src/Web/ClientApp/src/components/pages/InventoryPage.tsx`
+- `src/Web/ClientApp/src/styles.scss`
+- `src/Web/ClientApp/src/web-api-client.ts`
+- `src/Web/Controllers/InventoryCategoriesController.cs`
+- `src/Web/Models/Inventory/CreateInventoryCategoryRequest.cs`
+- `src/Web/Models/Inventory/SetInventoryCategoryActiveRequest.cs`
+- `src/Web/Models/Inventory/UpdateInventoryCategoryRequest.cs`
+- `tests/Application.UnitTests/Inventory/InventoryCategoryTests.cs`
+- `tests/Infrastructure.IntegrationTests/PostgreSqlFieldApplicationAccountabilityAcceptanceTests.cs`
+- `tests/Infrastructure.IntegrationTests/PostgreSqlInventoryCategoryLegacyAcceptanceTests.cs`
+- `tests/Web.UnitTests/Controllers/InventoryCategoriesControllerTests.cs`
+- `tests/Web.UnitTests/Controllers/OpenApiCoverageTests.cs`
+- `tests/Web.UnitTests/Infrastructure/InventoryCategoryModelTests.cs`
+
+
+Final CR-01.4 design checks:
+
+1. Category GUIDs are stable; immutable tenant codes preserve item references.
+2. Names can be edited without changing ledger facts (verified persisted before/after).
+3. Used categories cannot be hard deleted: no delete operation and restrictive FK.
+4. Inactive categories remain readable historically.
+5. Inactive categories cannot be newly assigned through item creation.
+6. Existing stock quantities are unchanged.
+7. Moving-average costs are unchanged.
+8. Historical locked issue costs are unchanged.
+9. Application costs are unchanged.
+10. Reversals/losses/returns and correction relationships are unchanged.
+11. OperationalCostPostings are unchanged by category administration.
+12. Tenant isolation is preserved at query/command/domain/FK boundaries.
+13. No general inventory redesign was introduced.
+14. All 89 unrelated untracked files and pre-existing Phase 8 work were preserved.
+15. CR-01.5 remains unstarted.
+
+Final targeted Railway regression result: **15/15 passed** (receipt idempotency/concurrency, posting-order moving average, reversal guards and links, tenant isolation, issue concurrency/idempotency/draft behavior, effective-rule exclusion, field receipt limits, cost posting retry/correction, locked return/reversal valuation, adjustment reversal and historic cutoff). Tests attempting destructive ledger mutations were excluded. Together with focused CR-01.4 Railway acceptance (**5/5**) and pre-migration legacy preparation (**1/1**), all selected persisted checks are green.
+
+Final working state: branch `feature/cr-01-4-inventory-categories`; HEAD `87148403f5f997bef276f8db0d8e78a84ce8d6cc`. 48 CR-01.4 files changed/new (21 tracked modifications and 27 new files), all unstaged; existing unrelated untracked paths preserved. Index empty, diff whitespace check clean. No commit, push, merge or CR-01.5/release closure was started.

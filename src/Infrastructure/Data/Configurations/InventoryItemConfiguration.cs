@@ -22,7 +22,11 @@ internal sealed class InventoryItemConfiguration : IEntityTypeConfiguration<Inve
         builder.Property(entity => entity.Id).ValueGeneratedNever();
         builder.Property(entity => entity.Code).HasMaxLength(30).IsRequired();
         builder.Property(entity => entity.Name).HasMaxLength(120).IsRequired();
-        builder.Property(entity => entity.Category).HasConversion<string>().HasMaxLength(40);
+        builder.Property(entity => entity.Category).HasMaxLength(40).IsRequired();
+        builder.HasOne<InventoryCategory>().WithMany()
+            .HasForeignKey(entity => new { entity.Category, entity.TenantId })
+            .HasPrincipalKey(category => new { category.Code, category.TenantId })
+            .OnDelete(DeleteBehavior.Restrict);
         builder.Property(entity => entity.StockUnitCode).HasMaxLength(20).IsRequired();
         builder.Property(entity => entity.StockUnitName).HasMaxLength(80).IsRequired();
         builder.Property(entity => entity.ReorderLevel).HasPrecision(18, 6);

@@ -4,6 +4,14 @@ namespace Cane360.Application.Common.Interfaces;
 
 public interface IInventoryRepository
 {
+    Task<IReadOnlyList<InventoryCategory>> GetCategoriesAsync(Guid tenantId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    Task<InventoryCategory?> GetCategoryAsync(Guid tenantId, Guid categoryId, bool trackChanges,
+        CancellationToken cancellationToken);
+
+    void Add(InventoryCategory category);
+
     Task<IReadOnlyList<UnitOfMeasure>> GetUnitsAsync(Guid tenantId, bool trackChanges,
         CancellationToken cancellationToken);
 

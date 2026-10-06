@@ -15,13 +15,14 @@ public sealed class OpenApiCoverageTests
             typeof(AdministrationController),
             typeof(PayrollController),
             typeof(InventoryController),
+            typeof(InventoryCategoriesController),
             typeof(WorkerRatesController)
         ];
         var actions = controllers.SelectMany(controller => controller.GetMethods()
             .Where(method => method.GetCustomAttributes(typeof(HttpMethodAttribute), false).Length > 0))
             .ToArray();
 
-        actions.Length.ShouldBe(88);
+        actions.Length.ShouldBe(92);
         foreach (var action in actions)
         {
             var attributes = action.GetCustomAttributes(false);

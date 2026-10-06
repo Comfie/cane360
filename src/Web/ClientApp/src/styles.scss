@@ -8631,3 +8631,17 @@ body :focus-visible {
 .farm-profile-form legend { font-weight: 650; font-size: var(--type-base); }
 .farm-model-row { display: flex; gap: var(--space-3); align-items: center; justify-content: space-between; margin-top: var(--space-2); }
 @media (max-width: 39.99rem) { .farm-model-row { flex-wrap: wrap; } }
+
+// CR-01.4 compact category metadata uses the existing catalogue layout.
+.inventory-category-section .catalogue-list > article {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.inventory-category-section .catalogue-list > article > span {
+  min-width: 0;
+  flex: 1 1 12rem;
+  overflow-wrap: anywhere;
+}
+.inventory-category-section .row-actions {
+  flex-wrap: wrap;
+}

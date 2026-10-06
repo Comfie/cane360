@@ -1,9 +1,11 @@
 using Cane360.Domain.Activities;
+using Cane360.Domain.Inventory;
 
 namespace Cane360.Domain.Farms;
 
 public sealed class Tenant : BaseAuditableEntity
 {
+    private readonly List<InventoryCategory> _inventoryCategories = [];
     private readonly List<ActivityType> _activityTypes = [];
     private readonly List<CropVariety> _cropVarieties = [];
     private readonly List<Farm> _farms = [];
@@ -17,7 +19,11 @@ public sealed class Tenant : BaseAuditableEntity
         Status = RecordStatus.Active;
         GrowerProfile = GrowerProfile.Create(Id, growerDisplayName, growerPhone);
         _memberships.Add(TenantMembership.CreateGrower(Id, userId));
+        _inventoryCategories.AddRange(Enum.GetValues<InventoryItemCategory>()
+            .Select(category => InventoryCategory.CreateLegacy(Id, category)));
     }
+
+    public IReadOnlyCollection<InventoryCategory> InventoryCategories => _inventoryCategories.AsReadOnly();
 
     public string TenantCode { get; private set; } = string.Empty;
     public RecordStatus Status { get; private set; }

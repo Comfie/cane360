@@ -27,6 +27,10 @@ public sealed class GetInventoryWorkspaceQueryHandler(
             await inventoryRepository.GetStockOnHandAsync(tenant.Id, farm.Id, cancellationToken);
         IReadOnlyList<StockMovement> movements =
             await inventoryRepository.GetMovementsAsync(tenant.Id, farm.Id, null, cancellationToken);
-        return InventoryMapper.Workspace(tenant, farm, units, items, suppliers, lots, receipts, stock, movements);
+        IReadOnlyList<InventoryCategory> categories =
+            await inventoryRepository.GetCategoriesAsync(tenant.Id, false, cancellationToken);
+        bool canManageCategories = InventoryAccess.SecurityRole(tenant, userId) == TenantSecurityRoles.FarmManager;
+        return InventoryMapper.Workspace(tenant, farm, units, items, suppliers, lots, receipts, stock, movements,
+            categories, canManageCategories);
     }
 }
