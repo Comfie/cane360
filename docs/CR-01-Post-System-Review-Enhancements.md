@@ -2,13 +2,13 @@
 
 ## Requirements lock (CR-01.0)
 
-CR-01.0, CR-01.1 and CR-01.2 are complete. CR-01.2 Git closure is recorded below. CR-01.3 implementation and validation are authorized without Git closure; CR-01.4 and later slices remain outside the current scope.
+CR-01.0, CR-01.1, CR-01.2 and CR-01.3 are complete. Git closure records are below; CR-01.4 and later slices remain outside the authorized scope.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
 | CR-01.2 | Field/Crop UX | Complete; implemented, validated and merged into main |
-| CR-01.3 | Employee Master | Implemented and validated; migrated to Railway Development; Git closure not performed |
+| CR-01.3 | Employee Master | Complete; implemented, validated, migrated to Railway Development and merged into main |
 | CR-01.4 | Inventory Category Administration | Not started |
 | CR-01.5 | Regression/Integration | Deferred |
 | CR-01.6 | Release Closure | Deferred |
@@ -369,7 +369,7 @@ Create remains compact: First Name, Surname, Employee Type, Employment Date and 
 
 National ID AES-GCM storage, farm-scoped HMAC uniqueness, masking, key management and exact Grower-only audited reveal remain. A dedicated Grower-only correction endpoint uses the existing CorrectNationalId domain operation, protects new values, excludes the current worker in duplicate checks, and records no secret values. New profile access uses existing Grower/FarmManager membership scope; Supervisor gains no access and Farm Owner gains no new privilege.
 
-Photograph follows CR-01.1: bounded opaque metadata reference only, no binary, upload service or external-image fetching. An additive migration is required for nullable profile columns and the optional tenant number index. Gates and acceptance results will be recorded after execution.
+Photograph follows CR-01.1: bounded opaque metadata reference only, no binary, upload service or external-image fetching. An additive migration is required for nullable profile columns and the optional tenant number index. Gates and acceptance results are recorded below.
 
 ### CR-01.3 implementation and validation results
 
@@ -414,7 +414,7 @@ Known limitations: photograph references only, with no upload/storage service/im
 
 Final design checks: no second Employee aggregate; no changed Worker primary keys; no rewritten attendance/labour/payroll foreign keys; no weaker National ID protection/authorization; legacy null enrichment remains valid with no fabricated data; compact five-field Create and full Edit available; Employee business terminology with Worker internals retained; NSSA/NEC/PAYE untouched. All 89 original unrelated untracked paths were checked against their original SHA-256 hashes and remain unchanged/untracked. Pre-existing Phase 8/administration and unrelated local work are preserved. CR-01.4 has NOT started.
 
-Git stopping state: branch `feature/cr-01-3-employee-master`, HEAD unchanged at `bdd11e94c1f1791b9160f7c14903bd3701564c43`; 25 tracked files modified, 23 new CR-01.3 files untracked, plus the 89 original untracked paths. Index remains empty. No commit, push or merge was performed.
+Implementation stopping state before Git closure: branch `feature/cr-01-3-employee-master`, HEAD unchanged at `bdd11e94c1f1791b9160f7c14903bd3701564c43`; 25 tracked files modified, 23 new CR-01.3 files untracked, plus the 89 original untracked paths. Index remains empty. No commit, push or merge was performed.
 
 ### CR-01.3 changed-file manifest
 
@@ -468,3 +468,40 @@ Git stopping state: branch `feature/cr-01-3-employee-master`, HEAD unchanged at 
 - `tests/Infrastructure.IntegrationTests/PostgreSqlEmployeeMasterPrerequisiteTests.cs`
 - `tests/Web.UnitTests/Controllers/EmployeeMasterControllerTests.cs`
 - `tests/Web.UnitTests/Infrastructure/EmployeeMasterModelTests.cs`
+
+
+## CR-01.3 Git closure — 2026-10-06
+
+Feature commit: `3976490fadeaf16cac460d21801a3eb46648e5d9` (`feat(cr-01): add employee master enhancements`), pushed to `origin/feature/cr-01-3-employee-master`. The feature branch is retained locally and remotely.
+
+Merge commit: `f5262def45646f9491c2589d1546db88ec09946a` (`Merge CR-01.3 employee master enhancements`). Main and refreshed origin/main both matched the approved baseline `bdd11e94c1f1791b9160f7c14903bd3701564c43` before merging. The merge is a regular two-parent merge, matching CR-01.1/CR-01.2, without squash, conflicts, history rewrite or force push. Its tree exactly matches the verified feature tree.
+
+Main SHA at final executable verification: `f5262def45646f9491c2589d1546db88ec09946a`. The final main tip includes the subsequent documentation-only commit `docs(cr-01): record CR-01.3 git closure`; resolve its full SHA with `git log -1 --format=%H --grep="^docs(cr-01): record CR-01.3 git closure$" main`. As in prior CR slices, the closure commit cannot embed its own SHA in its contents. The final user report records that full final main SHA and confirms push status.
+
+The pre-commit and post-merge gates both passed:
+
+| Closure gate | Final result on merged main |
+| --- | --- |
+| .NET solution build | Passed; 0 warnings/errors |
+| Full Application suite | 458/458 passed; 0 failures/skips |
+| Full Web/API suite | 128/128 passed; 0 failures/skips |
+| Focused CR-01.3 Application tests | 22/22 passed |
+| Focused CR-01.3 Web/API/model/migration tests | 6/6 passed |
+| Frontend tests | 125/125 passed; 0 failures/skips |
+| Frontend lint | Passed |
+| Frontend typecheck | Passed |
+| Frontend production build/generated-client name checks | Passed; existing bundle-size advisory remains |
+| EF model parity | Clean; no pending model changes |
+| Railway Development migration state | 22 applied / 0 pending |
+| Railway CR013Acceptance rerun | 8/8 passed; 0 failures/skips |
+| git diff --check | Passed |
+
+Migration `20261005221527_AddEmployeeMasterEnhancements` remains present exactly once, with its original designer and model snapshot. The forward migration remains 12 nullable WorkerProfile columns and one filtered tenant-scoped unique EmployeeNumber index; no primary-key/foreign-key rewrite, table rename/drop, fabricated number or personal-data backfill. It was already applied to Railway Development before Git closure. No migration was regenerated, applied, reapplied or rolled back during closure.
+
+Post-merge acceptance reused the existing uniquely labelled pre-migration legacy fixture read-only. Each acceptance test created its own uniquely labelled synthetic tenant/run inside an uncommitted transaction and rolled back only its own work. Tests verified legacy Worker reads; unchanged attendance, confirmed evidence/activity and payroll-advance links; Employee profile create/read/edit; masked National ID; authorized audited reveal/correction; duplicate rejection; tenant isolation; optional tenant number uniqueness and concurrency. No real tenant was sampled or modified, no global business-table counts were asserted, and no destructive cleanup or startup migration was used. The committed pre-migration fixture was retained.
+
+The staged feature set exactly matched the reviewed 48-file CR-01.3 manifest. Original SHA-256 fingerprints verified all 89 unrelated untracked files and all tracked files outside the CR-01.3 manifest throughout closure. Pre-existing Phase 8 work was preserved. Local environment/configuration files, secrets, temporary artifacts and unrelated documentation were not staged. WorkerProfile/Worker IDs and historical relationships remain intact; no second Employee aggregate or plaintext ID storage/audit payload was introduced. National ID protector, keys, uniqueness, masking and exact reveal authorization remain intact. Payroll calculations, NSSA, NEC and PAYE were not modified.
+
+Known limitations remain unchanged: reference-only photographs with no uploads/storage service; optional Employee Numbers without automatic generation or legacy backfill; immutable ActiveFrom employment date; existing archive semantics without reactivation; paired structured-name length bounded by the existing Person display name; one current next-of-kin contact; existing bundle-size advisory. Earlier browser validation at 1440/768/390/360 px used synthetic intercepted responses. No additional product changes, browser redesign or deployment smoke were part of Git closure. No application deployment was performed or verified; a Git push alone does not establish deployment success.
+
+Main is ready for a normal push after this documentation-only commit; successful push and synchronized final main/origin/main are confirmed in the final user closure report. The feature branch is retained. CR-01.4 and new Phase 8 functionality have NOT started. CR-01.3 Git closure is the stopping boundary.
