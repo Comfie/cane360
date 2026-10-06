@@ -2,14 +2,14 @@
 
 ## Requirements lock (CR-01.0)
 
-CR-01.0, CR-01.1, CR-01.2 and CR-01.3 are complete. Git closure records are below; CR-01.4 Inventory Category Administration is now implemented; its validation record is below. CR-01.5 remains unstarted.
+CR-01.0, CR-01.1, CR-01.2, CR-01.3 and CR-01.4 are complete. Git closure and validation records are below. CR-01.5 remains unstarted.
 
 | Slice | Scope | State |
 | --- | --- | --- |
 | CR-01.1 | Farm Owner and Farm Profile | Complete; implemented and migrated to Railway Development |
 | CR-01.2 | Field/Crop UX | Complete; implemented, validated and merged into main |
 | CR-01.3 | Employee Master | Complete; implemented, validated, migrated to Railway Development and merged into main |
-| CR-01.4 | Inventory Category Administration | Complete; implemented, validated and migrated to Railway Development; uncommitted |
+| CR-01.4 | Inventory Category Administration | Complete; implemented, validated, migrated to Railway Development and merged into main |
 | CR-01.5 | Regression/Integration | Deferred |
 | CR-01.6 | Release Closure | Deferred |
 
@@ -652,4 +652,43 @@ Final CR-01.4 design checks:
 
 Final targeted Railway regression result: **15/15 passed** (receipt idempotency/concurrency, posting-order moving average, reversal guards and links, tenant isolation, issue concurrency/idempotency/draft behavior, effective-rule exclusion, field receipt limits, cost posting retry/correction, locked return/reversal valuation, adjustment reversal and historic cutoff). Tests attempting destructive ledger mutations were excluded. Together with focused CR-01.4 Railway acceptance (**5/5**) and pre-migration legacy preparation (**1/1**), all selected persisted checks are green.
 
-Final working state: branch `feature/cr-01-4-inventory-categories`; HEAD `87148403f5f997bef276f8db0d8e78a84ce8d6cc`. 48 CR-01.4 files changed/new (21 tracked modifications and 27 new files), all unstaged; existing unrelated untracked paths preserved. Index empty, diff whitespace check clean. No commit, push, merge or CR-01.5/release closure was started.
+Working state at implementation handoff, before the separately authorized Git closure below: branch `feature/cr-01-4-inventory-categories`; HEAD `87148403f5f997bef276f8db0d8e78a84ce8d6cc`. 48 CR-01.4 files changed/new (21 tracked modifications and 27 new files), all unstaged; existing unrelated untracked paths preserved. Index empty, diff whitespace check clean. No commit, push, merge or CR-01.5/release closure had been started.
+
+## CR-01.4 Git closure — 2026-10-06
+
+Git closure was separately authorized after implementation and validation. Feature commit: `5ba0854454fd619e7c66afde292123bb3cf6449b` (`feat(cr-01): add inventory category administration`), pushed to `origin/feature/cr-01-4-inventory-categories`. The feature branch is retained locally and remotely.
+
+Merge commit: `35871c9455dc7b44ae33971aa2c9ca81381d4b10` (`Merge CR-01.4 inventory category administration`). Main and refreshed origin/main both matched baseline `87148403f5f997bef276f8db0d8e78a84ce8d6cc` before merging. This is a regular two-parent merge matching prior CR slices, without squash, conflicts, history rewrite or force push. Its tree exactly matches the verified feature tree.
+
+Main SHA at final executable verification: `35871c9455dc7b44ae33971aa2c9ca81381d4b10`. The final main tip includes the subsequent documentation-only commit `docs(cr-01): record CR-01.4 git closure`; resolve its full SHA with `git log -1 --format=%H --grep="^docs(cr-01): record CR-01.4 git closure$" main`. As in previous slices, the closure commit cannot embed its own SHA. The final user report records the full final main SHA and confirmed push status.
+
+Both pre-commit and post-merge gates passed:
+
+| Closure gate | Final result on merged main |
+| --- | --- |
+| .NET solution build | Passed; 0 warnings/errors |
+| Full Application suite | 481/481 passed; 0 failures/skips |
+| Full Web/API suite | 138/138 passed; 0 failures/skips |
+| Focused CR-01.4 Application | 23/23 passed |
+| Focused CR-01.4 API/schema/migration | 10/10 passed |
+| Frontend tests | 132/132 passed; 0 failures/skips |
+| Frontend lint / typecheck | Passed / passed |
+| Frontend production build/generated-client checks | Passed; existing bundle-size advisory remains |
+| EF model parity | Clean; no pending model changes |
+| Railway Development migration state | 23 applied / 0 pending |
+| Railway CR014PostMigration acceptance rerun | 5/5 passed; 0 failures/skips |
+| Diff whitespace checks | Passed |
+
+Migration `20261006170131_AddInventoryCategoryAdministration` remains present exactly once with its original content, designer and snapshot. The designer model exactly matches the snapshot. Review confirmed additive category infrastructure, deterministic tenant/code GUIDs, verbatim legacy codes, restrictive tenant/category references, and an intentionally protective Down path. No item IDs/category strings, ledger rows, quantities or costs are rewritten. The migration was already applied once before closure; no migration was generated, applied, reapplied or rolled back during Git closure.
+
+Post-merge acceptance reused the labelled pre-migration legacy fixture read-only. Its exact InventoryItems, StockPositions, StockReceipts, StockReceiptLines and StockMovements facts remain unchanged; all four legacy categories survive, with stock still **17 units / USD 46.75 / USD 2.75 average unit cost**. The strong category-operation test compared complete rows across 21 inventory/accountability/cost tables and stock valuation before and after rename, deactivate, reactivate and category creation. Item identity, receipt/issue relationships, movement count/quantity/value, moving-average cost, locked issue/application costs, field applications, returns, losses, reversals/corrections, approval history and OperationalCostPostings were identical. Only category metadata and new category audit facts changed.
+
+Acceptance also verified manager category creation/update/status, inactive historical readability and new-assignment rejection, owner denial, normalized uniqueness, optimistic concurrency and cross-tenant protections. Tests scoped assertions to uniquely labelled synthetic tenants/runs; invalid constraint attempts rolled back only their own uncommitted work. Committed synthetic fixtures remain. No non-test tenant was sampled or modified, no global business-table counts were asserted, and no destructive cleanup or automatic migration execution occurred. The earlier 15/15 targeted Railway regression, 1/1 pre-migration preparation and nine browser checks remain recorded as implementation evidence; they were not rerun during Git closure.
+
+Stable category GUIDs and immutable codes remain intact. Used categories have no hard-delete operation and retain restrictive references. Current metadata labels may change while transaction snapshots remain unchanged; no destructive historical recategorization occurred. Tenant isolation remains enforced at query, command, domain and database boundaries. No general inventory redesign, statutory payroll change, new Phase 8 functionality or CR-01.5 work was introduced.
+
+The feature staging set exactly matched the reviewed 48-file CR-01.4 manifest. SHA-256 fingerprints verified all 89 original unrelated untracked files and all tracked files outside that manifest. Pre-existing Phase 8 work was preserved. Local configuration, secrets, temporary outputs and unrelated documentation were not staged. This closure commit changes only this document.
+
+Known limitations remain unchanged: no category deletion or item editing/recategorization; codes immutable even when unused; current category display metadata without a new snapshot system; intentionally unsupported migration rollback; synthetic browser fixtures; existing frontend bundle-size advisory. No application deployment was performed or verified; a Git push alone does not establish deployment success.
+
+Main is ready for a normal push after this documentation-only commit; successful push and synchronized final main/origin/main are confirmed in the final user report. The feature branch is retained. **CR-01.5 has NOT started.** CR-01.4 Git closure is the stopping boundary.
