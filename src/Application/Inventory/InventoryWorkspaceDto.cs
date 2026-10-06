@@ -9,4 +9,6 @@ public sealed record InventoryWorkspaceDto(
     IReadOnlyList<InventoryLotDto> Lots,
     IReadOnlyList<StockReceiptDto> Receipts,
     IReadOnlyList<StockOnHandDto> StockOnHand,
-    IReadOnlyList<StockMovementDto> RecentMovements);
+    IReadOnlyList<StockMovementDto> RecentMovements,
+    IReadOnlyList<InventoryCategoryDto> Categories,
+    bool CanManageCategories);

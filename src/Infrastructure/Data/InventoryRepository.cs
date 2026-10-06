@@ -13,6 +13,22 @@ namespace Cane360.Infrastructure.Data;
 
 public sealed class InventoryRepository(ApplicationDbContext context) : IInventoryRepository
 {
+    public async Task<IReadOnlyList<InventoryCategory>> GetCategoriesAsync(
+        Guid tenantId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        return await Track(context.InventoryCategories.Where(category => category.TenantId == tenantId), trackChanges)
+            .OrderBy(category => category.DisplayOrder).ThenBy(category => category.Name).ToListAsync(cancellationToken);
+    }
+
+    public Task<InventoryCategory?> GetCategoryAsync(
+        Guid tenantId, Guid categoryId, bool trackChanges, CancellationToken cancellationToken)
+    {
+        return Track(context.InventoryCategories.Where(category => category.TenantId == tenantId && category.Id == categoryId),
+            trackChanges).SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public void Add(InventoryCategory category) => context.InventoryCategories.Add(category);
+
     public async Task<IReadOnlyList<UnitOfMeasure>> GetUnitsAsync(
         Guid tenantId, bool trackChanges, CancellationToken cancellationToken)
     {
@@ -1012,6 +1028,8 @@ public sealed class InventoryRepository(ApplicationDbContext context) : IInvento
             {
                 "AK_UnitOfMeasures_TenantId_Code" or "IX_UnitOfMeasures_TenantId_Code" =>
                     "This unit code already exists in the tenant.",
+                "AK_InventoryCategories_Code_TenantId" or "IX_InventoryCategories_TenantId_NormalizedCode" => "This category code already exists in the tenant.",
+                "IX_InventoryCategories_TenantId_NormalizedName" => "This category name already exists in the tenant.",
                 "IX_InventoryItems_FarmId_Code" => "This inventory item code already exists on the farm.",
                 "IX_Suppliers_FarmId_Code" => "This supplier code already exists on the farm.",
                 "IX_InventoryLots_InventoryItemId_Code" => "This lot code already exists for the item.",

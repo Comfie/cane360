@@ -46,6 +46,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<WorkVerification> WorkVerifications => Set<WorkVerification>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<UnitOfMeasure> UnitOfMeasures => Set<UnitOfMeasure>();
+    public DbSet<InventoryCategory> InventoryCategories => Set<InventoryCategory>();
     public DbSet<InventoryItem> InventoryItems => Set<InventoryItem>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<InventoryLot> InventoryLots => Set<InventoryLot>();

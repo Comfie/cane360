@@ -14,12 +14,16 @@ public sealed class CreateInventoryItemCommandHandler(
         UnitOfMeasure unit =
             await inventoryRepository.GetUnitAsync(tenant.Id, request.StockUnitId, false, cancellationToken)
             ?? throw new NotFoundException(request.StockUnitId.ToString(), "Unit of measure");
+        IReadOnlyList<InventoryCategory> categories =
+            await inventoryRepository.GetCategoriesAsync(tenant.Id, false, cancellationToken);
+        InventoryCategory category = categories.SingleOrDefault(candidate => candidate.Code == request.Category)
+            ?? throw InventoryAccess.Failure(nameof(request.Category), "Select a category belonging to this tenant.");
         InventoryItem item = InventoryAccess.ApplyDomainAction(nameof(request.StockUnitId), () => InventoryItem.Create(
             tenant.Id,
             farm.Id,
             request.Code,
             request.Name,
-            Enum.Parse<InventoryItemCategory>(request.Category, true),
+            category,
             unit,
             request.ReorderLevel,
             Enum.Parse<LotTrackingPolicy>(request.LotTrackingPolicy, true),

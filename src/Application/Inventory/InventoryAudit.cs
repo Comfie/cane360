@@ -4,6 +4,15 @@ namespace Cane360.Application.Inventory;
 
 internal static class InventoryAudit
 {
+    public static void Category(
+        IInventoryRepository repository, Tenant tenant, Farm farm, IUser user, InventoryCategory category,
+        string action, DateTimeOffset occurredAt, string summary)
+    {
+        string userId = InventoryAccess.RequireUserId(user);
+        repository.Add(AuditEvent.Create(tenant.Id, farm.Id, nameof(InventoryCategory), category.Id, action, userId,
+            InventoryAccess.SecurityRole(tenant, userId), null, occurredAt, InventoryAccess.CorrelationId(user), null, summary));
+    }
+
     public static void Unit(
         IInventoryRepository repository, Tenant tenant, Farm farm, IUser user, UnitOfMeasure unit,
         string action, DateTimeOffset occurredAt, string summary)

@@ -35,6 +35,10 @@ internal sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
             .WithOne()
             .HasForeignKey(type => type.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.HasMany(tenant => tenant.InventoryCategories)
+            .WithOne()
+            .HasForeignKey(category => category.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
         ConfigureAudit(builder);
     }
 

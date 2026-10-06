@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import {Link, useSearchParams} from 'react-router-dom';
 import type {
+    InventoryCategoryDto,
     InventoryItemDto,
     InventoryWorkspaceDto,
     StockAdjustmentDto,
@@ -58,11 +59,13 @@ import {
     duplicateReceiptReference,
     harareToday,
     inventoryLabel,
-    itemCategories,
     lotPolicies,
     quantity,
     usd,
 } from '../inventory/inventoryView';
+
+import {createCategory, updateCategory, setCategoryActive} from '../inventory/inventoryCategoryApi';
+import {activeCategories, categoryLabel} from '../inventory/inventoryCategoryView';
 
 export function InventoryPage() {
     const [searchParams] = useSearchParams();
@@ -70,6 +73,7 @@ export function InventoryPage() {
     const [workspace, setWorkspace] = useState<InventoryWorkspaceDto | null>(null);
     const [tab, setTab] = useState<'stock' | 'receipts' | 'ledger' | 'catalogue' | 'inputs' | 'counts' | 'adjustments'>(() => searchParams.get('tab') === 'inputs' ? 'inputs' : 'stock');
     const [dialog, setDialog] = useState('');
+    const [editingCategory, setEditingCategory] = useState<InventoryCategoryDto | null>(null);
     const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
@@ -147,7 +151,9 @@ export function InventoryPage() {
         {tab === 'catalogue' && <Catalogue workspace={workspace} onOpen={setDialog} onEditSupplier={(supplier) => {
             setEditingSupplier(supplier);
             setDialog('supplier');
-        }} onSupplierChanged={reload} onError={setError}/>}
+        }} onSupplierChanged={reload} onError={setError} onEditCategory={(category) => {
+            setEditingCategory(category); setDialog('category');
+        }}/>}
         {tab === 'inputs' && <>{linkedCropCycleId &&
             <div className="linked-context record-panel"><span><strong>Crop-cycle view</strong> Requests, issues and accountability are scoped to the selected crop cycle.</span><Link
                 className="text-action" to="/inventory?tab=inputs">Show all inputs</Link></div>}<InputControlsWorkspace
@@ -159,11 +165,17 @@ export function InventoryPage() {
         {dialog === 'receipt' &&
             <InventoryDialog title="Record stock receipt" onClose={() => setDialog('')}><ReceiptForm
                 workspace={workspace} onSaved={changed} onError={setError}/></InventoryDialog>}
+        {dialog === 'category' && workspace.canManageCategories &&
+            <InventoryDialog title={editingCategory ? 'Edit inventory category' : 'Add inventory category'} onClose={() => {
+                setDialog(''); setEditingCategory(null);
+            }}><CategoryForm category={editingCategory} onSaved={async () => {
+                setEditingCategory(null); await changed();
+            }} onError={setError}/></InventoryDialog>}
         {dialog === 'unit' &&
             <InventoryDialog title="Add stock unit" onClose={() => setDialog('')}><UnitForm onSaved={changed}
                                                                                             onError={setError}/></InventoryDialog>}
         {dialog === 'item' &&
-            <InventoryDialog title="Add inventory item" onClose={() => setDialog('')}><ItemForm units={workspace.units}
+            <InventoryDialog title="Add inventory item" onClose={() => setDialog('')}><ItemForm units={workspace.units} categories={workspace.categories}
                                                                                                 onSaved={changed}
                                                                                                 onError={setError}/></InventoryDialog>}
         {dialog === 'supplier' &&
@@ -384,17 +396,21 @@ function MovementLedger({movements}: { movements: StockMovementDto[] }) {
     </section>;
 }
 
-function Catalogue({workspace, onOpen, onEditSupplier, onSupplierChanged, onError}: {
+function Catalogue({workspace, onOpen, onEditSupplier, onSupplierChanged, onError, onEditCategory}: {
     workspace: InventoryWorkspaceDto;
     onOpen: (dialog: string) => void;
+    onEditCategory: (category: InventoryCategoryDto | null) => void;
     onEditSupplier: (supplier: SupplierDto) => void;
     onSupplierChanged: () => Promise<void>;
     onError: (message: string) => void
 }) {
     return <div className="catalogue-grid">
+        <CategoryCatalogue categories={workspace.categories} canManage={workspace.canManageCategories}
+            onAdd={() => { onEditCategory(null); }} onEdit={onEditCategory}
+            onChanged={onSupplierChanged} onError={onError}/>
         <CatalogueSection icon={Boxes} title="Inventory items" action="Add item" onAdd={() => onOpen('item')}>
             <div className="catalogue-list">{workspace.items.map((item) => <article key={item.id}>
-                <span><strong>{item.code} · {item.name}</strong><small>{inventoryLabel(item.category)} · stock unit {item.stockUnitCode}</small></span><em>{inventoryLabel(item.lotTrackingPolicy)} lots</em>
+                <span><strong>{item.code} · {item.name}</strong><small>{categoryLabel(workspace.categories, item.category)} · stock unit {item.stockUnitCode}</small></span><em>{inventoryLabel(item.lotTrackingPolicy)} lots</em>
             </article>)}</div>
         </CatalogueSection>
         <CatalogueSection icon={Scale} title="Stock units" action="Add unit" onAdd={() => onOpen('unit')}>
@@ -644,8 +660,9 @@ function SupplierForm({supplier, onSaved, onError}: {
                                           defaultValue={supplier?.contact ?? ''}/></label></SimpleForm>;
 }
 
-function ItemForm({units, onSaved, onError}: {
+function ItemForm({units, categories, onSaved, onError}: {
     units: UnitOfMeasureDto[];
+    categories: InventoryCategoryDto[];
     onSaved: () => void;
     onError: (message: string) => void
 }) {
@@ -662,8 +679,8 @@ function ItemForm({units, onSaved, onError}: {
     })} onSaved={onSaved} onError={onError} action="Add item"><label>Code<input name="code" maxLength={30}
                                                                                 required/></label><label>Name<input
         name="name" maxLength={120} required/></label><label>Category<select
-        name="category">{itemCategories.map((value) => <option key={value}
-                                                               value={value}>{inventoryLabel(value)}</option>)}</select></label><label>Stock
+        name="category" aria-label="Category" required defaultValue=""><option value="">Select category</option>{activeCategories(categories).map((category) => <option key={category.id}
+                                                               value={category.code}>{category.name}</option>)}</select></label><label>Stock
         unit<select name="stockUnitId" required defaultValue="">
             <option value="">Select unit</option>
             {units.filter((unit) => unit.status === 'Active').map((unit) => <option key={unit.id}
@@ -701,7 +718,7 @@ function LotForm({items, onSaved, onError}: {
 
 function SimpleForm({submit, onSaved, onError, action, children}: {
     submit: (data: FormData) => Promise<unknown>;
-    onSaved: () => void;
+    onSaved: () => void | Promise<void>;
     onError: (message: string) => void;
     action: string;
     children: ReactNode
@@ -713,7 +730,7 @@ function SimpleForm({submit, onSaved, onError, action, children}: {
         onError('');
         try {
             await submit(new FormData(event.currentTarget));
-            onSaved();
+            await onSaved();
         } catch (requestError) {
             onError(getApiError(requestError));
         } finally {
@@ -780,4 +797,61 @@ function numberValue(data: FormData, key: string): number {
 function optionalNumberValue(data: FormData, key: string): number | undefined {
     const result = value(data, key);
     return result ? Number(result) : undefined;
+}
+
+
+function CategoryCatalogue({categories, canManage, onAdd, onEdit, onChanged, onError}: {
+    categories: InventoryCategoryDto[];
+    canManage: boolean;
+    onAdd: () => void;
+    onEdit: (category: InventoryCategoryDto) => void;
+    onChanged: () => Promise<void>;
+    onError: (message: string) => void;
+}) {
+    const [busy, setBusy] = useState(false);
+    const toggle = async (category: InventoryCategoryDto) => {
+        if (category.active && !window.confirm(`Deactivate ${category.name}? Existing items and stock history remain available.`)) return;
+        setBusy(true); onError('');
+        try {
+            await setCategoryActive(category.id, !category.active, category.version);
+            await onChanged();
+        } catch (error) { onError(getApiError(error)); }
+        finally { setBusy(false); }
+    };
+    return <section className="catalogue-section record-panel inventory-category-section">
+        <header><div><Boxes size={18}/><h2>Inventory categories</h2></div>
+            {canManage && <button type="button" className="text-action" onClick={onAdd}><Plus size={15}/> Add category</button>}
+        </header>
+        <div className="catalogue-list">{categories.map(category => <article key={category.id}>
+            <span><strong>{category.name}</strong><small>{category.code} · order {category.displayOrder}</small>
+                {category.description && <small>{category.description}</small>}</span>
+            <div className="row-actions">
+                <em className={`status-pill status-${category.active ? 'active' : 'inactive'}`}>{category.active ? 'Active' : 'Inactive'}</em>
+                {canManage && <><button type="button" className="row-icon-button" disabled={busy}
+                    aria-label={`Edit ${category.name}`} onClick={() => onEdit(category)}><Pencil size={15}/></button>
+                    <button type="button" className="row-icon-button" disabled={busy}
+                        aria-label={`${category.active ? 'Deactivate' : 'Reactivate'} ${category.name}`} onClick={() => toggle(category)}>
+                        {category.active ? <PowerOff size={15}/> : <Power size={15}/>}</button></>}
+            </div>
+        </article>)}</div>
+    </section>;
+}
+
+function CategoryForm({category, onSaved, onError}: {
+    category: InventoryCategoryDto | null;
+    onSaved: () => Promise<void>;
+    onError: (message: string) => void;
+}) {
+    return <SimpleForm submit={data => category ? updateCategory(category.id, {
+        name: value(data, 'name'), description: optionalValue(data, 'description'),
+        displayOrder: numberValue(data, 'displayOrder'), expectedVersion: category.version,
+    }) : createCategory({code: value(data, 'code'), name: value(data, 'name'),
+        description: optionalValue(data, 'description'), displayOrder: numberValue(data, 'displayOrder'),
+    })} onSaved={onSaved} onError={onError} action={category ? 'Save changes' : 'Add category'}>
+        <label>Code<input name="code" required maxLength={40} pattern="[A-Za-z0-9_-]+"
+            readOnly={!!category} defaultValue={category?.code}/></label>
+        <label>Name<input name="name" required maxLength={120} defaultValue={category?.name}/></label>
+        <label className="is-wide">Description<textarea aria-label="Description" name="description" maxLength={500} defaultValue={category?.description ?? ''}/></label>
+        <label>Display order<input name="displayOrder" type="number" min="0" max="10000" step="1" required defaultValue={category?.displayOrder ?? 0}/></label>
+    </SimpleForm>;
 }
