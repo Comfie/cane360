@@ -9,8 +9,15 @@ internal static class LabourMapper
         Person person = farm.Persons.Single(candidate => candidate.Id == worker.PersonId);
         return new WorkerListItemDto(worker.Id, person.Id, person.DisplayName, person.Phone,
             worker.EmploymentType.ToString(), worker.ActiveFrom, worker.ActiveTo,
-            worker.Status.ToString(), worker.NationalIdMask, worker.Version);
+            worker.Status.ToString(), worker.NationalIdMask, worker.Version, worker.EmployeeNumber);
     }
+
+    public static WorkerDetailsDto Details(Farm farm, WorkerProfile worker, IReadOnlyList<WorkerRateDto> rates) =>
+        new(Worker(farm, worker), rates, new WorkerProfileInput(
+            worker.EmployeeNumber, worker.Title, worker.FirstName, worker.Surname, worker.Sex, worker.Address,
+            worker.PhotoReference, worker.NextOfKinName, worker.NextOfKinRelationship, worker.NextOfKinPhone,
+            worker.NextOfKinAddress, worker.DateOfBirth),
+            farm.Persons.Single(person => person.Id == worker.PersonId).Version);
 
     public static WorkerRateDto Rate(Tenant tenant, WorkerRate rate)
     {

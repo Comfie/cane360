@@ -15018,6 +15018,124 @@ export class WorkersClient {
     /**
      * @return OK
      */
+    updateWorkerProfile(workerId: string, body: UpdateWorkerProfileRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/profile";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateWorkerProfile(_response);
+        });
+    }
+
+    protected processUpdateWorkerProfile(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = WorkerDetailsDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    correctWorkerNationalId(workerId: string, body: CorrectWorkerNationalIdRequest): Promise<WorkerDetailsDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/national-id";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCorrectWorkerNationalId(_response);
+        });
+    }
+
+    protected processCorrectWorkerNationalId(response: Response): Promise<WorkerDetailsDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = WorkerDetailsDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     archiveWorkers(workerId: string, body: ArchiveWorkerRequest): Promise<WorkerDetailsDto> {
         let url_ = this.baseUrl + "/api/workers/{workerId}/archive";
         if (workerId === undefined || workerId === null)
@@ -15072,6 +15190,65 @@ export class WorkersClient {
             });
         }
         return Promise.resolve<WorkerDetailsDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    revealWorkerNationalId(workerId: string, body: RevealNationalIdRequest): Promise<RevealedNationalIdDto> {
+        let url_ = this.baseUrl + "/api/workers/{workerId}/national-id/reveal";
+        if (workerId === undefined || workerId === null)
+            throw new globalThis.Error("The parameter 'workerId' must be defined.");
+        url_ = url_.replace("{workerId}", encodeURIComponent("" + workerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevealWorkerNationalId(_response);
+        });
+    }
+
+    protected processRevealWorkerNationalId(response: Response): Promise<RevealedNationalIdDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = RevealedNationalIdDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RevealedNationalIdDto>(null as any);
     }
 }
 
@@ -18880,6 +19057,62 @@ export interface ICorrectTicketRequest {
     [key: string]: any;
 }
 
+export class CorrectWorkerNationalIdRequest implements ICorrectWorkerNationalIdRequest {
+    nationalId!: string;
+    expectedVersion!: number;
+    reason!: string;
+
+    [key: string]: any;
+
+    constructor(data?: ICorrectWorkerNationalIdRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.nationalId = _data["nationalId"];
+            this.expectedVersion = _data["expectedVersion"];
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): CorrectWorkerNationalIdRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CorrectWorkerNationalIdRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["nationalId"] = this.nationalId;
+        data["expectedVersion"] = this.expectedVersion;
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface ICorrectWorkerNationalIdRequest {
+    nationalId: string;
+    expectedVersion: number;
+    reason: string;
+
+    [key: string]: any;
+}
+
 export class CorrectWorkRecordRequest implements ICorrectWorkRecordRequest {
     expectedVersion!: number;
     correctionReason!: string;
@@ -21623,6 +21856,7 @@ export class CreateWorkerRequest implements ICreateWorkerRequest {
     employmentType!: string;
     activeFrom!: string;
     nationalId!: string;
+    profile?: WorkerProfileInput | undefined;
 
     [key: string]: any;
 
@@ -21647,6 +21881,7 @@ export class CreateWorkerRequest implements ICreateWorkerRequest {
             this.employmentType = _data["employmentType"];
             this.activeFrom = _data["activeFrom"];
             this.nationalId = _data["nationalId"];
+            this.profile = _data["profile"] ? WorkerProfileInput.fromJS(_data["profile"]) : undefined as any;
         }
     }
 
@@ -21669,6 +21904,7 @@ export class CreateWorkerRequest implements ICreateWorkerRequest {
         data["employmentType"] = this.employmentType;
         data["activeFrom"] = this.activeFrom;
         data["nationalId"] = this.nationalId;
+        data["profile"] = this.profile ? this.profile.toJSON() : undefined as any;
         return data;
     }
 }
@@ -21680,6 +21916,7 @@ export interface ICreateWorkerRequest {
     employmentType: string;
     activeFrom: string;
     nationalId: string;
+    profile?: WorkerProfileInput | undefined;
 
     [key: string]: any;
 }
@@ -30134,6 +30371,106 @@ export interface IRevealedFarmOwnerNationalIdDto {
     [key: string]: any;
 }
 
+export class RevealedNationalIdDto implements IRevealedNationalIdDto {
+    workerId!: string;
+    nationalId!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRevealedNationalIdDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.workerId = _data["workerId"];
+            this.nationalId = _data["nationalId"];
+        }
+    }
+
+    static fromJS(data: any): RevealedNationalIdDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RevealedNationalIdDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["workerId"] = this.workerId;
+        data["nationalId"] = this.nationalId;
+        return data;
+    }
+}
+
+export interface IRevealedNationalIdDto {
+    workerId: string;
+    nationalId: string;
+
+    [key: string]: any;
+}
+
+export class RevealNationalIdRequest implements IRevealNationalIdRequest {
+    reason!: string;
+
+    [key: string]: any;
+
+    constructor(data?: IRevealNationalIdRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): RevealNationalIdRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RevealNationalIdRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["reason"] = this.reason;
+        return data;
+    }
+}
+
+export interface IRevealNationalIdRequest {
+    reason: string;
+
+    [key: string]: any;
+}
+
 export class ReverseOperationalTransactionRequest implements IReverseOperationalTransactionRequest {
     reason!: string;
     idempotencyKey!: string;
@@ -33179,6 +33516,77 @@ export interface IUpdateWorkerAdvanceRequest {
     [key: string]: any;
 }
 
+export class UpdateWorkerProfileRequest implements IUpdateWorkerProfileRequest {
+    expectedVersion!: number;
+    expectedPersonVersion!: number;
+    displayName!: string;
+    phone!: string | undefined;
+    employmentType!: string;
+    profile!: WorkerProfileInput;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateWorkerProfileRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.profile = new WorkerProfileInput();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expectedVersion = _data["expectedVersion"];
+            this.expectedPersonVersion = _data["expectedPersonVersion"];
+            this.displayName = _data["displayName"];
+            this.phone = _data["phone"];
+            this.employmentType = _data["employmentType"];
+            this.profile = _data["profile"] ? WorkerProfileInput.fromJS(_data["profile"]) : new WorkerProfileInput();
+        }
+    }
+
+    static fromJS(data: any): UpdateWorkerProfileRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateWorkerProfileRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expectedVersion"] = this.expectedVersion;
+        data["expectedPersonVersion"] = this.expectedPersonVersion;
+        data["displayName"] = this.displayName;
+        data["phone"] = this.phone;
+        data["employmentType"] = this.employmentType;
+        data["profile"] = this.profile ? this.profile.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateWorkerProfileRequest {
+    expectedVersion: number;
+    expectedPersonVersion: number;
+    displayName: string;
+    phone: string | undefined;
+    employmentType: string;
+    profile: WorkerProfileInput;
+
+    [key: string]: any;
+}
+
 export class UserInfoResponse implements IUserInfoResponse {
     email!: string;
     isEmailConfirmed!: boolean;
@@ -33889,6 +34297,8 @@ export interface IWorkerAdvanceDto {
 export class WorkerDetailsDto implements IWorkerDetailsDto {
     worker!: WorkerListItemDto;
     rates!: WorkerRateDto[];
+    profile?: WorkerProfileInput | undefined;
+    personVersion?: number;
 
     [key: string]: any;
 
@@ -33902,6 +34312,7 @@ export class WorkerDetailsDto implements IWorkerDetailsDto {
         if (!data) {
             this.worker = new WorkerListItemDto();
             this.rates = [];
+            this.personVersion = 0;
         }
     }
 
@@ -33917,6 +34328,8 @@ export class WorkerDetailsDto implements IWorkerDetailsDto {
                 for (let item of _data["rates"])
                     this.rates!.push(WorkerRateDto.fromJS(item));
             }
+            this.profile = _data["profile"] ? WorkerProfileInput.fromJS(_data["profile"]) : undefined as any;
+            this.personVersion = _data["personVersion"] !== undefined ? _data["personVersion"] : "0";
         }
     }
 
@@ -33939,6 +34352,8 @@ export class WorkerDetailsDto implements IWorkerDetailsDto {
             for (let item of this.rates)
                 data["rates"].push(item ? item.toJSON() : undefined as any);
         }
+        data["profile"] = this.profile ? this.profile.toJSON() : undefined as any;
+        data["personVersion"] = this.personVersion;
         return data;
     }
 }
@@ -33946,6 +34361,8 @@ export class WorkerDetailsDto implements IWorkerDetailsDto {
 export interface IWorkerDetailsDto {
     worker: WorkerListItemDto;
     rates: WorkerRateDto[];
+    profile?: WorkerProfileInput | undefined;
+    personVersion?: number;
 
     [key: string]: any;
 }
@@ -33961,6 +34378,7 @@ export class WorkerListItemDto implements IWorkerListItemDto {
     status!: string;
     nationalIdMask!: string;
     version!: number;
+    employeeNumber?: string | undefined;
 
     [key: string]: any;
 
@@ -33989,6 +34407,7 @@ export class WorkerListItemDto implements IWorkerListItemDto {
             this.status = _data["status"];
             this.nationalIdMask = _data["nationalIdMask"];
             this.version = _data["version"];
+            this.employeeNumber = _data["employeeNumber"];
         }
     }
 
@@ -34015,6 +34434,7 @@ export class WorkerListItemDto implements IWorkerListItemDto {
         data["status"] = this.status;
         data["nationalIdMask"] = this.nationalIdMask;
         data["version"] = this.version;
+        data["employeeNumber"] = this.employeeNumber;
         return data;
     }
 }
@@ -34030,6 +34450,99 @@ export interface IWorkerListItemDto {
     status: string;
     nationalIdMask: string;
     version: number;
+    employeeNumber?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class WorkerProfileInput implements IWorkerProfileInput {
+    employeeNumber?: string | undefined;
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    address?: string | undefined;
+    photoReference?: string | undefined;
+    nextOfKinName?: string | undefined;
+    nextOfKinRelationship?: string | undefined;
+    nextOfKinPhone?: string | undefined;
+    nextOfKinAddress?: string | undefined;
+    dateOfBirth?: Date | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IWorkerProfileInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.employeeNumber = _data["employeeNumber"];
+            this.title = _data["title"];
+            this.firstName = _data["firstName"];
+            this.surname = _data["surname"];
+            this.sex = _data["sex"];
+            this.address = _data["address"];
+            this.photoReference = _data["photoReference"];
+            this.nextOfKinName = _data["nextOfKinName"];
+            this.nextOfKinRelationship = _data["nextOfKinRelationship"];
+            this.nextOfKinPhone = _data["nextOfKinPhone"];
+            this.nextOfKinAddress = _data["nextOfKinAddress"];
+            this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): WorkerProfileInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new WorkerProfileInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["employeeNumber"] = this.employeeNumber;
+        data["title"] = this.title;
+        data["firstName"] = this.firstName;
+        data["surname"] = this.surname;
+        data["sex"] = this.sex;
+        data["address"] = this.address;
+        data["photoReference"] = this.photoReference;
+        data["nextOfKinName"] = this.nextOfKinName;
+        data["nextOfKinRelationship"] = this.nextOfKinRelationship;
+        data["nextOfKinPhone"] = this.nextOfKinPhone;
+        data["nextOfKinAddress"] = this.nextOfKinAddress;
+        data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
+        return data;
+    }
+}
+
+export interface IWorkerProfileInput {
+    employeeNumber?: string | undefined;
+    title?: string | undefined;
+    firstName?: string | undefined;
+    surname?: string | undefined;
+    sex?: string | undefined;
+    address?: string | undefined;
+    photoReference?: string | undefined;
+    nextOfKinName?: string | undefined;
+    nextOfKinRelationship?: string | undefined;
+    nextOfKinPhone?: string | undefined;
+    nextOfKinAddress?: string | undefined;
+    dateOfBirth?: Date | undefined;
 
     [key: string]: any;
 }

@@ -62,6 +62,6 @@ public sealed class CreateWorkerRateCommandHandler(
         await labourRepository.SaveChangesAsync(cancellationToken);
         WorkerRateDto[] updated = rates.Append(rate).OrderByDescending(item => item.EffectiveFrom)
             .Select(item => LabourMapper.Rate(tenant, item)).ToArray();
-        return new WorkerDetailsDto(LabourMapper.Worker(farm, worker), updated);
+        return LabourMapper.Details(farm, worker, updated);
     }
 }

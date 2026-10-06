@@ -27,7 +27,7 @@ public sealed class ArchiveWorkerCommandHandler(
         await labourRepository.SaveChangesAsync(cancellationToken);
         IReadOnlyList<WorkerRate> rates =
             await labourRepository.GetRatesAsync(tenant.Id, farm.Id, worker.Id, false, cancellationToken);
-        return new WorkerDetailsDto(LabourMapper.Worker(farm, worker),
+        return LabourMapper.Details(farm, worker,
             rates.Select(rate => LabourMapper.Rate(tenant, rate)).ToArray());
     }
 }

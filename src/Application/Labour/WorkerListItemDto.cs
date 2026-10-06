@@ -10,4 +10,5 @@ public sealed record WorkerListItemDto(
     DateOnly? ActiveTo,
     string Status,
     string NationalIdMask,
-    long Version);
+    long Version,
+    string? EmployeeNumber = null);

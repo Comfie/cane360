@@ -34,9 +34,20 @@ public sealed class WorkersController(ISender sender) : ControllerBase
         }
 
         WorkerDetailsDto result = await sender.Send(new CreateWorkerCommand(request.PersonId, request.DisplayName,
-            request.Phone, request.EmploymentType, activeFrom, request.NationalId), cancellationToken);
+            request.Phone, request.EmploymentType, activeFrom, request.NationalId, request.Profile), cancellationToken);
         return CreatedAtAction(nameof(GetById), new { workerId = result.Worker.Id }, result);
     }
+
+    [HttpPut("{workerId:guid}/profile", Name = "UpdateWorkerProfile")]
+    public async Task<ActionResult<WorkerDetailsDto>> UpdateProfile(Guid workerId, UpdateWorkerProfileRequest request,
+        CancellationToken cancellationToken) => Ok(await sender.Send(new UpdateWorkerProfileCommand(workerId,
+            request.ExpectedVersion, request.ExpectedPersonVersion, request.DisplayName, request.Phone,
+            request.EmploymentType, request.Profile), cancellationToken));
+
+    [HttpPut("{workerId:guid}/national-id", Name = "CorrectWorkerNationalId")]
+    public async Task<ActionResult<WorkerDetailsDto>> CorrectNationalId(Guid workerId, CorrectWorkerNationalIdRequest request,
+        CancellationToken cancellationToken) => Ok(await sender.Send(new CorrectWorkerNationalIdCommand(workerId,
+            request.NationalId, request.ExpectedVersion, request.Reason), cancellationToken));
 
     [HttpPost("{workerId:guid}/archive", Name = "ArchiveWorkers")]
     public async Task<ActionResult<WorkerDetailsDto>> Archive(Guid workerId, ArchiveWorkerRequest request,
@@ -51,13 +62,12 @@ public sealed class WorkersController(ISender sender) : ControllerBase
             cancellationToken));
     }
 
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpPost("{workerId:guid}/national-id/reveal")]
-    public async Task<IActionResult> RevealNationalId(Guid workerId, RevealNationalIdRequest request,
+    [HttpPost("{workerId:guid}/national-id/reveal", Name = "RevealWorkerNationalId")]
+    public async Task<ActionResult<RevealedNationalIdDto>> RevealNationalId(Guid workerId, RevealNationalIdRequest request,
         CancellationToken cancellationToken)
     {
         RevealedNationalIdDto result = await sender.Send(new RevealWorkerNationalIdCommand(workerId, request.Reason),
             cancellationToken);
-        return Ok(new { result.WorkerId, result.NationalId });
+        return Ok(result);
     }
 }

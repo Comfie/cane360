@@ -15,6 +15,9 @@ import {
     type WorkerListItemDto,
     type WorkRecordDto,
 } from '../../web-api-client';
+import {EmployeeProfile} from '../labour/EmployeeProfile';
+import {WorkerProfileInput} from '../../web-api-client';
+import {useAuth} from '../api-authorization/AuthContext';
 import {DatePicker} from '../DatePicker';
 import {
     confirmWork,
@@ -38,6 +41,7 @@ import {
 } from '../labour/labourView';
 
 export function LabourPage() {
+    const canReveal = useAuth().session.role === 'Grower';
     const activityTypesClient = useMemo(() => new ActivityTypesClient(), []);
     const [tab, setTab] = useState<'workers' | 'attendance' | 'evidence'>('workers');
     const [date, setDate] = useState(harareToday());
@@ -108,17 +112,17 @@ export function LabourPage() {
 
     return <div className="page-stack labour-page">
         <PageHeader eyebrow="Payroll-ready evidence" title="Labour"
-                    description="Register workers, allocate daily attendance, and confirm traceable work evidence—without calculating payroll.">
+                    description="Register employees, allocate daily attendance, and confirm traceable work evidence—without calculating payroll.">
             <Link className="secondary-action" to="/payroll">Open payroll runs</Link>
             <button type="button" className="primary-action" onClick={() => setShowWorker(true)}><Plus
-                size={17}/> Register worker
+                size={17}/> Create Employee
             </button>
         </PageHeader>
         <ValidationError message={error}/>
         <section className="labour-toolbar record-panel">
             <nav className="labour-tabs" aria-label="Labour sections">
                 <button type="button" aria-current={tab === 'workers'} onClick={() => setTab('workers')}><UsersRound
-                    size={16}/> Workers <span>{workers.length}</span></button>
+                    size={16}/> Employees <span>{workers.length}</span></button>
                 <button type="button" aria-current={tab === 'attendance'} onClick={() => setTab('attendance')}>
                     <CalendarCheck size={16}/> Attendance
                 </button>
@@ -136,7 +140,7 @@ export function LabourPage() {
             <EvidenceLedger date={date} register={attendance} references={references} records={records}
                             onChanged={reloadDate} onError={setError}/>}
 
-        {showWorker && <LabourDialog title="Register worker" onClose={() => setShowWorker(false)}><WorkerForm
+        {showWorker && <LabourDialog title="Create Employee" onClose={() => setShowWorker(false)}><WorkerForm
             onSaved={async (details) => {
                 setShowWorker(false);
                 setSelectedWorker(details);
@@ -145,21 +149,22 @@ export function LabourPage() {
         {selectedWorker && <LabourDialog title={selectedWorker.worker.displayName}
                                          onClose={() => setSelectedWorker(null)}><WorkerDetails details={selectedWorker}
                                                                                                 activityTypes={activityTypes}
-                                                                                                onChanged={setSelectedWorker}
+                                                                                                canReveal={canReveal}
+                                                                                                onChanged={async details => {setSelectedWorker(details); await reloadWorkers();}}
                                                                                                 onError={setError}/></LabourDialog>}
     </div>;
 }
 
-function WorkerRegister({workers, onOpen}: { workers: WorkerListItemDto[]; onOpen: (workerId: string) => void }) {
-    if (!workers.length) return <section className="record-panel labour-empty"><UsersRound size={30}/><h2>No workers
-        registered</h2><p>Add the first worker. National IDs stay encrypted and masked in this register.</p></section>;
-    return <section className="worker-register record-panel" aria-label="Worker register">
+export function WorkerRegister({workers, onOpen}: { workers: WorkerListItemDto[]; onOpen: (workerId: string) => void }) {
+    if (!workers.length) return <section className="record-panel labour-empty"><UsersRound size={30}/><h2>No employees
+        registered</h2><p>Create the first employee. National IDs stay encrypted and masked in this register.</p></section>;
+    return <section className="worker-register record-panel" aria-label="Employee register">
         <div className="ledger-heading">
-            <span>Worker</span><span>Employment</span><span>National ID</span><span>Status</span></div>
+            <span>Employee</span><span>Employment</span><span>National ID</span><span>Status</span></div>
         {workers.map((worker) => <button key={worker.id} type="button" className="worker-row"
                                          onClick={() => onOpen(worker.id)}>
             <span className="worker-identity"><i><UserRound
-                size={16}/></i><span><strong>{worker.displayName}</strong><small>{worker.phone || 'No phone recorded'}</small></span></span>
+                size={16}/></i><span><strong>{worker.displayName}</strong><small>{worker.employeeNumber || 'Number not recorded'} · {worker.phone || 'No phone recorded'}</small></span></span>
             <span>{label(worker.employmentType)}<small>From {formatDate(worker.activeFrom)}</small></span>
             <span className="masked-id">{worker.nationalIdMask}<small>Protected value</small></span>
             <em className={`status-pill status-${worker.status.toLowerCase()}`}>{worker.status}</em>
@@ -167,7 +172,7 @@ function WorkerRegister({workers, onOpen}: { workers: WorkerListItemDto[]; onOpe
     </section>;
 }
 
-function WorkerForm({onSaved, onError}: {
+export function WorkerForm({onSaved, onError}: {
     onSaved: (details: WorkerDetailsDto) => void | Promise<void>;
     onError: (message: string) => void
 }) {
@@ -180,8 +185,9 @@ function WorkerForm({onSaved, onError}: {
         onError('');
         try {
             onSaved(await createWorker({
-                displayName: String(data.get('displayName')),
-                phone: String(data.get('phone')) || undefined,
+                displayName: `${String(data.get('firstName')).trim()} ${String(data.get('surname')).trim()}`,
+                phone: undefined,
+                profile: new WorkerProfileInput({firstName: String(data.get('firstName')).trim(), surname: String(data.get('surname')).trim()}),
                 employmentType: String(data.get('employmentType')),
                 activeFrom: String(data.get('activeFrom')),
                 nationalId: String(data.get('nationalId'))
@@ -194,24 +200,25 @@ function WorkerForm({onSaved, onError}: {
     };
     return <form className="labour-form" onSubmit={save}>
         <div className="form-grid">
-            <label>Worker name<input name="displayName" maxLength={120} autoComplete="name" required/></label>
-            <label>Phone<input name="phone" maxLength={30} autoComplete="tel"/></label>
-            <label>Employment type<select name="employmentType">{employmentTypes.map((type) => <option key={type}
+            <label>First name<input name="firstName" maxLength={60} autoComplete="given-name" required/></label>
+            <label>Surname<input name="surname" maxLength={59} autoComplete="family-name" required/></label>
+            <label>Employee type<select name="employmentType">{employmentTypes.map((type) => <option key={type}
                                                                                                        value={type}>{label(type)}</option>)}</select></label>
-            <label>Active from<DatePicker name="activeFrom" defaultValue={harareToday()} required/></label>
+            <label>Employment date<DatePicker name="activeFrom" defaultValue={harareToday()} required/></label>
             <label className="is-wide">National ID<input name="nationalId" type="password" autoComplete="off"
                                                          maxLength={80} required/><small>Encrypted on submission. Only a
                 safe mask is shown afterward.</small></label>
         </div>
         <footer className="form-actions"><span className="security-note"><ShieldCheck size={15}/> Encrypted · farm-scoped duplicate check</span>
-            <button disabled={saving}>{saving ? 'Protecting…' : 'Register worker'}</button>
+            <button disabled={saving}>{saving ? 'Protecting…' : 'Create Employee'}</button>
         </footer>
     </form>;
 }
 
-function WorkerDetails({details, activityTypes, onChanged, onError}: {
+function WorkerDetails({details, activityTypes, onChanged, onError, canReveal}: {
     details: WorkerDetailsDto;
     activityTypes: ActivityTypeDto[];
+    canReveal: boolean;
     onChanged: (details: WorkerDetailsDto) => void;
     onError: (message: string) => void
 }) {
@@ -241,9 +248,10 @@ function WorkerDetails({details, activityTypes, onChanged, onError}: {
         }
     };
     return <div className="worker-details">
+        <EmployeeProfile key={worker.id} details={details} canReveal={canReveal} onChanged={onChanged} onError={onError}/>
         <div className="overview-facts">
             <span><small>Employment</small><strong>{label(worker.employmentType)}</strong></span><span><small>National ID</small><strong
-            className="masked-id">{worker.nationalIdMask}</strong></span><span><small>Active from</small><strong>{formatDate(worker.activeFrom)}</strong></span><span><small>Status</small><strong>{worker.status}</strong></span>
+            className="masked-id">{worker.nationalIdMask}</strong></span><span><small>Employment date</small><strong>{formatDate(worker.activeFrom)}</strong></span><span><small>Status</small><strong>{worker.status}</strong></span>
         </div>
         <section>
             <div className="section-heading">

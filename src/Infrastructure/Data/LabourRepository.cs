@@ -9,6 +9,11 @@ namespace Cane360.Infrastructure.Data;
 
 public sealed class LabourRepository(ApplicationDbContext context) : ILabourRepository
 {
+    public Task<bool> HasEmployeeNumberAsync(Guid tenantId, string number, Guid excludedWorkerId,
+        CancellationToken cancellationToken) => context.WorkerProfiles.AnyAsync(worker =>
+            worker.TenantId == tenantId && worker.EmployeeNumber == number && worker.Id != excludedWorkerId,
+            cancellationToken);
+
     public async Task<IReadOnlyList<WorkerProfile>> GetWorkersAsync(
         Guid tenantId, Guid farmId, bool trackChanges, CancellationToken cancellationToken)
     {
@@ -157,6 +162,8 @@ public sealed class LabourRepository(ApplicationDbContext context) : ILabourRepo
         {
             ConflictException? conflict = postgres.ConstraintName switch
             {
+                "UX_WorkerProfiles_Tenant_EmployeeNumber" => new ConflictException(
+                    "This employee number is already used in this tenant."),
                 "UX_WorkerProfiles_Farm_NationalIdFingerprint" => new ConflictException(
                     "A worker with this national ID is already registered on this farm."),
                 "UX_Attendances_Worker_WorkDate" => new ConflictException(

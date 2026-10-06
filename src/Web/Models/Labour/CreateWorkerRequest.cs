@@ -1,3 +1,5 @@
+using Cane360.Application.Labour;
+
 namespace Cane360.Web.Models.Labour;
 
 public sealed record CreateWorkerRequest(
@@ -6,4 +8,5 @@ public sealed record CreateWorkerRequest(
     string? Phone,
     string EmploymentType,
     string ActiveFrom,
-    string NationalId);
+    string NationalId,
+    WorkerProfileInput? Profile = null);

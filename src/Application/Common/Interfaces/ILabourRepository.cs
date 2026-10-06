@@ -5,6 +5,9 @@ namespace Cane360.Application.Common.Interfaces;
 
 public interface ILabourRepository
 {
+    Task<bool> HasEmployeeNumberAsync(Guid tenantId, string number, Guid excludedWorkerId,
+        CancellationToken cancellationToken);
+
     Task<IReadOnlyList<WorkerProfile>> GetWorkersAsync(Guid tenantId, Guid farmId, bool trackChanges,
         CancellationToken cancellationToken);
 
