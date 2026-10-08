@@ -69,6 +69,17 @@ public sealed class ReverseStockReturnCommandHandler(
             timeProvider.GetUtcNow(),
             command.Reason, "Grower reversed a posted return through exact opposite stock movements.");
         await inventoryRepository.SaveChangesAsync(cancellationToken);
+        foreach (StockReturnLine line in stockReturn.Lines)
+        {
+            StockIssueLine issueLine =
+                await inventoryRepository.GetStockIssueLineAsync(tenant.Id, farm.Id, line.StockIssueLineId, true,
+                    cancellationToken) ??
+                throw new NotFoundException(line.StockIssueLineId.ToString(), "Stock issue line");
+            await InventoryAccountability.SynchronizeExceptionAsync(inventoryRepository, tenant, farm, user,
+                stockReturn.ActivityId, issueLine, timeProvider.GetUtcNow(), cancellationToken);
+        }
+
+        await inventoryRepository.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 }

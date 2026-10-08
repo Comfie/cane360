@@ -64,6 +64,12 @@ public sealed class PostStockReturnCommandHandler(
         {
             inventoryRepository.Add(StockMovement.CreateReturn(stockReturn, line, now, userId,
                 $"return:{line.Id:N}:posted"));
+        }
+
+        // Flush within the transaction so reconciliation queries include this posted return.
+        await inventoryRepository.SaveChangesAsync(cancellationToken);
+        foreach (StockReturnLine line in stockReturn.Lines)
+        {
             StockIssueLine issueLine =
                 await inventoryRepository.GetStockIssueLineAsync(tenant.Id, farm.Id, line.StockIssueLineId, true,
                     cancellationToken) ??
