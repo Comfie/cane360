@@ -1,3 +1,4 @@
+using Cane360.Application.Account;
 using Cane360.Application.Administration;
 using Cane360.Application.Common.Interfaces;
 using Cane360.Infrastructure.Data;
@@ -77,5 +78,6 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IAccountProfileStore, AccountProfileStore>();
     }
 }

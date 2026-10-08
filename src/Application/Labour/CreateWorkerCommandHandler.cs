@@ -25,6 +25,12 @@ public sealed class CreateWorkerCommandHandler(
                 "The selected person must be active on the worker start date.");
         }
 
+        if (request.PersonId.HasValue && (await labourRepository.GetWorkersAsync(
+                tenant.Id, farm.Id, false, cancellationToken)).Any(worker => worker.PersonId == person.Id))
+        {
+            throw new ConflictException("This person already has an employee record. Open the existing employee instead.");
+        }
+
         Guid workerId = Guid.NewGuid();
         ProtectedNationalId? protectedId = null;
         LabourAccess.ApplyDomainAction(nameof(request.NationalId), () =>

@@ -26,7 +26,7 @@ export const ratesClient = new WorkerRatesClient();
 export const attendanceClient = new AttendanceClient();
 export const workRecordsClient = new WorkRecordsClient();
 
-type CreateWorkerValues = Pick<ICreateWorkerRequest, 'displayName' | 'phone' | 'employmentType' | 'activeFrom' | 'nationalId' | 'profile'>;
+type CreateWorkerValues = Pick<ICreateWorkerRequest, 'personId' | 'displayName' | 'phone' | 'employmentType' | 'activeFrom' | 'nationalId' | 'profile'>;
 type CreateRateValues = Pick<ICreateWorkerRateRequest, 'basis' | 'activityTypeId' | 'rateUsd' | 'effectiveFrom' | 'effectiveTo'>;
 type AttendanceEntryValues = Pick<IAttendanceEntryRequest, 'workerId' | 'status' | 'fieldId' | 'expectedVersion'>;
 type WorkScopeValues = Pick<IWorkScopeRequest, 'type' | 'startLine' | 'endLine' | 'sectionName'>;
@@ -34,7 +34,7 @@ type CreateWorkRecordValues = Omit<ICreateWorkRecordRequest, 'scope'> & { scope?
 
 export function createWorker(values: CreateWorkerValues) {
     return workersClient.createWorkers(new CreateWorkerRequest({
-        personId: undefined,
+        personId: values.personId,
         displayName: values.displayName,
         phone: values.phone,
         employmentType: values.employmentType,

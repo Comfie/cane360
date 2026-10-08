@@ -12151,6 +12151,125 @@ export class MillRecordsClient {
     }
 }
 
+export class MyProfileClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        this.http = http ? http : window as any;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    /**
+     * @return OK
+     */
+    getMyProfile(): Promise<AccountProfileDto> {
+        let url_ = this.baseUrl + "/api/my-profile";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyProfile(_response);
+        });
+    }
+
+    protected processGetMyProfile(response: Response): Promise<AccountProfileDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = AccountProfileDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AccountProfileDto>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    updateMyProfile(body: UpdateMyProfileCommand): Promise<AccountProfileDto> {
+        let url_ = this.baseUrl + "/api/my-profile";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMyProfile(_response);
+        });
+    }
+
+    protected processUpdateMyProfile(response: Response): Promise<AccountProfileDto> {
+        const status = response.status;
+        let _headers: any = {};
+        if (response.headers && response.headers.forEach) {
+            response.headers.forEach((v: any, k: any) => _headers[k] = v);
+        }
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+                let result200: any = null;
+                let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = AccountProfileDto.fromJS(resultData200);
+                return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+                return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+                return throwException("Unauthorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+                return throwException("Forbidden", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+                return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AccountProfileDto>(null as any);
+    }
+}
+
 export class PayrollClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
@@ -15963,6 +16082,66 @@ export class WorkRecordsClient {
         }
         return Promise.resolve<WorkRecordDto>(null as any);
     }
+}
+
+export class AccountProfileDto implements IAccountProfileDto {
+    email!: string;
+    isEmailConfirmed!: boolean;
+    displayName!: string | undefined;
+    phoneNumber!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IAccountProfileDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.email = _data["email"];
+            this.isEmailConfirmed = _data["isEmailConfirmed"];
+            this.displayName = _data["displayName"];
+            this.phoneNumber = _data["phoneNumber"];
+        }
+    }
+
+    static fromJS(data: any): AccountProfileDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new AccountProfileDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["email"] = this.email;
+        data["isEmailConfirmed"] = this.isEmailConfirmed;
+        data["displayName"] = this.displayName;
+        data["phoneNumber"] = this.phoneNumber;
+        return data;
+    }
+}
+
+export interface IAccountProfileDto {
+    email: string;
+    isEmailConfirmed: boolean;
+    displayName: string | undefined;
+    phoneNumber: string | undefined;
+
+    [key: string]: any;
 }
 
 export class ActivityCollectionDto implements IActivityCollectionDto {
@@ -33840,6 +34019,58 @@ export interface IUpdateInventoryCategoryRequest {
     description: string | undefined;
     displayOrder: number;
     expectedVersion: number;
+
+    [key: string]: any;
+}
+
+export class UpdateMyProfileCommand implements IUpdateMyProfileCommand {
+    displayName!: string;
+    phoneNumber!: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IUpdateMyProfileCommand) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.displayName = _data["displayName"];
+            this.phoneNumber = _data["phoneNumber"];
+        }
+    }
+
+    static fromJS(data: any): UpdateMyProfileCommand {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateMyProfileCommand();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["displayName"] = this.displayName;
+        data["phoneNumber"] = this.phoneNumber;
+        return data;
+    }
+}
+
+export interface IUpdateMyProfileCommand {
+    displayName: string;
+    phoneNumber: string | undefined;
 
     [key: string]: any;
 }

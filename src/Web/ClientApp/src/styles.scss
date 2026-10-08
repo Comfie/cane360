@@ -576,7 +576,7 @@
 
 .person-list article {
   display: grid;
-  grid-template-columns: 2.25rem minmax(0, 1fr) auto auto;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: var(--space-3);
   margin: 0;
@@ -1576,6 +1576,10 @@
     grid-column: 3;
     grid-row: 1 / span 2;
   }
+  .person-list .person-employee-link {
+    grid-column: 2;
+    grid-row: 3;
+  }
   .activity-date {
     grid-column: 1 / -1;
     grid-template-columns: auto 1fr;
@@ -1976,6 +1980,44 @@ p {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+}
+
+.signed-in-role {
+  color: var(--text-strong);
+  font-size: var(--type-xs);
+  font-weight: 600;
+}
+
+.mobile-header .signed-in-role {
+  max-width: 7rem;
+  line-height: 1.25;
+}
+
+.account-summary {
+  text-decoration: none;
+}
+
+.my-profile {
+  max-width: 52rem;
+}
+
+.profile-help {
+  color: var(--text-muted);
+  font-size: var(--type-sm);
+}
+
+.person-list article:target {
+  outline: 2px solid var(--text-strong);
+  outline-offset: 3px;
+}
+
+.person-employee-link {
+  font-size: var(--type-sm);
+}
+
+#personnel-register,
+.person-list article {
+  scroll-margin-top: calc(var(--mobile-header-height) + var(--space-4));
 }
 
 .quiet-icon-button {
@@ -5158,8 +5200,7 @@ p {
   .desktop-sidebar.is-collapsed :is(
     .brand > span:last-child,
     .workspace-label,
-    .navigation-link > span,
-    .account-summary > span:last-child
+    .navigation-link > span
   ) {
     display: none;
   }
@@ -5240,6 +5281,15 @@ p {
   .account-summary small {
     color: var(--text-muted);
     font-size: 0.6875rem;
+  }
+
+  .desktop-sidebar.is-collapsed .account-summary {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .desktop-sidebar.is-collapsed .account-summary strong {
+    display: none;
   }
 
   .sidebar-actions {

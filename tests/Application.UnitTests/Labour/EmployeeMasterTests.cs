@@ -55,6 +55,50 @@ public sealed class EmployeeMasterTests
     }
 
     [Test]
+    public async Task RegisteringExistingPersonnelRetainsTheirIdentityAndRoles()
+    {
+        Fixture f = new();
+        f.Person.AssignRole(PersonRole.Supervisor, false, Fixture.Date);
+        f.Labour.Setup(repo => repo.GetWorkersAsync(f.Tenant.Id, f.Farm.Id, false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        int peopleBefore = f.Farm.Persons.Count;
+        long personVersion = f.Person.Version;
+        var result = await new CreateWorkerCommandHandler(f.Farms.Object, f.Labour.Object,
+            f.Protector, f.User.Object, f.Clock).Handle(new CreateWorkerCommand(f.Person.Id, null, null,
+                "Seasonal", Fixture.Date, "SYNTHETIC-LINK-12"), CancellationToken.None);
+
+        result.Worker.PersonId.ShouldBe(f.Person.Id);
+        result.Worker.DisplayName.ShouldBe(f.Person.DisplayName);
+        f.Farm.Persons.Count.ShouldBe(peopleBefore);
+        f.Person.Version.ShouldBe(personVersion);
+        f.Person.RoleAssignments.Single().Role.ShouldBe(PersonRole.Supervisor);
+    }
+
+    [Test]
+    public async Task PersonnelWithAnEmployeeRecordCannotBeRegisteredTwice()
+    {
+        Fixture f = new();
+        f.Labour.Setup(repo => repo.GetWorkersAsync(f.Tenant.Id, f.Farm.Id, false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([f.Worker]);
+        await Should.ThrowAsync<ConflictException>(() => new CreateWorkerCommandHandler(f.Farms.Object,
+            f.Labour.Object, f.Protector, f.User.Object, f.Clock).Handle(new CreateWorkerCommand(f.Person.Id,
+                null, null, "Seasonal", Fixture.Date, "SYNTHETIC-LINK-12"), CancellationToken.None));
+
+        f.Labour.Verify(repo => repo.Add(It.IsAny<WorkerProfile>()), Times.Never);
+        f.Labour.Verify(repo => repo.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task PersonnelFromAnotherFarmCannotBeLinkedToAnEmployee()
+    {
+        Fixture f = new();
+        await Should.ThrowAsync<Ardalis.GuardClauses.NotFoundException>(() => new CreateWorkerCommandHandler(f.Farms.Object,
+            f.Labour.Object, f.Protector, f.User.Object, f.Clock).Handle(new CreateWorkerCommand(Guid.NewGuid(),
+                null, null, "Seasonal", Fixture.Date, "SYNTHETIC-LINK-12"), CancellationToken.None));
+        f.Labour.Verify(repo => repo.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
     public async Task ProfileEditUpdatesSharedIdentityWithoutChangingRolesOrEligibility()
     {
         Fixture f = new();

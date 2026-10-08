@@ -1,5 +1,8 @@
 import {type FormEvent, useCallback, useEffect, useState} from 'react';
 import {X} from 'lucide-react';
+import {useSearchParams} from 'react-router-dom';
+import {useAuth} from '../api-authorization/AuthContext';
+import {MyProfile} from '../administration/MyProfile';
 import {
     type ActivityTypeDto,
     ActivityTypesClient,
@@ -45,9 +48,10 @@ const activities = new ActivityTypesClient();
 const inventory = new InventoryClient();
 const inputControls = new InputControlsClient();
 
-type Section = 'overview' | 'users' | 'roles' | 'activities' | 'units' | 'rules' | 'categories' | 'audit';
+type Section = 'profile' | 'overview' | 'users' | 'roles' | 'activities' | 'units' | 'rules' | 'categories' | 'audit';
 const sections: { id: Section; label: string }[] = [
     {id: 'overview', label: 'Overview'},
+    {id: 'profile', label: 'My profile'},
     {id: 'users', label: 'Users & Access'},
     {id: 'roles', label: 'Roles & Permissions'},
     {id: 'activities', label: 'Activity Types'},
@@ -58,7 +62,26 @@ const sections: { id: Section; label: string }[] = [
 ];
 
 export function AdministrationPage() {
-    const [section, setSection] = useState<Section>('overview');
+    const {session} = useAuth();
+    const [params, setParams] = useSearchParams();
+    const requested = params.get('section');
+    const section = sections.find((item) => item.id === requested)?.id ?? 'overview';
+    const setSection = (value: Section) => setParams({section: value});
+    const profileOnly = session.role !== 'Grower' && session.role !== 'FarmManager';
+
+    return <div className="page-stack administration-page">
+        <PageHeader eyebrow="Your workspace" title="Administration"
+                    description="Your profile, users, access and farm configuration"/>
+        <nav className="administration-tabs" aria-label="Administration sections">
+            {sections.filter((item) => profileOnly ? item.id === 'profile' : session.role === 'Grower' || !['audit', 'users'].includes(item.id)).map((item) =>
+                <button type="button" key={item.id} aria-current={(profileOnly ? 'profile' : section) === item.id}
+                        onClick={() => setSection(item.id)}>{item.label}</button>)}
+        </nav>
+        {profileOnly || section === 'profile' ? <MyProfile/> : <AdministrationWorkspace section={section} setSection={setSection}/>}
+    </div>;
+}
+
+function AdministrationWorkspace({section, setSection}: {section: Section; setSection: (section: Section) => void}) {
     const [session, setSession] = useState<AdministrationSessionDto | null>(null);
     const [overview, setOverview] = useState<AdministrationOverviewDto | null>(null);
     const [users, setUsers] = useState<AdministrationUserDto[]>([]);
@@ -117,15 +140,8 @@ export function AdministrationPage() {
     if (loading) return <LoadingState label="Opening Administration"/>;
     if (!session || !overview) return <ValidationError message={error || 'Administration could not be loaded.'}/>;
 
-    return <div className="page-stack administration-page">
-        <PageHeader eyebrow="Farm configuration" title="Administration"
-                    description="Users, access, farm configuration and audit"/>
+    return <>
         <ValidationError message={error}/>
-        <nav className="administration-tabs" aria-label="Administration sections">
-            {sections.filter((item) => session.role === 'Grower' || !['audit', 'users'].includes(item.id)).map((item) =>
-                <button type="button" key={item.id} aria-current={section === item.id}
-                        onClick={() => setSection(item.id)}>{item.label}</button>)}
-        </nav>
         {section === 'overview' && <Overview overview={overview} role={session.role} onNavigate={setSection}/>}
         {section === 'users' && session.role === 'Grower' && <Users users={users} session={session} onDisable={(id) =>
             change(async () => {
@@ -138,7 +154,7 @@ export function AdministrationPage() {
         {section === 'rules' && <Rules types={types} onChange={change}/>}
         {section === 'categories' && <DocumentCategories onChange={change}/>}
         {section === 'audit' && session.role === 'Grower' && <Audit/>}
-    </div>;
+    </>;
 }
 
 function Overview({overview, role, onNavigate}: {

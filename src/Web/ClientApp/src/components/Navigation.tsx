@@ -18,10 +18,10 @@ import {
 } from 'lucide-react';
 import type {MouseEvent} from 'react';
 import {useState} from 'react';
-import {NavLink, useLocation, useNavigate} from 'react-router-dom';
+import {Link, NavLink, useLocation, useNavigate} from 'react-router-dom';
 import type {NavigationId, NavigationItem} from '../navigation.ts';
 import {protectedNavigation} from '../navigation.ts';
-import {roleNavigationIds} from './api-authorization/activationView';
+import {roleLabel, roleNavigationIds} from './api-authorization/activationView';
 import {useAuth} from './api-authorization/AuthContext';
 import {ThemeToggle} from './ThemeToggle';
 import {useDialogFocus} from './useDialogFocus';
@@ -120,14 +120,14 @@ export function DesktopNavigation({collapsed, onToggle}: DesktopNavigationProps)
                 ))}
             </nav>
             <div className="sidebar-footer">
-                <div className="account-summary">
+                <Link to="/administration?section=profile" className="account-summary" title={`My profile · ${roleLabel(session.role)}`} aria-label={`My profile · ${roleLabel(session.role)}`}>
                     <span className="account-avatar"
                           aria-hidden="true">{accountEmail?.charAt(0).toUpperCase() || 'C'}</span>
                     <span>
             <strong>{accountEmail || 'Cane360 user'}</strong>
-            <small>Authenticated</small>
+            <small>{roleLabel(session.role)}</small>
           </span>
-                </div>
+                </Link>
                 <div className="sidebar-actions">
                     <ThemeToggle/>
                     <button className="quiet-icon-button" type="button" onClick={handleLogout} aria-label="Log out">
@@ -140,7 +140,7 @@ export function DesktopNavigation({collapsed, onToggle}: DesktopNavigationProps)
 }
 
 export function MobileHeader() {
-    const {logout} = useAuth();
+    const {logout, session} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -152,6 +152,7 @@ export function MobileHeader() {
         <header className="mobile-header">
             <Brand/>
             <div className="mobile-header-actions">
+                <Link className="signed-in-role" to="/administration?section=profile" aria-label={`My profile · ${roleLabel(session.role)}`}>{roleLabel(session.role)}</Link>
                 <ThemeToggle/>
                 <button className="quiet-icon-button" type="button" onClick={handleLogout} aria-label="Log out">
                     <LogOut size={19} aria-hidden="true"/>

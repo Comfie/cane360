@@ -1,12 +1,14 @@
 import {type FormEvent, type ReactNode, useEffect, useMemo, useState} from 'react';
 import {useDialogFocus} from '../useDialogFocus';
 import {BadgeCheck, CalendarCheck, ClipboardList, Plus, ShieldCheck, UserRound, UsersRound, X} from 'lucide-react';
-import {Link} from 'react-router-dom';
+import {Link, useSearchParams} from 'react-router-dom';
 import {getApiError} from '../apiError';
 import {LoadingState} from '../LoadingState';
 import {PageHeader} from '../PageHeader';
 import {ValidationError} from '../ValidationError';
 import {
+    FarmPersonnelClient,
+    type PersonDto,
     type ActivityTypeDto,
     ActivityTypesClient,
     type AttendanceRegisterDto,
@@ -42,6 +44,9 @@ import {
 
 export function LabourPage() {
     const canReveal = useAuth().session.role === 'Grower';
+    const [params, setParams] = useSearchParams();
+    const requestedPersonId = params.get('personId');
+    const [persons, setPersons] = useState<PersonDto[]>([]);
     const activityTypesClient = useMemo(() => new ActivityTypesClient(), []);
     const [tab, setTab] = useState<'workers' | 'attendance' | 'evidence'>('workers');
     const [date, setDate] = useState(harareToday());
@@ -70,9 +75,10 @@ export function LabourPage() {
     useEffect(() => {
         let current = true;
         const initialDate = harareToday();
-        Promise.all([workersClient.getWorkers(), getAttendance(initialDate), workRecordsClient.getWorkRecords(dateOnly(initialDate), undefined, undefined), workRecordsClient.referenceData(dateOnly(initialDate)), activityTypesClient.getActivityTypes()])
-            .then(([workerResult, register, work, referenceData, typeResult]) => {
+        Promise.all([workersClient.getWorkers(), getAttendance(initialDate), workRecordsClient.getWorkRecords(dateOnly(initialDate), undefined, undefined), workRecordsClient.referenceData(dateOnly(initialDate)), activityTypesClient.getActivityTypes(), new FarmPersonnelClient().getFarmPersonnel()])
+            .then(([workerResult, register, work, referenceData, typeResult, personnel]) => {
                 if (!current) return;
+                setPersons(personnel.persons);
                 setWorkers(workerResult);
                 setAttendance(register);
                 setRecords(work);
@@ -108,17 +114,41 @@ export function LabourPage() {
         }
     };
 
+    const requestedPerson = persons.find((person) => person.id === requestedPersonId);
+    const requestedWorker = workers.find((worker) => worker.personId === requestedPersonId);
+    const registerRequestedPerson = !loading && requestedPerson?.status === 'Active' && !requestedWorker;
+    const unavailablePerson = !loading && requestedPersonId && requestedPerson?.status !== 'Active' && !requestedWorker;
+
+    useEffect(() => {
+        if (loading || !requestedPersonId) return;
+        const worker = workers.find((item) => item.personId === requestedPersonId);
+        if (worker) {
+            let active = true;
+            workersClient.getWorkerDetails(worker.id).then((details) => {
+                if (active) setSelectedWorker(details);
+            }).catch((cause) => {if (active) setError(getApiError(cause));});
+            return () => {active = false;};
+        }
+    }, [loading, requestedPersonId, workers]);
+
+    const closeWorker = () => {
+        setShowWorker(false);
+        setSelectedWorker(null);
+        if (requestedPersonId) setParams({});
+    };
+
     if (loading) return <LoadingState label="Loading the labour ledger"/>;
 
     return <div className="page-stack labour-page">
         <PageHeader eyebrow="Payroll-ready evidence" title="Labour"
                     description="Register employees, allocate daily attendance, and confirm traceable work evidence—without calculating payroll.">
+            <Link className="secondary-action" to="/farm#personnel-register">People and roles</Link>
             <Link className="secondary-action" to="/payroll">Open payroll runs</Link>
             <button type="button" className="primary-action" onClick={() => setShowWorker(true)}><Plus
                 size={17}/> Create Employee
             </button>
         </PageHeader>
-        <ValidationError message={error}/>
+        <ValidationError message={error || (unavailablePerson ? 'This personnel record is unavailable. Choose a person from the current farm.' : '')}/>
         <section className="labour-toolbar record-panel">
             <nav className="labour-tabs" aria-label="Labour sections">
                 <button type="button" aria-current={tab === 'workers'} onClick={() => setTab('workers')}><UsersRound
@@ -140,14 +170,17 @@ export function LabourPage() {
             <EvidenceLedger date={date} register={attendance} references={references} records={records}
                             onChanged={reloadDate} onError={setError}/>}
 
-        {showWorker && <LabourDialog title="Create Employee" onClose={() => setShowWorker(false)}><WorkerForm
+        {(showWorker || registerRequestedPerson) && <LabourDialog title="Create Employee" onClose={closeWorker}><WorkerForm
+            persons={persons.filter((person) => person.status === 'Active' && !workers.some((worker) => worker.personId === person.id))}
+            selectedPersonId={requestedPersonId ?? undefined}
             onSaved={async (details) => {
                 setShowWorker(false);
+                setParams({});
                 setSelectedWorker(details);
                 await reloadWorkers();
             }} onError={setError}/></LabourDialog>}
         {selectedWorker && <LabourDialog title={selectedWorker.worker.displayName}
-                                         onClose={() => setSelectedWorker(null)}><WorkerDetails details={selectedWorker}
+                                         onClose={closeWorker}><WorkerDetails details={selectedWorker}
                                                                                                 activityTypes={activityTypes}
                                                                                                 canReveal={canReveal}
                                                                                                 onChanged={async details => {setSelectedWorker(details); await reloadWorkers();}}
@@ -172,10 +205,14 @@ export function WorkerRegister({workers, onOpen}: { workers: WorkerListItemDto[]
     </section>;
 }
 
-export function WorkerForm({onSaved, onError}: {
+export function WorkerForm({onSaved, onError, persons = [], selectedPersonId}: {
+    persons?: PersonDto[];
+    selectedPersonId?: string;
     onSaved: (details: WorkerDetailsDto) => void | Promise<void>;
     onError: (message: string) => void
 }) {
+    const [personId, setPersonId] = useState(selectedPersonId ?? '');
+    const person = persons.find((item) => item.id === personId);
     const [saving, setSaving] = useState(false);
     const save = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -185,9 +222,10 @@ export function WorkerForm({onSaved, onError}: {
         onError('');
         try {
             onSaved(await createWorker({
-                displayName: `${String(data.get('firstName')).trim()} ${String(data.get('surname')).trim()}`,
+                personId: person?.id,
+                displayName: person ? undefined : `${String(data.get('firstName')).trim()} ${String(data.get('surname')).trim()}`,
                 phone: undefined,
-                profile: new WorkerProfileInput({firstName: String(data.get('firstName')).trim(), surname: String(data.get('surname')).trim()}),
+                profile: person ? undefined : new WorkerProfileInput({firstName: String(data.get('firstName')).trim(), surname: String(data.get('surname')).trim()}),
                 employmentType: String(data.get('employmentType')),
                 activeFrom: String(data.get('activeFrom')),
                 nationalId: String(data.get('nationalId'))
@@ -200,11 +238,16 @@ export function WorkerForm({onSaved, onError}: {
     };
     return <form className="labour-form" onSubmit={save}>
         <div className="form-grid">
+            {persons.length > 0 && <label className="is-wide">Personnel record<select value={personId} onChange={(event) => setPersonId(event.target.value)}>
+                <option value="">Create a new person</option>
+                {persons.map((item) => <option key={item.id} value={item.id}>{item.displayName}</option>)}
+            </select><small>Select an existing person to keep their roles and employment on one record.</small></label>}
+            {person ? <p className="is-wide">Registering <strong>{person.displayName}</strong> as an employee. Their personnel name, contact details and roles are retained.</p> : <>
             <label>First name<input name="firstName" maxLength={60} autoComplete="given-name" required/></label>
-            <label>Surname<input name="surname" maxLength={59} autoComplete="family-name" required/></label>
+            <label>Surname<input name="surname" maxLength={59} autoComplete="family-name" required/></label></>}
             <label>Employee type<select name="employmentType">{employmentTypes.map((type) => <option key={type}
                                                                                                        value={type}>{label(type)}</option>)}</select></label>
-            <label>Employment date<DatePicker name="activeFrom" defaultValue={harareToday()} required/></label>
+            <label>Employment date<DatePicker key={person?.id ?? 'new-person'} name="activeFrom" defaultValue={person && person.activeFrom > harareToday() ? person.activeFrom : harareToday()} min={person?.activeFrom} required/></label>
             <label className="is-wide">National ID<input name="nationalId" type="password" autoComplete="off"
                                                          maxLength={80} required/><small>Encrypted on submission. Only a
                 safe mask is shown afterward.</small></label>
@@ -248,6 +291,7 @@ function WorkerDetails({details, activityTypes, onChanged, onError, canReveal}: 
         }
     };
     return <div className="worker-details">
+        <Link className="secondary-action" to={`/farm#person-${worker.personId}`}>View personnel record and roles</Link>
         <EmployeeProfile key={worker.id} details={details} canReveal={canReveal} onChanged={onChanged} onError={onError}/>
         <div className="overview-facts">
             <span><small>Employment</small><strong>{label(worker.employmentType)}</strong></span><span><small>National ID</small><strong

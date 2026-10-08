@@ -1,8 +1,12 @@
 import {type FormEvent, useEffect, useState} from 'react';
+import {Link, useLocation} from 'react-router-dom';
+import {useAuth} from '../api-authorization/AuthContext';
+import {workersClient} from '../labour/labourApi';
 import {BadgeCheck, Pencil, UserPlus, Users, X} from 'lucide-react';
 import {
     CreatePersonRequest,
     FarmPersonnelClient,
+    type WorkerListItemDto,
     type PersonDto,
     type PersonnelRegisterDto,
     UpdatePersonRequest
@@ -14,6 +18,11 @@ import {useDialogFocus} from '../useDialogFocus';
 const personnelClient = new FarmPersonnelClient();
 
 export function PersonnelRegister() {
+    const {session} = useAuth();
+    const location = useLocation();
+    const canViewEmployees = session.role === 'Grower' || session.role === 'FarmManager';
+    const [workers, setWorkers] = useState<WorkerListItemDto[] | null>(null);
+    const [employeeError, setEmployeeError] = useState('');
     const [register, setRegister] = useState<PersonnelRegisterDto | null>(null);
     const [error, setError] = useState('');
     const [adding, setAdding] = useState(false);
@@ -42,6 +51,21 @@ export function PersonnelRegister() {
             current = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (!canViewEmployees) return;
+        let active = true;
+        workersClient.getWorkers().then((result) => {if (active) setWorkers(result);})
+            .catch((cause) => {if (active) setEmployeeError(getApiError(cause));});
+        return () => {active = false;};
+    }, [canViewEmployees]);
+
+    useEffect(() => {
+        if (!register || !location.hash.startsWith('#person')) return;
+        const target = document.getElementById(location.hash.slice(1));
+        target?.scrollIntoView({block: 'center'});
+        target?.focus({preventScroll: true});
+    }, [register, location.hash]);
 
     const openAddPerson = () => {
         setError('');
@@ -109,12 +133,15 @@ export function PersonnelRegister() {
         }
     };
 
-    return <section className="record-panel personnel-register">
+    return <section id="personnel-register" tabIndex={-1} className="record-panel personnel-register">
         <header className="section-heading">
             <div><span className="eyebrow">People and roles</span><h2>Personnel register</h2></div>
             <button type="button" className="secondary-action" onClick={openAddPerson}><UserPlus size={16}/> Add person
             </button>
         </header>
+        <p>Personnel records hold each person’s name, contact details and operational roles. Register the same person as an employee to add employment details, pay rates and payroll.</p>
+        {canViewEmployees && <Link className="secondary-action" to="/labour">Open Employees</Link>}
+        {employeeError && <p role="alert">Employee links could not be loaded. {employeeError}</p>}
         {!register.primaryManagerAssigned && <div className="manager-gap"><Users size={18}/>
             <div><strong>Primary manager not assigned</strong><span>Add a named person with the primary Farm manager role when ready. The Farm Owner has not been assumed to be the manager.</span>
             </div>
@@ -174,13 +201,20 @@ export function PersonnelRegister() {
                 </article>
             </dialog>}
         <div className="person-list">{register.persons.length === 0 ?
-            <p>No named operational personnel recorded.</p> : register.persons.map((person) => <article key={person.id}>
+            <p>No named operational personnel recorded.</p> : register.persons.map((person) => <article key={person.id} id={`person-${person.id}`} tabIndex={-1}>
                 <span className="person-avatar">{person.displayName.slice(0, 1).toUpperCase()}</span>
                 <div><strong>{person.displayName}</strong><small>{person.phone || 'No phone'} · Active
                     from {person.activeFrom}</small></div>
                 <div className="person-roles">{person.roles.filter((role) => !role.effectiveTo).map((role) => <span
                     key={role.id}>{role.isPrimary &&
-                    <BadgeCheck size={13}/>} {role.role === 'FarmManager' ? 'Farm manager' : role.role}</span>)}</div>
+                    <BadgeCheck size={13}/>} {role.role === 'FarmManager' ? 'Farm manager' : role.role}</span>)}{person.roles.length === 0 && <span>No operational role assigned</span>}</div>
+                {canViewEmployees && workers && <div className="person-employee-link">
+                    {workers.some((worker) => worker.personId === person.id)
+                        ? <Link to={`/labour?personId=${person.id}`} aria-label={`View employee record for ${person.displayName}`}>View employee</Link>
+                        : person.status === 'Active'
+                            ? <Link to={`/labour?personId=${person.id}`} aria-label={`Register ${person.displayName} as an employee`}>Register as employee</Link>
+                            : <span>No employee record</span>}
+                </div>}
                 {person.status === 'Active' &&
                     <button type="button" className="personnel-edit" onClick={() => openEditPerson(person)}
                             aria-label={`Edit ${person.displayName}`} title={`Edit ${person.displayName}`}><Pencil

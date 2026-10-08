@@ -30,12 +30,43 @@ Object.defineProperty(globalThis, 'window', {value: {fetch: () => {throw new Err
 const {WorkerForm, WorkerRegister} = await import('../pages/LabourPage.tsx');
 const {EmployeeFields, EmployeeProfile} = await import('./EmployeeProfile.tsx');
 const {employeeProfileInput} = await import('./employeeForm.ts');
+const {createWorker} = await import('./labourApi.ts');
 const {WorkersClient, WorkerDetailsDto, UpdateWorkerProfileRequest, WorkerProfileInput} = await import('../../web-api-client.ts');
 const worker = {id: 'worker', personId: 'person', displayName: 'Legacy employee', employmentType: 'Casual',
     activeFrom: '2026-01-01', status: 'Active', nationalIdMask: '••••••12', version: 0};
 const details = {worker, rates: [], personVersion: 0, profile: {}};
 /** @param {import('react').ComponentType<any>} component @param {any} props */
 const render = (component, props) => renderToStaticMarkup(createElement(component, props));
+
+test('employee registration reuses selected personnel without asking for another name', () => {
+    const html = render(WorkerForm, {persons: [{id: 'existing-person', displayName: 'Synthetic supervisor',
+        activeFrom: '2099-01-01', status: 'Active', roles: []}], selectedPersonId: 'existing-person', onSaved() {}, onError() {}});
+    assert.match(html, /Synthetic supervisor/);
+    assert.match(html, /personnel name, contact details and roles are retained/);
+    assert.doesNotMatch(html, /name="firstName"|name="surname"/);
+    assert.match(html, /name="activeFrom"[^>]*value="2099-01-01"/);
+    assert.match(html, /name="nationalId"/);
+});
+
+test('employee registration sends the existing personnel ID through the API helper', async () => {
+    const originalFetch = window.fetch;
+    /** @type {Record<string, unknown>} */
+    let requestBody = {};
+    window.fetch = async (_url, options) => {
+        assert.equal(typeof options?.body, 'string');
+        requestBody = JSON.parse(String(options?.body));
+        return new Response(JSON.stringify({worker: {id: 'worker', personId: 'existing-person'}, rates: []}),
+            {status: 200, headers: {'Content-Type': 'application/json'}});
+    };
+    try {
+        await createWorker({personId: 'existing-person', displayName: undefined, phone: undefined, employmentType: 'Seasonal', activeFrom: '2026-01-01', nationalId: 'SYNTHETIC-12'});
+        assert.equal(requestBody.personId, 'existing-person');
+        assert.equal(requestBody.displayName, undefined);
+        assert.equal(requestBody.profile, undefined);
+    } finally {
+        window.fetch = originalFetch;
+    }
+});
 
 test('Create Employee stays compact with five core fields and no optional enrichment', () => {
     const html = render(WorkerForm, {onSaved() {}, onError() {}});
