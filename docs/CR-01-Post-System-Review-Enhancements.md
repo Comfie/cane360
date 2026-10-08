@@ -951,3 +951,53 @@ Final SHA-256 preservation checks confirm the exact set and contents of all **89
 Git remains on feature/cr-01-5-consolidated-regression at **54206cede20baff89a22cf96c644a7653eaa354e**. The two approved handler changes, existing acceptance-test file and this document are unstaged; index empty. No stage, commit, push, merge or release Git closure occurred.
 
 Release recommendation: **READY FOR CR-01 CLOSURE**. No CR-01 migration is pending; no Blocker/High defect remains; all consolidated regression gates are green; CR-01.1 through CR-01.4 acceptance evidence is complete. This is validation readiness, not completed Git/release closure. **Phase 8 may resume only after the separate CR-01 Git/documentation closure.**
+
+
+## CR-01.5 Git closure and final CR-01 closure
+
+CR-01.5 feature commit: `ef102afa49a18bb0d79e1e16b36a498acc0f9dbc` — `fix(cr-01): close consolidated accountability regressions`.
+
+Merge commit: `2e765ae4591fbc324f3e3e8897408d829763cbb8` — `Merge CR-01.5 consolidated accountability regressions`. This is a normal two-parent, non-fast-forward merge, following CR-01.1 through CR-01.4; no squash, force push, history rewrite or conflict resolution was required.
+
+Main SHA at final executable verification: `2e765ae4591fbc324f3e3e8897408d829763cbb8`. The final main SHA includes the subsequent documentation-only commit `docs(cr-01): record final CR-01 git closure`; resolve that full SHA with `git log -1 --format=%H --grep="^docs(cr-01): record final CR-01 git closure$" main`. As in the preceding CR slices, the documentation commit cannot embed its own SHA in its contents. The final user report records both the documentation closure SHA and final main SHA explicitly and confirms the push outcome.
+
+| Slice / defect | Final status |
+| --- | --- |
+| CR-01.1 — Farm Owner & Farm Profile | CLOSED |
+| CR-01.2 — Field & Crop UX | CLOSED |
+| CR-01.3 — Employee Master | CLOSED |
+| CR-01.4 — Inventory Category Administration | CLOSED |
+| CR-01.5 — Consolidated Regression & UAT Gate | CLOSED |
+| CR015-D01 | FIXED — VERIFIED |
+| CR015-D02 | FIXED — VERIFIED |
+| CR-01 | CLOSED |
+
+No Blocker or High defect remains. The complete investigation/approval/correction/revalidation chronology and requirements traceability matrix above are retained. Git closure introduced no further production, test, UI, authorization, valuation, database-model or migration changes.
+
+| Post-merge closure gate on main | Result |
+| --- | --- |
+| .NET solution build | Passed; 0 warnings/errors |
+| Application | 481/481 passed; no failures/skips |
+| Web/API | 138/138 passed; no failures/skips |
+| Focused D01/D02 and enhanced integrated PostgreSQL workflow | 10/10 passed; no failures/skips |
+| All fifteen established safe Inventory regressions | 15/15 passed; no failures/skips |
+| Frontend | 132/132 passed; no failures/skips |
+| Lint / typecheck | Passed / passed |
+| Frontend production build / generated-client checks | Passed; existing chunk-size advisory remains |
+| EF model parity | Clean; no pending model changes |
+| Railway Development read-only status | 23 applied / 0 pending |
+| No CR-01.5 migration / existing migrations and snapshot unchanged | Confirmed |
+
+The post-merge PostgreSQL defect suite completed successfully during an agent-server restart; recovery inspected its completed TRX and confirmed no surviving runner before proceeding, rather than duplicating execution. Frontend production build and EF parity had not started at that interruption and were then executed successfully. Post-merge TRX files are retained locally in /private/tmp/cr015-closure-results; closure build/frontend/parity/database-status logs are in /private/tmp/cr015-closure-*.log. The earlier complete consolidated Railway acceptance remains 33/33, with eight additional accountability checks previously green; those broader suites and unchanged browser evidence were retained rather than unnecessarily repeated during Git closure.
+
+Fresh post-merge D01/D02 evidence preserves both accountability directions: final 10/4/6 posting resolves; return reversal retains the resolved historical episode and creates one distinct Open episode; the real closure handler rejects closure; a valid replacement return resolves the second episode and normal closure/harvest succeed. Transaction rollback, stale-version idempotent retries, unchanged locked valuation, original ledger/payroll snapshots, audit identity/actor/order and manual-yield/mill independence pass. The separate safe Inventory suite again covers receipts/issues, field receipts, returns/reversals, correction links, moving-average posting order, locked costs, OperationalCostPostings, concurrency, idempotency and tenant isolation.
+
+Railway remains **23 applied migrations / 0 pending**. The three CR migration definitions remain present exactly once, with original content/designers/model snapshot unchanged. CR-01.2 and CR-01.5 have no migration. No migration was generated, edited, applied, reapplied or rolled back during closure; no destructive database operation or cleanup occurred. Shared-database acceptance used only the established uniquely labelled synthetic fixtures. Railway data and migration history remain preserved.
+
+Deployment smoke: **NOT PERFORMED**. No application was deployed and no deployed Development instance was verified during closure; the evidence remains local/API/synthetic-browser/database validation. A Git push does not establish application deployment success. Previously documented photograph-reference, immutable-field/category, rollback, bundle and accessibility limitations remain unchanged.
+
+The feature commit contains exactly the four reviewed CR-01.5 files. SHA-256 verification confirms all **89 unrelated untracked paths**, all unrelated tracked files, pre-existing Phase 8 work, migrations, model snapshot and generated client are untouched. This subsequent closure commit changes only this document. Local environment files, secrets, temporary outputs and unrelated documentation were not staged.
+
+Main is ready for a normal push after this documentation-only commit; the final report confirms successful push and local main == origin/main. The feature branch is retained locally and remotely. No new functionality, unrelated Inventory change, statutory payroll change, deployment or Phase 8 work was introduced. **Phase 8 was NOT started.**
+
+**CR-01 CLOSED — Phase 8 may resume later.**
