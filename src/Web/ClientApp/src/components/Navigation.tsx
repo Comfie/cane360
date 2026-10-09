@@ -1,6 +1,7 @@
 import type {LucideIcon} from 'lucide-react';
 import {
     BarChart3,
+    BookOpen,
     ClipboardList,
     DollarSign,
     LayoutDashboard,
@@ -129,6 +130,9 @@ export function DesktopNavigation({collapsed, onToggle}: DesktopNavigationProps)
           </span>
                 </Link>
                 <div className="sidebar-actions">
+                    <Link className="quiet-icon-button" to="/help" aria-label="Help and user manual" title="Help and user manual">
+                        <BookOpen size={17} aria-hidden="true"/>
+                    </Link>
                     <ThemeToggle/>
                     <button className="quiet-icon-button" type="button" onClick={handleLogout} aria-label="Log out">
                         <LogOut size={17} aria-hidden="true"/>
@@ -152,6 +156,9 @@ export function MobileHeader() {
         <header className="mobile-header">
             <Brand/>
             <div className="mobile-header-actions">
+                <Link className="quiet-icon-button" to="/help" aria-label="Help and user manual" title="Help and user manual">
+                    <BookOpen size={19} aria-hidden="true"/>
+                </Link>
                 <Link className="signed-in-role" to="/administration?section=profile" aria-label={`My profile · ${roleLabel(session.role)}`}>{roleLabel(session.role)}</Link>
                 <ThemeToggle/>
                 <button className="quiet-icon-button" type="button" onClick={handleLogout} aria-label="Log out">

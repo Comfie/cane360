@@ -1,0 +1,237 @@
+Module,Method,Endpoint,Capability,Manual chapter
+Activities,GET,api/activities,Get,6
+Activities,POST,api/activities,Create,6
+Activities,GET,api/activities/{activityId:guid},GetById,6
+Activities,PUT,api/activities/{activityId:guid}/actual-work,ActualWork,6
+Activities,POST,api/activities/{activityId:guid}/source-references,AddSourceReference,6
+Activities,POST,api/activities/{activityId:guid}/transitions/planned,Planned,6
+Activities,POST,api/activities/{activityId:guid}/transitions/cancelled,Cancelled,6
+Activities,POST,api/activities/{activityId:guid}/transitions/in-progress,InProgress,6
+Activities,POST,api/activities/{activityId:guid}/transitions/awaiting-verification,AwaitingVerification,6
+Activities,POST,api/activities/{activityId:guid}/transitions/manager-confirmation,ManagerConfirmation,6
+Activities,POST,api/activities/{activityId:guid}/transitions/completed,Completed,6
+Activities,POST,api/activities/{activityId:guid}/transitions/closed,Closed,6
+ActivityTypes,GET,api/activity-types,Get,6.1 / 12.6
+ActivityTypes,POST,api/activity-types,Create,6.1 / 12.6
+ActivityTypes,POST,api/activity-types/{activityTypeId:guid}/archive,Archive,6.1 / 12.6
+ActivityTypes,PUT,api/activity-types/{activityTypeId:guid},Rename,6.1 / 12.6
+Administration,GET,api/administration/overview,Get administration overview,12
+Administration,GET,api/administration/manager-access,Get manager access,12
+Administration,GET,api/administration/rules,List application rules,12
+Administration,POST,api/administration/rules/{ruleId:guid}/end,End application rule,12
+Administration,GET,api/administration/rule-items,List rule inventory items,12
+Administration,GET,api/administration/settings,List farm settings,12
+Administration,POST,api/administration/settings,Create farm setting,12
+Administration,POST,api/administration/settings/{settingId:guid}/end,End farm setting,12
+Administration,GET,api/administration/document-categories,List document categories,12
+Administration,POST,api/administration/document-categories,Create document category,12
+Administration,PUT,api/administration/document-categories/{categoryId:guid},Update document category,12
+Administration,POST,api/administration/document-categories/{categoryId:guid}/archive,Archive document category,12
+Administration,GET,api/administration/session,Get administration session,12
+Administration,GET,api/administration/roles,List administration capabilities,12
+Administration,GET,api/administration/users,List administration users,12
+Administration,POST,api/administration/users/{membershipId:guid}/disable,Disable manager access,12
+Administration,GET,api/administration/audit,Get audit events,12
+Administration,GET,api/administration/audit/{eventId:guid},Get audit event detail,12
+Administration,GET,api/administration/audit.csv,Export audit events,12
+Attendance,GET,api/attendance,Get,7.7
+Attendance,PUT,api/attendance,Record,7.7
+CropCycles,GET,api/fields/{fieldId:guid}/crop-cycles,List field crop cycles,5.4–5.7
+CropCycles,GET,api/fields/{fieldId:guid}/crop-cycles/maturity,CalculateMaturity,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles,Create crop-cycle draft,5.4–5.7
+CropCycles,GET,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid},Get crop-cycle overview,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/transitions/activate,Activate,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/transitions/cancel,Cancel,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/transitions/ready-for-harvest,ReadyForHarvest,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/transitions/harvest,Harvest,5.4–5.7
+CropCycles,POST,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/transitions/close,Close,5.4–5.7
+CropCycles,PUT,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/plan,UpdatePlan,5.4–5.7
+CropCycles,PUT,api/fields/{fieldId:guid}/crop-cycles/{cropCycleId:guid}/actual-yield,UpdateActualYield,5.4–5.7
+CropVarieties,GET,api/CropVarieties,Get,5.4
+CropVarieties,POST,api/CropVarieties,Create,5.4
+FarmPersonnel,GET,api/farm-personnel,Get,4.5–4.7
+FarmPersonnel,POST,api/farm-personnel,Create,4.5–4.7
+FarmPersonnel,PUT,api/farm-personnel/{personId:guid},Update,4.5–4.7
+FarmPersonnel,POST,api/farm-personnel/{personId:guid}/deactivate,Deactivate,4.5–4.7
+FarmPersonnel,POST,api/farm-personnel/{personId:guid}/roles/{assignmentId:guid}/end,EndRole,4.5–4.7
+FarmSetup,GET,api/FarmSetup,Get farm setup,4–5
+FarmSetup,POST,api/FarmSetup/farm,Create grower farm,4–5
+FarmSetup,PUT,api/FarmSetup/farm,Update grower farm,4–5
+FarmSetup,GET,api/FarmSetup/farm-models,List Farm Models,4–5
+FarmSetup,POST,api/FarmSetup/farm-models,Save Farm Model,4–5
+FarmSetup,POST,api/FarmSetup/owner/national-id/reveal,Reveal Farm Owner national ID,4–5
+FarmSetup,PUT,api/FarmSetup/fields/{fieldId:guid},UpdateField,4–5
+FarmSetup,POST,api/FarmSetup/fields,Create field,4–5
+FieldLineProfiles,GET,api/fields/{fieldId:guid}/line-profile,Get,5.3
+FieldLineProfiles,PUT,api/fields/{fieldId:guid}/line-profile,Replace,5.3
+Finance,GET,api/finance/session,GetSession,10
+Finance,GET,api/finance/transactions,GetTransactions,10
+Finance,GET,api/finance/transactions/{transactionId:guid},GetTransaction,10
+Finance,POST,api/finance/transactions,CreateTransaction,10
+Finance,PUT,api/finance/transactions/{transactionId:guid},UpdateTransaction,10
+Finance,PUT,api/finance/transactions/{transactionId:guid}/allocations,SetAllocations,10
+Finance,POST,api/finance/transactions/{transactionId:guid}/post,PostTransaction,10
+Finance,POST,api/finance/transactions/{transactionId:guid}/reverse,ReverseTransaction,10
+Finance,GET,api/finance/crop-cycles/{cropCycleId:guid}/cost,GetCropCycleCost,10
+Finance,POST,api/finance/payroll-costs/reconcile,ReconcilePayrollCosts,10
+Finance,GET,api/finance/crop-cycles/{cropCycleId:guid}/budgets,GetBudgets,10
+Finance,GET,api/finance/budgets/{budgetId:guid},GetBudget,10
+Finance,GET,api/finance/crop-cycles/{cropCycleId:guid}/budgets/current,GetCurrentBudget,10
+Finance,POST,api/finance/budgets,CreateBudget,10
+Finance,PUT,api/finance/budgets/{budgetId:guid},UpdateBudget,10
+Finance,POST,api/finance/budgets/{budgetId:guid}/lines,AddBudgetLine,10
+Finance,PUT,api/finance/budgets/{budgetId:guid}/lines/{lineId:guid},UpdateBudgetLine,10
+Finance,DELETE,api/finance/budgets/{budgetId:guid}/lines/{lineId:guid},RemoveBudgetLine,10
+Finance,POST,api/finance/budgets/{budgetId:guid}/submit,SubmitBudget,10
+Finance,POST,api/finance/budgets/{budgetId:guid}/approve,ApproveBudget,10
+Finance,POST,api/finance/budgets/{budgetId:guid}/revisions,CreateBudgetRevision,10
+Finance,GET,api/finance/crop-cycles/{cropCycleId:guid}/budget-variance,GetBudgetVariance,10
+Health,GET,api/Health,Health check,Support diagnostics
+Health,GET,api/Health/live,Liveness check,Support diagnostics
+Health,GET,api/Health/ready,Readiness check,Support diagnostics
+InputControls,GET,api/input-controls,Workspace,9 / 12.3
+InputControls,POST,api/input-controls/rules,CreateRule,9 / 12.3
+InputControls,POST,api/input-controls/requests,CreateRequest,9 / 12.3
+InputControls,PUT,api/input-controls/requests/{requestId:guid}/lines/{lineId:guid},EditRequestLine,9 / 12.3
+InputControls,POST,api/input-controls/requests/{requestId:guid}/submit,SubmitRequest,9 / 12.3
+InputControls,POST,api/input-controls/requests/{requestId:guid}/decision,DecideRequest,9 / 12.3
+InputControls,POST,api/input-controls/requests/{requestId:guid}/cancel,CancelRequest,9 / 12.3
+InputControls,POST,api/input-controls/issues,CreateIssue,9 / 12.3
+InputControls,POST,api/input-controls/issues/{issueId:guid}/post,PostIssue,9 / 12.3
+InputControls,POST,api/input-controls/issues/{issueId:guid}/correction,RequestCorrection,9 / 12.3
+InputControls,POST,api/input-controls/issues/{issueId:guid}/reverse,ReverseIssue,9 / 12.3
+InputControls,POST,api/input-controls/field-receipts,CreateFieldReceipt,9 / 12.3
+InputControls,POST,api/input-controls/applications,CreateApplication,9 / 12.3
+InputControls,POST,api/input-controls/applications/{applicationId:guid}/attestation,AttestApplication,9 / 12.3
+InputControls,POST,api/input-controls/applications/{applicationId:guid}/confirmation,ConfirmApplication,9 / 12.3
+InputControls,POST,api/input-controls/returns,CreateReturn,9 / 12.3
+InputControls,POST,api/input-controls/returns/{stockReturnId:guid}/post,PostReturn,9 / 12.3
+InputControls,POST,api/input-controls/returns/{stockReturnId:guid}/reverse,ReverseReturn,9 / 12.3
+InputControls,POST,api/input-controls/losses,CreateLoss,9 / 12.3
+InputControls,POST,api/input-controls/losses/{lossId:guid}/submit,SubmitLoss,9 / 12.3
+InputControls,POST,api/input-controls/losses/{lossId:guid}/decision,DecideLoss,9 / 12.3
+InputControls,POST,api/input-controls/corrections,CreateFieldAccountabilityCorrection,9 / 12.3
+InputControls,POST,api/input-controls/corrections/{correctionId:guid}/decision,DecideFieldAccountabilityCorrection,9 / 12.3
+InputControls,POST,api/input-controls/manager-invitations,CreateInvitation,9 / 12.3
+InputControls,POST,api/input-controls/manager-invitations/{invitationId:guid}/revoke,RevokeInvitation,9 / 12.3
+InputControls,POST,api/input-controls/manager-invitations/redeem,RedeemInvitation,9 / 12.3
+InventoryCategories,GET,api/inventory/categories,List inventory categories,9.2
+InventoryCategories,POST,api/inventory/categories,Create inventory category,9.2
+InventoryCategories,PUT,api/inventory/categories/{categoryId:guid},Update inventory category,9.2
+InventoryCategories,POST,api/inventory/categories/{categoryId:guid}/active,Activate or deactivate inventory category,9.2
+Inventory,GET,api/inventory,Get inventory workspace,9
+Inventory,GET,api/inventory/receipts/{receiptId:guid},Get stock receipt,9
+Inventory,GET,api/inventory/movements,List stock movements,9
+Inventory,GET,api/inventory/counts,List stock counts,9
+Inventory,GET,api/inventory/adjustments,List stock adjustments,9
+Inventory,GET,api/inventory/leakage-report,Get inventory leakage report,9
+Inventory,GET,api/inventory/leakage-report.csv,Export inventory leakage report,9
+Inventory,POST,api/inventory/counts,Create stock count,9
+Inventory,POST,api/inventory/counts/{countId:guid}/start,Start stock count,9
+Inventory,POST,api/inventory/counts/{countId:guid}/lines/{lineId:guid},Enter stock count line,9
+Inventory,POST,api/inventory/counts/{countId:guid}/unexpected-lines,Add unexpected stock count line,9
+Inventory,POST,api/inventory/counts/{countId:guid}/review,Review stock count,9
+Inventory,POST,api/inventory/counts/{countId:guid}/cancel,Cancel stock count,9
+Inventory,POST,api/inventory/adjustments,Create stock adjustment,9
+Inventory,POST,api/inventory/adjustments/{adjustmentId:guid}/submit,Submit stock adjustment,9
+Inventory,POST,api/inventory/adjustments/{adjustmentId:guid}/decision,Decide stock adjustment,9
+Inventory,POST,api/inventory/adjustments/{adjustmentId:guid}/post,Post stock adjustment,9
+Inventory,POST,api/inventory/adjustments/{adjustmentId:guid}/reverse,Reverse stock adjustment,9
+Inventory,POST,api/inventory/units,Create unit of measure,9
+Inventory,GET,api/inventory/units,List units of measure,9
+Inventory,POST,api/inventory/units/{unitId:guid}/archive,Archive unit of measure,9
+Inventory,PUT,api/inventory/units/{unitId:guid},Rename unit of measure,9
+Inventory,POST,api/inventory/items,Create inventory item,9
+Inventory,POST,api/inventory/suppliers,Create supplier,9
+Inventory,PUT,api/inventory/suppliers/{supplierId:guid},Update supplier,9
+Inventory,POST,api/inventory/suppliers/{supplierId:guid}/archive,Archive supplier,9
+Inventory,POST,api/inventory/suppliers/{supplierId:guid}/unarchive,Unarchive supplier,9
+Inventory,POST,api/inventory/lots,Create inventory lot,9
+Inventory,POST,api/inventory/receipts,Create stock receipt,9
+Inventory,POST,api/inventory/receipts/{receiptId:guid}/submit-opening-balance,Submit opening balance,9
+Inventory,POST,api/inventory/receipts/{receiptId:guid}/opening-balance-decision,Decide opening balance,9
+Inventory,POST,api/inventory/receipts/{receiptId:guid}/post,Post stock receipt,9
+Inventory,POST,api/inventory/receipts/{receiptId:guid}/reverse,Reverse stock receipt,9
+MillRecords,GET,api/finance/mill-records/session,GetSession,11
+MillRecords,GET,api/finance/mill-records/mills,GetMills,11
+MillRecords,POST,api/finance/mill-records/mills,CreateMill,11
+MillRecords,PUT,api/finance/mill-records/mills/{millId:guid},UpdateMill,11
+MillRecords,POST,api/finance/mill-records/mills/{millId:guid}/deactivate,DeactivateMill,11
+MillRecords,POST,api/finance/mill-records/mills/{millId:guid}/reactivate,ReactivateMill,11
+MillRecords,GET,api/finance/mill-records/tickets,GetTickets,11
+MillRecords,GET,api/finance/mill-records/tickets/{ticketId:guid},GetTicket,11
+MillRecords,POST,api/finance/mill-records/tickets,CreateTicket,11
+MillRecords,PUT,api/finance/mill-records/tickets/{ticketId:guid},UpdateTicket,11
+MillRecords,POST,api/finance/mill-records/tickets/{ticketId:guid}/record,RecordTicket,11
+MillRecords,POST,api/finance/mill-records/tickets/{ticketId:guid}/corrections,CorrectTicket,11
+MillRecords,POST,api/finance/mill-records/tickets/{ticketId:guid}/evidence,UploadTicketEvidence,11
+MillRecords,GET,api/finance/mill-records/statements,GetStatements,11
+MillRecords,GET,api/finance/mill-records/statements/{statementId:guid},GetStatement,11
+MillRecords,POST,api/finance/mill-records/statements,CreateStatement,11
+MillRecords,PUT,api/finance/mill-records/statements/{statementId:guid},UpdateStatement,11
+MillRecords,POST,api/finance/mill-records/statements/{statementId:guid}/record,RecordStatement,11
+MillRecords,POST,api/finance/mill-records/statements/{statementId:guid}/corrections,CorrectStatement,11
+MillRecords,POST,api/finance/mill-records/statements/{statementId:guid}/evidence,UploadStatementEvidence,11
+MillRecords,GET,api/finance/mill-records/evidence/{evidenceId:guid},DownloadEvidence,11
+MillRecords,GET,api/finance/mill-records/statements/{statementId:guid}/candidates,GetCandidates,11
+MillRecords,POST,api/finance/mill-records/statements/{statementId:guid}/matches,AddMatch,11
+MillRecords,POST,api/finance/mill-records/statements/{statementId:guid}/matches/{matchId:guid}/reverse,ReverseMatch,11
+MillRecords,GET,api/finance/mill-records/statements/{statementId:guid}/reconciliation,GetReconciliation,11
+MillRecords,GET,api/finance/mill-records/tickets/export,ExportTickets,11
+MillRecords,GET,api/finance/mill-records/statements/export,ExportStatements,11
+MyProfile,GET,api/my-profile,Get,12.2
+MyProfile,PUT,api/my-profile,Update,12.2
+Payroll,GET,api/payroll/workspace,Get payroll workspace,8
+Payroll,GET,api/payroll/periods,List payroll periods,8
+Payroll,POST,api/payroll/periods,Create payroll period,8
+Payroll,POST,api/payroll/periods/{periodId:guid}/open,Open payroll period,8
+Payroll,POST,api/payroll/periods/{periodId:guid}/cancel,Cancel payroll period,8
+Payroll,GET,api/payroll/periods/{periodId:guid}/preflight,Get payroll preflight,8
+Payroll,GET,api/payroll/advances,List worker advances,8
+Payroll,GET,api/payroll/advances/{advanceId:guid},Get worker advance,8
+Payroll,POST,api/payroll/advances/schedule-preview,Preview advance schedule,8
+Payroll,POST,api/payroll/advances,Create worker advance,8
+Payroll,PUT,api/payroll/advances/{advanceId:guid},Update worker advance,8
+Payroll,POST,api/payroll/advances/{advanceId:guid}/cancel,Cancel worker advance,8
+Payroll,POST,api/payroll/advances/{advanceId:guid}/submit,Submit worker advance,8
+Payroll,POST,api/payroll/advances/{advanceId:guid}/decision,Decide worker advance,8
+Payroll,POST,api/payroll/advances/{advanceId:guid}/issue,Issue worker advance,8
+Payroll,GET,api/payroll/runs,List payroll runs,8
+Payroll,GET,api/payroll/runs/{runId:guid},Get payroll run,8
+Payroll,POST,api/payroll/runs,Create payroll run,8
+Payroll,POST,api/payroll/runs/{runId:guid}/calculate,Calculate payroll run,8
+Payroll,GET,api/payroll/runs/{runId:guid}/calculations/{calculationVersion:int},Get payroll calculation,8
+Payroll,GET,api/payroll/runs/{runId:guid}/calculations/{calculationVersion:int}/worker-lines/{workerId:guid},Get payroll worker line,8
+Payroll,POST,api/payroll/runs/{runId:guid}/submit,Submit payroll run,8
+Payroll,POST,api/payroll/runs/{runId:guid}/decision,Decide payroll run,8
+Payroll,POST,api/payroll/runs/{runId:guid}/cancel,Cancel payroll run,8
+Payroll,GET,api/payroll/runs/{runId:guid}/approved-source-chain,Get approved payroll source chain,8
+Payroll,GET,api/payroll/runs/{runId:guid}/settlement,Get payroll settlement,8
+Payroll,GET,api/payroll/runs/{runId:guid}/settlement/workers/{workerLineId:guid},Get worker settlement,8
+Payroll,POST,api/payroll/runs/{runId:guid}/payments,Record payroll payment,8
+Payroll,POST,api/payroll/payments/{paymentId:guid}/acknowledgement,Acknowledge payroll payment,8
+Payroll,POST,api/payroll/payments/{paymentId:guid}/reversal,Reverse payroll payment,8
+Payroll,POST,api/payroll/runs/{runId:guid}/settlement/close,Close payroll settlement,8
+Payroll,POST,api/payroll/runs/{runId:guid}/settlement/reopen,Reopen payroll settlement,8
+Payroll,GET,api/payroll/runs/{runId:guid}/calculations/{calculationVersion:int}/worker-lines/{workerLineId:guid}/payslip,Get operational payslip,8
+Payroll,GET,api/payroll/runs/{runId:guid}/calculations/{calculationVersion:int}/cash-register,Get cash payment register,8
+Session,GET,api/session,Get,2
+Users,POST,api/Users/register,Register,2
+Users,POST,api/Users/login,Log in,2
+Users,POST,api/Users/logout,Log out,2
+Users,GET,api/Users/manage/info,Get account info,2
+WorkRecords,GET,api/work-records,Get,7.8–7.10
+WorkRecords,GET,api/work-records/reference-data,ReferenceData,7.8–7.10
+WorkRecords,POST,api/work-records,Create,7.8–7.10
+WorkRecords,POST,api/work-records/{workRecordId:guid}/supervisor-verification,Verify,7.8–7.10
+WorkRecords,POST,api/work-records/{workRecordId:guid}/manager-confirmation,Confirm,7.8–7.10
+WorkRecords,POST,api/work-records/{workRecordId:guid}/corrections,Correct,7.8–7.10
+WorkerRates,POST,api/workers/{workerId:guid}/rates,Create worker rate,7.6
+WorkerRates,POST,api/workers/{workerId:guid}/rates/{rateId:guid}/end,End worker rate,7.6
+Workers,GET,api/workers,Get,7.2–7.5
+Workers,GET,api/workers/{workerId:guid},GetById,7.2–7.5
+Workers,POST,api/workers,Create,7.2–7.5
+Workers,PUT,api/workers/{workerId:guid}/profile,UpdateProfile,7.2–7.5
+Workers,PUT,api/workers/{workerId:guid}/national-id,CorrectNationalId,7.2–7.5
+Workers,POST,api/workers/{workerId:guid}/archive,Archive,7.2–7.5
+Workers,POST,api/workers/{workerId:guid}/national-id/reveal,RevealNationalId,7.2–7.5

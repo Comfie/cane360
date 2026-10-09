@@ -8695,3 +8695,13 @@ body :focus-visible {
 .inventory-category-section .row-actions {
   flex-wrap: wrap;
 }
+
+.user-manual-frame {
+  display: block;
+  width: 100%;
+  height: 78vh;
+  min-height: 28rem;
+  border: 1px solid var(--border-color, #d7e0d9);
+  border-radius: .5rem;
+  background: #fff;
+}

@@ -36,6 +36,7 @@ export function AuthLayout({children, title, description}: AuthLayoutProps) {
                         <p>{description}</p>
                     </header>
                     {children}
+                    <p className="auth-switch"><a href="/help/index.html" target="_blank" rel="noopener noreferrer">Help and user manual</a></p>
                 </article>
             </section>
         </main>

@@ -14,6 +14,7 @@ import {ActivationPage} from './components/api-authorization/ActivationPage';
 import {LoginPage} from './components/api-authorization/LoginPage';
 import {ProtectedRoute} from './components/api-authorization/ProtectedRoute';
 import {RegisterPage} from './components/api-authorization/RegisterPage';
+import {HelpPage} from './components/pages/HelpPage';
 
 const PayrollPage = lazy(() => import('./components/pages/PayrollPage').then((module) => ({default: module.PayrollPage})));
 const FinancePage = lazy(() => import('./components/pages/FinancePage').then((module) => ({default: module.FinancePage})));
@@ -28,6 +29,7 @@ export function AppRoutes() {
 
             <Route element={<ProtectedRoute><Layout/></ProtectedRoute>}>
                 <Route index element={<Dashboard/>}/>
+                <Route path="/help" element={<HelpPage/>}/>
                 <Route path="/farm" element={<FarmPage/>}/>
                 <Route path="/fields" element={<FieldsPage/>}/>
                 <Route path="/fields/:fieldId/crop-cycles/:cropCycleId" element={<CropCycleOverviewPage/>}/>
